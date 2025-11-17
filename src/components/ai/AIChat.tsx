@@ -1,19 +1,86 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useUIStore } from '@/stores/ui-store';
 import { useAIStore } from '@/stores/ai-store';
+import { useProjectStore } from '@/stores/project-store';
 import { Button } from '../ui/Button';
+import { sendAIMessage, applyMusicActions } from '@/lib/ai/ai-service';
+import AISetupWizard from './AISetupWizard';
 
 export default function AIChat() {
   const { isAIChatOpen, toggleAIChat } = useUIStore();
-  const { messages, isLoading } = useAIStore();
+  const { messages, isLoading, config, addMessage, setLoading } = useAIStore();
+  const projectStore = useProjectStore();
   const [input, setInput] = useState('');
+  const [showSetup, setShowSetup] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    // TODO: Implement AI message sending
-    console.log('Send message:', input);
+    // Check if AI is configured
+    if (!config) {
+      alert('Please configure your AI assistant first. Click the settings icon to get started.');
+      return;
+    }
+
+    const userMessage = input.trim();
     setInput('');
+
+    // Add user message
+    addMessage({ role: 'user', content: userMessage });
+    setLoading(true);
+
+    try {
+      // Get project context
+      const currentScene = projectStore.project?.scenes.find(
+        s => s.id === projectStore.currentSceneId
+      );
+
+      // Send message to AI
+      const response = await sendAIMessage(
+        config,
+        [...messages, { role: 'user', content: userMessage }],
+        {
+          currentScene,
+          projectSnapshot: projectStore.project
+            ? {
+                bpm: projectStore.project.bpm,
+                defaultKey: projectStore.project.defaultKey,
+                defaultScale: projectStore.project.defaultScale,
+              }
+            : undefined,
+        }
+      );
+
+      // Add assistant message
+      addMessage({ role: 'assistant', content: response.message });
+
+      // Apply actions if any
+      if (response.actions && response.actions.length > 0) {
+        const result = applyMusicActions(response.actions, projectStore);
+
+        if (result.failed > 0) {
+          console.warn(`${result.failed} actions failed:`, result.errors);
+          addMessage({
+            role: 'assistant',
+            content: `Note: ${result.failed} action(s) could not be applied. ${result.success} succeeded.`,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('AI chat error:', error);
+      addMessage({
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isAIChatOpen) {
@@ -29,23 +96,40 @@ export default function AIChat() {
   }
 
   return (
-    <aside className="w-96 bg-white border-l border-gray-200 flex flex-col">
-      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900">AI Assistant</h2>
-        <button
-          onClick={toggleAIChat}
-          className="text-gray-500 hover:text-gray-700"
-          aria-label="Close AI Chat"
-        >
-          ✕
-        </button>
-      </div>
+    <>
+      <AISetupWizard open={showSetup} onClose={() => setShowSetup(false)} />
+      <aside className="w-96 bg-white border-l border-gray-200 flex flex-col">
+        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+          <h2 className="font-semibold text-gray-900">AI Assistant</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowSetup(true)}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="AI Settings"
+              title="Configure AI"
+            >
+              ⚙️
+            </button>
+            <button
+              onClick={toggleAIChat}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="Close AI Chat"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
             <p className="mb-2">👋 Hi! I'm your music composition assistant.</p>
             <p className="text-sm">Ask me to help create, modify, or improve your music!</p>
+            {!config && (
+              <p className="text-sm text-red-600 mt-4">
+                ⚠️ Please configure your AI assistant first
+              </p>
+            )}
           </div>
         ) : (
           messages.map((msg, idx) => (
@@ -72,6 +156,7 @@ export default function AIChat() {
             </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="p-4 border-t border-gray-200">
@@ -90,6 +175,7 @@ export default function AIChat() {
           </Button>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

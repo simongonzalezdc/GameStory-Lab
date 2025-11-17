@@ -52,7 +52,6 @@ export function getScaleNotes(
   endOctave: number
 ): number[] {
   const intervals = SCALE_INTERVALS[scaleName] || SCALE_INTERVALS.major;
-  const rootMidi = noteToMidi(rootNote, startOctave);
   const notes: number[] = [];
 
   for (let octave = startOctave; octave <= endOctave; octave++) {

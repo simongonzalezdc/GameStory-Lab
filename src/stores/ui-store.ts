@@ -21,7 +21,7 @@ interface UIStoreState extends UIState {
 
 export const useUIStore = create<UIStoreState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       activePanel: 'scenes',
       selectedSceneId: null,
       selectedTrackId: null,

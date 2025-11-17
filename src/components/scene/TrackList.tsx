@@ -1,0 +1,59 @@
+import { useProjectStore } from '@/stores/project-store';
+import { Button } from '../ui/Button';
+import TrackRow from './TrackRow';
+import type { TrackRole } from '@/types';
+
+interface TrackListProps {
+  sceneId: string;
+}
+
+export default function TrackList({ sceneId }: TrackListProps) {
+  const { project, addTrack } = useProjectStore();
+
+  const scene = project?.scenes.find(s => s.id === sceneId);
+
+  if (!scene) return null;
+
+  const handleAddTrack = (role: TrackRole) => {
+    addTrack(sceneId, {
+      name: `${role.charAt(0).toUpperCase() + role.slice(1)} Track`,
+      role,
+      instrumentRef: 'default-synth',
+      clips: [],
+      volume: 0.8,
+      pan: 0,
+      muted: false,
+      solo: false,
+    });
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900">Tracks</h3>
+        <div className="flex gap-2">
+          <Button size="sm" onClick={() => handleAddTrack('drums')}>+ Drums</Button>
+          <Button size="sm" onClick={() => handleAddTrack('bass')}>+ Bass</Button>
+          <Button size="sm" onClick={() => handleAddTrack('pad')}>+ Pad</Button>
+          <Button size="sm" onClick={() => handleAddTrack('lead')}>+ Lead</Button>
+        </div>
+      </div>
+
+      {scene.tracks.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+          <p className="text-gray-500 mb-4">No tracks yet. Add a track to get started!</p>
+          <div className="flex gap-2 justify-center">
+            <Button onClick={() => handleAddTrack('drums')}>Add Drums</Button>
+            <Button onClick={() => handleAddTrack('bass')}>Add Bass</Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {scene.tracks.map(track => (
+            <TrackRow key={track.id} sceneId={sceneId} track={track} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

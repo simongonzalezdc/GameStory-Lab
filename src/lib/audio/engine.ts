@@ -4,19 +4,15 @@
 
 import * as Tone from 'tone';
 import type { Scene, Track, Clip } from '@/types';
-import { barsToSeconds } from '../utils/time';
+import { generateNotes } from '@/lib/generators/factory';
 
 export class AudioEngine {
-  private context: Tone.BaseContext;
-  private transport: typeof Tone.getTransport;
   private instruments: Map<string, Tone.PolySynth | Tone.Sampler>;
   private scheduledParts: Tone.Part[];
   private currentScene: Scene | null = null;
   private isInitialized = false;
 
   constructor() {
-    this.context = Tone.getContext();
-    this.transport = Tone.getTransport;
     this.instruments = new Map();
     this.scheduledParts = [];
   }
@@ -73,7 +69,7 @@ export class AudioEngine {
     // TODO: Load different instrument types based on track.instrumentRef
     const synth = new Tone.PolySynth(Tone.Synth, {
       oscillator: {
-        type: this.getOscillatorType(track.role),
+        type: this.getOscillatorType(track.role) as any,
       },
       envelope: {
         attack: 0.02,
@@ -130,28 +126,52 @@ export class AudioEngine {
    * Schedule a single clip
    */
   private scheduleClip(
-    track: Track,
+    _track: Track,
     clip: Clip,
     instrument: Tone.PolySynth | Tone.Sampler
   ): void {
-    // This is a placeholder - actual note generation will be done by generators
-    // For now, create a simple test pattern
-    const notes: Array<[string, string, number]> = [];
+    if (!this.currentScene) return;
 
-    // Example: simple pattern (will be replaced by generators)
-    for (let i = 0; i < clip.lengthBars * 4; i++) {
-      notes.push(['C4', `0:${i}:0`, 0.5]);
-    }
+    // Get scene key and scale
+    const key = this.currentScene.key || 'C';
+    const scale = this.currentScene.scale || 'major';
+    const bpm = this.currentScene.bpm || 120;
 
-    const part = new Tone.Part((time, note) => {
+    // Generate notes using the clip's generator
+    const generatedNotes = generateNotes(
+      clip.generator,
+      key,
+      scale,
+      clip.lengthBars,
+      bpm
+    );
+
+    // Convert to Tone.js Part format
+    const toneNotes = generatedNotes.map((note) => ({
+      time: note.time,
+      note: note.note,
+      duration: note.duration,
+      velocity: note.velocity,
+    }));
+
+    // Create and schedule Tone.js Part
+    const part = new Tone.Part((time, value) => {
       if (instrument instanceof Tone.PolySynth) {
-        instrument.triggerAttackRelease(note[0], note[2], time, note[1] as number);
+        instrument.triggerAttackRelease(
+          value.note,
+          value.duration,
+          time,
+          value.velocity
+        );
       }
-    }, notes);
+    }, toneNotes);
 
+    // Start at clip offset
     part.start(clip.offset || 0);
+
+    // Loop the pattern
     part.loop = true;
-    part.loopEnd = clip.lengthBars + 'n';
+    part.loopEnd = `${clip.lengthBars * 4}:0:0`; // Bars to Tone.js time format
 
     this.scheduledParts.push(part);
   }

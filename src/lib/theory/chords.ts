@@ -39,7 +39,7 @@ export const CHORD_PROGRESSIONS: Record<string, string[]> = {
  * Generate a chord progression in a given key
  */
 export function generateProgression(
-  key: string,
+  _key: string,
   progressionName: string,
   beatsPerChord: number = 4
 ): Chord[] {

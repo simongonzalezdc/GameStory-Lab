@@ -5,7 +5,7 @@
 
 import { BaseGenerator } from './base-generator';
 import type { GeneratorConfig, GenerationContext, NoteSequence, Note, MarkovParams } from '@/types';
-import { getScaleNotes, quantizeToScale } from '../theory/scales';
+import { getScaleNotes } from '../theory/scales';
 
 export class MarkovGenerator extends BaseGenerator {
   generate(config: GeneratorConfig, context: GenerationContext): NoteSequence {

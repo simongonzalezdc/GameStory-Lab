@@ -1,12 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useProjectStore } from './stores/project-store';
 import { useTutorialStore } from './stores/tutorial-store';
 import SceneBoard from './components/scene/SceneBoard';
+import SceneEditor from './components/scene/SceneEditor';
 import AIChat from './components/ai/AIChat';
+import ExportDialog from './components/project/ExportDialog';
 
 function App() {
-  const { project, createNewProject } = useProjectStore();
-  const { isCompleted, startTutorial } = useTutorialStore();
+  const { project, createNewProject, currentSceneId } = useProjectStore();
+  const { isCompleted } = useTutorialStore();
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
   useEffect(() => {
     // Create default project if none exists
@@ -33,9 +36,17 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+    <>
+      {project && (
+        <ExportDialog
+          open={showExportDialog}
+          onClose={() => setShowExportDialog(false)}
+          project={project}
+        />
+      )}
+      <div className="flex h-screen bg-gray-50">
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
         <header className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -47,10 +58,7 @@ function App() {
             <div className="flex gap-2">
               <button
                 className="px-4 py-2 bg-forest-600 text-white rounded-lg hover:bg-forest-700 transition"
-                onClick={() => {
-                  // TODO: Export functionality
-                  console.log('Export clicked');
-                }}
+                onClick={() => setShowExportDialog(true)}
               >
                 Export Project
               </button>
@@ -59,13 +67,14 @@ function App() {
         </header>
 
         <div className="p-6">
-          <SceneBoard />
+          {currentSceneId ? <SceneEditor /> : <SceneBoard />}
         </div>
       </main>
 
-      {/* AI Chat Sidebar */}
-      <AIChat />
-    </div>
+        {/* AI Chat Sidebar */}
+        <AIChat />
+      </div>
+    </>
   );
 }
 
