@@ -2,9 +2,9 @@
 
 A local-first web application that generates game-ready 2D assets using cloud AI providers. **Your assets stay on your machine** - stored locally in SQLite + file system!
 
-![Version](https://img.shields.io/badge/version-1.0.0--phase1-blue)
+![Version](https://img.shields.io/badge/version-2.0.0--phase2-blue)
 ![Storage](https://img.shields.io/badge/storage-local%20SQLite-green)
-![AI](https://img.shields.io/badge/AI-cloud%20providers-purple)
+![AI](https://img.shields.io/badge/AI-cloud%20%2B%20Ollama-purple)
 
 ## 🎮 Features
 
@@ -26,11 +26,28 @@ A local-first web application that generates game-ready 2D assets using cloud AI
 - **No Authentication** - Simple single-user setup
 - **Game-Ready Export** - Export as sprite sheets with JSON metadata
 
+### ✨ Phase 2 (Complete) - Natural Language Refinement
+- **Chat-Based Asset Refinement** - Iteratively improve assets with conversational AI
+  - Natural language instructions (e.g., "make it darker", "add blue glow")
+  - Quick action buttons for common refinements
+  - Ollama integration for prompt enhancement
+  - Real-time feedback and generation
+- **Version History & Rollback** - Full asset versioning system
+  - Visual timeline of all refinements
+  - View and compare any previous version
+  - Rollback or branch from any version
+  - Refinement instructions saved for each version
+- **Enhanced Asset Detail View** - Detailed modal for asset exploration
+  - Large asset preview
+  - Complete version history timeline
+  - One-click refinement from any version
+  - Metadata and download options
+
 ### 🔒 Privacy & Local-First
 - ✅ **Local Storage** - All assets, database, and files stay on your machine
 - ✅ **No Authentication** - No accounts, no logins, no tracking
 - ✅ **SQLite Database** - No external database dependencies
-- ✅ **Ollama Infrastructure** - Ready for future text-based features (chat, refinement)
+- ✅ **Ollama for Chat** - Uses local Ollama for prompt enhancement (optional)
 
 ## 🚀 Quick Start (5 Minutes)
 
@@ -42,6 +59,10 @@ A local-first web application that generates game-ready 2D assets using cloud AI
   - [OpenRouter](https://openrouter.ai/) (Free tier available!)
   - [Google AI Studio](https://aistudio.google.com/) (Free quota)
   - [OpenAI](https://platform.openai.com/)
+- **Ollama (Optional)** - For Phase 2 refinement features:
+  - [Download Ollama](https://ollama.ai/)
+  - Enhances refinement instructions with AI
+  - Falls back to simple concatenation if unavailable
 
 ### Step-by-Step Setup
 
@@ -121,6 +142,30 @@ Generative-Assets-Lab/
    - Resizes if larger than 2048px
    - Optimizes PNG compression
 6. Converted sprite appears in your library!
+
+### Refining Assets with AI (Phase 2)
+
+**Quick Refinement:**
+1. Click the "Refine" button on any asset card
+2. Type a natural language instruction: "make it glow with blue energy"
+3. Or click a quick action button: "Darker", "Lighter", "More Detail", "Simpler"
+4. Select your preferred AI provider
+5. Click "Refine" - Ollama enhances your instruction, then cloud AI generates
+6. New version (v2) is created and added to your library!
+
+**Version History:**
+1. Click the "v#" badge on any asset to view version history
+2. See a timeline of all refinements from original to latest
+3. Click any version to view it in detail
+4. Click "Refine This Version" to branch new variations
+5. Each version shows the instruction used to create it
+
+**Tips for Better Refinements:**
+- Be specific: "add glowing purple energy around the sword" vs "make it better"
+- Use descriptive words: darker, brighter, more detailed, simplified
+- Ollama will enhance your instruction before generating
+- Each refinement creates a new version you can rollback to
+- You can refine from any previous version, creating branches
 
 ### Managing Your Asset Library
 
