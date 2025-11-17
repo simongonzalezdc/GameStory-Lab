@@ -2,13 +2,15 @@ import { useProjectStore } from '@/stores/project-store';
 import { useAudioStore } from '@/stores/audio-store';
 import { Button } from '../ui/Button';
 import TrackList from './TrackList';
+import MidiExportDialog from '../project/MidiExportDialog';
 import { getAudioEngine } from '@/lib/audio/engine';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function SceneEditor() {
   const { project, currentSceneId, setCurrentScene } = useProjectStore();
   const { isPlaying, setPlaying } = useAudioStore();
   const audioEngine = getAudioEngine();
+  const [showMidiExport, setShowMidiExport] = useState(false);
 
   const currentScene = project?.scenes.find(s => s.id === currentSceneId);
 
@@ -49,38 +51,48 @@ export default function SceneEditor() {
   };
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setCurrentScene(null)}
-            >
-              ← Back to Scenes
-            </Button>
-            <h2 className="text-xl font-bold text-gray-900 mt-2">{currentScene.name}</h2>
-            <p className="text-sm text-gray-500">
-              {currentScene.key} {currentScene.scale} • {currentScene.bpm || project?.bpm} BPM
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={handlePlayPause}>
-              {isPlaying ? '⏸ Pause' : '▶ Play'}
-            </Button>
-            <Button onClick={handleStop} variant="secondary">
-              ⏹ Stop
-            </Button>
+    <>
+      <MidiExportDialog
+        open={showMidiExport}
+        onClose={() => setShowMidiExport(false)}
+        scene={currentScene}
+      />
+      <div className="h-full flex flex-col">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentScene(null)}
+              >
+                ← Back to Scenes
+              </Button>
+              <h2 className="text-xl font-bold text-gray-900 mt-2">{currentScene.name}</h2>
+              <p className="text-sm text-gray-500">
+                {currentScene.key} {currentScene.scale} • {currentScene.bpm || project?.bpm} BPM
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handlePlayPause}>
+                {isPlaying ? '⏸ Pause' : '▶ Play'}
+              </Button>
+              <Button onClick={handleStop} variant="secondary">
+                ⏹ Stop
+              </Button>
+              <Button onClick={() => setShowMidiExport(true)} variant="secondary">
+                🎹 Export MIDI
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Track List */}
-      <div className="flex-1 overflow-auto p-4">
-        <TrackList sceneId={currentScene.id} />
+        {/* Track List */}
+        <div className="flex-1 overflow-auto p-4">
+          <TrackList sceneId={currentScene.id} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

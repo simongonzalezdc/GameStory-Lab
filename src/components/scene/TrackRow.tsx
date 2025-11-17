@@ -4,6 +4,7 @@ import type { Track } from '@/types';
 import { Button } from '../ui/Button';
 import { Slider } from '../ui/Slider';
 import ClipList from './ClipList';
+import { exportTrackToMidi } from '@/lib/io/midi-export';
 
 interface TrackRowProps {
   sceneId: string;
@@ -11,8 +12,25 @@ interface TrackRowProps {
 }
 
 export default function TrackRow({ sceneId, track }: TrackRowProps) {
-  const { updateTrack, deleteTrack } = useProjectStore();
+  const { project, updateTrack, deleteTrack } = useProjectStore();
   const [expanded, setExpanded] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const scene = project?.scenes.find((s) => s.id === sceneId);
+
+  const handleExportMidi = async () => {
+    if (!scene) return;
+
+    try {
+      setExporting(true);
+      await exportTrackToMidi(scene, track.id);
+    } catch (error) {
+      console.error('Failed to export track:', error);
+      alert('Failed to export MIDI file');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const roleIcons: Record<string, string> = {
     drums: '🥁',
@@ -39,6 +57,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
               size="sm"
               variant={track.muted ? 'secondary' : 'ghost'}
               onClick={() => updateTrack(sceneId, track.id, { muted: !track.muted })}
+              title="Mute/Unmute"
             >
               {track.muted ? '🔇' : '🔊'}
             </Button>
@@ -46,13 +65,24 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
               size="sm"
               variant={track.solo ? 'primary' : 'ghost'}
               onClick={() => updateTrack(sceneId, track.id, { solo: !track.solo })}
+              title="Solo"
             >
               S
             </Button>
             <Button
               size="sm"
               variant="ghost"
+              onClick={handleExportMidi}
+              disabled={exporting || track.clips.length === 0}
+              title="Export track as MIDI"
+            >
+              {exporting ? '⏳' : '🎹'}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
               onClick={() => setExpanded(!expanded)}
+              title="Show/Hide clips"
             >
               {expanded ? '▼' : '▶'}
             </Button>
@@ -65,6 +95,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
                 }
               }}
               className="text-red-600"
+              title="Delete track"
             >
               🗑
             </Button>
