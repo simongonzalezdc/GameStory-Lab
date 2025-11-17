@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useProjectStore } from './stores/project-store';
 import { useTutorialStore } from './stores/tutorial-store';
 import { useUIStore } from './stores/ui-store';
 import SceneBoard from './components/scene/SceneBoard';
 import SceneEditor from './components/scene/SceneEditor';
-import AIChat from './components/ai/AIChat';
-import ExportDialog from './components/project/ExportDialog';
 import KeyboardShortcutsHelp from './components/ui/KeyboardShortcutsHelp';
 import ErrorNotification from './components/ui/ErrorNotification';
-import TutorialOverlay from './components/tutorial/TutorialOverlay';
 import { useKeyboardShortcuts, isTypingInInput } from './hooks/useKeyboardShortcuts';
+
+// Lazy load heavy components
+const AIChat = lazy(() => import('./components/ai/AIChat'));
+const ExportDialog = lazy(() => import('./components/project/ExportDialog'));
+const TutorialOverlay = lazy(() => import('./components/tutorial/TutorialOverlay'));
 
 function App() {
   const { project, createNewProject, currentSceneId } = useProjectStore();
@@ -87,11 +89,13 @@ function App() {
     <>
       {project && (
         <>
-          <ExportDialog
-            open={showExportDialog}
-            onClose={() => setShowExportDialog(false)}
-            project={project}
-          />
+          <Suspense fallback={<div />}>
+            <ExportDialog
+              open={showExportDialog}
+              onClose={() => setShowExportDialog(false)}
+              project={project}
+            />
+          </Suspense>
           <KeyboardShortcutsHelp
             open={showShortcutsHelp}
             onClose={() => setShowShortcutsHelp(false)}
@@ -135,14 +139,18 @@ function App() {
       </main>
 
         {/* AI Chat Sidebar */}
-        <AIChat />
+        <Suspense fallback={<div />}>
+          <AIChat />
+        </Suspense>
       </div>
 
       {/* Error Notifications */}
       <ErrorNotification />
 
       {/* Tutorial Overlay */}
-      <TutorialOverlay />
+      <Suspense fallback={<div />}>
+        <TutorialOverlay />
+      </Suspense>
     </>
   );
 }
