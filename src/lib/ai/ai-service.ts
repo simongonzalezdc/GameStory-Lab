@@ -3,8 +3,18 @@
  */
 
 import { createAIClient, buildMusicSystemPrompt } from './index';
-import type { AIConfig, ChatMessage, AIResponse, MusicAction, ProjectContext } from '@/types';
+import type { AIConfig, ChatMessage, AIResponse, MusicAction, ProjectContext, Scene, Track, Clip } from '@/types';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+
+/**
+ * Project store interface for AI actions
+ */
+interface ProjectStoreActions {
+  updateScene: (sceneId: string, updates: Partial<Scene>) => void;
+  updateTrack: (sceneId: string, trackId: string, updates: Partial<Track>) => void;
+  updateClip: (sceneId: string, trackId: string, clipId: string, updates: Partial<Clip>) => void;
+  addTrack: (sceneId: string, track: Omit<Track, 'id'> | Record<string, unknown>) => void;
+}
 
 /**
  * Send a message to the AI and get response
@@ -46,7 +56,7 @@ export async function sendAIMessage(
  */
 export function applyMusicActions(
   actions: MusicAction[],
-  projectStore: any
+  projectStore: ProjectStoreActions
 ): { success: number; failed: number; errors: string[] } {
   let success = 0;
   let failed = 0;

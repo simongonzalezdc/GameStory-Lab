@@ -4,7 +4,7 @@ import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { Input } from '../ui/Input';
-import type { AIClientId } from '@/types';
+import type { AIClientId, AIConfig, OpenRouterConfig, MinimaxConfig, GLMConfig, LocalConfig } from '@/types';
 
 interface AISetupWizardProps {
   open: boolean;
@@ -17,14 +17,14 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
   const [apiKey, setApiKey] = useState(config?.apiKey || '');
   const [model, setModel] = useState(config?.model || '');
   const [baseURL, setBaseURL] = useState(
-    (config as any)?.baseURL || 'http://localhost:11434'
+    (config as LocalConfig)?.baseURL || 'http://localhost:11434'
   );
-  const [groupId, setGroupId] = useState((config as any)?.groupId || '');
+  const [groupId, setGroupId] = useState((config as MinimaxConfig)?.groupId || '');
   const [validationError, setValidationError] = useState('');
 
   const handleSave = () => {
     setValidationError('');
-    let newConfig: any = { provider };
+    let newConfig: AIConfig;
 
     switch (provider) {
       case 'openrouter':
@@ -32,7 +32,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
           setValidationError('Please provide both API key and model for OpenRouter');
           return;
         }
-        newConfig = { provider, apiKey, model };
+        newConfig = { provider, apiKey, model } as OpenRouterConfig;
         break;
 
       case 'minimax':
@@ -40,7 +40,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
           setValidationError('Please provide API key, Group ID, and model for Minimax');
           return;
         }
-        newConfig = { provider, apiKey, groupId, model };
+        newConfig = { provider, apiKey, groupId, model } as MinimaxConfig;
         break;
 
       case 'glm':
@@ -48,7 +48,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
           setValidationError('Please provide both API key and model for GLM');
           return;
         }
-        newConfig = { provider, apiKey, model };
+        newConfig = { provider, apiKey, model } as GLMConfig;
         break;
 
       case 'local':
@@ -56,8 +56,11 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
           setValidationError('Please provide both base URL and model name for local AI');
           return;
         }
-        newConfig = { provider, baseURL, model };
+        newConfig = { provider, baseURL, model } as LocalConfig;
         break;
+
+      default:
+        return;
     }
 
     setConfig(newConfig);

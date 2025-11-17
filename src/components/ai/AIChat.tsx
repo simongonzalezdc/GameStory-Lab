@@ -65,7 +65,7 @@ export default function AIChat() {
 
       // Apply actions if any
       if (response.actions && response.actions.length > 0) {
-        const result = applyMusicActions(response.actions, projectStore);
+        const result = applyMusicActions(response.actions, projectStore as Parameters<typeof applyMusicActions>[1]);
 
         if (result.failed > 0) {
           errorHandler.handle(

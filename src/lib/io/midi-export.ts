@@ -3,7 +3,7 @@
  * Converts scenes and tracks to MIDI format
  */
 
-import { Midi } from '@tonejs/midi';
+import { Midi, Track as MidiTrack } from '@tonejs/midi';
 import type { Scene, Track, Clip } from '@/types';
 import { generateNotes } from '@/lib/generators/factory';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
@@ -115,7 +115,7 @@ function createMidiFromTrack(scene: Scene, track: Track): Midi {
 /**
  * Add a clip's notes to a MIDI track
  */
-function addClipToMidiTrack(midiTrack: any, clip: Clip, scene: Scene): void {
+function addClipToMidiTrack(midiTrack: MidiTrack, clip: Clip, scene: Scene): void {
   const key = scene.key || 'C';
   const scale = scene.scale || 'major';
   const bpm = scene.bpm || 120;

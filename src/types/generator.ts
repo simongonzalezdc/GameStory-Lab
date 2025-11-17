@@ -20,11 +20,11 @@ export interface GeneratorMetadata {
 export interface ParameterSchema {
   name: string;
   type: 'number' | 'boolean' | 'select' | 'text';
-  default: any;
+  default: number | boolean | string;
   min?: number;
   max?: number;
   step?: number;
-  options?: Array<{ value: any; label: string }>;
+  options?: Array<{ value: number | boolean | string; label: string }>;
   description: string;
 }
 
