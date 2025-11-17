@@ -15,6 +15,10 @@ class AssetCreate(BaseModel):
     generation_model: str
     style_tags: List[str] = []
     project_name: Optional[str] = None
+    # Phase 2: Versioning fields
+    parent_asset_id: Optional[str] = None
+    version_number: int = 1
+    refinement_instruction: Optional[str] = None
 
 
 class AssetResponse(BaseModel):
@@ -35,6 +39,14 @@ class AssetResponse(BaseModel):
     metadata: dict
     created_at: str
     updated_at: str
+    # Phase 2: Versioning fields
+    parent_asset_id: Optional[str] = None
+    version_number: int = 1
+    refinement_instruction: Optional[str] = None
+
+
+# Alias for convenience
+Asset = AssetResponse
 
 
 class AssetFilter(BaseModel):

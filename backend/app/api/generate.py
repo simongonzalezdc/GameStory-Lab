@@ -10,6 +10,8 @@ from app.models.asset import AssetCreate
 from app.services.ai_service import AIService
 from app.services.image_service import ImageService
 from app.services.local_storage_service import storage_service
+from app.services.ollama_service import ollama_service
+from app.services.database_service import db_service
 
 router = APIRouter(prefix="/api/generate", tags=["generation"])
 logger = logging.getLogger(__name__)
@@ -122,6 +124,11 @@ async def refine_asset(request: RefineRequest):
     """
     Refine existing asset with natural language instruction.
 
+    This endpoint uses Ollama to enhance the refinement instruction into a better
+    prompt, then generates a refined version using cloud AI providers.
+
+    The refined asset is saved as a new version, linked to the parent asset.
+
     Args:
         request: Refinement request with asset ID and instruction
 
@@ -131,7 +138,7 @@ async def refine_asset(request: RefineRequest):
     Raises:
         400: Invalid request
         404: Asset not found
-        503: AI service unavailable
+        503: AI service unavailable or Ollama not available
     """
     start_time = time.time()
 
@@ -151,23 +158,48 @@ async def refine_asset(request: RefineRequest):
                 detail="Asset not found"
             )
 
-        # Read original image from local storage
+        # Build context for Ollama
+        asset_context = {
+            "style_tags": original_asset.style_tags,
+            "project_name": original_asset.project_name,
+        }
+
+        # Use Ollama to enhance the refinement instruction into a better prompt
+        logger.info(f"Enhancing refinement with Ollama: '{request.instruction}'")
+        enhanced_prompt = await ollama_service.enhance_refinement_prompt(
+            original_prompt=original_asset.generation_prompt,
+            refinement_instruction=request.instruction,
+            asset_context=asset_context
+        )
+
+        logger.info(f"Enhanced prompt: '{enhanced_prompt}'")
+
+        # Read original image from local storage for img2img (if supported)
         file_path = storage_service.get_file_path(original_asset.file_url)
         with open(file_path, 'rb') as f:
             original_image_bytes = f.read()
 
-        # Refine image
-        logger.info("Refining asset...")
-        image_bytes, mime_type = await ai_service.refine_image(
-            original_image_bytes,
-            request
+        # Create a modified generation request with the enhanced prompt
+        generation_request = GenerationRequest(
+            prompt=enhanced_prompt,
+            model=request.model,
+            dimensions={"width": original_asset.width, "height": original_asset.height},
+            style_tags=original_asset.style_tags,
+            project_name=original_asset.project_name
         )
+
+        # Generate refined image using cloud AI
+        logger.info(f"Generating refined image with {request.model}...")
+        image_bytes, mime_type = await ai_service.generate_image(generation_request)
 
         # Process and upload
         image_bytes = image_service.ensure_transparent_background(image_bytes)
         image_info = image_service.get_image_info(image_bytes)
 
-        file_name = f"asset_refined_{int(time.time())}.png"
+        # Get next version number
+        version_number = await db_service.get_next_version_number(request.asset_id, user_id)
+
+        file_name = f"asset_v{version_number}_{int(time.time())}.png"
         file_url = await storage_service.upload_asset(
             user_id=user_id,
             file_name=file_name,
@@ -175,16 +207,19 @@ async def refine_asset(request: RefineRequest):
             mime_type=mime_type
         )
 
-        # Save refined asset
+        # Save refined asset with versioning
         asset_data = AssetCreate(
             file_name=file_name,
             file_size=image_info["size_bytes"],
             width=image_info["width"],
             height=image_info["height"],
-            generation_prompt=f"{original_asset.generation_prompt} | Refined: {request.instruction}",
+            generation_prompt=enhanced_prompt,
             generation_model=request.model,
             style_tags=original_asset.style_tags,
-            project_name=original_asset.project_name
+            project_name=original_asset.project_name,
+            parent_asset_id=request.asset_id,
+            version_number=version_number,
+            refinement_instruction=request.instruction
         )
 
         asset = await storage_service.save_asset_metadata(
@@ -194,6 +229,8 @@ async def refine_asset(request: RefineRequest):
         )
 
         generation_time_ms = int((time.time() - start_time) * 1000)
+
+        logger.info(f"Refinement complete: v{version_number} created in {generation_time_ms}ms")
 
         return GenerationResponse(
             success=True,

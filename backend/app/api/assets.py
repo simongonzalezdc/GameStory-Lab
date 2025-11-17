@@ -1,10 +1,11 @@
 """Asset management API endpoints."""
 import logging
 from fastapi import APIRouter, HTTPException, status, Query
-from typing import Optional
+from typing import Optional, List
 
-from app.models.asset import AssetsListResponse, AssetDeleteResponse
+from app.models.asset import AssetsListResponse, AssetDeleteResponse, Asset
 from app.services.local_storage_service import storage_service
+from app.services.database_service import db_service
 
 router = APIRouter(prefix="/api/assets", tags=["assets"])
 logger = logging.getLogger(__name__)
@@ -105,4 +106,47 @@ async def delete_asset(asset_id: str):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete asset: {str(e)}"
+        )
+
+
+@router.get("/{asset_id}/versions", response_model=List[Asset])
+async def get_asset_versions(asset_id: str):
+    """
+    Get version history for an asset.
+
+    Returns all versions of an asset, including the original and all refinements.
+    Versions are returned in chronological order (oldest to newest).
+
+    Args:
+        asset_id: ID of any version in the asset chain
+
+    Returns:
+        List of asset versions in chronological order
+
+    Raises:
+        404: Asset not found
+        500: Database error
+    """
+    user_id = "local-user"
+
+    try:
+        versions = await db_service.get_asset_versions(asset_id, user_id)
+
+        if not versions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Asset not found"
+            )
+
+        # Convert to Asset model instances
+        asset_models = [Asset(**version) for version in versions]
+        return asset_models
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get asset versions: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch asset versions: {str(e)}"
         )
