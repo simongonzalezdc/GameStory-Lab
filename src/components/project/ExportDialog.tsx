@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { exportProject } from '@/lib/io/file-system';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import type { Project } from '@/types';
 
 interface ExportDialogProps {
@@ -29,7 +30,7 @@ export default function ExportDialog({ open, onClose, project }: ExportDialogPro
         setExportSuccess(false);
       }, 2000);
     } catch (err) {
-      console.error('Export failed:', err);
+      errorHandler.handle(err, 'Project Export', ErrorSeverity.ERROR);
       setError(err instanceof Error ? err.message : 'Export failed. Please try again.');
     } finally {
       setExporting(false);

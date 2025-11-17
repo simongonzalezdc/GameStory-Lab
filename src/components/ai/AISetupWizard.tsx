@@ -20,14 +20,16 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
     (config as any)?.baseURL || 'http://localhost:11434'
   );
   const [groupId, setGroupId] = useState((config as any)?.groupId || '');
+  const [validationError, setValidationError] = useState('');
 
   const handleSave = () => {
+    setValidationError('');
     let newConfig: any = { provider };
 
     switch (provider) {
       case 'openrouter':
         if (!apiKey || !model) {
-          alert('Please provide both API key and model for OpenRouter');
+          setValidationError('Please provide both API key and model for OpenRouter');
           return;
         }
         newConfig = { provider, apiKey, model };
@@ -35,7 +37,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
 
       case 'minimax':
         if (!apiKey || !groupId || !model) {
-          alert('Please provide API key, Group ID, and model for Minimax');
+          setValidationError('Please provide API key, Group ID, and model for Minimax');
           return;
         }
         newConfig = { provider, apiKey, groupId, model };
@@ -43,7 +45,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
 
       case 'glm':
         if (!apiKey || !model) {
-          alert('Please provide both API key and model for GLM');
+          setValidationError('Please provide both API key and model for GLM');
           return;
         }
         newConfig = { provider, apiKey, model };
@@ -51,7 +53,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
 
       case 'local':
         if (!baseURL || !model) {
-          alert('Please provide both base URL and model name for local AI');
+          setValidationError('Please provide both base URL and model name for local AI');
           return;
         }
         newConfig = { provider, baseURL, model };
@@ -85,6 +87,12 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
               : 'Cloud AI providers require an API key'}
           </p>
         </div>
+
+        {validationError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {validationError}
+          </div>
+        )}
 
         {provider === 'openrouter' && (
           <>

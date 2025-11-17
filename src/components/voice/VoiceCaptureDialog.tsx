@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { PitchDetector, midiToNoteName } from '@/lib/audio/pitch-detection';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 interface VoiceCaptureDialogProps {
   open: boolean;
@@ -63,7 +64,7 @@ export default function VoiceCaptureDialog({
 
       setIsRecording(true);
     } catch (err) {
-      console.error('Failed to start recording:', err);
+      errorHandler.handle(err, 'Voice Capture', ErrorSeverity.ERROR);
       setError('Failed to access microphone. Please check permissions.');
     }
   };

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { useTutorialStore } from '@/stores/tutorial-store';
 import { tutorialSteps, TutorialStep } from './tutorial-steps';
 import { Button } from '../ui/Button';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 export default function TutorialOverlay() {
   const {
@@ -19,6 +20,7 @@ export default function TutorialOverlay() {
   } = useTutorialStore();
 
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const [showSkipConfirm, setShowSkipConfirm] = useState(false);
 
   const step = tutorialSteps[currentStep];
   const isFirstStep = currentStep === 0;
@@ -65,13 +67,25 @@ export default function TutorialOverlay() {
   };
 
   const handleSkip = () => {
-    if (window.confirm('Are you sure you want to skip the tutorial?')) {
-      skipTutorial();
-    }
+    setShowSkipConfirm(true);
+  };
+
+  const handleConfirmSkip = () => {
+    skipTutorial();
+    setShowSkipConfirm(false);
   };
 
   return (
     <>
+      <ConfirmDialog
+        open={showSkipConfirm}
+        onOpenChange={setShowSkipConfirm}
+        title="Skip Tutorial"
+        description="Are you sure you want to skip the tutorial? You can restart it later from the help menu."
+        onConfirm={handleConfirmSkip}
+        confirmLabel="Skip Tutorial"
+        variant="default"
+      />
       {/* Backdrop with spotlight effect */}
       <div className="fixed inset-0 z-50 pointer-events-none">
         <svg className="w-full h-full" style={{ pointerEvents: 'none' }}>
