@@ -119,7 +119,7 @@ export default function SceneEditor() {
                 {currentScene.key} {currentScene.scale} • {currentScene.bpm || project?.bpm} BPM
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2" data-tutorial="playback">
               <Button onClick={handlePlayPause}>
                 {isPlaying ? '⏸ Pause' : '▶ Play'}
               </Button>

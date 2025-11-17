@@ -8,11 +8,12 @@ import AIChat from './components/ai/AIChat';
 import ExportDialog from './components/project/ExportDialog';
 import KeyboardShortcutsHelp from './components/ui/KeyboardShortcutsHelp';
 import ErrorNotification from './components/ui/ErrorNotification';
+import TutorialOverlay from './components/tutorial/TutorialOverlay';
 import { useKeyboardShortcuts, isTypingInInput } from './hooks/useKeyboardShortcuts';
 
 function App() {
   const { project, createNewProject, currentSceneId } = useProjectStore();
-  const { isCompleted } = useTutorialStore();
+  const { isCompleted, startTutorial } = useTutorialStore();
   const { toggleAIChat } = useUIStore();
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
@@ -23,13 +24,14 @@ function App() {
       createNewProject('My Game Score');
     }
 
-    // Start tutorial if not completed
+    // Start tutorial automatically on first visit
     if (!isCompleted) {
-      // Auto-start tutorial on first visit
-      // For now, skip auto-start
-      // startTutorial();
+      const timer = setTimeout(() => {
+        startTutorial();
+      }, 500); // Small delay to ensure UI is ready
+      return () => clearTimeout(timer);
     }
-  }, []);
+  }, [project, isCompleted, startTutorial, createNewProject]);
 
   // Register global keyboard shortcuts
   useKeyboardShortcuts([
@@ -108,9 +110,18 @@ function App() {
               </p>
             </div>
             <div className="flex gap-2">
+              {!isCompleted && (
+                <button
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  onClick={() => startTutorial()}
+                >
+                  Start Tutorial
+                </button>
+              )}
               <button
                 className="px-4 py-2 bg-forest-600 text-white rounded-lg hover:bg-forest-700 transition"
                 onClick={() => setShowExportDialog(true)}
+                data-tutorial="export"
               >
                 Export Project
               </button>
@@ -129,6 +140,9 @@ function App() {
 
       {/* Error Notifications */}
       <ErrorNotification />
+
+      {/* Tutorial Overlay */}
+      <TutorialOverlay />
     </>
   );
 }

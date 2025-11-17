@@ -27,7 +27,7 @@ export default function SceneBoard() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Scenes</h2>
-        <Button onClick={handleCreateScene}>
+        <Button onClick={handleCreateScene} data-tutorial="add-scene">
           + Create Scene
         </Button>
       </div>

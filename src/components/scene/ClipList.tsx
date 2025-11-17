@@ -63,7 +63,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     <div>
       <div className="flex items-center justify-between mb-3">
         <h5 className="font-medium text-gray-900">Clips</h5>
-        <Button size="sm" onClick={() => setShowAddDialog(true)}>
+        <Button size="sm" onClick={() => setShowAddDialog(true)} data-tutorial="add-clip">
           + Add Clip
         </Button>
       </div>

@@ -19,6 +19,7 @@ export default function SceneCard({ scene }: SceneCardProps) {
     <div
       className="scene-card bg-white"
       style={{ borderColor: scene.color || '#ccc' }}
+      data-tutorial="scene-card"
     >
       <div className="mb-3">
         <div className="flex items-start justify-between">

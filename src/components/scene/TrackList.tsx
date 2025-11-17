@@ -31,7 +31,7 @@ export default function TrackList({ sceneId }: TrackListProps) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Tracks</h3>
-        <div className="flex gap-2">
+        <div className="flex gap-2" data-tutorial="add-track">
           <Button size="sm" onClick={() => handleAddTrack('drums')}>+ Drums</Button>
           <Button size="sm" onClick={() => handleAddTrack('bass')}>+ Bass</Button>
           <Button size="sm" onClick={() => handleAddTrack('pad')}>+ Pad</Button>

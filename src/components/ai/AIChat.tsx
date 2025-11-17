@@ -98,7 +98,7 @@ export default function AIChat() {
   return (
     <>
       <AISetupWizard open={showSetup} onClose={() => setShowSetup(false)} />
-      <aside className="w-96 bg-white border-l border-gray-200 flex flex-col">
+      <aside className="w-96 bg-white border-l border-gray-200 flex flex-col" data-tutorial="ai-chat">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">AI Assistant</h2>
           <div className="flex gap-2">
