@@ -1,5 +1,6 @@
 """Main FastAPI application."""
 import logging
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -16,40 +17,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Create FastAPI app
-app = FastAPI(
-    title="AI Game Asset Generator",
-    description="Generate game-ready 2D assets using AI with support for multiple providers including Ollama for local generation",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
-)
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Mount static files for serving assets
-# Ensure the directory exists before mounting
-if not os.path.exists(settings.STORAGE_PATH):
-    os.makedirs(settings.STORAGE_PATH, exist_ok=True)
-app.mount("/assets", StaticFiles(directory=settings.STORAGE_PATH), name="assets")
-
-# Include routers
-app.include_router(health.router)
-app.include_router(generate.router)
-app.include_router(assets.router)
-app.include_router(export.router)
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Run on application startup."""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan event handler for startup and shutdown."""
+    # Startup
     logger.info("Starting AI Game Asset Generator API...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"CORS Origins: {settings.cors_origins_list}")
@@ -79,11 +51,42 @@ async def startup_event():
     if not settings.has_any_ai_provider():
         logger.error("WARNING: No AI providers are configured. Generation will fail.")
 
+    yield  # Application runs
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Run on application shutdown."""
+    # Shutdown
     logger.info("Shutting down AI Game Asset Generator API...")
+
+
+# Create FastAPI app with lifespan
+app = FastAPI(
+    title="AI Game Asset Generator",
+    description="Generate game-ready 2D assets using AI with support for multiple providers including Ollama for local generation",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    lifespan=lifespan
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount static files for serving assets
+# Ensure the directory exists before mounting
+if not os.path.exists(settings.STORAGE_PATH):
+    os.makedirs(settings.STORAGE_PATH, exist_ok=True)
+app.mount("/assets", StaticFiles(directory=settings.STORAGE_PATH), name="assets")
+
+# Include routers
+app.include_router(health.router)
+app.include_router(generate.router)
+app.include_router(assets.router)
+app.include_router(export.router)
 
 
 @app.get("/")

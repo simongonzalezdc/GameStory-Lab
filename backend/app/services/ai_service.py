@@ -45,10 +45,8 @@ class AIService:
             return await self._generate_google(request)
         elif request.model == "chatgpt":
             return await self._generate_chatgpt(request)
-        elif request.model == "ollama":
-            return await self._generate_ollama(request)
         else:
-            raise ValueError(f"Unsupported model: {request.model}")
+            raise ValueError(f"Unsupported image generation model: {request.model}. Supported: openrouter, google, chatgpt")
 
     async def refine_image(
         self, original_image_bytes: bytes, request: RefineRequest
@@ -75,75 +73,106 @@ class AIService:
     async def _generate_openrouter(
         self, request: GenerationRequest
     ) -> Tuple[bytes, str]:
-        """Generate image using OpenRouter API (FLUX models)."""
+        """Generate image using OpenRouter API (via Gemini image generation models)."""
         if not self.openrouter_api_key:
             raise ValueError("OpenRouter API key not configured")
 
-        logger.info("Generating with OpenRouter...")
+        logger.info("Generating with OpenRouter (Gemini image model)...")
 
-        # OpenRouter supports multiple image models via unified API
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        # OpenRouter uses chat completions endpoint with image generation models
+        async with httpx.AsyncClient(timeout=90.0) as client:
             headers = {
                 "Authorization": f"Bearer {self.openrouter_api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://ai-game-asset-generator.local",
+                "X-Title": "AI Game Asset Generator"
             }
 
             # Build prompt for game asset generation
             enhanced_prompt = self._enhance_prompt_for_game_asset(request.prompt)
 
+            # Use Gemini 2.5 Flash Image Preview (Nano Banana) for image generation
             payload = {
-                "model": "black-forest-labs/flux-1.1-pro",  # High-quality model
-                "prompt": enhanced_prompt,
-                "width": request.dimensions.width,
-                "height": request.dimensions.height,
+                "model": "google/gemini-2.5-flash-image-preview:free",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": enhanced_prompt
+                    }
+                ],
+                "modalities": ["image", "text"]
             }
-
-            if request.negative_prompt:
-                payload["negative_prompt"] = request.negative_prompt
 
             try:
                 response = await client.post(
-                    "https://openrouter.ai/api/v1/images/generations",
+                    "https://openrouter.ai/api/v1/chat/completions",
                     headers=headers,
                     json=payload
                 )
                 response.raise_for_status()
                 data = response.json()
 
-                # OpenRouter returns base64 encoded image
-                if "data" in data and len(data["data"]) > 0:
-                    image_data = data["data"][0]
-                    if "b64_json" in image_data:
-                        image_bytes = base64.b64decode(image_data["b64_json"])
-                    elif "url" in image_data:
-                        # Download from URL
-                        img_response = await client.get(image_data["url"])
-                        image_bytes = img_response.content
+                # Extract image from response
+                if "choices" in data and len(data["choices"]) > 0:
+                    choice = data["choices"][0]
+                    message = choice.get("message", {})
+                    content = message.get("content", "")
+
+                    # Content may contain data URL: data:image/png;base64,...
+                    if "data:image" in content:
+                        # Extract base64 data
+                        parts = content.split("data:image/png;base64,")
+                        if len(parts) > 1:
+                            base64_data = parts[1].split(")")[0].strip()
+                            image_bytes = base64.b64decode(base64_data)
+
+                            # Resize to requested dimensions
+                            img = Image.open(io.BytesIO(image_bytes))
+                            if img.size != (request.dimensions.width, request.dimensions.height):
+                                img = img.resize(
+                                    (request.dimensions.width, request.dimensions.height),
+                                    Image.Resampling.LANCZOS
+                                )
+                            output = io.BytesIO()
+                            img.save(output, format="PNG")
+                            return output.getvalue(), "image/png"
+                        else:
+                            raise Exception("Could not parse base64 image data")
                     else:
-                        raise Exception("No image data in response")
-
-                    return image_bytes, "image/png"
+                        raise Exception(f"No image data in response content: {content[:100]}")
                 else:
-                    raise Exception("No image generated")
+                    raise Exception("No choices in response")
 
+            except httpx.HTTPStatusError as e:
+                error_detail = e.response.text
+                logger.error(f"OpenRouter HTTP error: {e.response.status_code} - {error_detail}")
+                raise Exception(f"OpenRouter API error: {e.response.status_code} - {error_detail}")
             except Exception as e:
                 logger.error(f"OpenRouter generation failed: {e}")
-                raise Exception(f"OpenRouter API error: {str(e)}")
+                raise Exception(f"OpenRouter error: {str(e)}")
 
     async def _generate_google(
         self, request: GenerationRequest
     ) -> Tuple[bytes, str]:
-        """Generate image using Google Gemini API."""
+        """Generate image using Google Imagen 3 API."""
         if not self.google_api_key:
             raise ValueError("Google API key not configured")
 
-        logger.info("Generating with Google Gemini...")
+        logger.info("Generating with Google Imagen 3...")
 
-        # Google's Imagen model via Gemini API
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        # Google's Imagen 3 model via generativelanguage API
+        async with httpx.AsyncClient(timeout=90.0) as client:
             enhanced_prompt = self._enhance_prompt_for_game_asset(request.prompt)
 
-            url = f"https://generativelanguage.googleapis.com/v1/models/imagen-3.0-generate-001:predict?key={self.google_api_key}"
+            # Determine aspect ratio based on dimensions
+            aspect_ratio = self._get_aspect_ratio(request.dimensions.width, request.dimensions.height)
+
+            url = "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict"
+
+            headers = {
+                "x-goog-api-key": self.google_api_key,
+                "Content-Type": "application/json"
+            }
 
             payload = {
                 "instances": [
@@ -153,25 +182,52 @@ class AIService:
                 ],
                 "parameters": {
                     "sampleCount": 1,
-                    "aspectRatio": "1:1",  # Adjust based on dimensions
+                    "aspectRatio": aspect_ratio
                 }
             }
 
             try:
-                response = await client.post(url, json=payload)
+                response = await client.post(url, headers=headers, json=payload)
                 response.raise_for_status()
                 data = response.json()
 
                 # Extract image from response
                 if "predictions" in data and len(data["predictions"]) > 0:
-                    image_b64 = data["predictions"][0]["bytesBase64Encoded"]
-                    image_bytes = base64.b64decode(image_b64)
-                    return image_bytes, "image/png"
-                else:
-                    raise Exception("No image generated")
+                    prediction = data["predictions"][0]
 
+                    # Try different possible response formats
+                    image_b64 = None
+                    if "bytesBase64Encoded" in prediction:
+                        image_b64 = prediction["bytesBase64Encoded"]
+                    elif "image" in prediction and "bytesBase64Encoded" in prediction["image"]:
+                        image_b64 = prediction["image"]["bytesBase64Encoded"]
+                    elif isinstance(prediction, str):
+                        image_b64 = prediction
+
+                    if image_b64:
+                        image_bytes = base64.b64decode(image_b64)
+
+                        # Resize to exact requested dimensions
+                        img = Image.open(io.BytesIO(image_bytes))
+                        if img.size != (request.dimensions.width, request.dimensions.height):
+                            img = img.resize(
+                                (request.dimensions.width, request.dimensions.height),
+                                Image.Resampling.LANCZOS
+                            )
+                        output = io.BytesIO()
+                        img.save(output, format="PNG")
+                        return output.getvalue(), "image/png"
+                    else:
+                        raise Exception(f"No image data in prediction: {prediction}")
+                else:
+                    raise Exception("No predictions in response")
+
+            except httpx.HTTPStatusError as e:
+                error_detail = e.response.text
+                logger.error(f"Google Imagen HTTP error: {e.response.status_code} - {error_detail}")
+                raise Exception(f"Google API error: {e.response.status_code} - {error_detail}")
             except Exception as e:
-                logger.error(f"Google Gemini generation failed: {e}")
+                logger.error(f"Google Imagen generation failed: {e}")
                 raise Exception(f"Google API error: {str(e)}")
 
     async def _generate_chatgpt(
@@ -378,6 +434,47 @@ class AIService:
             return "1792x1024"
         else:
             return "1024x1792"
+
+    def _get_aspect_ratio(self, width: int, height: int) -> str:
+        """
+        Get aspect ratio string for image generation.
+        Supported ratios: "1:1", "3:4", "4:3", "9:16", "16:9"
+        """
+        # Calculate ratio
+        from math import gcd
+        divisor = gcd(width, height)
+        ratio_w = width // divisor
+        ratio_h = height // divisor
+
+        # Map to supported aspect ratios (prefer exact matches)
+        ratio_str = f"{ratio_w}:{ratio_h}"
+
+        # Map common ratios to supported formats
+        supported_ratios = {
+            "1:1": "1:1",
+            "3:4": "3:4",
+            "4:3": "4:3",
+            "9:16": "9:16",
+            "16:9": "16:9"
+        }
+
+        if ratio_str in supported_ratios:
+            return supported_ratios[ratio_str]
+
+        # Find closest supported ratio
+        aspect = width / height
+        if aspect == 1.0:
+            return "1:1"
+        elif aspect < 1.0:  # Portrait
+            if abs(aspect - 0.75) < abs(aspect - 0.5625):
+                return "3:4"
+            else:
+                return "9:16"
+        else:  # Landscape
+            if abs(aspect - 1.333) < abs(aspect - 1.778):
+                return "4:3"
+            else:
+                return "16:9"
 
     def _format_bytes(self, size: int) -> str:
         """Format bytes to human readable string."""

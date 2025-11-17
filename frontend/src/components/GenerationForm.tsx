@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Loader2, Sparkles, Cpu } from 'lucide-react';
+import { useState } from 'react';
+import { Loader2, Sparkles } from 'lucide-react';
 import { apiClient } from '../services/api';
-import type { GenerationRequest, OllamaStatus } from '../types/generation';
+import type { GenerationRequest } from '../types/generation';
 
 interface GenerationFormProps {
   onGenerated?: () => void;
@@ -9,30 +9,15 @@ interface GenerationFormProps {
 
 export function GenerationForm({ onGenerated }: GenerationFormProps) {
   const [prompt, setPrompt] = useState('');
-  const [model, setModel] = useState<'openrouter' | 'google' | 'chatgpt' | 'ollama'>('openrouter');
-  const [ollamaModel, setOllamaModel] = useState('');
-  const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
+  const [model, setModel] = useState<'openrouter' | 'google' | 'chatgpt'>('openrouter');
   const [dimensions, setDimensions] = useState({ width: 64, height: 64 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Check Ollama status on mount
-  useEffect(() => {
-    checkOllamaStatus();
-  }, []);
-
-  const checkOllamaStatus = async () => {
-    try {
-      const status = await apiClient.checkOllamaStatus();
-      setOllamaStatus(status);
-      if (status.available && status.models.length > 0) {
-        setOllamaModel(status.models[0].name);
-      }
-    } catch (error) {
-      console.error('Failed to check Ollama status:', error);
-    }
-  };
+  // Note: Ollama status check infrastructure kept for future text-based features
+  // (prompt enhancement, chat assistance, etc.)
+  // const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,13 +31,6 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         model,
         dimensions,
       };
-
-      if (model === 'ollama') {
-        if (!ollamaModel) {
-          throw new Error('Please select an Ollama model');
-        }
-        request.ollama_model = ollamaModel;
-      }
 
       const response = await apiClient.generateAsset(request);
 
@@ -106,55 +84,14 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
             onChange={(e) => setModel(e.target.value as any)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
           >
-            <option value="openrouter">OpenRouter (FLUX) - Cloud</option>
-            <option value="google">Google Gemini - Cloud</option>
-            <option value="chatgpt">ChatGPT (DALL-E 3) - Cloud</option>
-            <option value="ollama" disabled={!ollamaStatus?.available}>
-              Ollama (Local) {ollamaStatus?.available ? '✓' : '✗'}
-            </option>
+            <option value="openrouter">OpenRouter (Gemini 2.5 Flash) - Free</option>
+            <option value="google">Google (Imagen 3) - Cloud</option>
+            <option value="chatgpt">OpenAI (DALL-E 3) - Cloud</option>
           </select>
+          <p className="text-xs text-gray-500 mt-1">
+            💡 Tip: OpenRouter model is free with 20 requests/minute limit. Local models (Ollama) coming soon for text features.
+          </p>
         </div>
-
-        {/* Ollama Model Selection */}
-        {model === 'ollama' && ollamaStatus?.available && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <Cpu size={16} />
-              Local Model
-            </label>
-            <select
-              value={ollamaModel}
-              onChange={(e) => setOllamaModel(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-            >
-              {ollamaStatus.models.map((m) => (
-                <option key={m.name} value={m.name}>
-                  {m.name} ({m.size})
-                </option>
-              ))}
-            </select>
-            <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
-              <Cpu size={14} />
-              Running locally - Private & Free
-            </p>
-          </div>
-        )}
-
-        {/* Ollama Not Available */}
-        {model === 'ollama' && !ollamaStatus?.available && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-yellow-800">
-              <strong>Ollama not available:</strong> {ollamaStatus?.error || 'Not running'}
-            </p>
-            <p className="text-xs text-yellow-700 mt-2">
-              Install Ollama from{' '}
-              <a href="https://ollama.ai" target="_blank" rel="noopener noreferrer" className="underline">
-                ollama.ai
-              </a>{' '}
-              and run "ollama serve"
-            </p>
-          </div>
-        )}
 
         {/* Dimensions */}
         <div className="grid grid-cols-2 gap-4">
