@@ -10,7 +10,7 @@ import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 export default function AIChat() {
   const { isAIChatOpen, toggleAIChat } = useUIStore();
-  const { messages, isLoading, config, addMessage, setLoading } = useAIStore();
+  const { messages, isLoading, config, addMessage, setLoading, setAbortController, cancelRequest } = useAIStore();
   const projectStore = useProjectStore();
   const [input, setInput] = useState('');
   const [showSetup, setShowSetup] = useState(false);
@@ -38,6 +38,10 @@ export default function AIChat() {
     addMessage({ role: 'user', content: userMessage });
     setLoading(true);
 
+    // Create abort controller for cancellation
+    const controller = new AbortController();
+    setAbortController(controller);
+
     try {
       // Get project context
       const currentScene = projectStore.project?.scenes.find(
@@ -57,11 +61,14 @@ export default function AIChat() {
                 defaultScale: projectStore.project.defaultScale,
               }
             : undefined,
-        }
+        },
+        controller.signal
       );
 
-      // Add assistant message
-      addMessage({ role: 'assistant', content: response.message });
+      // Add assistant message (if not cancelled)
+      if (response.message || !response.error || response.error !== 'Request cancelled') {
+        addMessage({ role: 'assistant', content: response.message });
+      }
 
       // Apply actions if any
       if (response.actions && response.actions.length > 0) {
@@ -87,6 +94,7 @@ export default function AIChat() {
       });
     } finally {
       setLoading(false);
+      setAbortController(null);
     }
   };
 
@@ -179,14 +187,20 @@ export default function AIChat() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
             placeholder="Ask me anything..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-forest-500"
             disabled={isLoading}
           />
-          <Button onClick={handleSend} disabled={isLoading || !input.trim()}>
-            Send
-          </Button>
+          {isLoading ? (
+            <Button onClick={cancelRequest} variant="secondary">
+              Cancel
+            </Button>
+          ) : (
+            <Button onClick={handleSend} disabled={!input.trim()}>
+              Send
+            </Button>
+          )}
         </div>
       </div>
       </aside>

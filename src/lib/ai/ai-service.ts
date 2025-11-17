@@ -22,7 +22,8 @@ interface ProjectStoreActions {
 export async function sendAIMessage(
   config: AIConfig,
   messages: ChatMessage[],
-  projectContext?: ProjectContext
+  projectContext?: ProjectContext,
+  _signal?: AbortSignal // TODO: Pass signal to AI clients' fetch calls
 ): Promise<AIResponse> {
   try {
     const client = createAIClient(config);
@@ -43,6 +44,14 @@ export async function sendAIMessage(
 
     return response;
   } catch (error) {
+    // Check if error is from abort
+    if (error instanceof Error && error.name === 'AbortError') {
+      return {
+        message: '',
+        error: 'Request cancelled',
+      };
+    }
+
     errorHandler.handle(error, 'AI Chat', ErrorSeverity.ERROR);
     return {
       message: 'Sorry, I encountered an error processing your request.',

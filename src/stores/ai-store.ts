@@ -7,6 +7,7 @@ interface AIStoreState {
   isLoading: boolean;
   config: AIConfig | null;
   selectedProvider: AIClientId | null;
+  abortController: AbortController | null;
 
   // Actions
   addMessage: (message: ChatMessage) => void;
@@ -15,15 +16,18 @@ interface AIStoreState {
   setConfig: (config: AIConfig) => void;
   setProvider: (provider: AIClientId) => void;
   clearConfig: () => void;
+  setAbortController: (controller: AbortController | null) => void;
+  cancelRequest: () => void;
 }
 
 export const useAIStore = create<AIStoreState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       messages: [],
       isLoading: false,
       config: null,
       selectedProvider: null,
+      abortController: null,
 
       addMessage: (message) =>
         set((state) => ({
@@ -47,6 +51,16 @@ export const useAIStore = create<AIStoreState>()(
           config: null,
           selectedProvider: null,
         }),
+
+      setAbortController: (controller) => set({ abortController: controller }),
+
+      cancelRequest: () => {
+        const { abortController } = get();
+        if (abortController) {
+          abortController.abort();
+          set({ abortController: null, isLoading: false });
+        }
+      },
     }),
     {
       name: 'generative-score-lab-ai',
