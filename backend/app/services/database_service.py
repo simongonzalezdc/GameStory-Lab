@@ -79,6 +79,52 @@ class DatabaseService:
             await db.commit()
             logger.info(f"Database initialized at {self.db_path}")
 
+            # Run migrations
+            await self._run_migrations(db)
+
+    async def _run_migrations(self, db: aiosqlite.Connection):
+        """
+        Run database migrations for schema updates.
+
+        This method adds new columns that weren't in the original schema.
+        It's safe to run multiple times (uses IF NOT EXISTS logic).
+        """
+        # Phase 2: Asset versioning columns
+        try:
+            # Check if parent_asset_id column exists
+            cursor = await db.execute("PRAGMA table_info(assets)")
+            columns = {row[1] for row in await cursor.fetchall()}
+
+            if 'parent_asset_id' not in columns:
+                logger.info("Running migration: Adding asset versioning columns")
+
+                # Add versioning columns
+                await db.execute("""
+                    ALTER TABLE assets
+                    ADD COLUMN parent_asset_id TEXT REFERENCES assets(id)
+                """)
+                await db.execute("""
+                    ALTER TABLE assets
+                    ADD COLUMN version_number INTEGER DEFAULT 1
+                """)
+                await db.execute("""
+                    ALTER TABLE assets
+                    ADD COLUMN refinement_instruction TEXT
+                """)
+
+                # Create index for parent lookups
+                await db.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_assets_parent
+                    ON assets(parent_asset_id)
+                """)
+
+                await db.commit()
+                logger.info("Migration complete: Asset versioning enabled")
+
+        except Exception as e:
+            logger.error(f"Migration failed: {e}")
+            # Non-critical - continue anyway
+
     async def insert_asset(self, asset_data: dict) -> dict:
         """Insert new asset into database."""
         async with aiosqlite.connect(self.db_path) as db:
@@ -86,8 +132,9 @@ class DatabaseService:
                 INSERT INTO assets (
                     id, user_id, file_url, file_name, file_size, mime_type,
                     width, height, generation_prompt, generation_model,
-                    style_tags, project_name, is_favorite, metadata
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    style_tags, project_name, is_favorite, metadata,
+                    parent_asset_id, version_number, refinement_instruction
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 asset_data['id'],
                 asset_data.get('user_id', 'local-user'),
@@ -102,7 +149,10 @@ class DatabaseService:
                 str(asset_data.get('style_tags', [])),
                 asset_data.get('project_name'),
                 int(asset_data.get('is_favorite', False)),
-                str(asset_data.get('metadata', {}))
+                str(asset_data.get('metadata', {})),
+                asset_data.get('parent_asset_id'),
+                asset_data.get('version_number', 1),
+                asset_data.get('refinement_instruction')
             ))
             await db.commit()
 
@@ -172,6 +222,75 @@ class DatabaseService:
             )
             await db.commit()
             return cursor.rowcount > 0
+
+    async def get_asset_versions(self, asset_id: str, user_id: str = 'local-user') -> List[dict]:
+        """
+        Get all versions of an asset (original + all refinements).
+
+        Returns versions in chronological order (oldest to newest).
+
+        Args:
+            asset_id: ID of any version in the chain
+            user_id: User ID
+
+        Returns:
+            List of asset dictionaries representing the version history
+        """
+        async with aiosqlite.connect(self.db_path) as db:
+            # First, find the root asset (the one with no parent)
+            cursor = await db.execute("""
+                WITH RECURSIVE version_chain AS (
+                    -- Start with the given asset
+                    SELECT * FROM assets WHERE id = ? AND user_id = ?
+                    UNION ALL
+                    -- Recursively find parent
+                    SELECT a.* FROM assets a
+                    INNER JOIN version_chain v ON a.id = v.parent_asset_id
+                    WHERE a.user_id = ?
+                )
+                SELECT * FROM version_chain
+            """, (asset_id, user_id, user_id))
+            rows = await cursor.fetchall()
+
+            if not rows:
+                return []
+
+            # The last row is the root
+            root_id = rows[-1][0]  # id is first column
+
+            # Now get all descendants of the root
+            cursor = await db.execute("""
+                WITH RECURSIVE descendants AS (
+                    -- Start with root
+                    SELECT * FROM assets WHERE id = ? AND user_id = ?
+                    UNION ALL
+                    -- Recursively find children
+                    SELECT a.* FROM assets a
+                    INNER JOIN descendants d ON a.parent_asset_id = d.id
+                    WHERE a.user_id = ?
+                )
+                SELECT * FROM descendants
+                ORDER BY version_number ASC
+            """, (root_id, user_id, user_id))
+
+            rows = await cursor.fetchall()
+            return [self._row_to_asset(row, cursor.description) for row in rows]
+
+    async def get_next_version_number(self, parent_asset_id: str, user_id: str = 'local-user') -> int:
+        """
+        Get the next version number for a new refinement.
+
+        Args:
+            parent_asset_id: ID of the parent asset
+            user_id: User ID
+
+        Returns:
+            Next version number (parent's version + 1)
+        """
+        parent = await self.get_asset_by_id(parent_asset_id, user_id)
+        if not parent:
+            return 1
+        return parent.get('version_number', 1) + 1
 
     def _row_to_asset(self, row: tuple, description: list) -> dict:
         """Convert database row to asset dictionary."""
