@@ -4,6 +4,7 @@
 
 import type { Project } from '@/types';
 import { serializeProject } from './serializer';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 /**
  * Export project to user's file system
@@ -36,13 +37,17 @@ export async function exportProject(project: Project): Promise<void> {
     await writable.write(json);
     await writable.close();
 
-    console.log('Project exported successfully');
+    errorHandler.handle(
+      new Error('Project exported successfully'),
+      'Project Export',
+      ErrorSeverity.INFO
+    );
   } catch (error) {
     if ((error as Error).name === 'AbortError') {
       // User cancelled
       return;
     }
-    console.error('Failed to export project:', error);
+    errorHandler.handle(error, 'Project Export', ErrorSeverity.ERROR);
     throw error;
   }
 }
@@ -95,7 +100,7 @@ export async function importProject(): Promise<string> {
     if ((error as Error).name === 'AbortError') {
       throw new Error('Import cancelled');
     }
-    console.error('Failed to import project:', error);
+    errorHandler.handle(error, 'Project Import', ErrorSeverity.ERROR);
     throw error;
   }
 }

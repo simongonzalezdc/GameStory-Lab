@@ -6,6 +6,7 @@ import MidiExportDialog from '../project/MidiExportDialog';
 import { getAudioEngine } from '@/lib/audio/engine';
 import { useEffect, useState } from 'react';
 import { useKeyboardShortcuts, isTypingInInput } from '@/hooks/useKeyboardShortcuts';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 export default function SceneEditor() {
   const { project, currentSceneId, setCurrentScene } = useProjectStore();
@@ -17,7 +18,9 @@ export default function SceneEditor() {
 
   useEffect(() => {
     if (currentScene) {
-      audioEngine.loadScene(currentScene).catch(console.error);
+      audioEngine.loadScene(currentScene).catch((error) => {
+        errorHandler.handle(error, 'Scene Loading', ErrorSeverity.ERROR);
+      });
     }
   }, [currentScene]);
 

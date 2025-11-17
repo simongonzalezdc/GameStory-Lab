@@ -4,6 +4,7 @@
 
 import type { Project } from '@/types';
 import { validateProject } from './serializer';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 /**
  * Deserialize JSON string to project
@@ -18,7 +19,7 @@ export function deserializeProject(json: string): Project {
 
     return data as Project;
   } catch (error) {
-    console.error('Failed to deserialize project:', error);
+    errorHandler.handle(error, 'Project Deserialization', ErrorSeverity.ERROR);
     throw new Error('Invalid project JSON');
   }
 }

@@ -5,6 +5,7 @@
 import type { AIClient, AIRequest, AIResponse, MinimaxConfig } from '@/types';
 import { buildMusicSystemPrompt } from './prompt-builder';
 import { parseActions, extractCleanMessage } from './intent-parser';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 export class MinimaxClient implements AIClient {
   readonly id = 'minimax' as const;
@@ -53,7 +54,7 @@ export class MinimaxClient implements AIClient {
         actions,
       };
     } catch (error) {
-      console.error('Minimax client error:', error);
+      errorHandler.handle(error, 'Minimax AI Client', ErrorSeverity.ERROR);
       return {
         message: '',
         error: error instanceof Error ? error.message : 'Unknown error occurred',

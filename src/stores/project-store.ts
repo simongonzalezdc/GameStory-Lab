@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Project, Scene, Track, Clip } from '@/types';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 interface ProjectState {
   // State
@@ -141,7 +142,11 @@ export const useProjectStore = create<ProjectState>()(
         const { project, currentSceneId } = get();
         if (!project) return;
         if (project.scenes.length === 1) {
-          console.warn('Cannot delete the last scene in a project');
+          errorHandler.handle(
+            new Error('Cannot delete the last scene in a project'),
+            'Scene Deletion',
+            ErrorSeverity.WARNING
+          );
           return;
         }
 
@@ -408,7 +413,7 @@ export const useProjectStore = create<ProjectState>()(
           }
           set({ project, isDirty: false });
         } catch (error) {
-          console.error('Failed to import project:', error);
+          errorHandler.handle(error, 'Project Import', ErrorSeverity.ERROR);
           throw new Error('Invalid project JSON');
         }
       },

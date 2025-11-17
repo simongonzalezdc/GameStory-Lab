@@ -165,7 +165,11 @@ function noteNameToMidi(noteName: string): number {
   // Parse note name (e.g., "C#4" -> note="C#", octave=4)
   const match = noteName.match(/^([A-G][#b]?)(-?\d+)$/);
   if (!match) {
-    console.warn(`Invalid note name: ${noteName}`);
+    errorHandler.handle(
+      new Error(`Invalid note name: ${noteName}`),
+      'MIDI Note Conversion',
+      ErrorSeverity.WARNING
+    );
     return 60; // Default to middle C
   }
 

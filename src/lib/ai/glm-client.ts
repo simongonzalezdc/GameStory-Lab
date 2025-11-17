@@ -5,6 +5,7 @@
 import type { AIClient, AIRequest, AIResponse, GLMConfig } from '@/types';
 import { buildMusicSystemPrompt } from './prompt-builder';
 import { parseActions, extractCleanMessage } from './intent-parser';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 export class GLMClient implements AIClient {
   readonly id = 'glm' as const;
@@ -53,7 +54,7 @@ export class GLMClient implements AIClient {
         actions,
       };
     } catch (error) {
-      console.error('GLM client error:', error);
+      errorHandler.handle(error, 'GLM AI Client', ErrorSeverity.ERROR);
       return {
         message: '',
         error: error instanceof Error ? error.message : 'Unknown error occurred',

@@ -3,6 +3,7 @@
  */
 
 import type { MusicAction } from '@/types';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 /**
  * Parse actions from AI response
@@ -18,7 +19,7 @@ export function parseActions(content: string): MusicAction[] {
     }
     return [actions as MusicAction];
   } catch (error) {
-    console.warn('Failed to parse AI actions:', error);
+    errorHandler.handle(error, 'AI Action Parsing', ErrorSeverity.WARNING);
     return [];
   }
 }

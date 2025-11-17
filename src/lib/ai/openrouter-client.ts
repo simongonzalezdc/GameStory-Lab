@@ -5,6 +5,7 @@
 import type { AIClient, AIRequest, AIResponse, OpenRouterConfig } from '@/types';
 import { buildMusicSystemPrompt } from './prompt-builder';
 import { parseActions, extractCleanMessage } from './intent-parser';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 export class OpenRouterClient implements AIClient {
   readonly id = 'openrouter' as const;
@@ -53,7 +54,7 @@ export class OpenRouterClient implements AIClient {
         actions,
       };
     } catch (error) {
-      console.error('OpenRouter client error:', error);
+      errorHandler.handle(error, 'OpenRouter AI Client', ErrorSeverity.ERROR);
       return {
         message: '',
         error: error instanceof Error ? error.message : 'Unknown error occurred',

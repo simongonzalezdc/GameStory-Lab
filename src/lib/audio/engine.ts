@@ -26,7 +26,11 @@ export class AudioEngine {
 
     try {
       await Tone.start();
-      console.log('Audio engine initialized');
+      errorHandler.handle(
+        new Error('Audio engine initialized'),
+        'Audio Engine',
+        ErrorSeverity.INFO
+      );
       this.isInitialized = true;
     } catch (error) {
       errorHandler.handle(error, 'Audio Engine Initialization', ErrorSeverity.ERROR);
@@ -58,7 +62,11 @@ export class AudioEngine {
         await this.loadInstrument(track);
       }
 
-      console.log(`Scene "${scene.name}" loaded successfully`);
+      errorHandler.handle(
+        new Error(`Scene "${scene.name}" loaded successfully`),
+        'Audio Engine',
+        ErrorSeverity.INFO
+      );
     } catch (error) {
       errorHandler.handle(error, 'Audio Scene Loading', ErrorSeverity.ERROR);
       throw error; // Re-throw to allow caller to handle

@@ -5,6 +5,7 @@
 import type { AIClient, AIRequest, AIResponse, LocalConfig } from '@/types';
 import { buildMusicSystemPrompt } from './prompt-builder';
 import { parseActions, extractCleanMessage } from './intent-parser';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 export class LocalAIClient implements AIClient {
   readonly id = 'local' as const;
@@ -54,7 +55,7 @@ export class LocalAIClient implements AIClient {
         actions,
       };
     } catch (error) {
-      console.error('Local AI client error:', error);
+      errorHandler.handle(error, 'Local AI Client', ErrorSeverity.ERROR);
       return {
         message: '',
         error: error instanceof Error ? error.message : 'Connection failed. Is Ollama running?',

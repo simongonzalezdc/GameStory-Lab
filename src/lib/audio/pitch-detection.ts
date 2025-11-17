@@ -107,7 +107,11 @@ export class PitchDetector {
       const source = this.audioContext.createMediaStreamSource(this.mediaStream);
       source.connect(this.analyser);
 
-      console.log('Pitch detector initialized');
+      errorHandler.handle(
+        new Error('Pitch detector initialized'),
+        'Pitch Detection',
+        ErrorSeverity.INFO
+      );
     } catch (error) {
       errorHandler.handle(error, 'Pitch Detector Initialization', ErrorSeverity.ERROR);
       throw new Error('Microphone access denied');
