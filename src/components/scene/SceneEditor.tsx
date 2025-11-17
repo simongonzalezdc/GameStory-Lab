@@ -89,6 +89,52 @@ export default function SceneEditor() {
       },
       description: 'Close dialog or go back',
     },
+    {
+      key: 'n',
+      ctrl: true,
+      action: () => {
+        if (!isTypingInInput() && currentScene) {
+          // Add new track
+          const { addTrack } = useProjectStore.getState();
+          addTrack(currentScene.id, {
+            name: `Track ${currentScene.tracks.length + 1}`,
+            role: 'lead',
+            volume: 0.8,
+            pan: 0,
+            muted: false,
+            solo: false,
+            clips: [],
+          });
+        }
+      },
+      description: 'Add new track',
+    },
+    {
+      key: 'ArrowLeft',
+      ctrl: true,
+      action: () => {
+        if (!isTypingInInput() && project) {
+          const currentIndex = project.scenes.findIndex(s => s.id === currentSceneId);
+          if (currentIndex > 0) {
+            setCurrentScene(project.scenes[currentIndex - 1].id);
+          }
+        }
+      },
+      description: 'Previous scene',
+    },
+    {
+      key: 'ArrowRight',
+      ctrl: true,
+      action: () => {
+        if (!isTypingInInput() && project) {
+          const currentIndex = project.scenes.findIndex(s => s.id === currentSceneId);
+          if (currentIndex < project.scenes.length - 1) {
+            setCurrentScene(project.scenes[currentIndex + 1].id);
+          }
+        }
+      },
+      description: 'Next scene',
+    },
   ]);
 
   if (!currentScene) {
@@ -126,14 +172,25 @@ export default function SceneEditor() {
                 {currentScene.key} {currentScene.scale} • {currentScene.bpm || project?.bpm} BPM
               </p>
             </div>
-            <div className="flex gap-2" data-tutorial="playback">
-              <Button onClick={handlePlayPause}>
+            <div className="flex gap-2" data-tutorial="playback" role="toolbar" aria-label="Playback controls">
+              <Button 
+                onClick={handlePlayPause}
+                aria-label={isPlaying ? 'Pause playback' : 'Start playback'}
+              >
                 {isPlaying ? '⏸ Pause' : '▶ Play'}
               </Button>
-              <Button onClick={handleStop} variant="secondary">
+              <Button 
+                onClick={handleStop} 
+                variant="secondary"
+                aria-label="Stop playback"
+              >
                 ⏹ Stop
               </Button>
-              <Button onClick={() => setShowMidiExport(true)} variant="secondary">
+              <Button 
+                onClick={() => setShowMidiExport(true)} 
+                variant="secondary"
+                aria-label="Export MIDI file"
+              >
                 🎹 Export MIDI
               </Button>
             </div>

@@ -57,6 +57,7 @@ export default function SceneCard({ scene }: SceneCardProps) {
           size="sm"
           onClick={() => setCurrentScene(scene.id)}
           className="flex-1"
+          aria-label={`Edit scene ${scene.name}`}
         >
           Edit
         </Button>
@@ -64,6 +65,7 @@ export default function SceneCard({ scene }: SceneCardProps) {
           variant="secondary"
           size="sm"
           onClick={() => duplicateScene(scene.id)}
+          aria-label={`Duplicate scene ${scene.name}`}
         >
           Duplicate
         </Button>
@@ -72,6 +74,7 @@ export default function SceneCard({ scene }: SceneCardProps) {
           size="sm"
           onClick={() => setShowDeleteConfirm(true)}
           className="text-red-600 hover:bg-red-50"
+          aria-label={`Delete scene ${scene.name}`}
         >
           Delete
         </Button>

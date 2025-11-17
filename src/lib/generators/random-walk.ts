@@ -14,6 +14,14 @@ export class RandomWalkGenerator extends BaseGenerator {
     this.validateContext(context);
 
     const params = config.params as RandomWalkParams;
+    
+    // Validate random walk parameters
+    if (params.stepSize < 1 || params.stepSize > 12) {
+      throw new Error('Random walk stepSize must be between 1 and 12');
+    }
+    if (params.length < 1 || params.length > 128) {
+      throw new Error('Random walk length must be between 1 and 128');
+    }
 
     // Generate melody using random walk
     const melody = this.generateRandomWalk(params, context);

@@ -153,10 +153,14 @@ export class PitchDetector {
     if (!this.analyser || !this.audioContext) return;
 
     // Get time domain data
-    this.analyser.getFloatTimeDomainData(this.buffer as any);
+    // @ts-expect-error - ArrayBufferLike vs ArrayBuffer type mismatch, but compatible at runtime
+    this.analyser.getFloatTimeDomainData(this.buffer);
 
     // Detect pitch using autocorrelation
-    const frequency = autoCorrelate(this.buffer as any, this.audioContext.sampleRate);
+    const frequency = autoCorrelate(
+      this.buffer as Float32Array<ArrayBuffer>,
+      this.audioContext.sampleRate
+    );
 
     // If valid frequency detected, convert to MIDI and call callback
     if (frequency > 0) {

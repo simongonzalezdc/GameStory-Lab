@@ -6,6 +6,7 @@ import type { AIClient, AIRequest, AIResponse, GLMConfig } from '@/types';
 import { buildMusicSystemPrompt } from './prompt-builder';
 import { parseActions, extractCleanMessage } from './intent-parser';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+import { validateGLMResponse } from './response-validator';
 
 export class GLMClient implements AIClient {
   readonly id = 'glm' as const;
@@ -44,7 +45,10 @@ export class GLMClient implements AIClient {
       }
 
       const data = await response.json();
-      const content = data.choices[0]?.message?.content || '';
+      
+      // Validate response structure
+      const validated = validateGLMResponse(data);
+      const content = validated.content;
 
       const actions = parseActions(content);
       const message = extractCleanMessage(content);

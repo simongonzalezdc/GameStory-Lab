@@ -58,11 +58,13 @@ export function useKeyboardShortcuts(
 export function isTypingInInput(event?: KeyboardEvent): boolean {
   if (!event) {
     const activeElement = document.activeElement;
+    if (!activeElement) return false;
+    
     return (
       activeElement instanceof HTMLInputElement ||
       activeElement instanceof HTMLTextAreaElement ||
       activeElement instanceof HTMLSelectElement ||
-      (activeElement as any)?.contentEditable === 'true'
+      (activeElement instanceof HTMLElement && activeElement.contentEditable === 'true')
     );
   }
 

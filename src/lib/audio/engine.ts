@@ -20,22 +20,50 @@ export class AudioEngine {
 
   /**
    * Initialize audio context (requires user interaction)
+   * Implements retry logic with exponential backoff for reliability
    */
-  async init(): Promise<void> {
+  async init(maxRetries: number = 3): Promise<void> {
     if (this.isInitialized) return;
 
-    try {
-      await Tone.start();
-      errorHandler.handle(
-        new Error('Audio engine initialized'),
-        'Audio Engine',
-        ErrorSeverity.INFO
-      );
-      this.isInitialized = true;
-    } catch (error) {
-      errorHandler.handle(error, 'Audio Engine Initialization', ErrorSeverity.ERROR);
-      throw new Error('Audio initialization failed');
+    let lastError: Error | null = null;
+    const baseDelay = 500; // Start with 500ms delay
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        await Tone.start();
+        errorHandler.handle(
+          new Error('Audio engine initialized'),
+          'Audio Engine',
+          ErrorSeverity.INFO
+        );
+        this.isInitialized = true;
+        return; // Success, exit retry loop
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unknown audio initialization error');
+        
+        // Don't retry on the last attempt
+        if (attempt < maxRetries - 1) {
+          const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff: 500ms, 1s, 2s
+          errorHandler.handle(
+            new Error(`Audio initialization attempt ${attempt + 1} failed, retrying in ${delay}ms...`),
+            'Audio Engine Initialization',
+            ErrorSeverity.WARNING
+          );
+          
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
     }
+
+    // All retries failed
+    const errorMessage = `Audio initialization failed after ${maxRetries} attempts`;
+    errorHandler.handle(
+      lastError || new Error(errorMessage),
+      'Audio Engine Initialization',
+      ErrorSeverity.ERROR
+    );
+    throw new Error(errorMessage);
   }
 
   /**
@@ -47,9 +75,19 @@ export class AudioEngine {
         await this.init();
       }
 
-      // Stop current playback
+      // Stop current playback and clean up previous scene
       this.stop();
       this.clearScheduledParts();
+      
+      // Dispose of previous scene's instruments to prevent memory leaks
+      this.instruments.forEach((instrument) => {
+        try {
+          instrument.dispose();
+        } catch (error) {
+          // Ignore disposal errors
+        }
+      });
+      this.instruments.clear();
 
       this.currentScene = scene;
 
@@ -81,9 +119,11 @@ export class AudioEngine {
 
     // For MVP, use simple PolySynth for all tracks
     // TODO: Load different instrument types based on track.instrumentRef
+    const oscillatorType = this.getOscillatorType(track.role);
     const synth = new Tone.PolySynth(Tone.Synth, {
+      // @ts-expect-error - Tone.js type definitions are complex, but this works at runtime
       oscillator: {
-        type: this.getOscillatorType(track.role) as any,
+        type: oscillatorType,
       },
       envelope: {
         attack: 0.02,

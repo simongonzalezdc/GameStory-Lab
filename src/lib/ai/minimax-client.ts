@@ -6,6 +6,7 @@ import type { AIClient, AIRequest, AIResponse, MinimaxConfig } from '@/types';
 import { buildMusicSystemPrompt } from './prompt-builder';
 import { parseActions, extractCleanMessage } from './intent-parser';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+import { validateMinimaxResponse } from './response-validator';
 
 export class MinimaxClient implements AIClient {
   readonly id = 'minimax' as const;
@@ -44,7 +45,10 @@ export class MinimaxClient implements AIClient {
       }
 
       const data = await response.json();
-      const content = data.choices[0]?.message?.content || data.reply || '';
+      
+      // Validate response structure
+      const validated = validateMinimaxResponse(data);
+      const content = validated.content;
 
       const actions = parseActions(content);
       const message = extractCleanMessage(content);

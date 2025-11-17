@@ -119,8 +119,11 @@ export function applyMusicActions(
           break;
         }
 
-        default:
-          throw new Error(`Unknown action type: ${(action as any).type}`);
+        default: {
+          // TypeScript exhaustiveness check
+          const _exhaustive: never = action as never;
+          throw new Error(`Unknown action type: ${(_exhaustive as MusicAction).type}`);
+        }
       }
     } catch (error) {
       failed++;

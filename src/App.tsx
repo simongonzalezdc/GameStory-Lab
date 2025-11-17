@@ -7,6 +7,10 @@ import SceneEditor from './components/scene/SceneEditor';
 import KeyboardShortcutsHelp from './components/ui/KeyboardShortcutsHelp';
 import ErrorNotification from './components/ui/ErrorNotification';
 import { useKeyboardShortcuts, isTypingInInput } from './hooks/useKeyboardShortcuts';
+import { getAudioEngine } from './lib/audio/engine';
+import { useAutoSave } from './hooks/useAutoSave';
+import { TutorialErrorBoundary } from './components/TutorialErrorBoundary';
+import { errorHandler, ErrorSeverity } from './lib/errors/error-handler';
 
 // Lazy load heavy components
 const AIChat = lazy(() => import('./components/ai/AIChat'));
@@ -20,20 +24,40 @@ function App() {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
 
+  // Enable auto-save
+  useAutoSave();
+
   useEffect(() => {
     // Create default project if none exists
     if (!project) {
       createNewProject('My Game Score');
     }
 
-    // Start tutorial automatically on first visit
+    // Start tutorial automatically on first visit (wrapped in error boundary)
     if (!isCompleted) {
       const timer = setTimeout(() => {
-        startTutorial();
+        try {
+          startTutorial();
+        } catch (error) {
+          // If tutorial fails to start, mark as completed to prevent loop
+          errorHandler.handle(
+            error instanceof Error ? error : new Error('Tutorial start failed'),
+            'Tutorial Auto-Start',
+            ErrorSeverity.WARNING
+          );
+        }
       }, 500); // Small delay to ensure UI is ready
       return () => clearTimeout(timer);
     }
   }, [project, isCompleted, startTutorial, createNewProject]);
+
+  // Cleanup audio engine on unmount
+  useEffect(() => {
+    return () => {
+      const engine = getAudioEngine();
+      engine.dispose();
+    };
+  }, []);
 
   // Register global keyboard shortcuts
   useKeyboardShortcuts([
@@ -148,9 +172,11 @@ function App() {
       <ErrorNotification />
 
       {/* Tutorial Overlay */}
-      <Suspense fallback={<div />}>
-        <TutorialOverlay />
-      </Suspense>
+      <TutorialErrorBoundary>
+        <Suspense fallback={<div />}>
+          <TutorialOverlay />
+        </Suspense>
+      </TutorialErrorBoundary>
     </>
   );
 }

@@ -16,15 +16,46 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Audio libraries
-          'audio-engine': ['tone', '@tonejs/midi'],
+        manualChunks: (id) => {
+          // Audio libraries - large, load on demand
+          if (id.includes('tone') || id.includes('@tonejs/midi')) {
+            return 'audio-engine';
+          }
+          
+          // MIDI export - only needed when exporting
+          if (id.includes('midi-export')) {
+            return 'midi-export';
+          }
+          
+          // AI clients - load on demand
+          if (id.includes('lib/ai/') && !id.includes('ai-service')) {
+            return 'ai-clients';
+          }
+          
+          // Tutorial system - load on first use
+          if (id.includes('tutorial/') || id.includes('TutorialOverlay')) {
+            return 'tutorial';
+          }
+          
           // React and core UI
-          'react-vendor': ['react', 'react-dom'],
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'react-vendor';
+          }
+          
           // State management
-          'state': ['zustand'],
-          // UI components
-          'ui': ['@radix-ui/react-dialog', '@radix-ui/react-slider'],
+          if (id.includes('node_modules/zustand')) {
+            return 'state';
+          }
+          
+          // UI components (Radix)
+          if (id.includes('node_modules/@radix-ui')) {
+            return 'ui-components';
+          }
+          
+          // Validation library
+          if (id.includes('node_modules/zod')) {
+            return 'validation';
+          }
         },
       },
     },

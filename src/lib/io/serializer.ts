@@ -14,10 +14,11 @@ export function serializeProject(project: Project): string {
 /**
  * Validate project structure
  */
-export function validateProject(data: any): data is Project {
+export function validateProject(data: unknown): data is Project {
   if (!data || typeof data !== 'object') return false;
-  if (!data.schemaVersion || !data.projectId) return false;
-  if (!data.name || !data.bpm) return false;
-  if (!Array.isArray(data.scenes)) return false;
+  const obj = data as Record<string, unknown>;
+  if (!obj.schemaVersion || !obj.projectId) return false;
+  if (!obj.name || typeof obj.bpm !== 'number') return false;
+  if (!Array.isArray(obj.scenes)) return false;
   return true;
 }

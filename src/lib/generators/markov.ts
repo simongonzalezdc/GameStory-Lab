@@ -13,6 +13,14 @@ export class MarkovGenerator extends BaseGenerator {
     this.validateContext(context);
 
     const params = config.params as MarkovParams;
+    
+    // Validate markov parameters
+    if (params.order < 1 || params.order > 4) {
+      throw new Error('Markov order must be between 1 and 4');
+    }
+    if (params.length < 1 || params.length > 128) {
+      throw new Error('Markov length must be between 1 and 128');
+    }
 
     // Get scale notes for quantization
     const scaleNotes = getScaleNotes(context.key, context.scale, 3, 6);

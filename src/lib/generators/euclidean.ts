@@ -13,6 +13,17 @@ export class EuclideanGenerator extends BaseGenerator {
     this.validateContext(context);
 
     const params = config.params as EuclideanParams;
+    
+    // Validate euclidean parameters
+    if (params.steps < 1 || params.steps > 64) {
+      throw new Error('Euclidean steps must be between 1 and 64');
+    }
+    if (params.pulses < 0 || params.pulses > params.steps) {
+      throw new Error('Euclidean pulses must be between 0 and steps');
+    }
+    if (params.rotation < 0 || params.rotation >= params.steps) {
+      throw new Error('Euclidean rotation must be between 0 and steps-1');
+    }
 
     // Generate euclidean rhythm pattern
     const pattern = this.euclideanRhythm(params.steps, params.pulses);

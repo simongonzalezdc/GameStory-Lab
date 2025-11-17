@@ -6,6 +6,7 @@ import type { AIClient, AIRequest, AIResponse, OpenRouterConfig } from '@/types'
 import { buildMusicSystemPrompt } from './prompt-builder';
 import { parseActions, extractCleanMessage } from './intent-parser';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+import { validateOpenRouterResponse } from './response-validator';
 
 export class OpenRouterClient implements AIClient {
   readonly id = 'openrouter' as const;
@@ -44,7 +45,10 @@ export class OpenRouterClient implements AIClient {
       }
 
       const data = await response.json();
-      const content = data.choices[0]?.message?.content || '';
+      
+      // Validate response structure
+      const validated = validateOpenRouterResponse(data);
+      const content = validated.content;
 
       const actions = parseActions(content);
       const message = extractCleanMessage(content);

@@ -17,9 +17,11 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
   const [apiKey, setApiKey] = useState(config?.apiKey || '');
   const [model, setModel] = useState(config?.model || '');
   const [baseURL, setBaseURL] = useState(
-    (config as LocalConfig)?.baseURL || 'http://localhost:11434'
+    (config && config.provider === 'local' ? config.baseURL : undefined) || 'http://localhost:11434'
   );
-  const [groupId, setGroupId] = useState((config as MinimaxConfig)?.groupId || '');
+  const [groupId, setGroupId] = useState(
+    (config && config.provider === 'minimax' ? (config as MinimaxConfig).groupId : undefined) || ''
+  );
   const [validationError, setValidationError] = useState('');
 
   const handleSave = () => {

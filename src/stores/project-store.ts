@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Project, Scene, Track, Clip } from '@/types';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+import { MIN_BPM, MAX_BPM } from '@/lib/utils/constants';
 
 interface ProjectState {
   // State
@@ -80,6 +81,18 @@ export const useProjectStore = create<ProjectState>()(
       updateProject: (updates) => {
         const { project } = get();
         if (!project) return;
+
+        // Validate BPM if being updated
+        if (updates.bpm !== undefined) {
+          if (typeof updates.bpm !== 'number' || updates.bpm < MIN_BPM || updates.bpm > MAX_BPM) {
+            errorHandler.handle(
+              new Error(`BPM must be between ${MIN_BPM} and ${MAX_BPM}`),
+              'Project Update',
+              ErrorSeverity.WARNING
+            );
+            return;
+          }
+        }
 
         set({
           project: {

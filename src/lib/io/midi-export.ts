@@ -223,8 +223,8 @@ async function downloadMidi(midi: Midi, filename: string): Promise<void> {
   // Convert MIDI to binary array
   const midiArray = midi.toArray();
 
-  // Create blob
-  const blob = new Blob([midiArray as any], { type: 'audio/midi' });
+  // Create blob - ensure proper type compatibility
+  const blob = new Blob([new Uint8Array(midiArray)], { type: 'audio/midi' });
 
   // Sanitize filename
   const safeFilename = sanitizeFilename(filename);

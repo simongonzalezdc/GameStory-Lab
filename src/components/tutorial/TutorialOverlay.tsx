@@ -214,6 +214,7 @@ function getPositionClass(step: TutorialStep | undefined, targetRect: DOMRect | 
 
 /**
  * Get position style based on target element
+ * Responsive positioning for mobile viewports
  */
 function getPositionStyle(
   step: TutorialStep | undefined,
@@ -224,37 +225,49 @@ function getPositionStyle(
   }
 
   const padding = 24; // Distance from target element
+  const isMobile = window.innerWidth < 768; // Mobile breakpoint
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  
+  // On mobile, prefer bottom or center positioning to avoid overflow
+  const preferredPosition = isMobile ? 'bottom' : step.position;
 
-  switch (step.position) {
+  switch (preferredPosition) {
     case 'top':
       return {
-        left: `${targetRect.left + targetRect.width / 2}px`,
-        top: `${targetRect.top - padding}px`,
+        left: `${Math.max(padding, Math.min(targetRect.left + targetRect.width / 2, viewportWidth - padding))}px`,
+        top: `${Math.max(padding, targetRect.top - padding)}px`,
         transform: 'translate(-50%, -100%)',
+        maxWidth: `${viewportWidth - padding * 2}px`,
       };
 
     case 'bottom':
       return {
-        left: `${targetRect.left + targetRect.width / 2}px`,
-        top: `${targetRect.bottom + padding}px`,
+        left: `${Math.max(padding, Math.min(targetRect.left + targetRect.width / 2, viewportWidth - padding))}px`,
+        top: `${Math.min(viewportHeight - padding, targetRect.bottom + padding)}px`,
         transform: 'translateX(-50%)',
+        maxWidth: `${viewportWidth - padding * 2}px`,
       };
 
     case 'left':
       return {
-        left: `${targetRect.left - padding}px`,
-        top: `${targetRect.top + targetRect.height / 2}px`,
+        left: `${Math.max(padding, targetRect.left - padding)}px`,
+        top: `${Math.max(padding, Math.min(targetRect.top + targetRect.height / 2, viewportHeight - padding))}px`,
         transform: 'translate(-100%, -50%)',
+        maxWidth: `${Math.min(300, viewportWidth - padding * 2)}px`,
       };
 
     case 'right':
       return {
-        left: `${targetRect.right + padding}px`,
-        top: `${targetRect.top + targetRect.height / 2}px`,
+        left: `${Math.min(viewportWidth - padding, targetRect.right + padding)}px`,
+        top: `${Math.max(padding, Math.min(targetRect.top + targetRect.height / 2, viewportHeight - padding))}px`,
         transform: 'translateY(-50%)',
+        maxWidth: `${Math.min(300, viewportWidth - padding * 2)}px`,
       };
 
     default:
-      return {};
+      return {
+        maxWidth: `${viewportWidth - padding * 2}px`,
+      };
   }
 }

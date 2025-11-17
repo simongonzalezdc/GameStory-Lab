@@ -19,7 +19,7 @@ export async function exportProject(project: Project): Promise<void> {
     }
 
     // Show save file picker
-    const handle = await (window as any).showSaveFilePicker({
+    const handle = await window.showSaveFilePicker({
       suggestedName: `${project.name.replace(/[^a-z0-9]/gi, '-')}.json`,
       types: [
         {
@@ -80,7 +80,7 @@ export async function importProject(): Promise<string> {
     }
 
     // Show open file picker
-    const [handle] = await (window as any).showOpenFilePicker({
+    const [handle] = await window.showOpenFilePicker({
       types: [
         {
           description: 'Generative Score Lab Project',

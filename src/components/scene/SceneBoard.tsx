@@ -2,9 +2,24 @@ import { useProjectStore } from '@/stores/project-store';
 import SceneCard from './SceneCard';
 import { Button } from '../ui/Button';
 import { DEFAULT_KEY, DEFAULT_SCALE, DEFAULT_INTENSITY_RANGE } from '@/lib/utils/constants';
+import { useKeyboardShortcuts, isTypingInInput } from '@/hooks/useKeyboardShortcuts';
 
 export default function SceneBoard() {
   const { project, addScene } = useProjectStore();
+
+  // Register keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'n',
+      ctrl: true,
+      action: () => {
+        if (!isTypingInInput()) {
+          handleCreateScene();
+        }
+      },
+      description: 'Create new scene',
+    },
+  ]);
 
   const handleCreateScene = () => {
     const sceneCount = project?.scenes.length || 0;

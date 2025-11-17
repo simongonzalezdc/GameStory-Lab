@@ -2,7 +2,15 @@
  * AI client factory and exports
  */
 
-import type { AIClient, AIConfig, AIClientId } from '@/types';
+import type {
+  AIClient,
+  AIConfig,
+  AIClientId,
+  OpenRouterConfig,
+  MinimaxConfig,
+  GLMConfig,
+  LocalConfig,
+} from '@/types';
 import { OpenRouterClient } from './openrouter-client';
 import { MinimaxClient } from './minimax-client';
 import { GLMClient } from './glm-client';
@@ -14,15 +22,29 @@ import { LocalAIClient } from './local-client';
 export function createAIClient(config: AIConfig): AIClient {
   switch (config.provider) {
     case 'openrouter':
-      return new OpenRouterClient(config as any);
+      if (!('apiKey' in config) || !('model' in config)) {
+        throw new Error('OpenRouter config requires apiKey and model');
+      }
+      return new OpenRouterClient(config as OpenRouterConfig);
     case 'minimax':
-      return new MinimaxClient(config as any);
+      if (!('apiKey' in config) || !('groupId' in config) || !('model' in config)) {
+        throw new Error('Minimax config requires apiKey, groupId, and model');
+      }
+      return new MinimaxClient(config as MinimaxConfig);
     case 'glm':
-      return new GLMClient(config as any);
+      if (!('apiKey' in config) || !('model' in config)) {
+        throw new Error('GLM config requires apiKey and model');
+      }
+      return new GLMClient(config as GLMConfig);
     case 'local':
-      return new LocalAIClient(config as any);
-    default:
-      throw new Error(`Unknown AI provider: ${(config as any).provider}`);
+      if (!('baseURL' in config) || !('model' in config)) {
+        throw new Error('Local config requires baseURL and model');
+      }
+      return new LocalAIClient(config as LocalConfig);
+    default: {
+      // This should never happen, but TypeScript needs this for exhaustiveness
+      throw new Error(`Unknown AI provider: ${(config as AIConfig).provider}`);
+    }
   }
 }
 

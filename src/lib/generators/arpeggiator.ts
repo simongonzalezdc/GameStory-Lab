@@ -14,6 +14,14 @@ export class ArpeggiatorGenerator extends BaseGenerator {
     this.validateContext(context);
 
     const params = config.params as ArpParams;
+    
+    // Validate arpeggiator parameters
+    if (params.notesPerBeat < 1 || params.notesPerBeat > 16) {
+      throw new Error('Arpeggiator notesPerBeat must be between 1 and 16');
+    }
+    if (params.octaveRange < 1 || params.octaveRange > 4) {
+      throw new Error('Arpeggiator octaveRange must be between 1 and 4');
+    }
 
     // Get base notes (from chord progression or scale)
     const baseNotes = this.getBaseNotes(params, context);
