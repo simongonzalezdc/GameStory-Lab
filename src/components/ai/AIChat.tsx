@@ -5,6 +5,8 @@ import { useProjectStore } from '@/stores/project-store';
 import { Button } from '../ui/Button';
 import { sendAIMessage, applyMusicActions } from '@/lib/ai/ai-service';
 import AISetupWizard from './AISetupWizard';
+import { AlertDialog } from '../ui/AlertDialog';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 export default function AIChat() {
   const { isAIChatOpen, toggleAIChat } = useUIStore();
@@ -12,6 +14,7 @@ export default function AIChat() {
   const projectStore = useProjectStore();
   const [input, setInput] = useState('');
   const [showSetup, setShowSetup] = useState(false);
+  const [showConfigError, setShowConfigError] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when messages change
@@ -24,7 +27,7 @@ export default function AIChat() {
 
     // Check if AI is configured
     if (!config) {
-      alert('Please configure your AI assistant first. Click the settings icon to get started.');
+      setShowConfigError(true);
       return;
     }
 
@@ -65,7 +68,11 @@ export default function AIChat() {
         const result = applyMusicActions(response.actions, projectStore);
 
         if (result.failed > 0) {
-          console.warn(`${result.failed} actions failed:`, result.errors);
+          errorHandler.handle(
+            new Error(`${result.failed} AI actions failed: ${result.errors.join(', ')}`),
+            'AI Actions',
+            ErrorSeverity.WARNING
+          );
           addMessage({
             role: 'assistant',
             content: `Note: ${result.failed} action(s) could not be applied. ${result.success} succeeded.`,
@@ -73,7 +80,7 @@ export default function AIChat() {
         }
       }
     } catch (error) {
-      console.error('AI chat error:', error);
+      errorHandler.handle(error, 'AI Chat', ErrorSeverity.ERROR);
       addMessage({
         role: 'assistant',
         content: 'Sorry, I encountered an error. Please try again.',
@@ -98,6 +105,13 @@ export default function AIChat() {
   return (
     <>
       <AISetupWizard open={showSetup} onClose={() => setShowSetup(false)} />
+      <AlertDialog
+        open={showConfigError}
+        onOpenChange={setShowConfigError}
+        title="AI Not Configured"
+        description="Please configure your AI assistant first. Click the settings icon (⚙️) to get started."
+        variant="warning"
+      />
       <aside className="w-96 bg-white border-l border-gray-200 flex flex-col" data-tutorial="ai-chat">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">AI Assistant</h2>

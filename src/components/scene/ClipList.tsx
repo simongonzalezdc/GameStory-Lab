@@ -4,6 +4,7 @@ import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
 import { Select } from '../ui/Select';
 import { Input } from '../ui/Input';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import type { GeneratorType } from '@/types';
 
 interface ClipListProps {
@@ -14,6 +15,8 @@ interface ClipListProps {
 export default function ClipList({ sceneId, trackId }: ClipListProps) {
   const { project, addClip, deleteClip } = useProjectStore();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [clipToDelete, setClipToDelete] = useState<string | null>(null);
   const [generatorType, setGeneratorType] = useState<GeneratorType>('euclidean');
   const [lengthBars, setLengthBars] = useState(4);
 
@@ -59,8 +62,30 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     }
   };
 
+  const handleDeleteClick = (clipId: string) => {
+    setClipToDelete(clipId);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (clipToDelete) {
+      deleteClip(sceneId, trackId, clipToDelete);
+      setClipToDelete(null);
+    }
+  };
+
   return (
-    <div>
+    <>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Clip"
+        description="Are you sure you want to delete this clip? This action cannot be undone."
+        onConfirm={handleConfirmDelete}
+        confirmLabel="Delete"
+        variant="danger"
+      />
+      <div>
       <div className="flex items-center justify-between mb-3">
         <h5 className="font-medium text-gray-900">Clips</h5>
         <Button size="sm" onClick={() => setShowAddDialog(true)} data-tutorial="add-clip">
@@ -83,11 +108,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => {
-                    if (confirm('Delete clip?')) {
-                      deleteClip(sceneId, trackId, clip.id);
-                    }
-                  }}
+                  onClick={() => handleDeleteClick(clip.id)}
                   className="text-red-600"
                 >
                   🗑
@@ -132,6 +153,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
           </div>
         </div>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 }

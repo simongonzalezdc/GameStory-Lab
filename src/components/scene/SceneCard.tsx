@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import type { Scene } from '@/types';
 import { useProjectStore } from '@/stores/project-store';
 import { Button } from '../ui/Button';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 interface SceneCardProps {
   scene: Scene;
@@ -8,19 +10,28 @@ interface SceneCardProps {
 
 export default function SceneCard({ scene }: SceneCardProps) {
   const { setCurrentScene, deleteScene, duplicateScene } = useProjectStore();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleDelete = () => {
-    if (confirm(`Delete scene "${scene.name}"?`)) {
-      deleteScene(scene.id);
-    }
+    deleteScene(scene.id);
   };
 
   return (
-    <div
-      className="scene-card bg-white"
-      style={{ borderColor: scene.color || '#ccc' }}
-      data-tutorial="scene-card"
-    >
+    <>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Scene"
+        description={`Are you sure you want to delete "${scene.name}"? This action cannot be undone.`}
+        onConfirm={handleDelete}
+        confirmLabel="Delete"
+        variant="danger"
+      />
+      <div
+        className="scene-card bg-white"
+        style={{ borderColor: scene.color || '#ccc' }}
+        data-tutorial="scene-card"
+      >
       <div className="mb-3">
         <div className="flex items-start justify-between">
           <h3 className="text-lg font-semibold text-gray-900">{scene.name}</h3>
@@ -59,12 +70,13 @@ export default function SceneCard({ scene }: SceneCardProps) {
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleDelete}
+          onClick={() => setShowDeleteConfirm(true)}
           className="text-red-600 hover:bg-red-50"
         >
           Delete
         </Button>
       </div>
     </div>
+    </>
   );
 }

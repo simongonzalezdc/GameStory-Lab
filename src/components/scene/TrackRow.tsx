@@ -5,6 +5,9 @@ import { Button } from '../ui/Button';
 import { Slider } from '../ui/Slider';
 import ClipList from './ClipList';
 import { exportTrackToMidi } from '@/lib/io/midi-export';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { AlertDialog } from '../ui/AlertDialog';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 interface TrackRowProps {
   sceneId: string;
@@ -15,6 +18,8 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
   const { project, updateTrack, deleteTrack } = useProjectStore();
   const [expanded, setExpanded] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showExportError, setShowExportError] = useState(false);
 
   const scene = project?.scenes.find((s) => s.id === sceneId);
 
@@ -25,8 +30,8 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
       setExporting(true);
       await exportTrackToMidi(scene, track.id);
     } catch (error) {
-      console.error('Failed to export track:', error);
-      alert('Failed to export MIDI file');
+      errorHandler.handle(error, 'Track MIDI Export', ErrorSeverity.ERROR);
+      setShowExportError(true);
     } finally {
       setExporting(false);
     }
@@ -42,7 +47,24 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Track"
+        description={`Are you sure you want to delete "${track.name}"? This action cannot be undone.`}
+        onConfirm={() => deleteTrack(sceneId, track.id)}
+        confirmLabel="Delete"
+        variant="danger"
+      />
+      <AlertDialog
+        open={showExportError}
+        onOpenChange={setShowExportError}
+        title="Export Failed"
+        description="Failed to export MIDI file. Please try again."
+        variant="error"
+      />
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
       {/* Track Header */}
       <div className="p-4">
         <div className="flex items-center gap-4">
@@ -89,11 +111,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => {
-                if (confirm(`Delete track "${track.name}"?`)) {
-                  deleteTrack(sceneId, track.id);
-                }
-              }}
+              onClick={() => setShowDeleteConfirm(true)}
               className="text-red-600"
               title="Delete track"
             >
@@ -127,6 +145,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
           <ClipList sceneId={sceneId} trackId={track.id} />
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
