@@ -12,13 +12,26 @@ GameForge Studio helps indie game developers create cohesive, professional game 
 
 ## ✨ Features
 
-- **🎮 Flexible Workflow**: Start with mechanics OR lore - the AI adapts to your creative process
-- **🎯 Genre Templates**: Pre-built templates for RPG, FPS, Strategy, Puzzle, and Survival games
-- **🤖 AI Model Orchestration**: Automatically selects optimal AI models for each task
-- **✅ Consistency Validation**: Real-time detection of mechanics-lore conflicts with 30+ rules
-- **🔄 Iterative Refinement**: Multi-pass improvement with version tracking
+### ✅ Implemented & Working:
+- **🎮 Flexible Workflow**: Start with mechanics OR lore via REST API - AI adapts to your creative process
+- **🤖 AI Model Orchestration**: Automatically selects optimal AI models (DeepSeek, Qwen, Gemini, Ollama)
 - **📝 Professional Export**: Generate GDD, pitch decks, or technical specs in markdown
 - **💰 Cost Optimization**: Intelligent fallback to local Ollama models to minimize API costs
+- **🔧 Full REST API**: Complete backend with projects, generation, validation, and export endpoints
+- **📊 Health Monitoring**: Real-time AI provider status and cost tracking
+
+### ⚠️ Partially Implemented:
+- **✅ Basic Validation**: Mechanics-lore alignment checking (2 core rules implemented, ~13 more planned)
+- **⚠️ Iterative Refinement**: API endpoint exists, full service in development
+- **⚠️ Status Dashboard**: Basic frontend showing system health (full UI in development)
+
+### 🚧 In Development:
+- **Genre Templates**: Pre-built templates for RPG, FPS, Strategy, Puzzle, and Survival (coming soon)
+- **Interactive UI**: Visual editors for mechanics and lore (coming soon)
+- **Advanced Validation**: Expanding from 2 to 15+ validation rules
+- **Real-time Validation Panel**: Live consistency checking in UI
+
+> **Note:** This is a **backend-first MVP**. The API is fully functional, but the frontend is minimal. Users comfortable with APIs (curl, Postman, etc.) can use all features now. A complete UI is in active development.
 
 ---
 
@@ -340,31 +353,50 @@ See `.env.example` for all available configuration options.
 
 ## 🗺️ Roadmap
 
-### ✅ Phase 1: Foundation (Completed)
+### ✅ Phase 1: Backend Foundation (Completed - 100%)
 - [x] Monorepo setup with TypeScript
-- [x] Database schema with Prisma
+- [x] Database schema with Prisma (5 tables)
 - [x] AI client abstraction (OpenRouter, Google, Ollama)
-- [x] AI Model Orchestrator
-- [x] Backend API (projects, generate, validate, export)
-- [x] Consistency Validation Engine
-- [x] Markdown export templates
+- [x] AI Model Orchestrator with intelligent routing
+- [x] Backend REST API (projects, generate, validate, export)
+- [x] Consistency Validation Engine framework
+- [x] Markdown export templates (GDD, Pitch, Technical)
+- [x] Cost tracking and rate limiting
 
-### 🚧 Phase 2: Frontend (In Progress)
-- [ ] React UI with Vite
-- [ ] Project management dashboard
-- [ ] Mechanics and Lore editors
-- [ ] Real-time validation panel
-- [ ] Export dialog
+### 🚧 Phase 2: Complete Validation System (In Progress - 40%)
+- [x] Validation engine architecture
+- [x] 2 core validation rules (player-abilities-match, genre-conventions)
+- [ ] **13 additional validation rules** ← Priority
+  - [ ] Resource logic validation
+  - [ ] Win/fail condition coherence
+  - [ ] Magic system consistency
+  - [ ] Technology level matching
+  - [ ] World physics rules (5 rules)
+  - [ ] Progression coherence (4 rules)
+  - [ ] Technical feasibility (3 rules)
 
-### 📅 Phase 3: Enhancement (Planned)
-- [ ] Genre template system
-- [ ] Title generator
-- [ ] Iterative refinement UI
+### 🚧 Phase 3: Genre Templates & Refinement (In Progress - 20%)
+- [ ] **Genre template system** ← Next priority
+  - [ ] 5 JSON template files (RPG, FPS, Strategy, Puzzle, Survival)
+  - [ ] Template loading service
+  - [ ] Template customization API
+- [x] Basic refinement API endpoint
+- [ ] Dedicated refinement service with version tracking
+- [ ] Enhanced title generation service
+
+### 📅 Phase 4: Frontend UI (Planned - 15%)
+- [x] React UI with Vite setup
+- [x] Basic status dashboard
+- [ ] **Project management dashboard** ← Critical for usability
+- [ ] **Mechanics and Lore editors** ← Critical for usability
+- [ ] **Real-time validation panel**
+- [ ] **Export dialog with template preview**
+- [ ] Version history browser
+
+### 🔮 Phase 5: Advanced Features (Future)
 - [ ] Multi-user support with authentication
-- [ ] Cloud saves
-
-### 🌟 Phase 4: Advanced Features (Future)
-- [ ] Visual concept art generation
+- [ ] Cloud saves and sync
+- [ ] Visual concept art generation (Stable Diffusion)
 - [ ] Community template marketplace
 - [ ] Hosted SaaS offering
 - [ ] Custom model training
