@@ -83,9 +83,13 @@ export class AudioEngine {
         sustain: 0.3,
         release: 0.5,
       },
-    }).toDestination();
+    });
 
-    // Apply volume and pan
+    // Create panner for stereo positioning
+    const panner = new Tone.Panner(track.pan).toDestination();
+    synth.connect(panner);
+
+    // Apply volume
     synth.volume.value = Tone.gainToDb(track.volume);
 
     this.instruments.set(track.id, synth);

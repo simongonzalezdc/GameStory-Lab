@@ -199,6 +199,19 @@ function getInstrumentNumberForRole(role: string): number {
 }
 
 /**
+ * Sanitize filename for safe download across all OSes
+ */
+function sanitizeFilename(filename: string): string {
+  // Remove/replace invalid characters for Windows/Mac/Linux
+  return filename
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_') // Replace invalid chars
+    .replace(/^\.+/, '') // Remove leading dots
+    .replace(/\.+$/, '') // Remove trailing dots
+    .replace(/\s+/g, '_') // Replace spaces with underscores
+    .substring(0, 255); // Limit length
+}
+
+/**
  * Download MIDI file to user's computer
  */
 async function downloadMidi(midi: Midi, filename: string): Promise<void> {
@@ -208,11 +221,14 @@ async function downloadMidi(midi: Midi, filename: string): Promise<void> {
   // Create blob
   const blob = new Blob([midiArray as any], { type: 'audio/midi' });
 
+  // Sanitize filename
+  const safeFilename = sanitizeFilename(filename);
+
   // Create download link
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = filename;
+  a.download = safeFilename;
 
   // Trigger download
   document.body.appendChild(a);
