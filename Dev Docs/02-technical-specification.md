@@ -2,7 +2,8 @@
 
 **FOR AI CODING AGENT:** This is your primary implementation guide.  
 **Generated:** November 17, 2025  
-**Version:** 1.0.0
+**Version:** 1.0.0  
+**Last Verified:** November 17, 2025 (against codebase v1.0.0)
 
 ---
 
@@ -39,8 +40,8 @@ Generative Score Lab is a browser-based music composition tool built as a single
 ┌───────────┼─────────────┼──────────────┼──────────┼─────────┐
 │           ▼             ▼              ▼          ▼         │
 │  ┌────────────┐  ┌────────────┐  ┌──────────┐  ┌────────┐  │
-│  │  Scene     │  │ Audio      │  │ File     │  │  AI    │  │
-│  │  Manager   │  │ Engine     │  │ System   │  │ Client │  │
+│  │ Generators │  │ Audio      │  │ File     │  │  AI    │  │
+│  │ & Scene    │  │ Engine     │  │ System   │  │ Client │  │
 │  └─────┬──────┘  └─────┬──────┘  └─────┬────┘  └────┬───┘  │
 └────────┼───────────────┼───────────────┼────────────┼───────┘
          │               │               │            │
@@ -148,49 +149,31 @@ generative-score-lab/
 │   │   │   ├── SceneCard.tsx     # Individual scene card
 │   │   │   ├── SceneEditor.tsx   # Detailed scene editor
 │   │   │   ├── TrackList.tsx     # List of tracks in scene
-│   │   │   ├── TrackEditor.tsx   # Individual track controls
-│   │   │   └── ClipEditor.tsx    # Clip details & generator config
+│   │   │   ├── TrackRow.tsx      # Individual track row with controls
+│   │   │   └── ClipList.tsx      # Clip list and management
 │   │   │
-│   │   ├── generators/           # Generator UI components
-│   │   │   ├── EuclideanUI.tsx
-│   │   │   ├── ArpUI.tsx
-│   │   │   ├── PatternDSLUI.tsx
-│   │   │   └── GeneratorSelector.tsx
 │   │   │
 │   │   ├── ai/                   # AI assistant components
 │   │   │   ├── AIChat.tsx        # Main chat interface
-│   │   │   ├── AISetupWizard.tsx # First-run AI configuration
-│   │   │   ├── MessageBubble.tsx
-│   │   │   └── SuggestionChips.tsx
+│   │   │   └── AISetupWizard.tsx # First-run AI configuration
 │   │   │
-│   │   ├── audio/                # Audio visualization components
-│   │   │   ├── Waveform.tsx
-│   │   │   ├── VUMeter.tsx
-│   │   │   ├── PianoRoll.tsx     # Future: visual note editor
-│   │   │   └── Spectrogram.tsx   # Future: frequency visualization
+│   │   ├── project/               # Project management components
+│   │   │   ├── ExportDialog.tsx  # Project JSON export
+│   │   │   └── MidiExportDialog.tsx # MIDI export dialog
 │   │   │
-│   │   ├── input/                # Input components
-│   │   │   ├── MicrophoneInput.tsx
-│   │   │   ├── PitchDetector.tsx
-│   │   │   └── KeyDetector.tsx
+│   │   ├── voice/                 # Voice input components
+│   │   │   └── VoiceCaptureDialog.tsx
 │   │   │
-│   │   ├── export/               # Export/import components
-│   │   │   ├── ExportDialog.tsx
-│   │   │   ├── ImportDialog.tsx
-│   │   │   └── FormatSelector.tsx
-│   │   │
-│   │   └── tutorial/             # Tutorial system
+│   │   └── tutorial/              # Tutorial system
 │   │       ├── TutorialOverlay.tsx
-│   │       ├── TutorialStep.tsx
-│   │       └── TutorialProgress.tsx
+│   │       └── tutorial-steps.ts  # Tutorial step definitions
+│   │
+│   │   └── ErrorBoundary.tsx     # React error boundary component
 │   │
 │   ├── lib/                      # Core business logic (framework-agnostic)
 │   │   ├── audio/                # Audio engine wrapper
 │   │   │   ├── engine.ts         # Main audio engine class
-│   │   │   ├── scheduler.ts      # Playback scheduling
-│   │   │   ├── instruments.ts    # Instrument management
-│   │   │   ├── effects.ts        # Effect chains
-│   │   │   └── context.ts        # Audio context management
+│   │   │   └── pitch-detection.ts # Pitch detection for voice input
 │   │   │
 │   │   ├── generators/           # Music generation algorithms
 │   │   │   ├── euclidean.ts      # Euclidean rhythm generator
@@ -200,38 +183,32 @@ generative-score-lab/
 │   │   │   ├── random-walk.ts    # Random walk melody generator
 │   │   │   └── base-generator.ts # Abstract generator interface
 │   │   │
-│   │   ├── scene/                # Scene management
-│   │   │   ├── scene-manager.ts  # Scene lifecycle & validation
-│   │   │   ├── scene-graph.ts    # Scene graph data structure
-│   │   │   ├── mappings.ts       # Variable mapping system
-│   │   │   └── transitions.ts    # Scene transition logic
-│   │   │
 │   │   ├── ai/                   # AI assistant integration
-│   │   │   ├── ai-client.ts      # Abstract AI client interface
-│   │   │   ├── cloud-client.ts   # Cloud API client (Anthropic)
+│   │   │   ├── ai-service.ts     # AI service wrapper
+│   │   │   ├── openrouter-client.ts # OpenRouter API client
+│   │   │   ├── minimax-client.ts # Minimax API client
+│   │   │   ├── glm-client.ts     # GLM API client
 │   │   │   ├── local-client.ts   # Local LLM client (Ollama)
 │   │   │   ├── prompt-builder.ts # System prompts for music context
-│   │   │   └── intent-parser.ts  # Parse AI responses into actions
+│   │   │   ├── intent-parser.ts  # Parse AI responses into actions
+│   │   │   └── index.ts          # AI client factory and exports
 │   │   │
 │   │   ├── io/                   # Import/export
 │   │   │   ├── serializer.ts     # JSON serialization
 │   │   │   ├── deserializer.ts   # JSON parsing & validation
 │   │   │   ├── file-system.ts    # File System Access API wrapper
-│   │   │   └── formats/          # Export format handlers
-│   │   │       ├── project-json.ts
-│   │   │       ├── midi.ts       # Future: MIDI export
-│   │   │       └── musicxml.ts   # Future: MusicXML export
+│   │   │   └── midi-export.ts    # MIDI file export functionality
+│   │   │
+│   │   ├── errors/               # Error handling
+│   │   │   └── error-handler.ts  # Centralized error handling system
 │   │   │
 │   │   ├── theory/               # Music theory utilities
 │   │   │   ├── scales.ts         # Scale definitions & calculations
-│   │   │   ├── chords.ts         # Chord definitions & generation
-│   │   │   ├── progressions.ts   # Chord progression patterns
-│   │   │   └── pitch.ts          # Pitch conversion utilities
+│   │   │   └── chords.ts         # Chord definitions & generation
 │   │   │
 │   │   └── utils/                # Shared utilities
 │   │       ├── time.ts           # Time conversion (bars/beats/seconds)
 │   │       ├── math.ts           # Mathematical helpers
-│   │       ├── validation.ts     # Data validation schemas
 │   │       └── constants.ts      # Shared constants
 │   │
 │   ├── stores/                   # Zustand state stores
@@ -249,12 +226,7 @@ generative-score-lab/
 │   │   └── index.ts              # Barrel exports
 │   │
 │   ├── hooks/                    # Custom React hooks
-│   │   ├── useAudioEngine.ts     # Audio engine lifecycle
-│   │   ├── usePitchDetection.ts  # Microphone pitch detection
-│   │   ├── useProjectIO.ts       # File save/load
-│   │   ├── useAIChat.ts          # AI interaction
-│   │   ├── useUndo.ts            # Undo/redo functionality
-│   │   └── useKeyboardShortcuts.ts
+│   │   └── useKeyboardShortcuts.ts # Keyboard shortcuts handling
 │   │
 │   ├── styles/                   # Global styles
 │   │   ├── globals.css           # Global CSS + Tailwind imports
@@ -265,27 +237,36 @@ generative-score-lab/
 │       └── images/
 │
 ├── tests/                        # Test files
-│   ├── unit/                     # Unit tests (*.test.ts)
-│   ├── integration/              # Integration tests
-│   └── e2e/                      # End-to-end tests (Playwright)
+│   └── unit/                     # Unit tests (*.test.ts)
+│       ├── euclidean.test.ts
+│       ├── arpeggiator.test.ts
+│       ├── markov.test.ts
+│       └── random-walk.test.ts
 │
-├── docs/                         # Documentation
-│   ├── architecture.md
-│   ├── api.md
-│   └── development.md
+├── src/
+│   └── test/                     # Test setup
+│       └── setup.ts              # Vitest configuration
 │
-├── .github/                      # GitHub configuration (future)
-│   └── workflows/
-│       └── ci.yml
+├── Dev Docs/                     # Development documentation
+│   ├── 01-executive-summary.md
+│   ├── 02-technical-specification.md
+│   ├── 03-product-requirements.md
+│   ├── 04-roadmap.md
+│   └── 05-future-expansions.md
 │
 ├── package.json
+├── package-lock.json
 ├── tsconfig.json
+├── tsconfig.node.json
 ├── vite.config.ts
 ├── tailwind.config.js
-├── .eslintrc.cjs
-├── .prettierrc
-├── .gitignore
-└── README.md
+├── postcss.config.js
+├── eslint.config.js
+├── index.html
+├── README.md
+├── TECHNICAL_DEBT.md            # Technical debt tracking
+├── PROGRESS.md                   # Development progress
+└── PERFORMANCE_REPORT.md         # Performance metrics
 ```
 
 ### File Organization Principles
@@ -741,133 +722,65 @@ export interface ProjectContext {
 }
 ```
 
-### Cloud Implementation (Anthropic)
+### AI Client Implementation
+
+The application supports multiple AI providers through a unified interface:
+
+**Supported Providers:**
+1. **OpenRouter** - Access to multiple models including Claude, GPT-4, etc.
+2. **Minimax** - Minimax M2 API
+3. **GLM** - GLM 4.6 API
+4. **Ollama** - Local LLM (runs on user's machine)
+
+**Implementation Pattern:**
 ```typescript
-// src/lib/ai/cloud-client.ts
+// src/lib/ai/index.ts
 
-import Anthropic from '@anthropic-ai/sdk';
-
-export class CloudAIClient implements AIClient {
-  readonly id = "cloud";
-  readonly name = "Claude (Cloud)";
-  private client: Anthropic;
-
-  constructor(apiKey: string) {
-    this.client = new Anthropic({ apiKey });
-  }
-
-  async sendMessage(input: AIRequest): Promise<AIResponse> {
-    const systemPrompt = this.buildMusicSystemPrompt(input.projectContext);
-    
-    const response = await this.client.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: input.maxTokens || 2048,
-      system: systemPrompt,
-      messages: input.messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }))
-    });
-
-    const content = response.content[0].text;
-    const actions = this.parseActions(content);
-
-    return {
-      message: content,
-      actions
-    };
-  }
-
-  private buildMusicSystemPrompt(context?: ProjectContext): string {
-    return `You are a music composition assistant for game audio. You help users create adaptive music by understanding natural language requests and translating them into structured musical changes.
-
-Current project context:
-${context ? JSON.stringify(context, null, 2) : "No project loaded"}
-
-When responding:
-1. Be conversational and supportive
-2. Ask clarifying questions when needed
-3. Provide musical recommendations based on common patterns
-4. Output structured actions in JSON format when making changes
-
-Available actions: updateScene, updateTrack, updateClip, addTrack, changeKey
-
-Example:
-User: "Make this scene more intense"
-Response: "I'll increase the density and add more rhythmic complexity. <actions>[{"type":"updateScene","target":"intensity","params":{"value":0.8}},{"type":"updateTrack","target":"drums","params":{"density":0.9}}]</actions>"`;
-  }
-
-  private parseActions(content: string): MusicAction[] {
-    const match = content.match(/<actions>(.*?)<\/actions>/s);
-    if (!match) return [];
-    try {
-      return JSON.parse(match[1]);
-    } catch {
-      return [];
-    }
-  }
-
-  async isConfigured(): Promise<boolean> {
-    return !!this.client;
+export function createAIClient(config: AIConfig): AIClient {
+  switch (config.provider) {
+    case 'openrouter':
+      return new OpenRouterClient(config);
+    case 'minimax':
+      return new MinimaxClient(config);
+    case 'glm':
+      return new GLMClient(config);
+    case 'local':
+      return new LocalAIClient(config);
   }
 }
 ```
 
-### Local Implementation (Ollama)
+Each client implements the `AIClient` interface:
+- `sendMessage()` - Send chat messages and receive responses
+- `isConfigured()` - Check if client is properly configured
+- Provider-specific configuration (API keys, model selection, etc.)
+
+**OpenRouter Client Example:**
+```typescript
+// src/lib/ai/openrouter-client.ts
+
+export class OpenRouterClient implements AIClient {
+  readonly id = "openrouter";
+  readonly name = "OpenRouter";
+  
+  async sendMessage(input: AIRequest): Promise<AIResponse> {
+    // Uses OpenRouter API to access multiple models
+    // Default model: anthropic/claude-3.5-sonnet
+  }
+}
+```
+
+**Local Client (Ollama) Example:**
 ```typescript
 // src/lib/ai/local-client.ts
 
 export class LocalAIClient implements AIClient {
   readonly id = "local";
   readonly name = "Local LLM (Ollama)";
-  private baseURL: string;
-  private model: string;
-
-  constructor(baseURL: string = "http://localhost:11434", model: string = "llama2") {
-    this.baseURL = baseURL;
-    this.model = model;
+  
+  constructor(baseURL: string = "http://localhost:11434", model: string = "llama3.1") {
+    // Connects to local Ollama instance
   }
-
-  async sendMessage(input: AIRequest): Promise<AIResponse> {
-    const systemPrompt = this.buildMusicSystemPrompt(input.projectContext);
-    
-    const response = await fetch(`${this.baseURL}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: this.model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...input.messages
-        ],
-        stream: false
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Local LLM error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    const content = data.message.content;
-    const actions = this.parseActions(content);
-
-    return {
-      message: content,
-      actions
-    };
-  }
-
-  async isConfigured(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseURL}/api/tags`);
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }
-
-  // ... similar helper methods
 }
 ```
 
@@ -1084,123 +997,206 @@ setBPM(DEFAULT_BPM);
 
 ---
 
+## Implementation Status
+
+**Current State:** MVP ~90% Complete (as of November 17, 2025)
+
+### Completed Features
+
+**Core Infrastructure:**
+- ✅ Project setup (Vite, React, TypeScript, Tailwind)
+- ✅ Type system and Zustand stores
+- ✅ Audio engine foundation (Tone.js wrapper)
+- ✅ Error handling system (`src/lib/errors/error-handler.ts`)
+
+**UI Components:**
+- ✅ Scene board and scene cards
+- ✅ Scene editor with track management
+- ✅ Track rows and clip lists
+- ✅ AI chat interface and setup wizard
+- ✅ Export dialogs (JSON and MIDI)
+- ✅ Tutorial overlay system
+- ✅ Voice capture dialog UI
+- ✅ Error boundary and notifications
+
+**Music Generation:**
+- ✅ Euclidean rhythm generator (fully tested)
+- ✅ Arpeggiator generator (fully tested)
+- ✅ Markov chain generator (fully tested)
+- ✅ Random walk generator (fully tested)
+- ✅ Generator factory pattern
+
+**AI Integration:**
+- ✅ OpenRouter client implementation
+- ✅ Minimax client implementation
+- ✅ GLM client implementation
+- ✅ Ollama local client implementation
+- ✅ AI service wrapper
+- ✅ Intent parser and prompt builder
+
+**Export/Import:**
+- ✅ JSON project export/import
+- ✅ MIDI export functionality (`src/lib/io/midi-export.ts`)
+
+**Additional Features:**
+- ✅ Keyboard shortcuts system
+- ✅ Tutorial system with step definitions
+
+### Partially Implemented
+
+- ⏳ Voice capture: UI exists but pitch detection not fully integrated
+- ⏳ Some technical debt items (see `TECHNICAL_DEBT.md`)
+
+### Known Gaps & Technical Debt
+
+See `TECHNICAL_DEBT.md` and `PROGRESS.md` for detailed status:
+- Modal dialogs: Some alerts/confirms still need conversion
+- Console statements: Need centralized error handler usage
+- Type safety: 32 'any' type usages to address
+- Bundle size: Code splitting needed (currently 570KB)
+- Test coverage: Only generators have comprehensive tests
+
+### File Structure Notes
+
+**Actual vs Documented Differences:**
+- Scene management logic is in `project-store.ts` (not separate `scene-manager.ts`)
+- Generator UI is integrated into scene components (no separate `generators/` UI folder)
+- MIDI export exists as `midi-export.ts` (not in `formats/` subfolder)
+- Error handling system exists but wasn't originally documented
+
+**For detailed progress tracking, see:**
+- `PROGRESS.md` - Current development status
+- `TECHNICAL_DEBT.md` - Known issues and improvements needed
+- `PERFORMANCE_REPORT.md` - Performance metrics and optimization notes
+
+**Related Documentation:**
+- See `01-executive-summary.md` for high-level overview
+- See `03-product-requirements.md` for feature specifications
+- See `04-roadmap.md` for development timeline
+
+---
+
 ## Implementation Order
 
-### Phase 1: Foundation (Week 1-2)
+### Phase 1: Foundation (Week 1-2) ✅ COMPLETE
 **Priority:** CRITICAL  
 **Duration:** 2 weeks
 
-1. **Project setup & tooling**
-   - Files to create: `package.json`, `vite.config.ts`, `tsconfig.json`, `.eslintrc.cjs`, `.prettierrc`, `tailwind.config.js`
-   - Dependencies: Vite, React, TypeScript, Tailwind, ESLint, Prettier
+1. **Project setup & tooling** ✅
+   - Files created: `package.json`, `vite.config.ts`, `tsconfig.json`, `eslint.config.js`, `tailwind.config.js`, `postcss.config.js`
+   - Dependencies: Vite, React, TypeScript, Tailwind, ESLint
    - Tests required: None (infrastructure)
 
-2. **Core type definitions**
-   - Files: `src/types/project.ts`, `src/types/audio.ts`, `src/types/generator.ts`
+2. **Core type definitions** ✅
+   - Files: `src/types/project.ts`, `src/types/audio.ts`, `src/types/generator.ts`, `src/types/ai.ts`, `src/types/ui.ts`
    - Dependencies: None
    - Tests: Type safety via TypeScript compiler
 
-3. **Zustand stores skeleton**
-   - Files: `src/stores/project-store.ts`, `src/stores/audio-store.ts`, `src/stores/ui-store.ts`
+3. **Zustand stores skeleton** ✅
+   - Files: `src/stores/project-store.ts`, `src/stores/audio-store.ts`, `src/stores/ui-store.ts`, `src/stores/ai-store.ts`, `src/stores/tutorial-store.ts`
    - Dependencies: zustand
-   - Tests: `tests/unit/stores/project-store.test.ts` (basic CRUD)
+   - Tests: Basic CRUD operations (manual testing)
 
-4. **Audio engine wrapper (basic)**
-   - Files: `src/lib/audio/engine.ts`, `src/lib/audio/context.ts`
+4. **Audio engine wrapper (basic)** ✅
+   - Files: `src/lib/audio/engine.ts`
    - Dependencies: tone
-   - Tests: `tests/unit/audio/engine.test.ts` (init, play, stop)
+   - Tests: Manual testing (init, play, stop)
 
-5. **Basic UI shell**
-   - Files: `src/App.tsx`, `src/components/ui/Button.tsx`, `src/components/ui/Slider.tsx`
+5. **Basic UI shell** ✅
+   - Files: `src/App.tsx`, `src/components/ui/Button.tsx`, `src/components/ui/Slider.tsx`, `src/components/ui/Dialog.tsx`, `src/components/ui/Select.tsx`, etc.
    - Dependencies: @radix-ui/react-*, clsx
-   - Tests: `tests/integration/App.test.tsx` (renders without error)
+   - Tests: Manual testing (renders without error)
 
-### Phase 2: Core Features (Week 3-5)
+### Phase 2: Core Features (Week 3-5) ✅ COMPLETE
 **Priority:** HIGH  
 **Duration:** 3 weeks
 
-6. **Scene management**
-   - Files: `src/lib/scene/scene-manager.ts`, `src/lib/scene/scene-graph.ts`
+6. **Scene management** ✅
+   - Files: Scene management logic integrated into `src/stores/project-store.ts`
+   - Note: Originally planned as separate `scene-manager.ts` and `scene-graph.ts`, but implemented directly in store
    - Dependencies: Previous stores
-   - Tests: Scene CRUD operations, validation
+   - Tests: Scene CRUD operations, validation (manual testing)
 
-7. **Euclidean rhythm generator**
-   - Files: `src/lib/generators/euclidean.ts`, `src/lib/generators/base-generator.ts`
+7. **Euclidean rhythm generator** ✅
+   - Files: `src/lib/generators/euclidean.ts`, `src/lib/generators/base-generator.ts`, `src/lib/generators/factory.ts`
    - Dependencies: Music theory utils
-   - Tests: Pattern generation, edge cases (60% coverage)
+   - Tests: Pattern generation, edge cases (7 tests, comprehensive coverage)
 
-8. **Scene editor UI**
-   - Files: `src/components/scene/SceneBoard.tsx`, `src/components/scene/SceneCard.tsx`, `src/components/scene/SceneEditor.tsx`
+8. **Scene editor UI** ✅
+   - Files: `src/components/scene/SceneBoard.tsx`, `src/components/scene/SceneCard.tsx`, `src/components/scene/SceneEditor.tsx`, `src/components/scene/TrackList.tsx`, `src/components/scene/TrackRow.tsx`, `src/components/scene/ClipList.tsx`
    - Dependencies: Radix UI, audio store
-   - Tests: User interactions, state updates
+   - Tests: User interactions, state updates (manual testing)
 
-9. **Audio playback integration**
-   - Files: Complete `src/lib/audio/scheduler.ts`, hook up generators to Tone.js
+9. **Audio playback integration** ✅ COMPLETE
+   - Files: `src/lib/audio/engine.ts` (scheduling integrated into engine)
    - Dependencies: Audio engine, generators
    - Tests: Play/pause, tempo changes, clip scheduling
 
-10. **JSON export/import**
+10. **JSON export/import** ✅ COMPLETE
     - Files: `src/lib/io/serializer.ts`, `src/lib/io/deserializer.ts`, `src/lib/io/file-system.ts`
+    - Additional: `src/lib/io/midi-export.ts` (MIDI export also implemented)
     - Dependencies: File System Access API
     - Tests: Round-trip serialization, error handling
 
-### Phase 3: AI & Advanced Features (Week 6-8)
+### Phase 3: AI & Advanced Features (Week 6-8) ✅ MOSTLY COMPLETE
 **Priority:** MEDIUM  
 **Duration:** 3 weeks
 
-11. **AI client abstraction**
-    - Files: `src/lib/ai/ai-client.ts`, `src/lib/ai/cloud-client.ts`, `src/lib/ai/local-client.ts`
-    - Dependencies: Anthropic SDK, fetch API
+11. **AI client abstraction** ✅ COMPLETE
+    - Files: `src/lib/ai/ai-service.ts`, `src/lib/ai/openrouter-client.ts`, `src/lib/ai/minimax-client.ts`, `src/lib/ai/glm-client.ts`, `src/lib/ai/local-client.ts`
+    - Dependencies: Fetch API (no Anthropic SDK - using OpenRouter/Minimax/GLM instead)
     - Tests: Message sending, action parsing
 
-12. **AI chat UI**
+12. **AI chat UI** ✅ COMPLETE
     - Files: `src/components/ai/AIChat.tsx`, `src/components/ai/AISetupWizard.tsx`
     - Dependencies: AI client, AI store
-    - Tests: User interactions, message history
+    - Tests: User interactions, message history (manual testing)
 
-13. **Microphone pitch detection**
-    - Files: `src/lib/audio/pitch-detection.ts`, `src/components/input/MicrophoneInput.tsx`
+13. **Microphone pitch detection** ⏳ PARTIAL
+    - Files: `src/lib/audio/pitch-detection.ts` (exists), `src/components/voice/VoiceCaptureDialog.tsx` (UI exists)
+    - Status: Pitch detection class exists but not fully integrated with voice capture UI
+    - Note: Originally planned as `src/components/input/MicrophoneInput.tsx` and `src/components/input/PitchDetector.tsx`, but implemented as `VoiceCaptureDialog.tsx` and `pitch-detection.ts`
     - Dependencies: Web Audio API analyser node
     - Tests: Frequency detection accuracy (manual verification)
 
-14. **Arpeggiator generator**
-    - Files: `src/lib/generators/arpeggiator.ts`
-    - Dependencies: Music theory (scales, chords)
-    - Tests: Pattern generation for different modes
+14. **Arpeggiator generator** ✅ COMPLETE
+   - Files: `src/lib/generators/arpeggiator.ts`
+   - Dependencies: Music theory (scales, chords)
+   - Tests: Pattern generation for different modes (8 tests)
 
-15. **Tutorial system**
-    - Files: `src/components/tutorial/TutorialOverlay.tsx`, `src/stores/tutorial-store.ts`
-    - Dependencies: UI store
-    - Tests: Tutorial progression, step completion
+15. **Tutorial system** ✅ COMPLETE
+   - Files: `src/components/tutorial/TutorialOverlay.tsx`, `src/components/tutorial/tutorial-steps.ts`, `src/stores/tutorial-store.ts`
+   - Dependencies: UI store
+   - Tests: Tutorial progression, step completion (manual testing)
 
-### Phase 4: Polish & Launch Prep (Week 9-12)
+### Phase 4: Polish & Launch Prep (Week 9-12) ⏳ IN PROGRESS
 **Priority:** MEDIUM  
 **Duration:** 4 weeks
 
-16. **Strudel pattern DSL integration**
-    - Files: `src/lib/generators/pattern-dsl.ts`
-    - Dependencies: Strudel library (when available)
-    - Tests: Pattern parsing, playback
+16. **Strudel pattern DSL integration** ⏳ NOT STARTED
+   - Files: `src/lib/generators/pattern-dsl.ts` (not yet created)
+   - Dependencies: Strudel library (when available)
+   - Tests: Pattern parsing, playback
 
-17. **UI polish & responsiveness**
-    - Files: Update all components with refined styling
-    - Dependencies: Tailwind utilities
-    - Tests: Visual regression tests (optional)
+17. **UI polish & responsiveness** ⏳ PARTIAL
+   - Files: Components have basic styling, some polish needed
+   - Dependencies: Tailwind utilities
+   - Tests: Visual regression tests (optional, not implemented)
 
-18. **Performance optimization**
-    - Files: Memoization, lazy loading, code splitting
-    - Dependencies: React.memo, Suspense
-    - Tests: Performance benchmarks
+18. **Performance optimization** ⏳ PARTIAL
+   - Files: Some optimizations done, code splitting needed (see TECHNICAL_DEBT.md)
+   - Dependencies: React.memo, Suspense
+   - Tests: Performance benchmarks (see PERFORMANCE_REPORT.md)
 
-19. **Documentation**
-    - Files: `README.md`, `docs/architecture.md`, `docs/api.md`
-    - Dependencies: None
-    - Tests: Documentation completeness
+19. **Documentation** ✅ COMPLETE
+   - Files: `README.md`, `Dev Docs/` folder with comprehensive documentation
+   - Dependencies: None
+   - Tests: Documentation completeness (this update)
 
-20. **E2E test suite**
-    - Files: `tests/e2e/composition-flow.spec.ts`, `tests/e2e/export-flow.spec.ts`
-    - Dependencies: Playwright
-    - Tests: Critical user paths
+20. **E2E test suite** ⏳ NOT STARTED
+   - Files: `tests/e2e/` folder not yet created
+   - Dependencies: Playwright (not yet installed)
+   - Tests: Critical user paths (not yet implemented)
 
 ---
 
@@ -1348,8 +1344,24 @@ class UserFacingError extends Error {
 ### Required Environment Variables
 ```bash
 # AI Assistant (optional, defaults to disabled)
-VITE_ANTHROPIC_API_KEY=sk-ant-...          # Cloud AI (Anthropic)
-VITE_LOCAL_LLM_URL=http://localhost:11434  # Local AI (Ollama)
+# Note: API keys are stored in browser localStorage, not environment variables
+# These are examples for reference only
+
+# OpenRouter (primary cloud provider)
+# Get key from: https://openrouter.ai/keys
+# VITE_OPENROUTER_API_KEY=sk-or-...
+
+# Minimax (alternative cloud provider)
+# Get key from: https://platform.minimax.chat/
+# VITE_MINIMAX_API_KEY=...
+# VITE_MINIMAX_GROUP_ID=...
+
+# GLM (alternative cloud provider)
+# Get key from: https://open.bigmodel.cn/
+# VITE_GLM_API_KEY=...
+
+# Local LLM (Ollama) - no API key needed
+# VITE_LOCAL_LLM_URL=http://localhost:11434  # Default Ollama URL
 
 # Feature flags (optional)
 VITE_ENABLE_STRUDEL=false                  # Enable Strudel DSL generator
@@ -1365,7 +1377,10 @@ VITE_ANALYTICS_ID=                         # Plausible/Simple Analytics ID
 cp .env.example .env
 
 # Fill in values:
-# 1. Get Anthropic API key from https://console.anthropic.com
+# 1. Get API key from your chosen provider:
+#    - OpenRouter: https://openrouter.ai/keys
+#    - Minimax: https://platform.minimax.chat/
+#    - GLM: https://open.bigmodel.cn/
 # 2. Set up Ollama locally or leave blank to skip
 # 3. Set feature flags based on what you want to test
 ```
@@ -1492,33 +1507,36 @@ npm run build -- --mode analyze
 ```json
 {
   "tone": "^15.0.4",
-  "zustand": "^4.4.7",
-  "@radix-ui/react-dialog": "^1.0.5",
-  "@radix-ui/react-slider": "^1.1.2",
-  "@radix-ui/react-select": "^2.0.0",
-  "@radix-ui/react-checkbox": "^1.0.4",
-  "@anthropic-ai/sdk": "^0.27.0",
+  "@tonejs/midi": "^2.0.28",
+  "zustand": "^4.5.0",
   "react": "^18.3.1",
   "react-dom": "^18.3.1",
-  "clsx": "^2.0.0",
-  "tailwind-merge": "^2.1.0"
+  "react-router-dom": "^6.27.0",
+  "@radix-ui/react-dialog": "^1.1.2",
+  "@radix-ui/react-slider": "^1.2.1",
+  "@radix-ui/react-select": "^2.1.2",
+  "@radix-ui/react-checkbox": "^1.1.2",
+  "clsx": "^2.1.1",
+  "tailwind-merge": "^2.5.4"
 }
 ```
 
 ### Development Dependencies
 ```json
 {
-  "vite": "^5.0.8",
-  "typescript": "^5.3.3",
-  "@vitejs/plugin-react": "^4.2.1",
-  "tailwindcss": "^3.4.0",
-  "autoprefixer": "^10.4.16",
-  "postcss": "^8.4.32",
-  "eslint": "^8.56.0",
-  "prettier": "^3.1.1",
-  "vitest": "^1.1.0",
-  "@testing-library/react": "^14.1.2",
-  "playwright": "^1.40.1"
+  "vite": "^6.0.1",
+  "typescript": "^5.6.3",
+  "@vitejs/plugin-react": "^4.3.3",
+  "tailwindcss": "^3.4.15",
+  "autoprefixer": "^10.4.20",
+  "postcss": "^8.4.49",
+  "eslint": "^9.14.0",
+  "prettier": "^3.3.3",
+  "vitest": "^2.1.5",
+  "@testing-library/react": "^16.0.1",
+  "@testing-library/jest-dom": "^6.6.3",
+  "@vitest/ui": "^2.1.5",
+  "jsdom": "^25.0.1"
 }
 ```
 
@@ -1551,7 +1569,9 @@ npm run build -- --mode analyze
 - [Web Audio API Guide](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 
 **AI Integration:**
-- [Anthropic API Docs](https://docs.anthropic.com/)
+- [OpenRouter API Docs](https://openrouter.ai/docs)
+- [Minimax API Docs](https://platform.minimax.chat/document/en)
+- [GLM API Docs](https://open.bigmodel.cn/dev/api)
 - [Ollama API Docs](https://github.com/ollama/ollama/blob/main/docs/api.md)
 
 **Community:**
@@ -1657,6 +1677,12 @@ class MusicSystem {
 **This document is the single source of truth for implementation.**  
 **All technical decisions, patterns, and requirements are defined here.**
 
-**For AI Coding Agents:** Start with Phase 1, Task 1. Follow implementation order strictly. Test everything. Ask for clarification if any requirement is ambiguous.
+**For AI Coding Agents:** 
+- Most MVP features are complete (~90%)
+- See "Implementation Status" section above for current state
+- Focus remaining work on: voice capture integration, technical debt, test coverage expansion
+- Reference `TECHNICAL_DEBT.md` for known issues
+- Reference `PROGRESS.md` for detailed progress tracking
 
-**Last Updated:** November 17, 2025
+**Last Updated:** November 17, 2025  
+**Last Verified:** November 17, 2025 (against codebase v1.0.0)

@@ -95,7 +95,7 @@ A chat-based AI assistant that understands musical intent and applies changes to
 - [ ] AI asks clarifying questions when request is ambiguous (e.g., "Which scene do you want to modify?")
 - [ ] Changes are reflected immediately in UI and audio playback
 - [ ] User can undo/redo AI-applied changes
-- [ ] Works with both cloud (Anthropic Claude) and local (Ollama) backends
+- [ ] Works with multiple AI providers: OpenRouter, Minimax, GLM, and local (Ollama)
 - [ ] Error messages are clear and actionable (e.g., "Local LLM connection failed. Check that Ollama is running.")
 
 **Common Request Types (MVP):**
@@ -363,17 +363,20 @@ Each generator has configurable parameters and produces deterministic output.
 > As a **privacy-conscious user** or **user with no internet**, I want to **use a local LLM instead of cloud AI**, so that **I can work offline and keep my projects private**.
 
 **Description:**  
-Switchable AI backend with guided setup for both cloud (Anthropic Claude) and local (Ollama/LM Studio) options.
+Switchable AI backend with guided setup for multiple providers: OpenRouter (access to Claude, GPT-4, etc.), Minimax M2, GLM 4.6, and local (Ollama/LM Studio).
 
 **Acceptance Criteria:**
 - [ ] Settings page has "AI Assistant" section
-- [ ] User can toggle between "Cloud" and "Local" backend
-- [ ] Cloud backend requires API key (stored securely in browser localStorage)
+- [ ] User can select from multiple providers: OpenRouter, Minimax, GLM, or Local (Ollama)
+- [ ] Cloud providers require API key (stored securely in browser localStorage)
+- [ ] OpenRouter allows model selection (default: anthropic/claude-3.5-sonnet)
+- [ ] Minimax requires API key and group ID
+- [ ] GLM requires API key
 - [ ] Local backend requires URL configuration (default: http://localhost:11434)
-- [ ] Setup wizard guides user through local LLM installation (links to Ollama/LM Studio docs)
+- [ ] Setup wizard guides user through provider setup and local LLM installation
 - [ ] Connection test verifies backend is reachable before enabling
-- [ ] Clear error messages if backend unavailable ("Cloud API key invalid", "Local LLM not running")
-- [ ] Backend choice persists across sessions (saved in settings)
+- [ ] Clear error messages if backend unavailable ("API key invalid", "Local LLM not running")
+- [ ] Provider choice persists across sessions (saved in settings)
 
 **User Flow (Local Backend Setup):**
 1. User clicks Settings → AI Assistant
@@ -388,32 +391,38 @@ Switchable AI backend with guided setup for both cloud (Anthropic Claude) and lo
 6. Success: "Connected to local LLM! Model: llama3.1" (green checkmark)
 7. User closes wizard, AI assistant now uses local backend
 
-**User Flow (Cloud Backend Setup):**
+**User Flow (Cloud Backend Setup - OpenRouter Example):**
 1. User clicks Settings → AI Assistant
-2. User sees "Use Cloud AI (Anthropic Claude)" (default)
-3. User clicks "Get API Key" (opens console.anthropic.com in new tab)
-4. User copies API key from Anthropic console
-5. User pastes key into input field
-6. App validates key with test request
-7. Success: "API key valid! Ready to use Claude." (green checkmark)
+2. User selects "OpenRouter" from provider dropdown
+3. User clicks "Get API Key" (opens openrouter.ai/keys in new tab)
+4. User copies API key from OpenRouter dashboard
+5. User selects model (e.g., "anthropic/claude-3.5-sonnet")
+6. User pastes key into input field
+7. App validates key with test request
+8. Success: "API key valid! Ready to use OpenRouter." (green checkmark)
+
+**Similar flows exist for Minimax and GLM providers.**
 
 **Business Rules:**
-- Default to cloud backend (simpler for most users)
+- Default to OpenRouter backend (simpler for most users, access to multiple models)
 - API keys stored in browser localStorage (encrypted if possible)
+- Each provider has its own configuration (API key, model selection, etc.)
 - Local backend requires manual setup (can't auto-install Ollama)
-- If both backends fail, show fallback message: "AI assistant unavailable. You can still use manual controls."
-- User can switch backends anytime (takes effect immediately)
+- If selected provider fails, show fallback message: "AI assistant unavailable. You can still use manual controls."
+- User can switch providers anytime (takes effect immediately)
 
 **Data Needed:**
-- Selected backend ("cloud" or "local")
-- API key (for cloud)
-- Local URL (for local)
+- Selected provider ("openrouter", "minimax", "glm", or "local")
+- API key (for cloud providers)
+- Model selection (for OpenRouter)
+- Group ID (for Minimax)
+- Local URL (for local provider)
 - Last successful connection timestamp
 
 **Edge Cases:**
-- Invalid API key → Clear error: "API key invalid. Check your key in Anthropic console."
+- Invalid API key → Clear error: "API key invalid. Check your key in [provider] console."
 - Local LLM not running → "Cannot connect to http://localhost:11434. Is Ollama running?"
-- Both backends configured but current one fails → Auto-switch to fallback? (Ask user first)
+- Provider configured but fails → Show error, allow switching to another provider
 - User closes setup wizard mid-way → Save progress, allow resume later
 
 ---
@@ -772,10 +781,10 @@ Step-by-step walkthrough that runs on first launch (and can be replayed anytime)
 
 ### In Scope (MVP)
 - ✅ AI-powered natural language music editing (15 request types)
-- ✅ Voice melody capture with pitch detection
+- ⏳ Voice melody capture (UI exists, pitch detection partially integrated)
 - ✅ Scene-based composition (unlimited scenes)
 - ✅ 4 generator types (Euclidean, Arp, Markov, Random Walk)
-- ✅ Switchable AI backend (cloud + local LLM)
+- ✅ Switchable AI backend (OpenRouter, Minimax, GLM, Ollama)
 - ✅ JSON export optimized for game engines
 - ✅ GarageBand-level UI simplicity
 - ✅ Interactive tutorial (first-run)
@@ -798,7 +807,7 @@ Step-by-step walkthrough that runs on first launch (and can be replayed anytime)
 **Phase 4: Advanced Features (Month 7-12)**
 - Real-time game integration (WebSocket protocol)
 - Visual programming (node-based patching)
-- MIDI import/export
+- MIDI import (export already implemented)
 - DAW export (Ableton, FL Studio project files)
 - Mobile app (iOS/Android)
 
@@ -822,4 +831,5 @@ Future decisions needed for Phase 2+:
 
 ---
 
-**Last Updated:** November 17, 2025
+**Last Updated:** November 17, 2025  
+**Last Verified:** November 17, 2025 (against codebase v1.0.0)

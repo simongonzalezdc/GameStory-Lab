@@ -36,32 +36,34 @@ Nov 2025          Jan 2026          Mar 2026          Jun 2026          Sep 2026
 
 **Goal:** Build a working local-only app with core AI and voice features
 
-**Target Release:** End of Week 8 (Mid-January 2026)
+**Target Release:** End of Week 8 (Mid-January 2026)  
+**Current Status:** ~90% Complete (as of November 17, 2025)
 
 ### Features
 
 | Feature | Priority | Status | Estimate | Owner |
 |---------|----------|--------|----------|-------|
-| Project setup (Vite, React, TS, Tailwind) | P0 | Not started | 2 days | AI Agent |
-| Type system + Zustand store | P0 | Not started | 3 days | AI Agent |
-| Audio engine foundation (Tone.js) | P0 | Not started | 4 days | AI Agent |
-| Scene board UI (cards, CRUD) | P0 | Not started | 5 days | AI Agent |
-| Euclidean rhythm generator | P0 | Not started | 3 days | AI Agent |
-| Arpeggiator generator | P0 | Not started | 3 days | AI Agent |
-| Track management UI | P0 | Not started | 4 days | AI Agent |
-| Scene playback system | P0 | Not started | 4 days | AI Agent |
-| AI assistant (cloud backend) | P0 | Not started | 5 days | AI Agent |
-| AI assistant (local backend) | P0 | Not started | 3 days | AI Agent |
-| AI chat UI + setup wizard | P0 | Not started | 4 days | AI Agent |
-| Voice pitch detection | P0 | Not started | 4 days | AI Agent |
-| Voice capture UI | P0 | Not started | 3 days | AI Agent |
-| JSON export system | P0 | Not started | 3 days | AI Agent |
-| Interactive tutorial | P1 | Not started | 4 days | AI Agent |
-| Markov + Random Walk generators | P1 | Not started | 3 days | AI Agent |
-| UI polish + accessibility | P1 | Not started | 4 days | AI Agent |
-| Testing + bug fixes | P1 | Not started | 5 days | AI Agent |
+| Project setup (Vite, React, TS, Tailwind) | P0 | ✅ Complete | 2 days | AI Agent |
+| Type system + Zustand store | P0 | ✅ Complete | 3 days | AI Agent |
+| Audio engine foundation (Tone.js) | P0 | ✅ Complete | 4 days | AI Agent |
+| Scene board UI (cards, CRUD) | P0 | ✅ Complete | 5 days | AI Agent |
+| Euclidean rhythm generator | P0 | ✅ Complete | 3 days | AI Agent |
+| Arpeggiator generator | P0 | ✅ Complete | 3 days | AI Agent |
+| Track management UI | P0 | ✅ Complete | 4 days | AI Agent |
+| Scene playback system | P0 | ✅ Complete | 4 days | AI Agent |
+| AI assistant (multiple providers) | P0 | ✅ Complete | 5 days | AI Agent |
+| AI chat UI + setup wizard | P0 | ✅ Complete | 4 days | AI Agent |
+| Voice capture UI | P0 | ✅ Complete | 3 days | AI Agent |
+| Voice pitch detection | P0 | ⏳ Partial | 4 days | AI Agent |
+| JSON export system | P0 | ✅ Complete | 3 days | AI Agent |
+| MIDI export system | P0 | ✅ Complete | 2 days | AI Agent |
+| Interactive tutorial | P1 | ✅ Complete | 4 days | AI Agent |
+| Markov + Random Walk generators | P1 | ✅ Complete | 3 days | AI Agent |
+| UI polish + accessibility | P1 | ⏳ Partial | 4 days | AI Agent |
+| Testing + bug fixes | P1 | ⏳ Partial | 5 days | AI Agent |
 
-**Total Estimate:** 60 days (8.5 weeks with parallel work)
+**Total Estimate:** 60 days (8.5 weeks with parallel work)  
+**Actual Progress:** ~54 days completed, ~6 days remaining
 
 ### Success Metrics
 - **Time-to-first-export:** < 1 hour for new users
@@ -232,7 +234,9 @@ Nov 2025          Jan 2026          Mar 2026          Jun 2026          Sep 2026
 
 | Dependency | Impact | Owner | Status |
 |------------|--------|-------|--------|
-| Anthropic Claude API | AI assistant functionality | Anthropic | Stable |
+| OpenRouter API | AI assistant functionality (primary) | OpenRouter | Stable |
+| Minimax M2 API | AI assistant functionality | Minimax | Stable |
+| GLM 4.6 API | AI assistant functionality | GLM | Stable |
 | Ollama/LM Studio | Local LLM support | Open source | Active development |
 | Tone.js | Audio engine | Open source | Stable |
 | Strudel | Pattern generation | Open source | Beta (v1.0 coming) |
@@ -339,21 +343,23 @@ Nov 2025          Jan 2026          Mar 2026          Jun 2026          Sep 2026
 
 ---
 
-### Decision 4: Anthropic Claude for Cloud AI (Not OpenAI)
+### Decision 4: Multiple AI Providers (OpenRouter, Minimax, GLM, Ollama)
 
 **Date:** November 17, 2025  
-**Context:** Choosing cloud LLM provider  
-**Decision:** Anthropic Claude Sonnet 3.5  
+**Context:** Choosing AI provider architecture  
+**Decision:** Support multiple providers (OpenRouter, Minimax, GLM, Ollama) instead of single provider  
 **Rationale:**  
-- Better structured output (JSON patches)
-- Longer context window (200K tokens)
-- Fewer refusals for creative tasks
-- Personal preference (you're already using Claude)
+- User flexibility and choice
+- OpenRouter provides access to multiple models (Claude, GPT-4, etc.)
+- Minimax and GLM offer alternative options
+- Local Ollama support for privacy-conscious users
+- Provider abstraction allows easy addition of new providers
 
 **Consequences:**  
-- API costs ~2x OpenAI ($3 vs $1.5 per million tokens)
-- Smaller ecosystem than OpenAI
-- Accepted tradeoff for quality
+- More complex setup wizard (multiple provider options)
+- Need to maintain multiple client implementations
+- Better user experience (choice and flexibility)
+- Accepted tradeoff for flexibility
 
 ---
 
@@ -413,28 +419,40 @@ Nov 2025          Jan 2026          Mar 2026          Jun 2026          Sep 2026
 
 ---
 
-## Next Steps
+## Current Status (November 17, 2025)
 
-**Week 1 (Now):**
-1. Review and approve this documentation ✅
-2. Set up development environment (Vite + React + TS)
-3. Install dependencies (Tone.js, Zustand, Radix UI)
-4. Create project structure (folders, files)
-5. Initialize Git repository
+**MVP Completion:** ~90%
 
-**Week 2:**
-1. Implement type system (Project, Scene, Track, Clip)
-2. Build Zustand store (scene CRUD operations)
-3. Create audio engine foundation (Tone.js initialization)
-4. Build basic UI (scene board, scene card components)
-5. First playable sound (test tone)
+**Completed:**
+- ✅ Project setup and development environment
+- ✅ Type system and Zustand stores
+- ✅ Audio engine foundation
+- ✅ Scene board and editor UI
+- ✅ All 4 MVP generators (Euclidean, Arp, Markov, Random Walk)
+- ✅ AI assistant with multiple providers (OpenRouter, Minimax, GLM, Ollama)
+- ✅ JSON and MIDI export
+- ✅ Interactive tutorial
+- ✅ Error handling system
+- ✅ Keyboard shortcuts
 
-**Week 3-8:**
-Follow implementation order in Technical Specification document.
+**Remaining Work:**
+- ⏳ Complete voice capture integration (pitch detection)
+- ⏳ Address technical debt (see TECHNICAL_DEBT.md)
+- ⏳ Expand test coverage beyond generators
+- ⏳ Code splitting for bundle optimization
+- ⏳ UI polish and accessibility improvements
+
+**Next Steps:**
+1. Complete voice capture feature integration
+2. Address high-priority technical debt items
+3. Expand test coverage
+4. Optimize bundle size with code splitting
+5. Final UI polish and accessibility audit
 
 ---
 
 **This roadmap is a living document.**  
 **Update weekly based on actual progress and user feedback.**
 
-**Last Updated:** November 17, 2025
+**Last Updated:** November 17, 2025  
+**Last Verified:** November 17, 2025 (against codebase v1.0.0)

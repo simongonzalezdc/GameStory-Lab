@@ -858,4 +858,7 @@ This document is a **living roadmap** of possibilities. Not everything will be b
 ---
 
 **Last Updated:** November 17, 2025  
+**Last Verified:** November 17, 2025 (against codebase v1.0.0)  
 **Next Review:** February 2026 (post-MVP launch)
+
+**Note:** The current implementation supports multiple AI providers (OpenRouter, Minimax, GLM, Ollama), providing flexibility for future expansion and user choice.

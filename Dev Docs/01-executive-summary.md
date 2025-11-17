@@ -31,7 +31,7 @@
 | UI Components | Radix UI + Tailwind CSS 3.4+ | Accessible primitives, full design control, fast iteration |
 | Build Tool | Vite 5.0+ | Fast HMR, excellent TypeScript support, optimized audio file handling |
 | Storage | Browser File System Access API | No backend needed, native file operations, privacy-first |
-| AI Backend | Dual mode: Cloud (Anthropic Claude) + Local (Ollama) | User choice for privacy/cost tradeoffs |
+| AI Backend | Multiple providers: OpenRouter, Minimax, GLM, Ollama | User choice for privacy/cost tradeoffs, flexible provider selection |
 
 ---
 
@@ -61,9 +61,8 @@ npm create vite@latest generative-score-lab -- --template react-ts
 cd generative-score-lab
 
 # Install core dependencies
-npm install tone zustand @radix-ui/react-dialog @radix-ui/react-slider
+npm install tone zustand @radix-ui/react-dialog @radix-ui/react-slider @tonejs/midi react-router-dom
 npm install -D tailwindcss postcss autoprefixer
-npm install @anthropic-ai/sdk
 
 # Initialize Tailwind
 npx tailwindcss init -p
@@ -80,7 +79,13 @@ npm run dev
 2. **02-TECHNICAL-SPECIFICATION.md** - How to build (for AI agent) ⭐ **START HERE**
 3. **03-PRODUCT-REQUIREMENTS.md** - What to build (features & acceptance criteria)
 4. **04-ROADMAP.md** - Phased delivery timeline
-5. **05-FUTURE-EXPANSION.md** - Post-MVP enhancements and scaling options
+5. **05-FUTURE-EXPANSIONS.md** - Post-MVP enhancements and scaling options
+
+**Additional Resources:**
+- `TECHNICAL_DEBT.md` - Known issues and improvements needed
+- `PROGRESS.md` - Current development status and progress tracking
+- `PERFORMANCE_REPORT.md` - Performance metrics and optimization notes
+- `README.md` - User-facing documentation and quick start guide
 
 ---
 
@@ -110,24 +115,36 @@ npm run dev
 
 ---
 
-## ✅ Next Actions
+## ✅ Current Status
 
-**This Week:**
-- [ ] Set up repository with Vite + React + TypeScript
-- [ ] Install and test Tone.js basic playback
-- [ ] Create project structure following technical spec
-- [ ] Implement Zustand store for project state
-- [ ] Build basic Scene data model
+**MVP Completion:** ~90% Complete
 
-**This Month:**
-- [ ] Complete audio engine wrapper around Tone.js
-- [ ] Implement Euclidean rhythm generator
-- [ ] Build scene editor UI with Radix components
-- [ ] Create JSON export/import system
-- [ ] Integrate AI assistant (cloud mode first)
+**Completed Features:**
+- ✅ Project setup with Vite + React + TypeScript
+- ✅ Zustand stores for state management
+- ✅ Audio engine wrapper around Tone.js
+- ✅ All 4 MVP generators (Euclidean, Arpeggiator, Markov, Random Walk)
+- ✅ Scene editor UI with Radix components
+- ✅ JSON export/import system
+- ✅ MIDI export functionality
+- ✅ AI assistant with multiple providers (OpenRouter, Minimax, GLM, Ollama)
+- ✅ Interactive tutorial system
+- ✅ Error handling system
+- ✅ Keyboard shortcuts
+
+**In Progress:**
+- ⏳ Voice capture UI exists but pitch detection not fully integrated
+- ⏳ Some technical debt items (see TECHNICAL_DEBT.md)
+
+**Next Steps:**
+- Complete voice capture integration
+- Address technical debt (modal dialogs, console statements, type safety)
+- Add comprehensive test coverage beyond generators
+- Implement code splitting for bundle size optimization
 
 ---
 
 **Document Purpose:** This executive summary provides a human-readable overview. AI coding agents should primarily reference **02-TECHNICAL-SPECIFICATION.md** for implementation guidance.
 
-**Last Updated:** November 17, 2025
+**Last Updated:** November 17, 2025  
+**Last Verified:** November 17, 2025 (against codebase v1.0.0)
