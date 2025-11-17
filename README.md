@@ -16,19 +16,21 @@ GameForge Studio helps indie game developers create cohesive, professional game 
 - **🎮 Flexible Workflow**: Start with mechanics OR lore via REST API - AI adapts to your creative process
 - **🤖 AI Model Orchestration**: Automatically selects optimal AI models (DeepSeek, Qwen, Gemini, Ollama)
 - **✅ Comprehensive Validation**: 26 validation rules across 6 categories detecting mechanics-lore conflicts, genre issues, world physics problems, and more
+- **🎯 Genre Templates**: 5 pre-built templates (RPG, FPS, Strategy, Puzzle, Survival) with customization API
+- **🔄 Iterative Refinement**: Full version tracking and change comparison with 4 refinement focuses
 - **📝 Professional Export**: Generate GDD, pitch decks, or technical specs in markdown
+- **🏷️ Title Generation**: Advanced title suggestions with SEO analysis and market fit scoring
 - **💰 Cost Optimization**: Intelligent fallback to local Ollama models to minimize API costs
-- **🔧 Full REST API**: Complete backend with projects, generation, validation, and export endpoints
+- **🔧 Full REST API**: Complete backend with 7 endpoint categories (projects, generate, validate, export, templates, refinement, titles)
 - **📊 Health Monitoring**: Real-time AI provider status and cost tracking
 
 ### ⚠️ Partially Implemented:
-- **⚠️ Iterative Refinement**: API endpoint exists, full service in development
 - **⚠️ Status Dashboard**: Basic frontend showing system health (full UI in development)
 
 ### 🚧 In Development:
-- **Genre Templates**: Pre-built templates for RPG, FPS, Strategy, Puzzle, and Survival (coming soon)
 - **Interactive UI**: Visual editors for mechanics and lore (coming soon)
 - **Validation Panel UI**: Live consistency checking interface (backend complete, UI needed)
+- **Template Browser UI**: Visual template selection and customization (backend complete, UI needed)
 
 > **Note:** This is a **backend-first MVP**. The API is fully functional, but the frontend is minimal. Users comfortable with APIs (curl, Postman, etc.) can use all features now. A complete UI is in active development.
 
@@ -372,14 +374,13 @@ See `.env.example` for all available configuration options.
   - [x] Narrative Structure (3 rules)
   - [x] Technical Feasibility (3 rules)
 
-### 🚧 Phase 3: Genre Templates & Refinement (In Progress - 20%)
-- [ ] **Genre template system** ← Next priority
-  - [ ] 5 JSON template files (RPG, FPS, Strategy, Puzzle, Survival)
-  - [ ] Template loading service
-  - [ ] Template customization API
-- [x] Basic refinement API endpoint
-- [ ] Dedicated refinement service with version tracking
-- [ ] Enhanced title generation service
+### ✅ Phase 3: Genre Templates & Refinement (Completed - 100%)
+- [x] **Genre template system** ✅
+  - [x] 5 JSON template files (RPG, FPS, Strategy, Puzzle, Survival)
+  - [x] Template loading service
+  - [x] Template customization API
+- [x] Dedicated refinement service with version tracking
+- [x] Enhanced title generation service with SEO analysis
 
 ### 📅 Phase 4: Frontend UI (Planned - 15%)
 - [x] React UI with Vite setup

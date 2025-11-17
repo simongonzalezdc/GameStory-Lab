@@ -71,6 +71,9 @@ app.get('/api', (req, res) => {
       generate: '/api/generate',
       validate: '/api/validate',
       export: '/api/export',
+      templates: '/api/templates',
+      refinement: '/api/refinement',
+      titles: '/api/titles',
     },
   });
 });
@@ -80,11 +83,17 @@ import projectsRouter from './routes/projects.js';
 import generateRouter from './routes/generate.js';
 import validateRouter from './routes/validate.js';
 import exportRouter from './routes/export.js';
+import templatesRouter from './routes/templates.js';
+import refinementRouter from './routes/refinement.js';
+import titlesRouter from './routes/titles.js';
 
 app.use('/api/projects', projectsRouter);
 app.use('/api/generate', generateRouter);
 app.use('/api/validate', validateRouter);
 app.use('/api/export', exportRouter);
+app.use('/api/templates', templatesRouter);
+app.use('/api/refinement', refinementRouter);
+app.use('/api/titles', titlesRouter);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

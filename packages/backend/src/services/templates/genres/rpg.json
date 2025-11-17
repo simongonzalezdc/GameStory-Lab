@@ -1,0 +1,102 @@
+{
+  "id": "rpg",
+  "name": "Role-Playing Game (RPG)",
+  "description": "Classic RPG with character progression, quests, and narrative choices",
+  "mechanics": {
+    "coreLoop": "Explore world → Accept quests → Battle enemies → Gain experience → Level up → Unlock new areas",
+    "playerActions": [
+      "Explore open world or dungeons",
+      "Accept and complete quests from NPCs",
+      "Engage in turn-based or real-time combat",
+      "Level up character attributes (strength, intelligence, etc.)",
+      "Equip weapons, armor, and accessories",
+      "Craft items using gathered resources",
+      "Make dialogue choices that affect story",
+      "Form party with companion characters"
+    ],
+    "progressionSystems": {
+      "type": "branching",
+      "mechanics": [
+        "Experience points (XP) from combat and quests",
+        "Level-based stat increases",
+        "Skill tree with branching paths",
+        "Equipment upgrades (common → rare → legendary)",
+        "Class specialization at level 10",
+        "Unlock new abilities every 5 levels"
+      ]
+    },
+    "winConditions": [
+      "Defeat the final boss",
+      "Complete main story questline",
+      "Restore peace to the kingdom"
+    ],
+    "failConditions": [
+      "Player character dies (respawn at checkpoint)",
+      "Game over screen if party is wiped",
+      "Reload from last save"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Health Points (HP)",
+        "mechanics": "Depletes in combat, restored with potions or rest",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Mana Points (MP)",
+        "mechanics": "Used for casting spells, regenerates over time",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Gold",
+        "mechanics": "Currency for buying items from merchants",
+        "scarcity": "abundant"
+      },
+      {
+        "name": "Crafting Materials",
+        "mechanics": "Collected from enemies and environment, used for upgrades",
+        "scarcity": "balanced"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Medieval fantasy",
+      "location": "Continent of Eldoria with diverse biomes (forests, deserts, mountains, cities)",
+      "worldType": "High fantasy with magic and mythical creatures"
+    },
+    "protagonist": {
+      "background": "A young adventurer from a humble village, destined for greatness",
+      "motivation": "Discover the truth about their mysterious heritage and save the world from an ancient evil",
+      "abilities": [
+        "Basic swordsmanship or magic",
+        "Quick learner (gains XP faster)",
+        "Chosen One status (unlocks special quests)",
+        "Can communicate with spirits"
+      ]
+    },
+    "conflict": {
+      "primary": "An ancient dark lord has awakened and threatens to plunge the world into eternal darkness",
+      "secondary": [
+        "Political intrigue between kingdoms",
+        "Rival adventuring party competing for the same goal",
+        "Internal struggle with a cursed power",
+        "Corruption spreading through the land"
+      ]
+    },
+    "worldRules": {
+      "physics": "Standard gravity and physics, but magic can bend these rules",
+      "magic": "Elemental magic system (fire, water, earth, air, light, dark) powered by mana. Each spell has a cost and cooldown. Forbidden magic exists but corrupts the user.",
+      "technology": "Pre-industrial: swords, bows, medieval armor. No gunpowder or machinery."
+    },
+    "themes": [
+      "Good vs Evil",
+      "Coming of age",
+      "Power and responsibility",
+      "Friendship and sacrifice",
+      "Redemption"
+    ]
+  },
+  "tags": ["fantasy", "adventure", "story-driven", "character-progression", "exploration"],
+  "difficulty": "Moderate learning curve with deep systems",
+  "targetAudience": "Players who enjoy narrative depth and character customization"
+}
