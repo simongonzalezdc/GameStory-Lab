@@ -23,6 +23,7 @@ export async function sendAIMessage(
   config: AIConfig,
   messages: ChatMessage[],
   projectContext?: ProjectContext,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _signal?: AbortSignal // TODO: Pass signal to AI clients' fetch calls
 ): Promise<AIResponse> {
   try {

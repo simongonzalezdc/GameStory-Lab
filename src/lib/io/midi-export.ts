@@ -208,6 +208,7 @@ function getInstrumentNumberForRole(role: string): number {
 function sanitizeFilename(filename: string): string {
   // Remove/replace invalid characters for Windows/Mac/Linux
   return filename
+    // eslint-disable-next-line no-control-regex
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_') // Replace invalid chars
     .replace(/^\.+/, '') // Remove leading dots
     .replace(/\.+$/, '') // Remove trailing dots
