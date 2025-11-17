@@ -224,7 +224,7 @@ export class AIOrchestrator {
     }
 
     // Fallback chain: try clients in order of preference
-    for (const [name, client] of this.clients.entries()) {
+    for (const [_name, client] of this.clients.entries()) {
       if (await client.isAvailable()) {
         const model = this.getDefaultModel(client);
         return {

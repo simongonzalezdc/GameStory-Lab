@@ -129,7 +129,7 @@ export async function validateThemeConsistency(
 
   // Check if mechanics reinforce themes
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
-  const loreText = JSON.stringify(lore).toLowerCase();
+  const _loreText = JSON.stringify(lore).toLowerCase();
 
   const themesNotReinforced: string[] = [];
 

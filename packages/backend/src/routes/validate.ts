@@ -106,7 +106,7 @@ router.post('/', async (req, res, next) => {
  * GET /api/validate/rules
  * Get all available validation rules
  */
-router.get('/rules', (req, res) => {
+router.get('/rules', (_req, res) => {
   const rules = validationEngine.getRules();
   res.json({
     rules: rules.map((r) => ({

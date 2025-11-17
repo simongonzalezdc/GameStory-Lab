@@ -11,7 +11,6 @@ import type {
   AICompletionRequest,
   AICompletionResponse,
   AIClientError,
-  AIMessage,
 } from './base.js';
 
 interface OpenRouterMessage {

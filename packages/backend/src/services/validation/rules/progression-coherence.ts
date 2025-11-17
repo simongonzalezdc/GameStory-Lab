@@ -58,7 +58,7 @@ export async function validateGatingJustification(
     return null;
   }
 
-  const loreText = JSON.stringify(lore).toLowerCase();
+  const _loreText = JSON.stringify(lore).toLowerCase();
   const hasJustification = loreText.includes('barrier') ||
                           loreText.includes('seal') ||
                           loreText.includes('forbidden') ||
@@ -90,7 +90,7 @@ export async function validateSkillMastery(
   lore: LoreData
 ): Promise<ValidationIssue | null> {
   const progression = mechanics.progressionSystems;
-  const playerActions = mechanics.playerActions || [];
+  const _playerActions = mechanics.playerActions || [];
 
   if (!progression || playerActions.length === 0) {
     return null;

@@ -13,7 +13,7 @@ const router = express.Router();
  * GET /api/projects
  * List all projects
  */
-router.get('/', async (req, res, next) => {
+router.get('/', async (_req, res, next) => {
   try {
     const projects = await prisma.project.findMany({
       orderBy: { updatedAt: 'desc' },

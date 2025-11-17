@@ -35,13 +35,13 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
 // Health check
-app.get('/health', async (req, res) => {
+app.get('/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     const aiStatus = await aiOrchestrator.getStatus();
@@ -62,7 +62,7 @@ app.get('/health', async (req, res) => {
 });
 
 // API routes (will be imported)
-app.get('/api', (req, res) => {
+app.get('/api', (_req, res) => {
   res.json({
     name: 'GameForge Studio API',
     version: '1.0.0',
@@ -96,7 +96,7 @@ app.use('/api/refinement', refinementRouter);
 app.use('/api/titles', titlesRouter);
 
 // Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('[Error]', err);
 
   const statusCode = err.statusCode || 500;

@@ -60,12 +60,14 @@ export class RefinementService {
     );
 
     // 3. Call AI to refine
-    const aiResponse = await this.aiOrchestrator.route({
-      taskType: 'refinement',
-      systemMessage: this.getRefinementSystemMessage(request.focus),
-      userMessage: refinementPrompt,
-      modelPreference: 'auto',
-    });
+    const aiResponse = await this.aiOrchestrator.generate(
+      'refinement',
+      [
+        { role: 'system', content: this.getRefinementSystemMessage(request.focus) },
+        { role: 'user', content: refinementPrompt },
+      ],
+      'auto'
+    );
 
     // Parse AI response
     const refined = this.parseRefinementResponse(aiResponse.content);
@@ -88,7 +90,7 @@ export class RefinementService {
         lore: refined.lore as any,
         metadata: {
           ...existingConcept.metadata,
-          aiModel: aiResponse.modelUsed,
+          aiModel: aiResponse.model,
           userEdited: false,
           refinedFrom: request.conceptId,
           refinementFocus: request.focus,
@@ -101,12 +103,12 @@ export class RefinementService {
       data: {
         conceptId: newConcept.id,
         taskType: 'refinement',
-        modelUsed: aiResponse.modelUsed,
+        modelUsed: aiResponse.model,
         prompt: refinementPrompt,
         response: aiResponse.content,
-        tokensUsed: aiResponse.tokensUsed,
-        costUsd: aiResponse.cost,
-        durationMs: aiResponse.duration,
+        tokensUsed: aiResponse.tokensUsed.total,
+        costUsd: aiResponse.metadata?.costUsd,
+        durationMs: aiResponse.metadata?.durationMs,
       },
     });
 
@@ -129,7 +131,7 @@ export class RefinementService {
       orderBy: { version: 'asc' },
     });
 
-    return concepts.map(c => ({
+    return concepts.map((c: any) => ({
       id: c.id,
       version: c.version,
       createdAt: c.createdAt,

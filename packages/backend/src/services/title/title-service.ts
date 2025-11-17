@@ -40,12 +40,14 @@ export class TitleService {
     const prompt = this.buildTitlePrompt(request, count);
 
     // Call AI
-    const response = await this.aiOrchestrator.route({
-      taskType: 'title',
-      systemMessage: this.getSystemMessage(style),
-      userMessage: prompt,
-      modelPreference: 'auto',
-    });
+    const response = await this.aiOrchestrator.generate(
+      'title',
+      [
+        { role: 'system', content: this.getSystemMessage(style) },
+        { role: 'user', content: prompt },
+      ],
+      'auto'
+    );
 
     // Parse response
     const rawTitles = this.parseAIResponse(response.content);
@@ -75,22 +77,24 @@ Return as JSON array:
   "variations": ["Title 1", "Title 2", ...]
 }`;
 
-    const response = await this.aiOrchestrator.route({
-      taskType: 'title',
-      systemMessage: 'You are an expert at creating memorable game title variations.',
-      userMessage: prompt,
-      modelPreference: 'auto',
-    });
+    const response = await this.aiOrchestrator.generate(
+      'title',
+      [
+        { role: 'system', content: 'You are an expert at creating memorable game title variations.' },
+        { role: 'user', content: prompt },
+      ],
+      'auto'
+    );
 
     const parsed = this.parseAIResponse(response.content);
-    return parsed.map(t => t.title);
+    return parsed.map((t: any) => t.title);
   }
 
   /**
    * Check if a title is available (not used by existing games)
    * This is a placeholder - in production would check Steam API, trademark databases, etc.
    */
-  async checkAvailability(title: string): Promise<{ available: boolean; conflicts: string[] }> {
+  async checkAvailability(_title: string): Promise<{ available: boolean; conflicts: string[] }> {
     // Placeholder implementation
     // In production, this would:
     // 1. Check Steam store API

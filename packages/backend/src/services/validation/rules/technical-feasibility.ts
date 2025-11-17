@@ -12,7 +12,7 @@ export async function validateComplexityEstimate(
   mechanics: MechanicsData,
   lore: LoreData
 ): Promise<ValidationIssue | null> {
-  const playerActions = mechanics.playerActions || [];
+  const _playerActions = mechanics.playerActions || [];
   const resourceSystems = mechanics.resourceSystems || [];
   const progression = mechanics.progressionSystems;
 
@@ -111,9 +111,9 @@ export async function validateScopeRealityCheck(
   lore: LoreData,
   genre?: string
 ): Promise<ValidationIssue | null> {
-  const playerActions = mechanics.playerActions || [];
+  const _playerActions = mechanics.playerActions || [];
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
-  const loreText = JSON.stringify(lore).toLowerCase();
+  const _loreText = JSON.stringify(lore).toLowerCase();
 
   const ambitiousFeatures: string[] = [];
 

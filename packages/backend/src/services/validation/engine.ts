@@ -3,7 +3,7 @@
  * Runs 30+ rules to check coherence between mechanics and lore
  */
 
-import type { Concept, MechanicsData, LoreData, ValidationIssue, ValidationCategory } from '@gameforge/shared';
+import type { MechanicsData, LoreData, ValidationIssue, ValidationCategory } from '@gameforge/shared';
 
 // Mechanics-Lore Alignment rules
 import {
@@ -57,7 +57,7 @@ export interface ValidationRule {
   name: string;
   category: ValidationCategory;
   weight: number;
-  execute: (mechanics: MechanicsData, lore: LoreData, genre?: string) => Promise<ValidationIssue | null>;
+  execute: (_mechanics: MechanicsData, lore: LoreData, genre?: string) => Promise<ValidationIssue | null>;
 }
 
 export class ValidationEngine {
