@@ -5,6 +5,7 @@ import TrackList from './TrackList';
 import MidiExportDialog from '../project/MidiExportDialog';
 import { getAudioEngine } from '@/lib/audio/engine';
 import { useEffect, useState } from 'react';
+import { useKeyboardShortcuts, isTypingInInput } from '@/hooks/useKeyboardShortcuts';
 
 export default function SceneEditor() {
   const { project, currentSceneId, setCurrentScene } = useProjectStore();
@@ -49,6 +50,50 @@ export default function SceneEditor() {
     audioEngine.stop();
     setPlaying(false);
   };
+
+  // Register keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: ' ',
+      action: () => {
+        if (!isTypingInInput()) {
+          handlePlayPause();
+        }
+      },
+      description: 'Play/Pause',
+      preventDefault: true,
+    },
+    {
+      key: 'Escape',
+      action: () => {
+        if (isPlaying) {
+          handleStop();
+        }
+      },
+      description: 'Stop playback',
+    },
+    {
+      key: 'e',
+      ctrl: true,
+      action: () => {
+        if (!isTypingInInput()) {
+          setShowMidiExport(true);
+        }
+      },
+      description: 'Export MIDI',
+    },
+    {
+      key: 'Escape',
+      action: () => {
+        if (showMidiExport) {
+          setShowMidiExport(false);
+        } else {
+          setCurrentScene(null);
+        }
+      },
+      description: 'Close dialog or go back',
+    },
+  ]);
 
   return (
     <>

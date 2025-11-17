@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useProjectStore } from './stores/project-store';
 import { useTutorialStore } from './stores/tutorial-store';
+import { useUIStore } from './stores/ui-store';
 import SceneBoard from './components/scene/SceneBoard';
 import SceneEditor from './components/scene/SceneEditor';
 import AIChat from './components/ai/AIChat';
 import ExportDialog from './components/project/ExportDialog';
+import KeyboardShortcutsHelp from './components/ui/KeyboardShortcutsHelp';
+import { useKeyboardShortcuts, isTypingInInput } from './hooks/useKeyboardShortcuts';
 
 function App() {
   const { project, createNewProject, currentSceneId } = useProjectStore();
   const { isCompleted } = useTutorialStore();
+  const { toggleAIChat } = useUIStore();
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
 
   useEffect(() => {
     // Create default project if none exists
@@ -25,6 +30,46 @@ function App() {
     }
   }, []);
 
+  // Register global keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 's',
+      ctrl: true,
+      action: () => {
+        if (!isTypingInInput()) {
+          setShowExportDialog(true);
+        }
+      },
+      description: 'Export Project (Save)',
+    },
+    {
+      key: '/',
+      ctrl: true,
+      action: () => {
+        toggleAIChat();
+      },
+      description: 'Toggle AI Chat',
+    },
+    {
+      key: 'k',
+      ctrl: true,
+      action: () => {
+        toggleAIChat();
+      },
+      description: 'Toggle AI Chat (alternate)',
+    },
+    {
+      key: '?',
+      action: () => {
+        if (!isTypingInInput()) {
+          setShowShortcutsHelp(true);
+        }
+      },
+      description: 'Show keyboard shortcuts',
+      preventDefault: false,
+    },
+  ]);
+
   if (!project) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -38,11 +83,17 @@ function App() {
   return (
     <>
       {project && (
-        <ExportDialog
-          open={showExportDialog}
-          onClose={() => setShowExportDialog(false)}
-          project={project}
-        />
+        <>
+          <ExportDialog
+            open={showExportDialog}
+            onClose={() => setShowExportDialog(false)}
+            project={project}
+          />
+          <KeyboardShortcutsHelp
+            open={showShortcutsHelp}
+            onClose={() => setShowShortcutsHelp(false)}
+          />
+        </>
       )}
       <div className="flex h-screen bg-gray-50">
         {/* Main Content */}
