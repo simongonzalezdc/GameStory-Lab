@@ -1,26 +1,21 @@
 """Asset generation API endpoints."""
 import time
 import logging
-from fastapi import APIRouter, HTTPException, Depends, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import APIRouter, HTTPException, status
 
 from app.core.config import settings
 from app.models.generation import GenerationRequest, GenerationResponse, RefineRequest
 from app.models.asset import AssetCreate
 from app.services.ai_service import AIService
 from app.services.image_service import ImageService
-from app.services.storage_service import StorageService
+from app.services.local_storage_service import storage_service
 
 router = APIRouter(prefix="/api/generate", tags=["generation"])
-security = HTTPBearer(auto_error=False)
 logger = logging.getLogger(__name__)
 
 
 @router.post("/", response_model=GenerationResponse)
-async def generate_asset(
-    request: GenerationRequest,
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-):
+async def generate_asset(request: GenerationRequest):
     """
     Generate game asset from text prompt.
 
@@ -38,16 +33,12 @@ async def generate_asset(
 
     Raises:
         400: Invalid request
-        401: Unauthorized
         503: AI service unavailable
     """
     start_time = time.time()
 
-    # Get user ID from credentials (simplified for demo)
-    user_id = "demo-user"
-    if credentials:
-        # In production, verify JWT token here
-        user_id = credentials.credentials[:20]  # Simplified
+    # Use local user ID (no auth required for personal use)
+    user_id = "local-user"
 
     try:
         # Validate Ollama-specific requirements
@@ -60,7 +51,6 @@ async def generate_asset(
         # Initialize services
         ai_service = AIService()
         image_service = ImageService()
-        storage_service = StorageService()
 
         # Generate image
         logger.info(f"Generating asset with {request.model}...")
@@ -127,10 +117,7 @@ async def generate_asset(
 
 
 @router.post("/refine", response_model=GenerationResponse)
-async def refine_asset(
-    request: RefineRequest,
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-):
+async def refine_asset(request: RefineRequest):
     """
     Refine existing asset with natural language instruction.
 
@@ -147,13 +134,11 @@ async def refine_asset(
     """
     start_time = time.time()
 
-    user_id = "demo-user"
-    if credentials:
-        user_id = credentials.credentials[:20]
+    # Use local user ID (no auth required for personal use)
+    user_id = "local-user"
 
     try:
         # Initialize services
-        storage_service = StorageService()
         ai_service = AIService()
         image_service = ImageService()
 
@@ -165,11 +150,10 @@ async def refine_asset(
                 detail="Asset not found"
             )
 
-        # Download original image
-        import httpx
-        async with httpx.AsyncClient() as client:
-            response = await client.get(original_asset.file_url)
-            original_image_bytes = response.content
+        # Read original image from local storage
+        file_path = storage_service.get_file_path(original_asset.file_url)
+        with open(file_path, 'rb') as f:
+            original_image_bytes = f.read()
 
         # Refine image
         logger.info("Refining asset...")

@@ -2,9 +2,12 @@
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 
 from app.core.config import settings
 from app.api import health, generate, assets, export
+from app.services.database_service import db_service
 
 # Configure logging
 logging.basicConfig(
@@ -31,6 +34,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files for serving assets
+# Ensure the directory exists before mounting
+if not os.path.exists(settings.STORAGE_PATH):
+    os.makedirs(settings.STORAGE_PATH, exist_ok=True)
+app.mount("/assets", StaticFiles(directory=settings.STORAGE_PATH), name="assets")
+
 # Include routers
 app.include_router(health.router)
 app.include_router(generate.router)
@@ -44,6 +53,12 @@ async def startup_event():
     logger.info("Starting AI Game Asset Generator API...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"CORS Origins: {settings.cors_origins_list}")
+    logger.info(f"Database: {settings.DATABASE_PATH}")
+    logger.info(f"Storage: {settings.STORAGE_PATH}")
+
+    # Initialize database
+    await db_service.initialize_database()
+    logger.info("Database initialized successfully")
 
     # Check AI providers
     providers = []
@@ -75,19 +90,22 @@ async def shutdown_event():
 async def root():
     """Root endpoint."""
     return {
-        "service": "AI Game Asset Generator API",
+        "service": "AI Game Asset Generator API (Local Edition)",
         "version": "1.0.0",
+        "storage": "Local SQLite + File System",
         "docs": "/docs",
         "health": "/api/health",
         "features": [
             "Text-to-sprite generation",
             "Image-to-sprite conversion",
             "Natural language refinement",
-            "Local AI models via Ollama",
+            "Local AI models via Ollama (privacy-first!)",
             "Multi-provider support (OpenRouter, Google, ChatGPT, Ollama)",
-            "Asset library management",
+            "Local asset library management",
             "Sprite sheet export",
-            "Game engine format support (Unity, Godot, Generic)"
+            "Game engine format support (Unity, Godot, Generic)",
+            "No authentication required (personal use)",
+            "All data stored locally"
         ]
     }
 

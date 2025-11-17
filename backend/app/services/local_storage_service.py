@@ -1,30 +1,29 @@
-"""Supabase storage service for asset management."""
-import logging
+"""Local file storage service."""
+import os
 import uuid
-from datetime import datetime
+import logging
+from pathlib import Path
 from typing import Optional, List
-from supabase import Client, create_client
 
 from app.core.config import settings
 from app.models.asset import AssetCreate, AssetResponse
+from app.services.database_service import db_service
 
 logger = logging.getLogger(__name__)
 
 
-class StorageService:
-    """Service for managing asset storage with Supabase."""
+class LocalStorageService:
+    """Service for managing local file storage."""
 
     def __init__(self):
-        """Initialize Supabase client."""
-        try:
-            self.client: Client = create_client(
-                settings.SUPABASE_URL,
-                settings.SUPABASE_SERVICE_ROLE_KEY
-            )
-            self.bucket_name = "game-assets"
-        except Exception as e:
-            logger.error(f"Failed to initialize Supabase client: {e}")
-            self.client = None
+        """Initialize local storage service."""
+        self.storage_path = settings.STORAGE_PATH
+        self._ensure_storage_directory()
+
+    def _ensure_storage_directory(self):
+        """Ensure storage directory exists."""
+        Path(self.storage_path).mkdir(parents=True, exist_ok=True)
+        logger.info(f"Storage directory ensured at {self.storage_path}")
 
     async def upload_asset(
         self,
@@ -34,7 +33,7 @@ class StorageService:
         mime_type: str = "image/png"
     ) -> str:
         """
-        Upload asset to Supabase Storage.
+        Save asset to local storage.
 
         Args:
             user_id: User ID who owns the asset
@@ -43,32 +42,30 @@ class StorageService:
             mime_type: MIME type of the file
 
         Returns:
-            Public URL of uploaded file
+            File path (relative URL)
 
         Raises:
             Exception: If upload fails
         """
-        if not self.client:
-            raise Exception("Supabase client not initialized")
-
         try:
-            # Generate unique file path
+            # Generate unique filename
             file_id = str(uuid.uuid4())
             file_extension = file_name.split(".")[-1] if "." in file_name else "png"
-            storage_path = f"{user_id}/{file_id}.{file_extension}"
+            filename = f"{file_id}.{file_extension}"
 
-            # Upload to Supabase Storage
-            response = self.client.storage.from_(self.bucket_name).upload(
-                path=storage_path,
-                file=file_bytes,
-                file_options={"content-type": mime_type}
-            )
+            # Create user directory
+            user_dir = os.path.join(self.storage_path, user_id)
+            Path(user_dir).mkdir(parents=True, exist_ok=True)
 
-            # Get public URL
-            url_response = self.client.storage.from_(self.bucket_name).get_public_url(storage_path)
+            # Save file
+            file_path = os.path.join(user_dir, filename)
+            with open(file_path, 'wb') as f:
+                f.write(file_bytes)
 
-            logger.info(f"Asset uploaded successfully: {storage_path}")
-            return url_response
+            # Return relative URL (for serving via static files)
+            relative_url = f"/assets/{user_id}/{filename}"
+            logger.info(f"Asset uploaded successfully: {relative_url}")
+            return relative_url
 
         except Exception as e:
             logger.error(f"Failed to upload asset: {e}")
@@ -94,12 +91,8 @@ class StorageService:
         Raises:
             Exception: If database insert fails
         """
-        if not self.client:
-            raise Exception("Supabase client not initialized")
-
         try:
             asset_id = str(uuid.uuid4())
-            now = datetime.utcnow().isoformat()
 
             asset_record = {
                 "id": asset_id,
@@ -115,17 +108,11 @@ class StorageService:
                 "style_tags": asset_data.style_tags,
                 "project_name": asset_data.project_name,
                 "is_favorite": False,
-                "metadata": {},
-                "created_at": now,
-                "updated_at": now
+                "metadata": {}
             }
 
-            response = self.client.table("assets").insert(asset_record).execute()
-
-            if response.data and len(response.data) > 0:
-                return AssetResponse(**response.data[0])
-            else:
-                raise Exception("No data returned from insert")
+            asset_dict = await db_service.insert_asset(asset_record)
+            return AssetResponse(**asset_dict)
 
         except Exception as e:
             logger.error(f"Failed to save asset metadata: {e}")
@@ -146,7 +133,7 @@ class StorageService:
         Args:
             user_id: User ID
             project_name: Filter by project
-            style_tags: Filter by style tags
+            style_tags: Filter by style tags (not implemented yet)
             search_query: Search in prompts
             limit: Max results
             offset: Pagination offset
@@ -154,31 +141,17 @@ class StorageService:
         Returns:
             Tuple of (assets list, total count)
         """
-        if not self.client:
-            raise Exception("Supabase client not initialized")
-
         try:
-            query = self.client.table("assets").select("*", count="exact")
-            query = query.eq("user_id", user_id)
+            assets, total = await db_service.get_assets(
+                user_id=user_id,
+                project_name=project_name,
+                search_query=search_query,
+                limit=limit,
+                offset=offset
+            )
 
-            if project_name:
-                query = query.eq("project_name", project_name)
-
-            if style_tags:
-                query = query.contains("style_tags", style_tags)
-
-            if search_query:
-                query = query.ilike("generation_prompt", f"%{search_query}%")
-
-            query = query.order("created_at", desc=True)
-            query = query.range(offset, offset + limit - 1)
-
-            response = query.execute()
-
-            assets = [AssetResponse(**asset) for asset in response.data]
-            total = response.count or 0
-
-            return assets, total
+            asset_responses = [AssetResponse(**asset) for asset in assets]
+            return asset_responses, total
 
         except Exception as e:
             logger.error(f"Failed to get user assets: {e}")
@@ -198,35 +171,26 @@ class StorageService:
         Raises:
             Exception: If deletion fails
         """
-        if not self.client:
-            raise Exception("Supabase client not initialized")
-
         try:
-            # Get asset to find file URL
-            response = self.client.table("assets").select("*").eq("id", asset_id).eq("user_id", user_id).execute()
-
-            if not response.data or len(response.data) == 0:
+            # Get asset to find file path
+            asset = await db_service.get_asset_by_id(asset_id, user_id)
+            if not asset:
                 raise Exception("Asset not found or access denied")
 
-            asset = response.data[0]
-
-            # Extract storage path from URL
+            # Delete file from storage
             file_url = asset["file_url"]
-            # Parse path from URL (format: https://.../storage/v1/object/public/game-assets/path)
-            if "/game-assets/" in file_url:
-                storage_path = file_url.split("/game-assets/")[1]
-
-                # Delete from storage
-                try:
-                    self.client.storage.from_(self.bucket_name).remove([storage_path])
-                except Exception as e:
-                    logger.warning(f"Failed to delete file from storage: {e}")
+            # Convert URL to file path: /assets/user-id/filename.png -> ./data/assets/user-id/filename.png
+            if file_url.startswith("/assets/"):
+                file_path = file_url.replace("/assets/", self.storage_path + "/")
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    logger.info(f"Deleted file: {file_path}")
 
             # Delete from database
-            self.client.table("assets").delete().eq("id", asset_id).eq("user_id", user_id).execute()
+            success = await db_service.delete_asset(asset_id, user_id)
 
             logger.info(f"Asset deleted: {asset_id}")
-            return True
+            return success
 
         except Exception as e:
             logger.error(f"Failed to delete asset: {e}")
@@ -243,16 +207,31 @@ class StorageService:
         Returns:
             Asset response or None if not found
         """
-        if not self.client:
-            raise Exception("Supabase client not initialized")
-
         try:
-            response = self.client.table("assets").select("*").eq("id", asset_id).eq("user_id", user_id).execute()
-
-            if response.data and len(response.data) > 0:
-                return AssetResponse(**response.data[0])
+            asset = await db_service.get_asset_by_id(asset_id, user_id)
+            if asset:
+                return AssetResponse(**asset)
             return None
 
         except Exception as e:
             logger.error(f"Failed to get asset: {e}")
             raise Exception(f"Database query failed: {str(e)}")
+
+    def get_file_path(self, file_url: str) -> str:
+        """
+        Convert file URL to absolute file path.
+
+        Args:
+            file_url: File URL like /assets/user-id/filename.png
+
+        Returns:
+            Absolute file path
+        """
+        if file_url.startswith("/assets/"):
+            relative_path = file_url.replace("/assets/", "")
+            return os.path.join(self.storage_path, relative_path)
+        return file_url
+
+
+# Global storage service instance
+storage_service = LocalStorageService()

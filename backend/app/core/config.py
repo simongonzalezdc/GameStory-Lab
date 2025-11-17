@@ -7,9 +7,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
-    # Supabase
-    SUPABASE_URL: str
-    SUPABASE_SERVICE_ROLE_KEY: str
+    # Local Storage
+    DATABASE_PATH: str = "./data/assets.db"
+    STORAGE_PATH: str = "./data/assets"
 
     # AI Providers (Optional - at least one should be configured)
     OPENROUTER_API_KEY: str | None = None
@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: List[str] = [".png", ".jpg", ".jpeg"]
 
     # Generation Settings
-    DEFAULT_MODEL: str = "openrouter"
+    DEFAULT_MODEL: str = "ollama"  # Default to Ollama for local-first
     DEFAULT_DIMENSIONS: tuple[int, int] = (64, 64)
     MIN_DIMENSION: int = 16
     MAX_DIMENSION: int = 2048

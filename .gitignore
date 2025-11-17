@@ -67,6 +67,9 @@ logs/
 *.sqlite
 *.sqlite3
 
+# Local data directory (user's generated assets)
+backend/data/
+
 # OS
 Thumbs.db
 .DS_Store

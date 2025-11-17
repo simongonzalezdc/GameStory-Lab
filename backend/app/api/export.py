@@ -1,25 +1,19 @@
 """Asset export API endpoints."""
 import logging
 import io
-from fastapi import APIRouter, HTTPException, Depends, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import StreamingResponse
-import httpx
 
-from app.models.export import ExportRequest, ExportResponse
-from app.services.storage_service import StorageService
+from app.models.export import ExportRequest
+from app.services.local_storage_service import storage_service
 from app.services.export_service import ExportService
 
 router = APIRouter(prefix="/api/export", tags=["export"])
-security = HTTPBearer(auto_error=False)
 logger = logging.getLogger(__name__)
 
 
 @router.post("/")
-async def export_assets(
-    request: ExportRequest,
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-):
+async def export_assets(request: ExportRequest):
     """
     Export assets in various formats.
 
@@ -41,12 +35,9 @@ async def export_assets(
         404: Asset(s) not found
         500: Export failed
     """
-    user_id = "demo-user"
-    if credentials:
-        user_id = credentials.credentials[:20]
+    user_id = "local-user"
 
     try:
-        storage_service = StorageService()
         export_service = ExportService()
 
         # Fetch all requested assets
@@ -59,10 +50,10 @@ async def export_assets(
                     detail=f"Asset not found: {asset_id}"
                 )
 
-            # Download asset image
-            async with httpx.AsyncClient() as client:
-                response = await client.get(asset.file_url)
-                image_bytes = response.content
+            # Read asset image from local storage
+            file_path = storage_service.get_file_path(asset.file_url)
+            with open(file_path, 'rb') as f:
+                image_bytes = f.read()
 
             assets_data.append({
                 "id": asset.id,

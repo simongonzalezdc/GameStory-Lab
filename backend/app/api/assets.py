@@ -1,14 +1,12 @@
 """Asset management API endpoints."""
 import logging
-from fastapi import APIRouter, HTTPException, Depends, status, Query
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from typing import Optional, List
+from fastapi import APIRouter, HTTPException, status, Query
+from typing import Optional
 
-from app.models.asset import AssetsListResponse, AssetDeleteResponse, AssetFilter
-from app.services.storage_service import StorageService
+from app.models.asset import AssetsListResponse, AssetDeleteResponse
+from app.services.local_storage_service import storage_service
 
 router = APIRouter(prefix="/api/assets", tags=["assets"])
-security = HTTPBearer(auto_error=False)
 logger = logging.getLogger(__name__)
 
 
@@ -18,8 +16,7 @@ async def list_assets(
     style_tags: Optional[str] = Query(None),
     search_query: Optional[str] = Query(None),
     limit: int = Query(50, le=100),
-    offset: int = Query(0, ge=0),
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    offset: int = Query(0, ge=0)
 ):
     """
     List user's assets with filtering and pagination.
@@ -35,16 +32,11 @@ async def list_assets(
         List of assets with pagination info
 
     Raises:
-        401: Unauthorized
         500: Database error
     """
-    user_id = "demo-user"
-    if credentials:
-        user_id = credentials.credentials[:20]
+    user_id = "local-user"
 
     try:
-        storage_service = StorageService()
-
         # Parse style tags
         style_tags_list = None
         if style_tags:
@@ -75,10 +67,7 @@ async def list_assets(
 
 
 @router.delete("/{asset_id}", response_model=AssetDeleteResponse)
-async def delete_asset(
-    asset_id: str,
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-):
+async def delete_asset(asset_id: str):
     """
     Delete asset and remove from storage.
 
@@ -89,16 +78,12 @@ async def delete_asset(
         Success confirmation
 
     Raises:
-        401: Unauthorized
         404: Asset not found
         500: Deletion failed
     """
-    user_id = "demo-user"
-    if credentials:
-        user_id = credentials.credentials[:20]
+    user_id = "local-user"
 
     try:
-        storage_service = StorageService()
 
         success = await storage_service.delete_asset(user_id, asset_id)
 

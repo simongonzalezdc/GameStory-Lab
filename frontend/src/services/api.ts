@@ -11,16 +11,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
-api.interceptors.request.use((config) => {
-  // For demo purposes, using a static token
-  // In production, get token from Supabase auth
-  const token = localStorage.getItem('auth_token') || 'demo-token';
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// No authentication required for local use
 
 export const apiClient = {
   // Health check
