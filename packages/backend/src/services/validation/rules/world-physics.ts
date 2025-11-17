@@ -97,7 +97,7 @@ export async function validateTimeConsistency(
 
   const worldRules = lore.worldRules;
   const physicsText = worldRules?.physics?.toLowerCase() || '';
-  const hasTemporal Rules = physicsText.includes('time') || physicsText.includes('temporal');
+  const hasTemporalRules = physicsText.includes('time') || physicsText.includes('temporal');
 
   if (!hasTemporalRules) {
     return {
