@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Image as ImageIcon, Download, Trash2, Loader2, Search, Filter, Star, StarOff, FolderOpen } from 'lucide-react';
+import { Image as ImageIcon, Download, Trash2, Loader2, Search, Filter, Star, StarOff, FolderOpen, Wand2, GitBranch } from 'lucide-react';
 import { apiClient } from '../services/api';
 import type { Asset } from '../types/asset';
+import { ChatInterface } from './ChatInterface';
+import { AssetVersionHistory } from './AssetVersionHistory';
 
 interface AssetLibraryProps {
   refreshTrigger?: number;
@@ -19,6 +21,10 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [selectedStyleTag, setSelectedStyleTag] = useState<string>('');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
+  // Phase 2: Refinement & Versioning
+  const [refineAsset, setRefineAsset] = useState<Asset | null>(null);
+  const [detailAsset, setDetailAsset] = useState<Asset | null>(null);
 
   useEffect(() => {
     loadAssets();
@@ -111,6 +117,21 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
     } catch (err: any) {
       alert('Export failed: ' + err.message);
     }
+  };
+
+  // Phase 2: Refinement handlers
+  const handleRefinementComplete = (newAsset: Asset) => {
+    // Add the new asset to the library
+    setAssets([newAsset, ...assets]);
+    // Close the chat interface
+    setRefineAsset(null);
+    // Optionally show the new asset in detail view
+    setDetailAsset(newAsset);
+  };
+
+  const handleVersionSelect = (asset: Asset) => {
+    // Update the detail view to show selected version
+    setDetailAsset(asset);
   };
 
   // Get unique projects and style tags
@@ -368,25 +389,182 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
                   )}
 
                   {/* Actions */}
-                  <div className="flex gap-2 pt-2">
-                    <button
-                      onClick={() => handleDownload(asset)}
-                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm flex items-center justify-center gap-1"
-                    >
-                      <Download size={14} />
-                      Download
-                    </button>
-                    <button
-                      onClick={() => handleDelete(asset.id)}
-                      className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded text-sm"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                  <div className="flex flex-col gap-2 pt-2">
+                    {/* Primary Actions */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRefineAsset(asset);
+                        }}
+                        className="flex-1 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded text-sm flex items-center justify-center gap-1"
+                        title="Refine this asset with AI"
+                      >
+                        <Wand2 size={14} />
+                        Refine
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDetailAsset(asset);
+                        }}
+                        className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded text-sm flex items-center justify-center gap-1"
+                        title="View details and version history"
+                      >
+                        <GitBranch size={14} />
+                        v{asset.version_number}
+                      </button>
+                    </div>
+
+                    {/* Secondary Actions */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(asset);
+                        }}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm flex items-center justify-center gap-1"
+                      >
+                        <Download size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(asset.id);
+                        }}
+                        className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded text-sm"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Phase 2: Refine Modal */}
+      {refineAsset && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <ChatInterface
+            asset={refineAsset}
+            onRefinementComplete={handleRefinementComplete}
+            onClose={() => setRefineAsset(null)}
+          />
+        </div>
+      )}
+
+      {/* Phase 2: Detail Modal with Version History */}
+      {detailAsset && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full my-8">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-semibold">Asset Details</h2>
+                <button
+                  onClick={() => setDetailAsset(null)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Content Grid */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Left: Asset Preview and Info */}
+                <div className="space-y-4">
+                  {/* Preview */}
+                  <div className="bg-gray-100 rounded-lg p-8 flex items-center justify-center">
+                    <img
+                      src={detailAsset.file_url}
+                      alt={detailAsset.file_name}
+                      className="max-w-full max-h-96 object-contain"
+                    />
+                  </div>
+
+                  {/* Metadata */}
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Filename:</span>
+                      <span className="font-medium">{detailAsset.file_name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Dimensions:</span>
+                      <span className="font-medium">{detailAsset.width} × {detailAsset.height}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Model:</span>
+                      <span className="font-medium">{detailAsset.generation_model}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Version:</span>
+                      <span className="font-medium">v{detailAsset.version_number}</span>
+                    </div>
+                    {detailAsset.project_name && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Project:</span>
+                        <span className="font-medium">{detailAsset.project_name}</span>
+                      </div>
+                    )}
+                    {detailAsset.generation_prompt && (
+                      <div className="pt-2 border-t">
+                        <span className="text-gray-600 block mb-1">Prompt:</span>
+                        <p className="text-gray-900 text-sm">{detailAsset.generation_prompt}</p>
+                      </div>
+                    )}
+                    {detailAsset.style_tags.length > 0 && (
+                      <div className="pt-2">
+                        <span className="text-gray-600 block mb-2">Tags:</span>
+                        <div className="flex flex-wrap gap-2">
+                          {detailAsset.style_tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-4">
+                    <button
+                      onClick={() => {
+                        setDetailAsset(null);
+                        setRefineAsset(detailAsset);
+                      }}
+                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2"
+                    >
+                      <Wand2 size={16} />
+                      Refine This Version
+                    </button>
+                    <button
+                      onClick={() => handleDownload(detailAsset)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                    >
+                      <Download size={16} />
+                      Download
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right: Version History */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <AssetVersionHistory
+                    assetId={detailAsset.id}
+                    currentVersion={detailAsset.version_number}
+                    onVersionSelect={handleVersionSelect}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

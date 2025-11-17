@@ -15,6 +15,10 @@ export interface Asset {
   metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
+  // Phase 2: Versioning fields
+  parent_asset_id: string | null;
+  version_number: number;
+  refinement_instruction: string | null;
 }
 
 export interface AssetsListResponse {

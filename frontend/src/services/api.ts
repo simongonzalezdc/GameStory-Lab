@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { GenerationRequest, GenerationResponse, RefineRequest, OllamaStatus } from '../types/generation';
-import type { AssetsListResponse } from '../types/asset';
+import type { Asset, AssetsListResponse } from '../types/asset';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -63,6 +63,12 @@ export const apiClient = {
   // Delete asset
   async deleteAsset(assetId: string): Promise<{ success: boolean; message: string }> {
     const response = await api.delete(`/api/assets/${assetId}`);
+    return response.data;
+  },
+
+  // Get asset version history
+  async getAssetVersions(assetId: string): Promise<Asset[]> {
+    const response = await api.get<Asset[]>(`/api/assets/${assetId}/versions`);
     return response.data;
   },
 
