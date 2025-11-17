@@ -53,8 +53,6 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     [scene?.tracks, trackId]
   );
 
-  if (!track) return null;
-
   const handleAddClip = useCallback(() => {
     const defaultParams = getDefaultParams(generatorType);
 
@@ -81,6 +79,8 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
       setClipToDelete(null);
     }
   }, [clipToDelete, deleteClip, sceneId, trackId]);
+
+  if (!track) return null;
 
   return (
     <>

@@ -3,7 +3,7 @@
  * Displays step-by-step tutorial with spotlight highlighting
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, CSSProperties } from 'react';
 import { useTutorialStore } from '@/stores/tutorial-store';
 import { tutorialSteps, TutorialStep } from './tutorial-steps';
 import { Button } from '../ui/Button';
@@ -218,7 +218,7 @@ function getPositionClass(step: TutorialStep | undefined, targetRect: DOMRect | 
 function getPositionStyle(
   step: TutorialStep | undefined,
   targetRect: DOMRect | null
-): React.CSSProperties {
+): CSSProperties {
   if (!step?.position || !targetRect || step.position === 'center') {
     return {};
   }

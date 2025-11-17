@@ -47,17 +47,6 @@ export default function SceneEditor() {
     setPlaying(false);
   }, [audioEngine, setPlaying]);
 
-  if (!currentScene) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">Select a scene to edit</p>
-        <Button onClick={() => setCurrentScene(null)} className="mt-4" variant="secondary">
-          Back to Scenes
-        </Button>
-      </div>
-    );
-  }
-
   // Register keyboard shortcuts
   useKeyboardShortcuts([
     {
@@ -101,6 +90,17 @@ export default function SceneEditor() {
       description: 'Close dialog or go back',
     },
   ]);
+
+  if (!currentScene) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Select a scene to edit</p>
+        <Button onClick={() => setCurrentScene(null)} className="mt-4" variant="secondary">
+          Back to Scenes
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <>
