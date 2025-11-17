@@ -1,0 +1,42 @@
+{
+  "name": "gameforge-studio",
+  "version": "1.0.0",
+  "description": "AI-powered game concept generator for indie developers",
+  "private": true,
+  "workspaces": [
+    "packages/frontend",
+    "packages/backend",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w packages/backend\" \"npm run dev -w packages/frontend\"",
+    "build": "npm run build -w packages/shared && npm run build -w packages/backend && npm run build -w packages/frontend",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,md}\"",
+    "db:migrate": "npm run db:migrate -w packages/backend",
+    "db:studio": "npm run db:studio -w packages/backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pastorsimon1798/GameStory-Lab"
+  },
+  "keywords": [
+    "game-design",
+    "ai",
+    "game-development",
+    "concept-generator",
+    "indie-games"
+  ],
+  "author": "",
+  "license": "MIT"
+}
