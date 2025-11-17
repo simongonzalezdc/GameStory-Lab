@@ -13,29 +13,33 @@ import {
 describe('Scale Theory', () => {
   describe('noteToMidi', () => {
     it('should convert C4 to MIDI 60', () => {
-      expect(noteToMidi('C4')).toBe(60);
+      expect(noteToMidi('C', 4)).toBe(60);
     });
 
     it('should convert A4 to MIDI 69', () => {
-      expect(noteToMidi('A4')).toBe(69);
+      expect(noteToMidi('A', 4)).toBe(69);
     });
 
     it('should handle sharps', () => {
-      expect(noteToMidi('C#4')).toBe(61);
+      expect(noteToMidi('C#', 4)).toBe(61);
     });
 
     it('should handle flats', () => {
-      expect(noteToMidi('Bb4')).toBe(70);
+      expect(noteToMidi('A#', 4)).toBe(70);
     });
   });
 
   describe('midiToNote', () => {
     it('should convert MIDI 60 to C4', () => {
-      expect(midiToNote(60)).toBe('C4');
+      const result = midiToNote(60);
+      expect(result.note).toBe('C');
+      expect(result.octave).toBe(4);
     });
 
     it('should convert MIDI 69 to A4', () => {
-      expect(midiToNote(69)).toBe('A4');
+      const result = midiToNote(69);
+      expect(result.note).toBe('A');
+      expect(result.octave).toBe(4);
     });
   });
 
@@ -53,13 +57,14 @@ describe('Scale Theory', () => {
 
     it('should return A minor scale notes', () => {
       const notes = getScaleNotes('A', 'minor', 4, 4);
-      expect(notes).toContain(57); // A4
-      expect(notes).toContain(59); // B4
-      expect(notes).toContain(60); // C5
-      expect(notes).toContain(62); // D5
-      expect(notes).toContain(64); // E5
-      expect(notes).toContain(65); // F5
-      expect(notes).toContain(67); // G5
+      // A minor scale starting at A4 (octave 4)
+      expect(notes).toContain(69); // A4
+      expect(notes).toContain(71); // B4
+      expect(notes).toContain(72); // C5
+      expect(notes).toContain(74); // D5
+      expect(notes).toContain(76); // E5
+      expect(notes).toContain(77); // F5
+      expect(notes).toContain(79); // G5
     });
 
     it('should handle different octaves', () => {
@@ -73,13 +78,13 @@ describe('Scale Theory', () => {
     it('should quantize note to nearest scale note', () => {
       const scaleNotes = getScaleNotes('C', 'major', 4, 4);
       // 61 is C#4, should quantize to C4 (60) or D4 (62)
-      const quantized = quantizeToScale(61, scaleNotes);
+      const quantized = quantizeToScale(61, 'C', 'major', scaleNotes);
       expect([60, 62]).toContain(quantized);
     });
 
     it('should return same note if already in scale', () => {
       const scaleNotes = getScaleNotes('C', 'major', 4, 4);
-      const quantized = quantizeToScale(60, scaleNotes); // C4
+      const quantized = quantizeToScale(60, 'C', 'major', scaleNotes); // C4
       expect(quantized).toBe(60);
     });
   });

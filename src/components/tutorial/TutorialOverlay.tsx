@@ -130,12 +130,19 @@ export default function TutorialOverlay() {
       </div>
 
       {/* Tutorial content card */}
-      <div className="fixed z-50 pointer-events-none inset-0 flex items-center justify-center p-4">
+      <div className="fixed z-50 pointer-events-none inset-0 flex items-center justify-center p-4 overflow-auto">
         <div
           className={`bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 pointer-events-auto ${
             step?.position === 'center' ? '' : getPositionClass(step, targetRect)
           }`}
-          style={getPositionStyle(step, targetRect)}
+          style={{
+            ...getPositionStyle(step, targetRect),
+            maxHeight: `${window.innerHeight - 32}px`,
+            overflowY: 'auto',
+          }}
+          role="dialog"
+          aria-labelledby="tutorial-title"
+          aria-describedby="tutorial-description"
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
@@ -143,7 +150,7 @@ export default function TutorialOverlay() {
               <div className="w-8 h-8 bg-forest-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {currentStep + 1}
               </div>
-              <h2 className="text-xl font-bold text-gray-900">{step?.title}</h2>
+              <h2 id="tutorial-title" className="text-xl font-bold text-gray-900">{step?.title}</h2>
             </div>
             <button
               onClick={handleSkip}
@@ -155,7 +162,7 @@ export default function TutorialOverlay() {
           </div>
 
           {/* Description */}
-          <p className="text-gray-700 mb-6 leading-relaxed">{step?.description}</p>
+          <p id="tutorial-description" className="text-gray-700 mb-6 leading-relaxed">{step?.description}</p>
 
           {/* Progress bar */}
           <div className="mb-6">

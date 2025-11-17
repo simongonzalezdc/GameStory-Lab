@@ -5,6 +5,7 @@ import { Dialog } from '../ui/Dialog';
 import { Select } from '../ui/Select';
 import { Input } from '../ui/Input';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { generatorPresets } from '@/lib/generators/presets';
 import type { GeneratorType } from '@/types';
 
 interface ClipListProps {
@@ -41,6 +42,8 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
   const [clipToDelete, setClipToDelete] = useState<string | null>(null);
   const [generatorType, setGeneratorType] = useState<GeneratorType>('euclidean');
   const [lengthBars, setLengthBars] = useState(4);
+  const [selectedPreset, setSelectedPreset] = useState<string>('');
+  const [usePreset, setUsePreset] = useState(false);
 
   // Memoize scene and track lookups
   const scene = useMemo(
@@ -54,19 +57,36 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
   );
 
   const handleAddClip = useCallback(() => {
-    const defaultParams = getDefaultParams(generatorType);
+    let generatorConfig;
+    
+    if (usePreset && selectedPreset) {
+      const preset = generatorPresets.find(p => p.id === selectedPreset);
+      if (preset) {
+        generatorConfig = preset.config;
+      } else {
+        // Fallback to default
+        generatorConfig = {
+          type: generatorType,
+          params: getDefaultParams(generatorType),
+        };
+      }
+    } else {
+      generatorConfig = {
+        type: generatorType,
+        params: getDefaultParams(generatorType),
+      };
+    }
 
     addClip(sceneId, trackId, {
       lengthBars,
-      generator: {
-        type: generatorType,
-        params: defaultParams,
-      },
+      generator: generatorConfig,
       muted: false,
     });
 
     setShowAddDialog(false);
-  }, [generatorType, lengthBars, addClip, sceneId, trackId]);
+    setUsePreset(false);
+    setSelectedPreset('');
+  }, [generatorType, lengthBars, addClip, sceneId, trackId, usePreset, selectedPreset]);
 
   const handleDeleteClick = useCallback((clipId: string) => {
     setClipToDelete(clipId);
@@ -135,12 +155,48 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
         description="Choose a generator and configure the clip"
       >
         <div className="space-y-4">
-          <Select
-            label="Generator Type"
-            value={generatorType}
-            onValueChange={(v) => setGeneratorType(v as GeneratorType)}
-            options={GENERATOR_OPTIONS}
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="use-preset"
+              checked={usePreset}
+              onChange={(e) => {
+                setUsePreset(e.target.checked);
+                if (!e.target.checked) {
+                  setSelectedPreset('');
+                }
+              }}
+              className="rounded"
+            />
+            <label htmlFor="use-preset" className="text-sm font-medium text-gray-700">
+              Use preset
+            </label>
+          </div>
+
+          {usePreset ? (
+            <Select
+              label="Preset"
+              value={selectedPreset}
+              onValueChange={(v) => {
+                setSelectedPreset(v);
+                const preset = generatorPresets.find(p => p.id === v);
+                if (preset) {
+                  setGeneratorType(preset.config.type);
+                }
+              }}
+              options={generatorPresets.map(p => ({
+                value: p.id,
+                label: `${p.name} (${p.category})`,
+              }))}
+            />
+          ) : (
+            <Select
+              label="Generator Type"
+              value={generatorType}
+              onValueChange={(v) => setGeneratorType(v as GeneratorType)}
+              options={GENERATOR_OPTIONS}
+            />
+          )}
 
           <Input
             label="Length (bars)"

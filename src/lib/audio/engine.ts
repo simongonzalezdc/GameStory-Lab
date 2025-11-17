@@ -6,9 +6,10 @@ import * as Tone from 'tone';
 import type { Scene, Track, Clip } from '@/types';
 import { generateNotes } from '@/lib/generators/factory';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+import { createInstrument, getDefaultInstrument, getInstrumentById } from './instruments';
 
 export class AudioEngine {
-  private instruments: Map<string, Tone.PolySynth | Tone.Sampler>;
+  private instruments: Map<string, Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth>;
   private scheduledParts: Tone.Part[];
   private currentScene: Scene | null = null;
   private isInitialized = false;
@@ -117,48 +118,36 @@ export class AudioEngine {
   private async loadInstrument(track: Track): Promise<void> {
     if (this.instruments.has(track.id)) return;
 
-    // For MVP, use simple PolySynth for all tracks
-    // TODO: Load different instrument types based on track.instrumentRef
-    const oscillatorType = this.getOscillatorType(track.role);
-    const synth = new Tone.PolySynth(Tone.Synth, {
-      // @ts-expect-error - Tone.js type definitions are complex, but this works at runtime
-      oscillator: {
-        type: oscillatorType,
-      },
-      envelope: {
-        attack: 0.02,
-        decay: 0.1,
-        sustain: 0.3,
-        release: 0.5,
-      },
-    });
+    // Get instrument config based on track.instrumentRef or use default for role
+    const instrumentConfig = track.instrumentRef && track.instrumentRef !== 'default-synth'
+      ? getInstrumentById(track.role, track.instrumentRef) || getDefaultInstrument(track.role)
+      : getDefaultInstrument(track.role);
+
+    const instrument = createInstrument(instrumentConfig);
+    
+    // Wrap MonoSynth, DuoSynth, FMSynth, AMSynth in PolySynth for polyphonic support
+    let polyInstrument: Tone.PolySynth | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth;
+    if (instrument instanceof Tone.MonoSynth || instrument instanceof Tone.DuoSynth || 
+        instrument instanceof Tone.FMSynth || instrument instanceof Tone.AMSynth) {
+      // For monophonic synths, wrap in PolySynth for polyphonic support
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      polyInstrument = new Tone.PolySynth(instrument.constructor as any, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        oscillator: instrumentConfig.oscillator as any,
+        envelope: instrumentConfig.envelope,
+      } as any);
+    } else {
+      polyInstrument = instrument;
+    }
 
     // Create panner for stereo positioning
     const panner = new Tone.Panner(track.pan).toDestination();
-    synth.connect(panner);
+    polyInstrument.connect(panner);
 
     // Apply volume
-    synth.volume.value = Tone.gainToDb(track.volume);
+    polyInstrument.volume.value = Tone.gainToDb(track.volume);
 
-    this.instruments.set(track.id, synth);
-  }
-
-  /**
-   * Get oscillator type based on track role
-   */
-  private getOscillatorType(role: string): Tone.ToneOscillatorType {
-    switch (role) {
-      case 'bass':
-        return 'sawtooth';
-      case 'lead':
-        return 'square';
-      case 'pad':
-        return 'sine';
-      case 'drums':
-        return 'triangle';
-      default:
-        return 'triangle';
-    }
+    this.instruments.set(track.id, polyInstrument);
   }
 
   /**
@@ -186,7 +175,7 @@ export class AudioEngine {
   private scheduleClip(
     _track: Track,
     clip: Clip,
-    instrument: Tone.PolySynth | Tone.Sampler
+    instrument: Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth
   ): void {
     if (!this.currentScene) return;
 
@@ -214,7 +203,9 @@ export class AudioEngine {
 
     // Create and schedule Tone.js Part
     const part = new Tone.Part((time, value) => {
-      if (instrument instanceof Tone.PolySynth) {
+      if (instrument instanceof Tone.PolySynth || instrument instanceof Tone.MonoSynth || 
+          instrument instanceof Tone.DuoSynth || instrument instanceof Tone.FMSynth || 
+          instrument instanceof Tone.AMSynth) {
         instrument.triggerAttackRelease(
           value.note,
           value.duration,

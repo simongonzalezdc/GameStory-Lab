@@ -4,6 +4,7 @@ import type { Track } from '@/types';
 import { Button } from '../ui/Button';
 import { Slider } from '../ui/Slider';
 import ClipList from './ClipList';
+import InstrumentSelector from './InstrumentSelector';
 import { exportTrackToMidi } from '@/lib/io/midi-export';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { AlertDialog } from '../ui/AlertDialog';
@@ -122,6 +123,16 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
               🗑
             </Button>
           </div>
+        </div>
+
+        {/* Instrument Selector */}
+        <div className="mt-4">
+          <InstrumentSelector
+            sceneId={sceneId}
+            trackId={track.id}
+            role={track.role}
+            currentInstrumentRef={track.instrumentRef}
+          />
         </div>
 
         {/* Volume and Pan Controls */}

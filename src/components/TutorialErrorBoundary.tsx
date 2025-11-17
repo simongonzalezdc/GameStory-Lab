@@ -3,8 +3,8 @@
  */
 
 import { Component, ReactNode } from 'react';
-import { useTutorialStore } from '@/stores/tutorial-store';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+import { useTutorialStore } from '@/stores/tutorial-store';
 
 interface TutorialErrorBoundaryProps {
   children: ReactNode;

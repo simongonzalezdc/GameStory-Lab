@@ -2,6 +2,8 @@
  * Centralized error handling service
  */
 
+import { reportError } from './error-reporting';
+
 export enum ErrorSeverity {
   INFO = 'info',
   WARNING = 'warning',
@@ -43,6 +45,12 @@ class ErrorHandler {
     const appError = this.createAppError(error, context, severity);
     this.logError(appError);
     this.notifyListeners(appError);
+    
+    // Report critical errors to external service
+    if (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.ERROR) {
+      reportError(appError);
+    }
+    
     return appError;
   }
 

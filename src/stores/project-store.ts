@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { Project, Scene, Track, Clip } from '@/types';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { MIN_BPM, MAX_BPM } from '@/lib/utils/constants';
+import { useHistoryStore } from './history-store';
 
 interface ProjectState {
   // State
@@ -46,6 +47,12 @@ interface ProjectState {
   // Utility
   markDirty: () => void;
   markClean: () => void;
+  
+  // History
+  undo: () => void;
+  redo: () => void;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
 }
 
 export const useProjectStore = create<ProjectState>()(
@@ -76,6 +83,7 @@ export const useProjectStore = create<ProjectState>()(
           },
         };
         set({ project: newProject, isDirty: false, currentSceneId: null });
+        useHistoryStore.getState().push(newProject);
       },
 
       updateProject: (updates) => {
@@ -94,17 +102,19 @@ export const useProjectStore = create<ProjectState>()(
           }
         }
 
-        set({
-          project: {
-            ...project,
-            ...updates,
-            metadata: {
-              ...project.metadata,
-              modified: new Date().toISOString(),
-            },
+        const updatedProject = {
+          ...project,
+          ...updates,
+          metadata: {
+            ...project.metadata,
+            modified: new Date().toISOString(),
           },
+        };
+        set({
+          project: updatedProject,
           isDirty: true,
         });
+        useHistoryStore.getState().push(updatedProject);
       },
 
       addScene: (sceneData) => {
@@ -116,18 +126,20 @@ export const useProjectStore = create<ProjectState>()(
           id: crypto.randomUUID(),
         };
 
-        set({
-          project: {
-            ...project,
-            scenes: [...project.scenes, newScene],
-            metadata: {
-              ...project.metadata,
-              modified: new Date().toISOString(),
-            },
+        const updatedProject = {
+          ...project,
+          scenes: [...project.scenes, newScene],
+          metadata: {
+            ...project.metadata,
+            modified: new Date().toISOString(),
           },
+        };
+        set({
+          project: updatedProject,
           isDirty: true,
           currentSceneId: newScene.id,
         });
+        useHistoryStore.getState().push(updatedProject);
       },
 
       updateScene: (sceneId, updates) => {
@@ -433,6 +445,24 @@ export const useProjectStore = create<ProjectState>()(
 
       markDirty: () => set({ isDirty: true }),
       markClean: () => set({ isDirty: false }),
+      
+      // History operations
+      undo: () => {
+        const historyStore = useHistoryStore.getState();
+        const previous = historyStore.undo();
+        if (previous) {
+          set({ project: previous, isDirty: true });
+        }
+      },
+      redo: () => {
+        const historyStore = useHistoryStore.getState();
+        const next = historyStore.redo();
+        if (next) {
+          set({ project: next, isDirty: true });
+        }
+      },
+      canUndo: () => useHistoryStore.getState().canUndo(),
+      canRedo: () => useHistoryStore.getState().canRedo(),
     }),
     {
       name: 'generative-score-lab-project',

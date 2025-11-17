@@ -99,6 +99,7 @@ export default function SceneEditor() {
           addTrack(currentScene.id, {
             name: `Track ${currentScene.tracks.length + 1}`,
             role: 'lead',
+            instrumentRef: 'default-synth',
             volume: 0.8,
             pan: 0,
             muted: false,

@@ -38,12 +38,15 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   private logErrorToService(error: Error, errorInfo: React.ErrorInfo): void {
-    // TODO: Send to error reporting service (e.g., Sentry)
-    console.error('Error logged:', {
-      message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString(),
+    // Send to error reporting service
+    import('@/lib/errors/error-reporting').then(({ reportError }) => {
+      import('@/lib/errors/error-handler').then(({ errorHandler, ErrorSeverity }) => {
+        const appError = errorHandler.handle(error, 'ErrorBoundary', ErrorSeverity.CRITICAL);
+        reportError({
+          ...appError,
+          details: errorInfo.componentStack || undefined,
+        });
+      });
     });
   }
 

@@ -16,9 +16,9 @@ describe('Chord Theory', () => {
 
     it('should return A minor chord notes', () => {
       const notes = getChordNotes('A', 'minor', 4);
-      expect(notes).toContain(57); // A4
-      expect(notes).toContain(60); // C5
-      expect(notes).toContain(64); // E5
+      expect(notes).toContain(69); // A4
+      expect(notes).toContain(72); // C5
+      expect(notes).toContain(76); // E5
     });
 
     it('should handle different octaves', () => {
