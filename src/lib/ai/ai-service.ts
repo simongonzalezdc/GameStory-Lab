@@ -4,6 +4,7 @@
 
 import { createAIClient, buildMusicSystemPrompt } from './index';
 import type { AIConfig, ChatMessage, AIResponse, MusicAction, ProjectContext } from '@/types';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 /**
  * Send a message to the AI and get response
@@ -32,7 +33,7 @@ export async function sendAIMessage(
 
     return response;
   } catch (error) {
-    console.error('AI message failed:', error);
+    errorHandler.handle(error, 'AI Chat', ErrorSeverity.ERROR);
     return {
       message: 'Sorry, I encountered an error processing your request.',
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -105,7 +106,7 @@ export function applyMusicActions(
       failed++;
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       errors.push(`Action ${action.type} failed: ${errorMsg}`);
-      console.error('Failed to apply action:', action, error);
+      errorHandler.handle(error, `AI Action: ${action.type}`, ErrorSeverity.WARNING);
     }
   }
 

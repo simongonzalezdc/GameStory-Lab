@@ -6,6 +6,7 @@
 import { Midi } from '@tonejs/midi';
 import type { Scene, Track, Clip } from '@/types';
 import { generateNotes } from '@/lib/generators/factory';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 /**
  * Export options for MIDI generation
@@ -26,25 +27,34 @@ export async function exportSceneToMidi(
   scene: Scene,
   options: MidiExportOptions = {}
 ): Promise<void> {
-  const { trackIds, filenamePrefix, separateFiles = false } = options;
+  try {
+    const { trackIds, filenamePrefix, separateFiles = false } = options;
 
-  // Filter tracks if specific IDs provided
-  const tracksToExport = trackIds
-    ? scene.tracks.filter((t) => trackIds.includes(t.id))
-    : scene.tracks;
+    // Filter tracks if specific IDs provided
+    const tracksToExport = trackIds
+      ? scene.tracks.filter((t) => trackIds.includes(t.id))
+      : scene.tracks;
 
-  if (separateFiles) {
-    // Export each track as a separate MIDI file
-    for (const track of tracksToExport) {
-      const midi = createMidiFromTrack(scene, track);
-      const filename = `${filenamePrefix || scene.name}_${track.name || track.role}.mid`;
+    if (tracksToExport.length === 0) {
+      throw new Error('No tracks to export');
+    }
+
+    if (separateFiles) {
+      // Export each track as a separate MIDI file
+      for (const track of tracksToExport) {
+        const midi = createMidiFromTrack(scene, track);
+        const filename = `${filenamePrefix || scene.name}_${track.name || track.role}.mid`;
+        await downloadMidi(midi, filename);
+      }
+    } else {
+      // Export all tracks in a single MIDI file
+      const midi = createMidiFromScene(scene, tracksToExport);
+      const filename = `${filenamePrefix || scene.name}.mid`;
       await downloadMidi(midi, filename);
     }
-  } else {
-    // Export all tracks in a single MIDI file
-    const midi = createMidiFromScene(scene, tracksToExport);
-    const filename = `${filenamePrefix || scene.name}.mid`;
-    await downloadMidi(midi, filename);
+  } catch (error) {
+    errorHandler.handle(error, 'MIDI Export', ErrorSeverity.ERROR);
+    throw error; // Re-throw to allow caller to handle
   }
 }
 
@@ -221,12 +231,21 @@ export async function exportTrackToMidi(
   trackId: string,
   filename?: string
 ): Promise<void> {
-  const track = scene.tracks.find((t) => t.id === trackId);
-  if (!track) {
-    throw new Error(`Track ${trackId} not found`);
-  }
+  try {
+    const track = scene.tracks.find((t) => t.id === trackId);
+    if (!track) {
+      throw new Error(`Track ${trackId} not found`);
+    }
 
-  const midi = createMidiFromTrack(scene, track);
-  const exportFilename = filename || `${scene.name}_${track.name || track.role}.mid`;
-  await downloadMidi(midi, exportFilename);
+    if (track.clips.length === 0) {
+      throw new Error('Track has no clips to export');
+    }
+
+    const midi = createMidiFromTrack(scene, track);
+    const exportFilename = filename || `${scene.name}_${track.name || track.role}.mid`;
+    await downloadMidi(midi, exportFilename);
+  } catch (error) {
+    errorHandler.handle(error, 'Track MIDI Export', ErrorSeverity.ERROR);
+    throw error; // Re-throw to allow caller to handle
+  }
 }

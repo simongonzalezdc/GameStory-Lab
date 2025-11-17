@@ -8,26 +8,32 @@ import { ArpeggiatorGenerator } from './arpeggiator';
 import { MarkovGenerator } from './markov';
 import { RandomWalkGenerator } from './random-walk';
 import { midiToNote } from '../theory/scales';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 /**
  * Create a generator instance from config
  */
 export function createGenerator(type: string): Generator {
-  switch (type) {
-    case 'euclidean':
-      return new EuclideanGenerator();
+  try {
+    switch (type) {
+      case 'euclidean':
+        return new EuclideanGenerator();
 
-    case 'arp':
-      return new ArpeggiatorGenerator();
+      case 'arp':
+        return new ArpeggiatorGenerator();
 
-    case 'markov':
-      return new MarkovGenerator();
+      case 'markov':
+        return new MarkovGenerator();
 
-    case 'randomWalk':
-      return new RandomWalkGenerator();
+      case 'randomWalk':
+        return new RandomWalkGenerator();
 
-    default:
-      throw new Error(`Unknown generator type: ${type}`);
+      default:
+        throw new Error(`Unknown generator type: ${type}`);
+    }
+  } catch (error) {
+    errorHandler.handle(error, 'Generator Creation', ErrorSeverity.ERROR);
+    throw error;
   }
 }
 
@@ -41,37 +47,42 @@ export function generateNotes(
   lengthBars: number,
   bpm: number = 120
 ): Array<{ note: string; time: number; duration: number; velocity: number }> {
-  const generator = createGenerator(config.type);
+  try {
+    const generator = createGenerator(config.type);
 
-  // Build generation context
-  const context: GenerationContext = {
-    key,
-    scale,
-    bpm,
-    lengthBars,
-  };
+    // Build generation context
+    const context: GenerationContext = {
+      key,
+      scale,
+      bpm,
+      lengthBars,
+    };
 
-  // Generate pattern
-  const noteSequence: NoteSequence = generator.generate(config, context);
+    // Generate pattern
+    const noteSequence: NoteSequence = generator.generate(config, context);
 
-  // Convert pattern to notes with timing
-  const notes: Array<{ note: string; time: number; duration: number; velocity: number }> = [];
-  const beatsPerBar = 4;
-  const secondsPerBeat = 60 / bpm;
-  const secondsPerBar = beatsPerBar * secondsPerBeat;
+    // Convert pattern to notes with timing
+    const notes: Array<{ note: string; time: number; duration: number; velocity: number }> = [];
+    const beatsPerBar = 4;
+    const secondsPerBeat = 60 / bpm;
+    const secondsPerBar = beatsPerBar * secondsPerBeat;
 
-  noteSequence.notes.forEach((note) => {
-    const timeInSeconds = note.time * secondsPerBar;
-    const durationInSeconds = note.duration * secondsPerBar;
-    const noteInfo = midiToNote(note.pitch);
+    noteSequence.notes.forEach((note) => {
+      const timeInSeconds = note.time * secondsPerBar;
+      const durationInSeconds = note.duration * secondsPerBar;
+      const noteInfo = midiToNote(note.pitch);
 
-    notes.push({
-      note: `${noteInfo.note}${noteInfo.octave}`,
-      time: timeInSeconds,
-      duration: durationInSeconds,
-      velocity: note.velocity,
+      notes.push({
+        note: `${noteInfo.note}${noteInfo.octave}`,
+        time: timeInSeconds,
+        duration: durationInSeconds,
+        velocity: note.velocity,
+      });
     });
-  });
 
-  return notes;
+    return notes;
+  } catch (error) {
+    errorHandler.handle(error, 'Note Generation', ErrorSeverity.ERROR);
+    throw error;
+  }
 }

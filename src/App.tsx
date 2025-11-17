@@ -7,6 +7,7 @@ import SceneEditor from './components/scene/SceneEditor';
 import AIChat from './components/ai/AIChat';
 import ExportDialog from './components/project/ExportDialog';
 import KeyboardShortcutsHelp from './components/ui/KeyboardShortcutsHelp';
+import ErrorNotification from './components/ui/ErrorNotification';
 import { useKeyboardShortcuts, isTypingInInput } from './hooks/useKeyboardShortcuts';
 
 function App() {
@@ -125,6 +126,9 @@ function App() {
         {/* AI Chat Sidebar */}
         <AIChat />
       </div>
+
+      {/* Error Notifications */}
+      <ErrorNotification />
     </>
   );
 }

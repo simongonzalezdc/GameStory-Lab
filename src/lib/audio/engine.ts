@@ -5,6 +5,7 @@
 import * as Tone from 'tone';
 import type { Scene, Track, Clip } from '@/types';
 import { generateNotes } from '@/lib/generators/factory';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 export class AudioEngine {
   private instruments: Map<string, Tone.PolySynth | Tone.Sampler>;
@@ -28,7 +29,7 @@ export class AudioEngine {
       console.log('Audio engine initialized');
       this.isInitialized = true;
     } catch (error) {
-      console.error('Failed to initialize audio engine:', error);
+      errorHandler.handle(error, 'Audio Engine Initialization', ErrorSeverity.ERROR);
       throw new Error('Audio initialization failed');
     }
   }
@@ -37,26 +38,31 @@ export class AudioEngine {
    * Load and prepare a scene for playback
    */
   async loadScene(scene: Scene): Promise<void> {
-    if (!this.isInitialized) {
-      await this.init();
+    try {
+      if (!this.isInitialized) {
+        await this.init();
+      }
+
+      // Stop current playback
+      this.stop();
+      this.clearScheduledParts();
+
+      this.currentScene = scene;
+
+      // Set BPM
+      const bpm = scene.bpm || 120;
+      Tone.getTransport().bpm.value = bpm;
+
+      // Load instruments for all tracks
+      for (const track of scene.tracks) {
+        await this.loadInstrument(track);
+      }
+
+      console.log(`Scene "${scene.name}" loaded successfully`);
+    } catch (error) {
+      errorHandler.handle(error, 'Audio Scene Loading', ErrorSeverity.ERROR);
+      throw error; // Re-throw to allow caller to handle
     }
-
-    // Stop current playback
-    this.stop();
-    this.clearScheduledParts();
-
-    this.currentScene = scene;
-
-    // Set BPM
-    const bpm = scene.bpm || 120;
-    Tone.getTransport().bpm.value = bpm;
-
-    // Load instruments for all tracks
-    for (const track of scene.tracks) {
-      await this.loadInstrument(track);
-    }
-
-    console.log(`Scene "${scene.name}" loaded successfully`);
   }
 
   /**
@@ -180,16 +186,24 @@ export class AudioEngine {
    * Start playback
    */
   play(): void {
-    if (!this.isInitialized) {
-      console.warn('Audio engine not initialized');
-      return;
-    }
+    try {
+      if (!this.isInitialized) {
+        errorHandler.handle(
+          new Error('Audio engine not initialized'),
+          'Audio Playback',
+          ErrorSeverity.WARNING
+        );
+        return;
+      }
 
-    if (this.currentScene) {
-      this.scheduleScene();
-    }
+      if (this.currentScene) {
+        this.scheduleScene();
+      }
 
-    Tone.getTransport().start();
+      Tone.getTransport().start();
+    } catch (error) {
+      errorHandler.handle(error, 'Audio Playback', ErrorSeverity.ERROR);
+    }
   }
 
   /**

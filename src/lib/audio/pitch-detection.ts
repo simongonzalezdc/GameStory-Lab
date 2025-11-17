@@ -3,6 +3,8 @@
  * Converts audio input (voice/humming) to MIDI note numbers
  */
 
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+
 /**
  * Auto-correlation pitch detection algorithm
  */
@@ -107,7 +109,7 @@ export class PitchDetector {
 
       console.log('Pitch detector initialized');
     } catch (error) {
-      console.error('Failed to initialize pitch detector:', error);
+      errorHandler.handle(error, 'Pitch Detector Initialization', ErrorSeverity.ERROR);
       throw new Error('Microphone access denied');
     }
   }
@@ -116,12 +118,17 @@ export class PitchDetector {
    * Start detecting pitch
    */
   start(onPitch: (pitch: number, note: string) => void): void {
-    if (!this.analyser || !this.audioContext) {
-      throw new Error('Pitch detector not initialized');
-    }
+    try {
+      if (!this.analyser || !this.audioContext) {
+        throw new Error('Pitch detector not initialized');
+      }
 
-    this.onPitchCallback = onPitch;
-    this.detectPitch();
+      this.onPitchCallback = onPitch;
+      this.detectPitch();
+    } catch (error) {
+      errorHandler.handle(error, 'Pitch Detection Start', ErrorSeverity.ERROR);
+      throw error;
+    }
   }
 
   /**
