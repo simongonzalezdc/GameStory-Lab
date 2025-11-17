@@ -233,3 +233,51 @@ class ImageService:
         except Exception as e:
             logger.error(f"Failed to apply style adjustments: {e}")
             return image_bytes
+
+    @staticmethod
+    def optimize_for_game(image_bytes: bytes, max_dimension: int = 2048) -> bytes:
+        """
+        Optimize image for game asset use.
+
+        This method:
+        - Ensures RGBA mode for transparency support
+        - Resizes if too large (maintains aspect ratio)
+        - Optimizes PNG compression
+
+        Args:
+            image_bytes: Input image data
+            max_dimension: Maximum width or height (default 2048)
+
+        Returns:
+            Optimized image bytes
+        """
+        try:
+            img = Image.open(io.BytesIO(image_bytes))
+
+            # Convert to RGBA for game asset compatibility
+            if img.mode != 'RGBA':
+                img = img.convert('RGBA')
+
+            # Resize if too large (maintain aspect ratio)
+            if img.width > max_dimension or img.height > max_dimension:
+                img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
+                logger.info(f"Resized image to {img.width}x{img.height}")
+
+            # Save with optimized PNG compression
+            output = io.BytesIO()
+            img.save(output, format="PNG", optimize=True, compress_level=6)
+
+            optimized_bytes = output.getvalue()
+            original_size = len(image_bytes)
+            optimized_size = len(optimized_bytes)
+
+            logger.info(
+                f"Optimized image: {original_size / 1024:.1f}KB -> {optimized_size / 1024:.1f}KB "
+                f"({(1 - optimized_size / original_size) * 100:.1f}% reduction)"
+            )
+
+            return optimized_bytes
+
+        except Exception as e:
+            logger.error(f"Failed to optimize image: {e}")
+            return image_bytes

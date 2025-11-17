@@ -38,6 +38,16 @@ export const apiClient = {
     return response.data;
   },
 
+  // Convert image to sprite
+  async convertImageToSprite(formData: FormData): Promise<GenerationResponse> {
+    const response = await api.post<GenerationResponse>('/api/generate/convert', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   // List assets
   async listAssets(params?: {
     project_name?: string;

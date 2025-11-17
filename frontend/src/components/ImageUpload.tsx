@@ -56,20 +56,24 @@ export function ImageUpload({ onConverted }: ImageUploadProps) {
     setSuccess(null);
 
     try {
-      // For now, just upload the file and create a basic conversion
-      // In a real implementation, this would call an image-to-sprite conversion API
+      // Create form data for upload
       const formData = new FormData();
       formData.append('file', uploadedFile);
 
-      // TODO: Implement actual image-to-sprite conversion endpoint
-      // For now, we can just show a success message
-      setSuccess('Image uploaded successfully! Conversion feature coming soon.');
+      // Call image-to-sprite conversion API
+      const response = await apiClient.convertImageToSprite(formData);
 
-      // Clear after success
-      setTimeout(() => {
-        handleClear();
-        onConverted?.();
-      }, 2000);
+      if (response.success) {
+        setSuccess(`Image converted successfully in ${response.generation_time_ms}ms!`);
+
+        // Clear after success and trigger library refresh
+        setTimeout(() => {
+          handleClear();
+          onConverted?.();
+        }, 1500);
+      } else {
+        setError(response.error || 'Conversion failed');
+      }
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || 'Conversion failed');
     } finally {
@@ -160,11 +164,11 @@ export function ImageUpload({ onConverted }: ImageUploadProps) {
             </p>
           </div>
 
-          {/* Conversion Options */}
+          {/* Conversion Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>Coming Soon:</strong> Advanced image-to-sprite conversion with style transfer,
-              background removal, and automatic game asset optimization.
+              <strong>Conversion Process:</strong> Optimizes image for game use with transparent background,
+              automatic resizing, and PNG compression.
             </p>
           </div>
 

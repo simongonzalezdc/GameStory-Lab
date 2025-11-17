@@ -1,7 +1,8 @@
 """Asset generation API endpoints."""
 import time
 import logging
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, File, UploadFile, Form
+from typing import Optional
 
 from app.core.config import settings
 from app.models.generation import GenerationRequest, GenerationResponse, RefineRequest
@@ -208,4 +209,121 @@ async def refine_asset(request: RefineRequest):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Refinement failed: {str(e)}"
+        )
+
+
+@router.post("/convert", response_model=GenerationResponse)
+async def convert_image_to_sprite(
+    file: UploadFile = File(...),
+    project_name: Optional[str] = Form(None),
+    style_tags: Optional[str] = Form(None)
+):
+    """
+    Convert uploaded image to game-ready sprite.
+
+    This endpoint:
+    - Accepts image uploads (PNG, JPG, GIF, WebP)
+    - Optimizes for game assets (transparent background, resize if needed)
+    - Stores as a managed asset
+
+    Args:
+        file: Uploaded image file
+        project_name: Optional project name for organization
+        style_tags: Optional comma-separated style tags
+
+    Returns:
+        Converted asset information
+
+    Raises:
+        400: Invalid file type or file too large
+        503: Conversion failed
+    """
+    start_time = time.time()
+
+    # Use local user ID (no auth required for personal use)
+    user_id = "local-user"
+
+    try:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith('image/'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File must be an image"
+            )
+
+        # Read uploaded file
+        logger.info(f"Converting uploaded image: {file.filename}")
+        image_bytes = await file.read()
+
+        # Validate file size (max 10MB)
+        if len(image_bytes) > 10 * 1024 * 1024:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File too large. Maximum size is 10MB"
+            )
+
+        # Initialize services
+        image_service = ImageService()
+
+        # Process image for game asset
+        logger.info("Processing image for game asset...")
+
+        # Ensure transparent background
+        image_bytes = image_service.ensure_transparent_background(image_bytes)
+
+        # Optimize for game assets (reduce file size while maintaining quality)
+        image_bytes = image_service.optimize_for_game(image_bytes)
+
+        # Get image info
+        image_info = image_service.get_image_info(image_bytes)
+
+        # Upload to storage
+        logger.info("Uploading to storage...")
+        file_name = f"converted_{int(time.time())}.png"
+        file_url = await storage_service.upload_asset(
+            user_id=user_id,
+            file_name=file_name,
+            file_bytes=image_bytes,
+            mime_type="image/png"
+        )
+
+        # Parse style tags
+        tags = [tag.strip() for tag in style_tags.split(',')] if style_tags else []
+
+        # Save metadata
+        asset_data = AssetCreate(
+            file_name=file_name,
+            file_size=image_info["size_bytes"],
+            width=image_info["width"],
+            height=image_info["height"],
+            generation_prompt=f"Converted from: {file.filename}",
+            generation_model="image-to-sprite",
+            style_tags=tags,
+            project_name=project_name
+        )
+
+        asset = await storage_service.save_asset_metadata(
+            user_id=user_id,
+            asset_data=asset_data,
+            file_url=file_url
+        )
+
+        generation_time_ms = int((time.time() - start_time) * 1000)
+
+        logger.info(f"Image converted successfully in {generation_time_ms}ms")
+
+        return GenerationResponse(
+            success=True,
+            asset=asset.model_dump(),
+            generation_id=asset.id,
+            generation_time_ms=generation_time_ms
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Image conversion failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Conversion failed: {str(e)}"
         )
