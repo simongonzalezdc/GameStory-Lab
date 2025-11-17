@@ -1,29 +1,36 @@
-# AI Game Asset Generator (Local Edition)
+# AI Game Asset Generator
 
-A privacy-first, local-first web application that generates game-ready 2D and isometric assets using AI. **Everything runs locally** - your data never leaves your machine!
+A local-first web application that generates game-ready 2D assets using cloud AI providers. **Your assets stay on your machine** - stored locally in SQLite + file system!
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.0--phase1-blue)
 ![Storage](https://img.shields.io/badge/storage-local%20SQLite-green)
-![Privacy](https://img.shields.io/badge/privacy-100%25%20local-brightgreen)
+![AI](https://img.shields.io/badge/AI-cloud%20providers-purple)
 
 ## 🎮 Features
 
-### Core Features
+### ✨ Phase 1 (Complete)
 - **Text-to-Sprite Generation** - Generate assets from natural language prompts
-- **Image-to-Sprite Conversion** - Upload reference images and generate variations
-- **Natural Language Refinement** - Chat-based asset refinement
-- **🔥 Ollama Integration** - Run AI models locally for complete privacy & no API costs
+  - OpenRouter (Gemini 2.5 Flash Image - Free tier available)
+  - Google Imagen 3
+  - OpenAI DALL-E 3
+- **Image-to-Sprite Conversion** - Upload images to convert into game-ready sprites
+  - Automatic transparent background
+  - Optimized PNG compression
+  - Automatic resizing (max 2048px)
+- **Enhanced Asset Library**
+  - Full-text search across filenames, prompts, and tags
+  - Filter by project and style tags
+  - Favorites system (localStorage)
+  - Batch export with selection
 - **Local Storage** - All data stored in local SQLite database + file system
 - **No Authentication** - Simple single-user setup
-- **Asset Library** - Auto-organized local library with search and filter
-- **Game-Ready Export** - Export as PNG, sprite sheets, or texture atlases
-- **Game Engine Support** - Unity, Godot, Unreal, and generic formats
+- **Game-Ready Export** - Export as sprite sheets with JSON metadata
 
-### Privacy & Local-First
-- ✅ **100% Local** - All assets, database, and files stay on your machine
-- ✅ **No Cloud Required** - Works completely offline with Ollama
+### 🔒 Privacy & Local-First
+- ✅ **Local Storage** - All assets, database, and files stay on your machine
 - ✅ **No Authentication** - No accounts, no logins, no tracking
-- ✅ **No External Dependencies** - SQLite + local file storage
+- ✅ **SQLite Database** - No external database dependencies
+- ✅ **Ollama Infrastructure** - Ready for future text-based features (chat, refinement)
 
 ## 🚀 Quick Start (5 Minutes)
 
@@ -31,55 +38,48 @@ A privacy-first, local-first web application that generates game-ready 2D and is
 
 - **Python 3.11+**
 - **Node.js 18+** and npm
-- **Ollama** (for local AI - recommended!)
+- **API Key** from at least one provider:
+  - [OpenRouter](https://openrouter.ai/) (Free tier available!)
+  - [Google AI Studio](https://aistudio.google.com/) (Free quota)
+  - [OpenAI](https://platform.openai.com/)
 
 ### Step-by-Step Setup
 
 ```bash
-# 1. Install Ollama (one-time setup)
-# macOS/Linux:
-curl -fsSL https://ollama.ai/install.sh | sh
-# Windows: Download from https://ollama.ai/download
-
-# 2. Pull a vision model
-ollama pull llama3.2-vision:11b
-# Alternative smaller model:
-# ollama pull llava:7b
-
-# 3. Start Ollama server (keep running in a terminal)
-ollama serve
-
-# 4. Clone and setup project
+# 1. Clone and setup project
 git clone <your-repo-url>
 cd Generative-Assets-Lab
 
-# 5. Backend setup
+# 2. Backend setup
 cd backend
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-# 6. Create .env (optional - works without API keys if using Ollama!)
+# 3. Configure API keys
 cp .env.example .env
-# No changes needed! Everything has sensible defaults
+# Edit .env and add at least one API key:
+# OPENROUTER_API_KEY=sk-or-v1-your-key  # Recommended: Free tier available
+# GOOGLE_API_KEY=AIzaSy-your-key        # Alternative: Free quota
+# OPENAI_API_KEY=sk-proj-your-key       # Alternative: Paid only
 
-# 7. Start backend
+# 4. Start backend
 uvicorn app.main:app --reload
 
-# 8. Frontend setup (new terminal)
+# 5. Frontend setup (new terminal)
 cd ../frontend
 npm install
 
-# 9. Create frontend .env (optional - has defaults)
+# 6. Create frontend .env (optional - has defaults)
 cp .env.example .env
 
-# 10. Start frontend
+# 7. Start frontend
 npm run dev
 
-# 11. Open http://localhost:5173 and start generating!
+# 8. Open http://localhost:5173 and start generating!
 ```
 
-That's it! No database setup, no cloud accounts, no API keys needed if using Ollama!
+That's it! No database setup required - SQLite database is created automatically on first run.
 
 ## 📁 Where Is My Data?
 
@@ -98,38 +98,50 @@ Generative-Assets-Lab/
 
 ## 🎯 Usage
 
-### Generating Your First Asset
+### Generating Assets from Text
 
 1. Open http://localhost:5173
 2. Enter a prompt: "pixel art fantasy sword with blue gems, 32x32"
-3. Select model:
-   - **Ollama (Local)** ✓ - If Ollama is running (recommended!)
-   - OpenRouter - Requires API key
-   - Google Gemini - Requires API key
-   - ChatGPT - Requires API key
-4. Click "Generate Asset"
-5. Asset appears in library below!
+3. Select AI provider:
+   - **OpenRouter** - Gemini 2.5 Flash Image (free tier)
+   - **Google** - Imagen 3 (free quota)
+   - **ChatGPT** - DALL-E 3 (paid)
+4. Optional: Add project name and style tags for organization
+5. Click "Generate Asset"
+6. Asset appears in library below!
 
-### Using Cloud Providers (Optional)
+### Converting Images to Sprites
 
-If you want to use cloud AI providers in addition to Ollama:
+1. Click the "Upload" tab
+2. Drag & drop an image (or click to browse)
+3. Supported formats: PNG, JPG, GIF, WebP (max 10MB)
+4. Click "Convert to Sprite"
+5. Conversion automatically:
+   - Ensures transparent background
+   - Resizes if larger than 2048px
+   - Optimizes PNG compression
+6. Converted sprite appears in your library!
 
-1. Edit `backend/.env`:
-```env
-# Add any of these (all optional):
-OPENROUTER_API_KEY=sk-or-v1-your-key
-GOOGLE_API_KEY=AIzaSy-your-key
-OPENAI_API_KEY=sk-proj-your-key
-```
+### Managing Your Asset Library
 
-2. Restart backend
-3. Cloud models will appear in the dropdown
+**Search & Filter:**
+- Use the search bar to find assets by filename, prompt, or tags
+- Filter by project using the project dropdown
+- Filter by style tags using the style dropdown
+- Click the "Favorites" button to show only favorited assets
+- Click "Clear All" to reset filters
 
-### Exporting Assets
+**Favorites:**
+- Hover over any asset and click the star icon to favorite it
+- Favorites are saved in your browser's localStorage
+- Click a style tag on any asset to filter by that tag
 
-1. Click assets in library to select them (purple border)
-2. Click "Export Selected"
-3. Downloads a ZIP with your assets
+**Exporting Assets:**
+1. Click assets in library to select them (purple border appears)
+2. Click "Export (N)" button at the top
+3. Downloads a ZIP with:
+   - All selected assets as PNG files
+   - Sprite sheet with JSON metadata
 4. Import into Unity, Godot, or your game engine!
 
 ## 🛠️ Project Structure
@@ -165,16 +177,6 @@ Generative-Assets-Lab/
 
 ## 🔧 Troubleshooting
 
-### Ollama Not Working
-
-**Issue**: "Ollama not available" error
-
-**Solutions**:
-1. Check Ollama is installed: `ollama --version`
-2. Start Ollama: `ollama serve` (keep running)
-3. Verify: `curl http://localhost:11434/api/tags`
-4. Pull a model: `ollama pull llama3.2-vision:11b`
-
 ### Backend Won't Start
 
 **Issue**: Import errors or database errors
@@ -183,7 +185,7 @@ Generative-Assets-Lab/
 1. Activate venv: `source .venv/bin/activate`
 2. Reinstall deps: `pip install -r requirements.txt`
 3. Check Python version: `python --version` (need 3.11+)
-4. Delete `data/` folder to reset database
+4. Delete `backend/data/` folder to reset database
 
 ### Frontend Can't Reach Backend
 
@@ -196,29 +198,36 @@ Generative-Assets-Lab/
 
 ### Generation Fails
 
-**Issue**: "Generation failed" errors
+**Issue**: "Generation failed" or "503 Service Unavailable" errors
 
-**For Ollama**:
-- Ensure model is downloaded: `ollama list`
-- Restart Ollama: `ollama serve`
-- Try a smaller model: `ollama pull llava:7b`
+**Solutions**:
+- **Check API Keys**: Verify your API key is valid in `backend/.env`
+- **Check API Credits**: Ensure you have available credits/quota
+  - OpenRouter: Check at https://openrouter.ai/credits
+  - Google: Check quota at https://aistudio.google.com/
+  - OpenAI: Check usage at https://platform.openai.com/usage
+- **Try Different Provider**: If one provider fails, try another
+- **Check Backend Logs**: Look for specific error messages in backend terminal
 
-**For Cloud Providers**:
-- Check API keys are valid in `.env`
-- Check you have API credits
+### Image Upload Fails
 
-## 🌟 Recommended Ollama Models
+**Issue**: "File too large" or upload errors
 
-| Model | Size | Speed | Quality | Command |
-|-------|------|-------|---------|---------|
-| llama3.2-vision:11b | 11GB | Medium | ⭐⭐⭐⭐ | `ollama pull llama3.2-vision:11b` |
-| llava:13b | 7GB | Fast | ⭐⭐⭐ | `ollama pull llava:13b` |
-| llava:7b | 4GB | Very Fast | ⭐⭐ | `ollama pull llava:7b` |
+**Solutions**:
+- Ensure image is under 10MB
+- Use supported formats: PNG, JPG, GIF, WebP
+- Try compressing image before upload
+- Check backend logs for specific error
 
-**Hardware Requirements**:
-- **Minimum**: 8GB RAM, CPU only (slow but works)
-- **Recommended**: 16GB RAM, GPU with 8GB+ VRAM
-- **Optimal**: 32GB RAM, GPU with 16GB+ VRAM
+### Assets Not Appearing in Library
+
+**Issue**: Generated assets don't show up
+
+**Solutions**:
+1. Check browser console for errors
+2. Try refreshing the page (Ctrl+R / Cmd+R)
+3. Verify `backend/data/assets/` folder exists and has files
+4. Check `backend/data/assets.db` database file exists
 
 ## 📚 API Documentation
 
@@ -226,20 +235,36 @@ Full interactive API docs available at: `http://localhost:8000/docs`
 
 ### Key Endpoints
 
-**Generate Asset**
+**Generate Asset from Text**
 ```bash
 POST /api/generate
 {
-  "prompt": "pixel art sword",
-  "model": "ollama",
-  "ollama_model": "llama3.2-vision:11b",
-  "dimensions": {"width": 64, "height": 64}
+  "prompt": "pixel art sword with blue gem",
+  "model": "openrouter",
+  "dimensions": {"width": 64, "height": 64},
+  "project_name": "My RPG",
+  "style_tags": ["pixel-art", "weapon"]
 }
+```
+
+**Convert Image to Sprite**
+```bash
+POST /api/generate/convert
+Content-Type: multipart/form-data
+
+file: <image file>
+project_name: "My RPG" (optional)
+style_tags: "pixel-art,weapon" (optional)
 ```
 
 **List Assets**
 ```bash
-GET /api/assets?limit=50&offset=0
+GET /api/assets?limit=50&offset=0&project_name=My%20RPG
+```
+
+**Delete Asset**
+```bash
+DELETE /api/assets/{asset_id}
 ```
 
 **Export Assets**
@@ -247,17 +272,25 @@ GET /api/assets?limit=50&offset=0
 POST /api/export
 {
   "asset_ids": ["uuid1", "uuid2"],
-  "format": "sprite-sheet-json"
+  "format": "sprite-sheet-json",
+  "target_engine": "generic",
+  "resolution_multiplier": 1
 }
+```
+
+**Health Check**
+```bash
+GET /api/health
 ```
 
 ## 🔐 Privacy & Security
 
-- ✅ No data ever sent to external servers (except when using cloud AI providers by choice)
-- ✅ No analytics, tracking, or telemetry
-- ✅ No user accounts or authentication
-- ✅ All data stored locally in SQLite + file system
-- ✅ Open source - audit the code yourself!
+- ✅ **Local Storage** - All assets and metadata stored locally in SQLite + file system
+- ✅ **No Tracking** - No analytics, tracking, or telemetry
+- ✅ **No Authentication** - No user accounts or logins required
+- ✅ **Open Source** - Audit the code yourself!
+- ⚠️ **Cloud AI** - Image generation uses cloud AI providers (prompts sent to provider)
+- ✅ **Your Choice** - Choose your preferred AI provider
 
 ## 📝 License
 
@@ -265,15 +298,18 @@ MIT License - See LICENSE file for details
 
 ## 🤝 Contributing
 
-Contributions welcome! This is a personal-use tool made simple and local-first.
+Contributions welcome! This is a personal-use tool designed for game developers.
 
 ## 🙏 Acknowledgments
 
-- [Ollama](https://ollama.ai) - Local AI inference
+- [OpenRouter](https://openrouter.ai) - Multi-provider AI API with free tier
+- [Google AI Studio](https://aistudio.google.com/) - Imagen 3 API
+- [OpenAI](https://platform.openai.com/) - DALL-E 3 API
 - [FastAPI](https://fastapi.tiangolo.com) - Backend framework
 - [React](https://react.dev) - Frontend framework
 - [SQLite](https://www.sqlite.org) - Local database
+- [Pillow](https://python-pillow.org/) - Image processing
 
 ---
 
-**Built for privacy-conscious game developers** | **100% Local** | **No Cloud Required** | **Open Source**
+**Built for game developers** | **Local Storage** | **Cloud AI** | **Open Source**
