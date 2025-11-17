@@ -1,10 +1,14 @@
 import { useState } from 'react';
-import { Gamepad2 } from 'lucide-react';
+import { Gamepad2, Wand2, Upload } from 'lucide-react';
 import { GenerationForm } from './components/GenerationForm';
+import { ImageUpload } from './components/ImageUpload';
 import { AssetLibrary } from './components/AssetLibrary';
+
+type Tab = 'text-to-sprite' | 'image-to-sprite';
 
 function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [activeTab, setActiveTab] = useState<Tab>('text-to-sprite');
 
   const handleAssetGenerated = () => {
     // Trigger library refresh
@@ -21,7 +25,7 @@ function App() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">AI Game Asset Generator</h1>
               <p className="text-sm text-gray-600">
-                Create game-ready assets with AI • Cloud + Local Models (Ollama)
+                Create game-ready assets with AI • Cloud Models + Local Generation
               </p>
             </div>
           </div>
@@ -30,9 +34,43 @@ function App() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 space-y-8">
-        {/* Generation Form */}
+        {/* Tabs */}
+        <div className="flex gap-2 bg-white rounded-lg p-1 shadow-sm max-w-2xl mx-auto">
+          <button
+            onClick={() => setActiveTab('text-to-sprite')}
+            className={`
+              flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md font-medium transition
+              ${activeTab === 'text-to-sprite'
+                ? 'bg-purple-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
+              }
+            `}
+          >
+            <Wand2 size={20} />
+            Text-to-Sprite
+          </button>
+          <button
+            onClick={() => setActiveTab('image-to-sprite')}
+            className={`
+              flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md font-medium transition
+              ${activeTab === 'image-to-sprite'
+                ? 'bg-purple-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
+              }
+            `}
+          >
+            <Upload size={20} />
+            Image-to-Sprite
+          </button>
+        </div>
+
+        {/* Generation Forms */}
         <section>
-          <GenerationForm onGenerated={handleAssetGenerated} />
+          {activeTab === 'text-to-sprite' ? (
+            <GenerationForm onGenerated={handleAssetGenerated} />
+          ) : (
+            <ImageUpload onConverted={handleAssetGenerated} />
+          )}
         </section>
 
         {/* Asset Library */}
@@ -46,10 +84,10 @@ function App() {
         <div className="container mx-auto px-4 py-6">
           <div className="text-center text-sm text-gray-600">
             <p>
-              Supports: OpenRouter (FLUX) • Google Gemini • ChatGPT (DALL-E 3) • Ollama (Local Models)
+              Supports: OpenRouter (Gemini 2.5) • Google (Imagen 3) • OpenAI (DALL-E 3)
             </p>
             <p className="mt-2 text-xs">
-              Built with React, FastAPI, and LangChain • v1.0.0
+              Built with React, FastAPI, and AI • v1.0.0 MVP
             </p>
           </div>
         </div>
