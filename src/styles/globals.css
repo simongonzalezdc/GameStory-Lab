@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --audio-latency: 0.1;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-white text-gray-900;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+}
+
+@layer components {
+  .scene-card {
+    @apply rounded-lg border-2 p-4 transition-all hover:shadow-lg;
+  }
+
+  .track-row {
+    @apply flex items-center gap-4 p-2 rounded hover:bg-gray-50;
+  }
+
+  .control-slider {
+    @apply w-full;
+  }
+}
