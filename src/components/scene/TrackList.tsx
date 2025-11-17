@@ -1,3 +1,4 @@
+import { useMemo, useCallback } from 'react';
 import { useProjectStore } from '@/stores/project-store';
 import { Button } from '../ui/Button';
 import TrackRow from './TrackRow';
@@ -10,11 +11,13 @@ interface TrackListProps {
 export default function TrackList({ sceneId }: TrackListProps) {
   const { project, addTrack } = useProjectStore();
 
-  const scene = project?.scenes.find(s => s.id === sceneId);
+  // Memoize scene lookup
+  const scene = useMemo(
+    () => project?.scenes.find(s => s.id === sceneId),
+    [project?.scenes, sceneId]
+  );
 
-  if (!scene) return null;
-
-  const handleAddTrack = (role: TrackRole) => {
+  const handleAddTrack = useCallback((role: TrackRole) => {
     addTrack(sceneId, {
       name: `${role.charAt(0).toUpperCase() + role.slice(1)} Track`,
       role,
@@ -25,7 +28,9 @@ export default function TrackList({ sceneId }: TrackListProps) {
       muted: false,
       solo: false,
     });
-  };
+  }, [addTrack, sceneId]);
+
+  if (!scene) return null;
 
   return (
     <div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { exportSceneToMidi } from '@/lib/io/midi-export';
@@ -19,26 +19,38 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
   const [exporting, setExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
   const [error, setError] = useState<string>('');
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleToggleTrack = (trackId: string) => {
-    const newSelected = new Set(selectedTracks);
-    if (newSelected.has(trackId)) {
-      newSelected.delete(trackId);
-    } else {
-      newSelected.add(trackId);
-    }
-    setSelectedTracks(newSelected);
-  };
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
-  const handleSelectAll = () => {
+  const handleToggleTrack = useCallback((trackId: string) => {
+    setSelectedTracks((prev) => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(trackId)) {
+        newSelected.delete(trackId);
+      } else {
+        newSelected.add(trackId);
+      }
+      return newSelected;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
     setSelectedTracks(new Set(scene.tracks.map((t) => t.id)));
-  };
+  }, [scene.tracks]);
 
-  const handleDeselectAll = () => {
+  const handleDeselectAll = useCallback(() => {
     setSelectedTracks(new Set());
-  };
+  }, []);
 
-  const handleExport = async () => {
+  const handleExport = useCallback(async () => {
     if (selectedTracks.size === 0) {
       setError('Please select at least one track to export');
       return;
@@ -56,7 +68,7 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
       });
 
       setExportSuccess(true);
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         onClose();
         setExportSuccess(false);
       }, 2000);
@@ -66,15 +78,15 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
     } finally {
       setExporting(false);
     }
-  };
+  }, [selectedTracks, scene, separateFiles, onClose]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (!exporting) {
       setError('');
       setExportSuccess(false);
       onClose();
     }
-  };
+  }, [exporting, onClose]);
 
   return (
     <Dialog open={open} onClose={handleClose} title="Export to MIDI">

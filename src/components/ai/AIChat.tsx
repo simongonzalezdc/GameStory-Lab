@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useUIStore } from '@/stores/ui-store';
 import { useAIStore } from '@/stores/ai-store';
 import { useProjectStore } from '@/stores/project-store';
@@ -22,7 +22,7 @@ export default function AIChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (!input.trim() || isLoading) return;
 
     // Check if AI is configured
@@ -96,7 +96,7 @@ export default function AIChat() {
       setLoading(false);
       setAbortController(null);
     }
-  };
+  }, [input, isLoading, config, addMessage, setLoading, setAbortController, messages, projectStore]);
 
   if (!isAIChatOpen) {
     return (

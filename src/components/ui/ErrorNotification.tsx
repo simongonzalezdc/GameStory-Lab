@@ -1,26 +1,34 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { errorHandler, type AppError, ErrorSeverity } from '@/lib/errors/error-handler';
 
 export default function ErrorNotification() {
   const [errors, setErrors] = useState<AppError[]>([]);
 
   useEffect(() => {
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+
     const unsubscribe = errorHandler.subscribe((error) => {
       setErrors((prev) => [...prev, error]);
 
       // Auto-dismiss after delay based on severity
       const dismissDelay = error.severity === ErrorSeverity.CRITICAL ? 10000 : 5000;
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         setErrors((prev) => prev.filter((e) => e.id !== error.id));
       }, dismissDelay);
+
+      timeouts.push(timeoutId);
     });
 
-    return unsubscribe;
+    // Clean up timeouts on unmount
+    return () => {
+      unsubscribe();
+      timeouts.forEach(timeout => clearTimeout(timeout));
+    };
   }, []);
 
-  const handleDismiss = (id: string) => {
+  const handleDismiss = useCallback((id: string) => {
     setErrors((prev) => prev.filter((e) => e.id !== id));
-  };
+  }, []);
 
   if (errors.length === 0) return null;
 

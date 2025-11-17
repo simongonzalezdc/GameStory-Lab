@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { Scene } from '@/types';
 import { useProjectStore } from '@/stores/project-store';
 import { Button } from '../ui/Button';
@@ -12,9 +12,9 @@ export default function SceneCard({ scene }: SceneCardProps) {
   const { setCurrentScene, deleteScene, duplicateScene } = useProjectStore();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     deleteScene(scene.id);
-  };
+  }, [deleteScene, scene.id]);
 
   return (
     <>

@@ -68,10 +68,16 @@ export function getScaleNotes(
 
 /**
  * Snap a MIDI note to the nearest note in a scale
+ * For better performance, pass pre-computed scaleNotes if calling repeatedly
  */
-export function quantizeToScale(midi: number, rootNote: string, scaleName: string): number {
-  const scaleNotes = getScaleNotes(rootNote, scaleName, 0, 10);
-  return scaleNotes.reduce((closest, note) =>
+export function quantizeToScale(
+  midi: number,
+  rootNote: string,
+  scaleName: string,
+  scaleNotes?: number[]
+): number {
+  const notes = scaleNotes || getScaleNotes(rootNote, scaleName, 0, 10);
+  return notes.reduce((closest, note) =>
     Math.abs(note - midi) < Math.abs(closest - midi) ? note : closest
   );
 }

@@ -3,7 +3,7 @@
  * Displays step-by-step tutorial with spotlight highlighting
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTutorialStore } from '@/stores/tutorial-store';
 import { tutorialSteps, TutorialStep } from './tutorial-steps';
 import { Button } from '../ui/Button';
@@ -56,24 +56,24 @@ export default function TutorialOverlay() {
     };
   }, [step?.targetElement]);
 
-  if (!isActive) return null;
-
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (isLastStep) {
       completeTutorial();
     } else {
       nextStep();
     }
-  };
+  }, [isLastStep, completeTutorial, nextStep]);
 
-  const handleSkip = () => {
+  const handleSkip = useCallback(() => {
     setShowSkipConfirm(true);
-  };
+  }, []);
 
-  const handleConfirmSkip = () => {
+  const handleConfirmSkip = useCallback(() => {
     skipTutorial();
     setShowSkipConfirm(false);
-  };
+  }, [skipTutorial]);
+
+  if (!isActive) return null;
 
   return (
     <>

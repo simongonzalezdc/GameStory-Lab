@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useProjectStore } from '@/stores/project-store';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
@@ -12,6 +12,28 @@ interface ClipListProps {
   trackId: string;
 }
 
+const GENERATOR_OPTIONS = [
+  { value: 'euclidean', label: 'Euclidean Rhythm' },
+  { value: 'arp', label: 'Arpeggiator' },
+  { value: 'markov', label: 'Markov Chain' },
+  { value: 'randomWalk', label: 'Random Walk' },
+];
+
+const getDefaultParams = (type: GeneratorType) => {
+  switch (type) {
+    case 'euclidean':
+      return { steps: 16, pulses: 4, rotation: 0, patternRole: 'kick' };
+    case 'arp':
+      return { mode: 'up', notesPerBeat: 2, octaveRange: 2, followChordProgression: false };
+    case 'markov':
+      return { order: 1, length: 16 };
+    case 'randomWalk':
+      return { stepSize: 2, stayInScale: true, length: 16 };
+    default:
+      return {};
+  }
+};
+
 export default function ClipList({ sceneId, trackId }: ClipListProps) {
   const { project, addClip, deleteClip } = useProjectStore();
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -20,19 +42,20 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
   const [generatorType, setGeneratorType] = useState<GeneratorType>('euclidean');
   const [lengthBars, setLengthBars] = useState(4);
 
-  const scene = project?.scenes.find(s => s.id === sceneId);
-  const track = scene?.tracks.find(t => t.id === trackId);
+  // Memoize scene and track lookups
+  const scene = useMemo(
+    () => project?.scenes.find(s => s.id === sceneId),
+    [project?.scenes, sceneId]
+  );
+
+  const track = useMemo(
+    () => scene?.tracks.find(t => t.id === trackId),
+    [scene?.tracks, trackId]
+  );
 
   if (!track) return null;
 
-  const generatorOptions = [
-    { value: 'euclidean', label: 'Euclidean Rhythm' },
-    { value: 'arp', label: 'Arpeggiator' },
-    { value: 'markov', label: 'Markov Chain' },
-    { value: 'randomWalk', label: 'Random Walk' },
-  ];
-
-  const handleAddClip = () => {
+  const handleAddClip = useCallback(() => {
     const defaultParams = getDefaultParams(generatorType);
 
     addClip(sceneId, trackId, {
@@ -45,34 +68,19 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     });
 
     setShowAddDialog(false);
-  };
+  }, [generatorType, lengthBars, addClip, sceneId, trackId]);
 
-  const getDefaultParams = (type: GeneratorType) => {
-    switch (type) {
-      case 'euclidean':
-        return { steps: 16, pulses: 4, rotation: 0, patternRole: 'kick' };
-      case 'arp':
-        return { mode: 'up', notesPerBeat: 2, octaveRange: 2, followChordProgression: false };
-      case 'markov':
-        return { order: 1, length: 16 };
-      case 'randomWalk':
-        return { stepSize: 2, stayInScale: true, length: 16 };
-      default:
-        return {};
-    }
-  };
-
-  const handleDeleteClick = (clipId: string) => {
+  const handleDeleteClick = useCallback((clipId: string) => {
     setClipToDelete(clipId);
     setShowDeleteConfirm(true);
-  };
+  }, []);
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = useCallback(() => {
     if (clipToDelete) {
       deleteClip(sceneId, trackId, clipToDelete);
       setClipToDelete(null);
     }
-  };
+  }, [clipToDelete, deleteClip, sceneId, trackId]);
 
   return (
     <>
@@ -131,7 +139,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
             label="Generator Type"
             value={generatorType}
             onValueChange={(v) => setGeneratorType(v as GeneratorType)}
-            options={generatorOptions}
+            options={GENERATOR_OPTIONS}
           />
 
           <Input

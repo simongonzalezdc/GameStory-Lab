@@ -4,7 +4,7 @@ import { Button } from '../ui/Button';
 import TrackList from './TrackList';
 import MidiExportDialog from '../project/MidiExportDialog';
 import { getAudioEngine } from '@/lib/audio/engine';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useKeyboardShortcuts, isTypingInInput } from '@/hooks/useKeyboardShortcuts';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
@@ -14,7 +14,11 @@ export default function SceneEditor() {
   const audioEngine = getAudioEngine();
   const [showMidiExport, setShowMidiExport] = useState(false);
 
-  const currentScene = project?.scenes.find(s => s.id === currentSceneId);
+  // Memoize scene lookup
+  const currentScene = useMemo(
+    () => project?.scenes.find(s => s.id === currentSceneId),
+    [project?.scenes, currentSceneId]
+  );
 
   useEffect(() => {
     if (currentScene) {
@@ -22,20 +26,9 @@ export default function SceneEditor() {
         errorHandler.handle(error, 'Scene Loading', ErrorSeverity.ERROR);
       });
     }
-  }, [currentScene]);
+  }, [currentScene, audioEngine]);
 
-  if (!currentScene) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">Select a scene to edit</p>
-        <Button onClick={() => setCurrentScene(null)} className="mt-4" variant="secondary">
-          Back to Scenes
-        </Button>
-      </div>
-    );
-  }
-
-  const handlePlayPause = async () => {
+  const handlePlayPause = useCallback(async () => {
     if (!audioEngine.initialized) {
       await audioEngine.init();
     }
@@ -47,12 +40,23 @@ export default function SceneEditor() {
       audioEngine.play();
       setPlaying(true);
     }
-  };
+  }, [audioEngine, isPlaying, setPlaying]);
 
-  const handleStop = () => {
+  const handleStop = useCallback(() => {
     audioEngine.stop();
     setPlaying(false);
-  };
+  }, [audioEngine, setPlaying]);
+
+  if (!currentScene) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Select a scene to edit</p>
+        <Button onClick={() => setCurrentScene(null)} className="mt-4" variant="secondary">
+          Back to Scenes
+        </Button>
+      </div>
+    );
+  }
 
   // Register keyboard shortcuts
   useKeyboardShortcuts([

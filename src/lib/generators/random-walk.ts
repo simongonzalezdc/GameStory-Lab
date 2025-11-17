@@ -32,8 +32,10 @@ export class RandomWalkGenerator extends BaseGenerator {
    */
   private generateRandomWalk(params: RandomWalkParams, context: GenerationContext): number[] {
     const melody: number[] = [];
-    const scaleNotes = params.stayInScale
-      ? getScaleNotes(context.key, context.scale, 3, 6)
+
+    // Pre-compute scale notes for quantization to avoid regenerating on every iteration
+    const scaleNotesForQuantization = params.stayInScale
+      ? getScaleNotes(context.key, context.scale, 0, 10)
       : null;
 
     // Start with tonic
@@ -49,9 +51,9 @@ export class RandomWalkGenerator extends BaseGenerator {
       // Clamp to valid MIDI range
       nextPitch = clamp(nextPitch, 36, 96); // C2 to C7
 
-      // Quantize to scale if required
-      if (params.stayInScale && scaleNotes) {
-        nextPitch = quantizeToScale(nextPitch, context.key, context.scale);
+      // Quantize to scale if required - pass pre-computed scale for efficiency
+      if (params.stayInScale && scaleNotesForQuantization) {
+        nextPitch = quantizeToScale(nextPitch, context.key, context.scale, scaleNotesForQuantization);
       }
 
       melody.push(nextPitch);

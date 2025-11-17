@@ -26,6 +26,10 @@ export function mapRange(
   outMin: number,
   outMax: number
 ): number {
+  // Handle edge case: if input range is zero, return middle of output range
+  if (inMax === inMin) {
+    return (outMin + outMax) / 2;
+  }
   return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 }
 
@@ -73,7 +77,11 @@ export function randomFloat(min: number, max: number): number {
 
 /**
  * Pick random element from array
+ * Throws error if array is empty
  */
 export function randomChoice<T>(arr: T[]): T {
+  if (arr.length === 0) {
+    throw new Error('Cannot pick random element from empty array');
+  }
   return arr[Math.floor(Math.random() * arr.length)];
 }

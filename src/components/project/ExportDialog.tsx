@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { exportProject } from '@/lib/io/file-system';
@@ -15,8 +15,18 @@ export default function ExportDialog({ open, onClose, project }: ExportDialogPro
   const [exporting, setExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
   const [error, setError] = useState<string>('');
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleExport = async () => {
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleExport = useCallback(async () => {
     try {
       setExporting(true);
       setError('');
@@ -25,7 +35,7 @@ export default function ExportDialog({ open, onClose, project }: ExportDialogPro
       await exportProject(project);
 
       setExportSuccess(true);
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         onClose();
         setExportSuccess(false);
       }, 2000);
@@ -35,15 +45,15 @@ export default function ExportDialog({ open, onClose, project }: ExportDialogPro
     } finally {
       setExporting(false);
     }
-  };
+  }, [project, onClose]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (!exporting) {
       setError('');
       setExportSuccess(false);
       onClose();
     }
-  };
+  }, [exporting, onClose]);
 
   return (
     <Dialog open={open} onClose={handleClose} title="Export Project">

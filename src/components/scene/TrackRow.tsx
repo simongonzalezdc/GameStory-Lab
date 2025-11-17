@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useProjectStore } from '@/stores/project-store';
 import type { Track } from '@/types';
 import { Button } from '../ui/Button';
@@ -14,6 +14,15 @@ interface TrackRowProps {
   track: Track;
 }
 
+const ROLE_ICONS: Record<string, string> = {
+  drums: '🥁',
+  bass: '🎸',
+  pad: '🎹',
+  lead: '🎺',
+  fx: '✨',
+  other: '🎵',
+};
+
 export default function TrackRow({ sceneId, track }: TrackRowProps) {
   const { project, updateTrack, deleteTrack } = useProjectStore();
   const [expanded, setExpanded] = useState(false);
@@ -21,9 +30,13 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showExportError, setShowExportError] = useState(false);
 
-  const scene = project?.scenes.find((s) => s.id === sceneId);
+  // Memoize scene lookup to avoid recalculation on every render
+  const scene = useMemo(
+    () => project?.scenes.find((s) => s.id === sceneId),
+    [project?.scenes, sceneId]
+  );
 
-  const handleExportMidi = async () => {
+  const handleExportMidi = useCallback(async () => {
     if (!scene) return;
 
     try {
@@ -35,16 +48,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
     } finally {
       setExporting(false);
     }
-  };
-
-  const roleIcons: Record<string, string> = {
-    drums: '🥁',
-    bass: '🎸',
-    pad: '🎹',
-    lead: '🎺',
-    fx: '✨',
-    other: '🎵',
-  };
+  }, [scene, track.id]);
 
   return (
     <>
@@ -68,7 +72,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
       {/* Track Header */}
       <div className="p-4">
         <div className="flex items-center gap-4">
-          <span className="text-2xl">{roleIcons[track.role] || '🎵'}</span>
+          <span className="text-2xl">{ROLE_ICONS[track.role] || '🎵'}</span>
           <div className="flex-1">
             <h4 className="font-semibold text-gray-900">{track.name || `${track.role} Track`}</h4>
             <p className="text-sm text-gray-500">{track.clips.length} clips</p>

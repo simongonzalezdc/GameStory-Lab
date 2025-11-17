@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { PitchDetector, midiToNoteName } from '@/lib/audio/pitch-detection';
@@ -32,7 +32,7 @@ export default function VoiceCaptureDialog({
     };
   }, []);
 
-  const handleStartRecording = async () => {
+  const handleStartRecording = useCallback(async () => {
     try {
       setError('');
       setCapturedNotes([]);
@@ -67,9 +67,9 @@ export default function VoiceCaptureDialog({
       errorHandler.handle(err, 'Voice Capture', ErrorSeverity.ERROR);
       setError('Failed to access microphone. Please check permissions.');
     }
-  };
+  }, []);
 
-  const handleStopRecording = () => {
+  const handleStopRecording = useCallback(() => {
     if (detectorRef.current) {
       detectorRef.current.stop();
       detectorRef.current.dispose();
@@ -77,24 +77,27 @@ export default function VoiceCaptureDialog({
     }
     setIsRecording(false);
     setCurrentNote('');
-  };
+  }, []);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (capturedNotes.length === 0) {
       setError('No notes captured. Please record a melody first.');
       return;
     }
 
     onCapture(capturedNotes);
-    handleClose();
-  };
-
-  const handleClose = () => {
     handleStopRecording();
     setCapturedNotes([]);
     setError('');
     onClose();
-  };
+  }, [capturedNotes, onCapture, handleStopRecording, onClose]);
+
+  const handleClose = useCallback(() => {
+    handleStopRecording();
+    setCapturedNotes([]);
+    setError('');
+    onClose();
+  }, [handleStopRecording, onClose]);
 
   return (
     <Dialog open={open} onClose={handleClose} title="Capture Voice Melody">
