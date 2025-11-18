@@ -10,8 +10,9 @@ import {
   ProjectContext,
   DocumentationPackage,
   GeneratedDocument,
+  DOCUMENT_TEMPLATES,
 } from './types.js';
-import { INTERVIEW_QUESTIONS, getNextQuestion } from './interview-questions.js';
+import { INTERVIEW_QUESTIONS } from './interview-questions.js';
 
 export class ArchitectService {
   private interviewManager: InterviewManager;
@@ -128,9 +129,6 @@ export class ArchitectService {
     return true;
   }
 }
-
-// Import template list
-import { DOCUMENT_TEMPLATES } from './types.js';
 
 // Export singleton instance
 export const architectService = new ArchitectService();

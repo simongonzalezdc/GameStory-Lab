@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import {
   InterviewSession,
   InterviewAnswer,
+  InterviewQuestion,
   ProjectContext,
 } from './types.js';
 import {
@@ -52,7 +53,7 @@ export class InterviewManager {
     answer: string | string[]
   ): {
     success: boolean;
-    nextQuestion: any | null;
+    nextQuestion: InterviewQuestion | null;
     phaseComplete: boolean;
     interviewComplete: boolean;
     completionPercentage: number;

@@ -3,7 +3,7 @@
  * Guides users through interview and generates comprehensive documentation
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 interface Question {
@@ -24,6 +24,20 @@ interface InterviewProgress {
   interviewComplete: boolean;
 }
 
+interface GeneratedDocsData {
+  projectId: string;
+  sessionId: string;
+  documentCount: number;
+  documents: Array<{
+    name: string;
+    generatedAt: string;
+    size: number;
+  }>;
+  generatedAt: string;
+}
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 export function ProjectArchitectPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
@@ -34,7 +48,7 @@ export function ProjectArchitectPage() {
   const [currentAnswer, setCurrentAnswer] = useState<string>('');
   const [progress, setProgress] = useState<InterviewProgress | null>(null);
   const [documentationGenerated, setDocumentationGenerated] = useState(false);
-  const [generatedDocs, setGeneratedDocs] = useState<any>(null);
+  const [generatedDocs, setGeneratedDocs] = useState<GeneratedDocsData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Start interview session
@@ -43,7 +57,7 @@ export function ProjectArchitectPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('http://localhost:3001/api/architect/start', {
+      const response = await fetch(`${API_BASE_URL}/api/architect/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId }),
@@ -82,7 +96,7 @@ export function ProjectArchitectPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('http://localhost:3001/api/architect/answer', {
+      const response = await fetch(`${API_BASE_URL}/api/architect/answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,7 +145,7 @@ export function ProjectArchitectPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('http://localhost:3001/api/architect/generate', {
+      const response = await fetch(`${API_BASE_URL}/api/architect/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId, sessionId }),
@@ -158,7 +172,7 @@ export function ProjectArchitectPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/architect/document/${projectId}/${documentName}`
+        `${API_BASE_URL}/api/architect/document/${projectId}/${documentName}`
       );
 
       const blob = await response.blob();
