@@ -6,43 +6,58 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AIOrchestrator } from './orchestrator.js';
 import type { TaskType } from '@gameforge/shared';
 
-// Mock the AI clients
-vi.mock('./clients/openrouter.js', () => ({
-  OpenRouterClient: vi.fn().mockImplementation(() => ({
-    name: 'OpenRouter',
-    type: 'openrouter',
-    isAvailable: vi.fn().mockResolvedValue(true),
-    complete: vi.fn().mockResolvedValue({
+// Mock the AI clients - vitest v4 compatible syntax
+vi.mock('./clients/openrouter.js', () => {
+  const MockOpenRouterClient = vi.fn(function(this: any) {
+    this.name = 'OpenRouter';
+    this.type = 'openrouter';
+    this.isAvailable = vi.fn().mockResolvedValue(true);
+    this.complete = vi.fn().mockResolvedValue({
       content: 'Generated content',
       metadata: { costUsd: 0.001, tokensUsed: 100 },
-    }),
-  })),
-}));
+    });
+    return this;
+  });
 
-vi.mock('./clients/google.js', () => ({
-  GoogleClient: vi.fn().mockImplementation(() => ({
-    name: 'Google Gemini',
-    type: 'google',
-    isAvailable: vi.fn().mockResolvedValue(true),
-    complete: vi.fn().mockResolvedValue({
+  return {
+    OpenRouterClient: MockOpenRouterClient,
+  };
+});
+
+vi.mock('./clients/google.js', () => {
+  const MockGoogleClient = vi.fn(function(this: any) {
+    this.name = 'Google Gemini';
+    this.type = 'google';
+    this.isAvailable = vi.fn().mockResolvedValue(true);
+    this.complete = vi.fn().mockResolvedValue({
       content: 'Generated content',
       metadata: { tokensUsed: 100 },
-    }),
-  })),
-}));
+    });
+    return this;
+  });
 
-vi.mock('./clients/ollama.js', () => ({
-  OllamaClient: vi.fn().mockImplementation(() => ({
-    name: 'Ollama',
-    type: 'ollama',
-    isAvailable: vi.fn().mockResolvedValue(true),
-    listModels: vi.fn().mockResolvedValue(['qwen3:30b-a3b', 'phi4:14b', 'qwen3:7b']),
-    complete: vi.fn().mockResolvedValue({
+  return {
+    GoogleClient: MockGoogleClient,
+  };
+});
+
+vi.mock('./clients/ollama.js', () => {
+  const MockOllamaClient = vi.fn(function(this: any) {
+    this.name = 'Ollama';
+    this.type = 'ollama';
+    this.isAvailable = vi.fn().mockResolvedValue(true);
+    this.listModels = vi.fn().mockResolvedValue(['qwen3:30b-a3b', 'phi4:14b', 'qwen3:7b']);
+    this.complete = vi.fn().mockResolvedValue({
       content: 'Generated content',
       metadata: { tokensUsed: 100 },
-    }),
-  })),
-}));
+    });
+    return this;
+  });
+
+  return {
+    OllamaClient: MockOllamaClient,
+  };
+});
 
 describe('AIOrchestrator', () => {
   beforeEach(() => {

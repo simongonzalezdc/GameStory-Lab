@@ -200,11 +200,20 @@ router.post('/:id/merge', async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Get project with all versions
+    // Get project with all versions (optimized: only select needed fields)
     const project = await prisma.project.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        name: true,
         versions: {
+          select: {
+            id: true,
+            version: true,
+            title: true,
+            mechanics: true,
+            lore: true,
+          },
           orderBy: { version: 'asc' }, // Oldest first for merge order
         },
       },
