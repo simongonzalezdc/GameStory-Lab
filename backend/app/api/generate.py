@@ -174,12 +174,8 @@ async def refine_asset(request: RefineRequest):
 
         logger.info(f"Enhanced prompt: '{enhanced_prompt}'")
 
-        # Read original image from local storage for img2img (if supported)
-        file_path = storage_service.get_file_path(original_asset.file_url)
-        with open(file_path, 'rb') as f:
-            original_image_bytes = f.read()
-
         # Create a modified generation request with the enhanced prompt
+        # Note: Current AI providers do full generation, not img2img
         generation_request = GenerationRequest(
             prompt=enhanced_prompt,
             model=request.model,

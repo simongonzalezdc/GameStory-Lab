@@ -108,7 +108,11 @@ class LocalStorageService:
                 "style_tags": asset_data.style_tags,
                 "project_name": asset_data.project_name,
                 "is_favorite": False,
-                "metadata": {}
+                "metadata": {},
+                # Phase 2: Versioning fields
+                "parent_asset_id": asset_data.parent_asset_id,
+                "version_number": asset_data.version_number,
+                "refinement_instruction": asset_data.refinement_instruction
             }
 
             asset_dict = await db_service.insert_asset(asset_record)
