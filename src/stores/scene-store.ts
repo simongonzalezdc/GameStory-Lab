@@ -3,7 +3,7 @@
  * Extracted from project-store for better organization
  */
 
-import type { Scene } from '@/types';
+import type { Scene, Track, Clip } from '@/types';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { MIN_BPM, MAX_BPM } from '@/lib/utils/constants';
 
@@ -95,10 +95,10 @@ export const sceneStore: SceneStoreActions = {
       ...sceneToDuplicate,
       id: crypto.randomUUID(),
       name: `${sceneToDuplicate.name} (Copy)`,
-      tracks: sceneToDuplicate.tracks.map((track) => ({
+      tracks: sceneToDuplicate.tracks.map((track: Track) => ({
         ...track,
         id: crypto.randomUUID(),
-        clips: track.clips.map((clip) => ({
+        clips: track.clips.map((clip: Clip) => ({
           ...clip,
           id: crypto.randomUUID(),
         })),

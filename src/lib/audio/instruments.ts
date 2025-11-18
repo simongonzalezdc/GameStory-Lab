@@ -5,6 +5,11 @@
 import * as Tone from 'tone';
 import type { TrackRole } from '@/types';
 import { AUDIO_FILTER_DEFAULT_FREQUENCY, AUDIO_FILTER_DEFAULT_Q } from '@/lib/utils/constants';
+import {
+  SafeOscillatorType,
+  toToneOscillatorConfig,
+  toPolySynthOptions,
+} from '@/types/tone-helpers';
 
 export type InstrumentType = 'synth' | 'sampler' | 'fm' | 'am' | 'mono' | 'duo';
 
@@ -142,19 +147,19 @@ export function createInstrument(config: InstrumentConfig): Tone.PolySynth | Ton
     release: 0.5,
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const oscillatorConfig: any = config.oscillator || { type: 'sine' };
+  const oscillatorConfig: SafeOscillatorType = config.oscillator || { type: 'sine' };
 
   switch (config.type) {
     case 'sampler':
       if (!config.samplerUrls) {
         // Fallback to synth if no sampler URLs provided
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return new Tone.PolySynth(Tone.Synth, {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          oscillator: oscillatorConfig as any,
-          envelope,
-        } as any);
+        return new Tone.PolySynth(
+          Tone.Synth,
+          toPolySynthOptions({
+            oscillator: oscillatorConfig,
+            envelope,
+          })
+        );
       }
       return new Tone.Sampler({
         urls: config.samplerUrls,
@@ -167,8 +172,7 @@ export function createInstrument(config: InstrumentConfig): Tone.PolySynth | Ton
       });
     case 'mono':
       return new Tone.MonoSynth({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        oscillator: oscillatorConfig as any,
+        oscillator: toToneOscillatorConfig(oscillatorConfig),
         envelope,
         filter: config.filter ? {
           type: config.filter.type,
@@ -180,47 +184,37 @@ export function createInstrument(config: InstrumentConfig): Tone.PolySynth | Ton
     case 'duo':
       return new Tone.DuoSynth({
         voice0: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          oscillator: oscillatorConfig as any,
+          oscillator: toToneOscillatorConfig(oscillatorConfig),
           envelope,
         },
         voice1: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          oscillator: oscillatorConfig as any,
+          oscillator: toToneOscillatorConfig(oscillatorConfig),
           envelope,
         },
       });
 
     case 'fm':
       return new Tone.FMSynth({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        oscillator: oscillatorConfig as any,
+        oscillator: toToneOscillatorConfig(oscillatorConfig),
         envelope,
       });
 
     case 'am':
       return new Tone.AMSynth({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        oscillator: oscillatorConfig as any,
+        oscillator: toToneOscillatorConfig(oscillatorConfig),
         envelope,
       });
 
     case 'synth':
     default:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return new Tone.PolySynth(Tone.Synth, {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        oscillator: oscillatorConfig as any,
-        envelope,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...(config.filter ? {
-          filter: {
-            type: config.filter.type,
-            frequency: config.filter.frequency,
-            Q: config.filter.Q,
-          },
-        } : {}),
-      } as any);
+      return new Tone.PolySynth(
+        Tone.Synth,
+        toPolySynthOptions({
+          oscillator: oscillatorConfig,
+          envelope,
+          filter: config.filter,
+        })
+      );
   }
 }
 

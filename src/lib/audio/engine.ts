@@ -8,6 +8,7 @@ import { generateNotes } from '@/lib/generators/factory';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { createInstrument, getDefaultInstrument, getInstrumentById } from './instruments';
 import { DEFAULT_BPM, AUDIO_INIT_RETRY_BASE_DELAY_MS, AUDIO_INIT_MAX_RETRIES } from '@/lib/utils/constants';
+import { toPolySynthOptions } from '@/types/tone-helpers';
 
 export class AudioEngine {
   private instruments: Map<string, Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth>;
@@ -143,15 +144,31 @@ export class AudioEngine {
     if (instrument instanceof Tone.Sampler || instrument instanceof Tone.PolySynth) {
       // Sampler and PolySynth are already polyphonic
       polyInstrument = instrument;
-    } else if (instrument instanceof Tone.MonoSynth || instrument instanceof Tone.DuoSynth || 
+    } else if (instrument instanceof Tone.MonoSynth || instrument instanceof Tone.DuoSynth ||
         instrument instanceof Tone.FMSynth || instrument instanceof Tone.AMSynth) {
       // For monophonic synths, wrap in PolySynth for polyphonic support
+      // Determine the synth class based on instrument type
+      let SynthClass: typeof Tone.MonoSynth | typeof Tone.DuoSynth | typeof Tone.FMSynth | typeof Tone.AMSynth;
+      if (instrument instanceof Tone.MonoSynth) {
+        SynthClass = Tone.MonoSynth;
+      } else if (instrument instanceof Tone.DuoSynth) {
+        SynthClass = Tone.DuoSynth;
+      } else if (instrument instanceof Tone.FMSynth) {
+        SynthClass = Tone.FMSynth;
+      } else {
+        SynthClass = Tone.AMSynth;
+      }
+
+      // PolySynth requires all constructors to be the same type, but we have a union
+      // This is a limitation of Tone.js's type system, not our code
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      polyInstrument = new Tone.PolySynth(instrument.constructor as any, {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        oscillator: instrumentConfig.oscillator as any,
-        envelope: instrumentConfig.envelope,
-      } as any);
+      polyInstrument = new Tone.PolySynth(
+        SynthClass as any,
+        toPolySynthOptions({
+          oscillator: instrumentConfig.oscillator,
+          envelope: instrumentConfig.envelope,
+        })
+      );
     } else {
       polyInstrument = instrument;
     }
