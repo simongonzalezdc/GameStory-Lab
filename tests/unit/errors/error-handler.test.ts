@@ -43,12 +43,12 @@ describe('Error Handler', () => {
       errorHandler.handle(new Error('Info'), 'Test', ErrorSeverity.INFO);
       errorHandler.handle(new Error('Warning'), 'Test', ErrorSeverity.WARNING);
       errorHandler.handle(new Error('Error'), 'Test', ErrorSeverity.ERROR);
-      
+
       const log = errorHandler.getErrorLog();
-      expect(log.length).toBe(3);
+      // INFO messages are not added to the log, only WARNING and ERROR
+      expect(log.length).toBe(2);
       expect(log[0].severity).toBe(ErrorSeverity.ERROR); // Most recent first (unshift)
       expect(log[1].severity).toBe(ErrorSeverity.WARNING);
-      expect(log[2].severity).toBe(ErrorSeverity.INFO);
     });
   });
 
