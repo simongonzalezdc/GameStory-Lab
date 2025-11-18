@@ -10,9 +10,10 @@ import { BulkTaggingModal } from './BulkTaggingModal';
 
 interface AssetLibraryProps {
   refreshTrigger?: number;
+  selectedProject?: string | null;
 }
 
-export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
+export function AssetLibrary({ refreshTrigger, selectedProject: externalSelectedProject }: AssetLibraryProps) {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,13 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
   useEffect(() => {
     loadAssets();
   }, [refreshTrigger]);
+
+  // Sync external selected project
+  useEffect(() => {
+    if (externalSelectedProject !== undefined) {
+      setSelectedProject(externalSelectedProject || '');
+    }
+  }, [externalSelectedProject]);
 
   // Load favorites from localStorage
   useEffect(() => {

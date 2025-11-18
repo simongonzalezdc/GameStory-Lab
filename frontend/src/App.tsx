@@ -8,12 +8,14 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { KeyboardShortcuts } from './components/KeyboardShortcuts';
 import { OllamaModelSelector } from './components/OllamaModelSelector';
 import { AssetStatistics } from './components/AssetStatistics';
+import { RecentProjects } from './components/RecentProjects';
 
 type Tab = 'text-to-sprite' | 'image-to-sprite';
 
 function AppContent() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [activeTab, setActiveTab] = useState<Tab>('text-to-sprite');
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const { toggleTheme } = useTheme();
 
   const handleAssetGenerated = () => {
@@ -106,13 +108,20 @@ function AppContent() {
           {/* Settings Sidebar - Right Column (1/3 width on large screens) */}
           <aside className="space-y-4">
             <AssetStatistics />
+            <RecentProjects
+              onSelectProject={setSelectedProject}
+              currentProject={selectedProject}
+            />
             <OllamaModelSelector />
           </aside>
         </div>
 
         {/* Asset Library - Full Width */}
         <section className="mt-8">
-          <AssetLibrary refreshTrigger={refreshTrigger} />
+          <AssetLibrary
+            refreshTrigger={refreshTrigger}
+            selectedProject={selectedProject}
+          />
         </section>
       </main>
 
