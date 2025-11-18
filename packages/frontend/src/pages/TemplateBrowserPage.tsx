@@ -162,14 +162,26 @@ export function TemplateBrowserPage() {
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedGenre || !projectName.trim()) return;
+    if (!projectName.trim()) return;
 
     try {
       setCreating(true);
-      const response = await templatesAPI.createProject(selectedGenre, {
-        projectName: projectName.trim(),
-      });
-      navigate(`/projects/${response.project.id}`);
+
+      if (isBlended) {
+        // Create project from blended template
+        const response = await templatesAPI.blendAndCreate({
+          projectName: projectName.trim(),
+          genres: selectedGenres,
+        });
+        navigate(`/projects/${response.project.id}`);
+      } else {
+        // Create project from single genre template
+        if (!selectedGenre) return;
+        const response = await templatesAPI.createProject(selectedGenre, {
+          projectName: projectName.trim(),
+        });
+        navigate(`/projects/${response.project.id}`);
+      }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to create project');
     } finally {
@@ -421,27 +433,16 @@ export function TemplateBrowserPage() {
               </div>
 
               {/* Action Button */}
-              {isBlended ? (
-                <div className="border-t dark:border-gray-700 pt-4">
-                  <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 text-center">
-                    <div className="text-3xl mb-2">✨</div>
-                    <p className="text-sm text-purple-700 dark:text-purple-300 font-medium mb-1">
-                      Blended Template Preview
-                    </p>
-                    <p className="text-xs text-purple-600 dark:text-purple-400">
-                      Use this hybrid concept as inspiration for your game design.
-                      Creating projects from blended templates coming soon!
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="w-full px-4 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium"
-                >
-                  Create Project from Template
-                </button>
-              )}
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className={`w-full px-4 py-3 text-white rounded-lg transition font-medium ${
+                  isBlended
+                    ? 'bg-purple-600 dark:bg-purple-500 hover:bg-purple-700 dark:hover:bg-purple-600'
+                    : 'bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600'
+                }`}
+              >
+                {isBlended ? '✨ Create Project from Blended Template' : 'Create Project from Template'}
+              </button>
             </div>
           ) : (
             <div className="bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">
@@ -463,12 +464,19 @@ export function TemplateBrowserPage() {
       </div>
 
       {/* Create Project Modal */}
-      {showCreateModal && selectedGenre && !isBlended && (
+      {showCreateModal && (selectedGenre || isBlended) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full p-6">
             <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              Create Project from {genres.find((g) => g.id === selectedGenre)?.name} Template
+              {isBlended
+                ? `✨ Create Project from Blended Template`
+                : `Create Project from ${genres.find((g) => g.id === selectedGenre)?.name} Template`}
             </h3>
+            {isBlended && template?.name && (
+              <p className="text-sm text-purple-600 dark:text-purple-400 mb-4">
+                {template.name}
+              </p>
+            )}
             <form onSubmit={handleCreateProject}>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -501,7 +509,11 @@ export function TemplateBrowserPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium disabled:opacity-50"
+                  className={`flex-1 px-4 py-2 text-white rounded-lg transition font-medium disabled:opacity-50 ${
+                    isBlended
+                      ? 'bg-purple-600 dark:bg-purple-500 hover:bg-purple-700 dark:hover:bg-purple-600'
+                      : 'bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600'
+                  }`}
                   disabled={creating || !projectName.trim()}
                 >
                   {creating ? 'Creating...' : 'Create'}

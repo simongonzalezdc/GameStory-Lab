@@ -132,6 +132,12 @@ export const templatesAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  blendAndCreate: (data: { projectName: string; genres: Array<{ genre: string; weight: number }> }) =>
+    request<{ project: any; version: any; blendedTemplate: string; sourceGenres: any; message: string }>('/api/templates/blend-and-create', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
 
 // Generation API
