@@ -167,8 +167,8 @@ class TestImageService:
     def test_validate_image_too_large(self, rgba_image_bytes):
         """Test validating image that's too large."""
         with pytest.raises(ValueError) as exc_info:
-            # Set very small max size
-            ImageService.validate_image(rgba_image_bytes, max_size_mb=0.001)
+            # Set very small max size (0.0001 MB = ~100 bytes)
+            ImageService.validate_image(rgba_image_bytes, max_size_mb=0.0001)
 
         assert "Image too large" in str(exc_info.value)
 

@@ -14,7 +14,8 @@ class TestAIService:
     @pytest.fixture
     def ai_service(self, test_settings, monkeypatch):
         """Create AI service instance with test settings."""
-        monkeypatch.setattr("app.core.config.settings", test_settings)
+        # Patch settings at the module where AIService uses it
+        monkeypatch.setattr("app.services.ai_service.settings", test_settings)
         return AIService()
 
     @pytest.mark.unit
@@ -29,11 +30,15 @@ class TestAIService:
     @pytest.mark.unit
     async def test_generate_image_unsupported_model(self, ai_service):
         """Test generating image with unsupported model."""
+        # Create a valid request first
         request = GenerationRequest(
-            prompt="a dragon",
-            model="unsupported-model",
+            prompt="a fire breathing dragon",
+            model="openrouter",
             dimensions=DimensionsModel(width=64, height=64)
         )
+
+        # Manually change the model to an unsupported one to bypass pydantic validation
+        request.model = "unsupported-model"
 
         with pytest.raises(ValueError) as exc_info:
             await ai_service.generate_image(request)
@@ -46,7 +51,7 @@ class TestAIService:
         ai_service.openrouter_api_key = None
 
         request = GenerationRequest(
-            prompt="a dragon",
+            prompt="a fire breathing dragon",
             model="openrouter",
             dimensions=DimensionsModel(width=64, height=64)
         )
@@ -62,7 +67,7 @@ class TestAIService:
         ai_service.google_api_key = None
 
         request = GenerationRequest(
-            prompt="a wizard",
+            prompt="a powerful wizard",
             model="google",
             dimensions=DimensionsModel(width=64, height=64)
         )
@@ -78,7 +83,7 @@ class TestAIService:
         ai_service.openai_api_key = None
 
         request = GenerationRequest(
-            prompt="a warrior",
+            prompt="a brave warrior",
             model="chatgpt",
             dimensions=DimensionsModel(width=64, height=64)
         )
@@ -94,7 +99,7 @@ class TestAIService:
         ai_service.ollama_enabled = False
 
         request = GenerationRequest(
-            prompt="a knight",
+            prompt="a noble knight",
             model="ollama",
             dimensions=DimensionsModel(width=64, height=64),
             ollama_model="llama2:latest"
@@ -111,7 +116,7 @@ class TestAIService:
         ai_service.ollama_enabled = True
 
         request = GenerationRequest(
-            prompt="a dragon",
+            prompt="a fire breathing dragon",
             model="ollama",
             dimensions=DimensionsModel(width=64, height=64),
             ollama_model=None
@@ -126,7 +131,8 @@ class TestAIService:
     async def test_refine_image(self, ai_service, mock_image_data):
         """Test refining an image."""
         request = RefineRequest(
-            instruction="make it bigger",
+            asset_id="test-asset-123",
+            instruction="make it bigger and more detailed",
             model="openrouter",
             ollama_model=None
         )
@@ -143,7 +149,7 @@ class TestAIService:
 
             # Verify the call was made with correct parameters
             call_args = mock_gen.call_args[0][0]
-            assert call_args.prompt == "make it bigger"
+            assert call_args.prompt == "make it bigger and more detailed"
             assert call_args.model == "openrouter"
 
     @pytest.mark.unit
@@ -162,16 +168,17 @@ class TestAIService:
         """Test Ollama status check with connection error."""
         ai_service.ollama_enabled = True
 
-        with patch('httpx.AsyncClient') as mock_client:
-            mock_context = MagicMock()
-            mock_context.__aenter__ = AsyncMock()
-            mock_context.__aexit__ = AsyncMock()
-            mock_get = AsyncMock(side_effect=httpx.ConnectError("Connection failed"))
-            mock_context.__aenter__.return_value.get = mock_get
-            mock_client.return_value = mock_context
+        # Create a mock client that raises ConnectError when get() is called
+        mock_client_instance = AsyncMock()
+        mock_client_instance.get = AsyncMock(side_effect=httpx.ConnectError("Connection failed"))
+
+        with patch('app.services.ai_service.httpx.AsyncClient') as mock_client:
+            # Make the context manager return our mock client instance
+            mock_client.return_value.__aenter__.return_value = mock_client_instance
 
             result = await ai_service.check_ollama_status()
 
+            assert result is not None, "Result should not be None"
             assert result["available"] is False
             assert "Cannot connect" in result["error"]
 
@@ -195,7 +202,7 @@ class TestAIService:
             ]
         }
 
-        with patch('httpx.AsyncClient') as mock_client:
+        with patch('app.services.ai_service.httpx.AsyncClient') as mock_client:
             mock_context = MagicMock()
             mock_context.__aenter__ = AsyncMock()
             mock_context.__aexit__ = AsyncMock()
@@ -286,7 +293,7 @@ class TestAIService:
         ai_service.openrouter_api_key = "test-key"
 
         request = GenerationRequest(
-            prompt="a dragon",
+            prompt="a fire breathing dragon",
             model="openrouter",
             dimensions=DimensionsModel(width=64, height=64)
         )
@@ -307,7 +314,7 @@ class TestAIService:
             }]
         }
 
-        with patch('httpx.AsyncClient') as mock_client:
+        with patch('app.services.ai_service.httpx.AsyncClient') as mock_client:
             mock_context = MagicMock()
             mock_context.__aenter__ = AsyncMock()
             mock_context.__aexit__ = AsyncMock()
@@ -329,7 +336,7 @@ class TestAIService:
         ai_service.google_api_key = "test-key"
 
         request = GenerationRequest(
-            prompt="a wizard",
+            prompt="a powerful wizard",
             model="google",
             dimensions=DimensionsModel(width=64, height=64)
         )
@@ -348,7 +355,7 @@ class TestAIService:
             }]
         }
 
-        with patch('httpx.AsyncClient') as mock_client:
+        with patch('app.services.ai_service.httpx.AsyncClient') as mock_client:
             mock_context = MagicMock()
             mock_context.__aenter__ = AsyncMock()
             mock_context.__aexit__ = AsyncMock()
@@ -370,7 +377,7 @@ class TestAIService:
         ai_service.openai_api_key = "test-key"
 
         request = GenerationRequest(
-            prompt="a warrior",
+            prompt="a brave warrior",
             model="chatgpt",
             dimensions=DimensionsModel(width=512, height=512)
         )
@@ -389,7 +396,7 @@ class TestAIService:
             }]
         }
 
-        with patch('httpx.AsyncClient') as mock_client:
+        with patch('app.services.ai_service.httpx.AsyncClient') as mock_client:
             mock_context = MagicMock()
             mock_context.__aenter__ = AsyncMock()
             mock_context.__aexit__ = AsyncMock()
@@ -411,7 +418,7 @@ class TestAIService:
         ai_service.ollama_enabled = True
 
         request = GenerationRequest(
-            prompt="a knight",
+            prompt="a noble knight",
             model="ollama",
             dimensions=DimensionsModel(width=64, height=64),
             ollama_model="llama2:latest"
@@ -421,7 +428,7 @@ class TestAIService:
             "response": "Generated description"
         }
 
-        with patch('httpx.AsyncClient') as mock_client:
+        with patch('app.services.ai_service.httpx.AsyncClient') as mock_client:
             mock_context = MagicMock()
             mock_context.__aenter__ = AsyncMock()
             mock_context.__aexit__ = AsyncMock()

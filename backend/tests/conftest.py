@@ -43,7 +43,10 @@ def test_settings(temp_dir: Path) -> Settings:
         LOG_LEVEL="DEBUG",
         CORS_ORIGINS="http://localhost:5173",
         OLLAMA_ENABLED=False,  # Disable by default for tests
+        OLLAMA_BASE_URL="http://localhost:11434",
         OPENROUTER_API_KEY="test-key-openrouter",
+        GOOGLE_API_KEY="test-key-google",
+        OPENAI_API_KEY="test-key-openai",
         RATE_LIMIT_PER_HOUR=1000,
     )
 
