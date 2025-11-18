@@ -10,6 +10,7 @@ import { MultiAngleSettings, type MultiAngleSettings as MultiAngleSettingsType }
 import { ColorVariationSettings, type ColorVariationSettings as ColorVariationSettingsType } from './ColorVariationSettings';
 import { IsometricModeSettings, type IsometricModeSettings as IsometricModeSettingsType } from './IsometricModeSettings';
 import { TilesetSettings, type TilesetSettings as TilesetSettingsType } from './TilesetSettings';
+import { AnimationSettings, type AnimationSettings as AnimationSettingsType } from './AnimationSettings';
 
 interface GenerationFormProps {
   onGenerated?: () => void;
@@ -69,6 +70,16 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     includePieces: ['center', 'top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'],
     tileSize: 32,
     seamless: true,
+  });
+
+  // Animation Sequences
+  const [animationEnabled, setAnimationEnabled] = useState(false);
+  const [animationSettings, setAnimationSettings] = useState<AnimationSettingsType>({
+    enabled: false,
+    animationType: 'walk',
+    frameCount: 4,
+    frameDuration: 100,
+    looping: true,
   });
 
   // Note: Ollama status check infrastructure kept for future text-based features
@@ -361,6 +372,103 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         } else {
           setError('Failed to generate any tileset pieces');
         }
+      } else if (animationEnabled && animationSettings.frameCount > 0) {
+        // Animation sequence generation mode
+        const animationNames: { [key: string]: string } = {
+          walk: 'walk cycle',
+          run: 'run cycle',
+          idle: 'idle breathing animation',
+          attack: 'attack/swing animation',
+          jump: 'jump/hop animation',
+          death: 'death/defeat animation',
+          cast: 'spell casting animation',
+          defend: 'defensive block animation',
+        };
+
+        const animationName = animationNames[animationSettings.animationType] || 'animation';
+        const generatedCount = animationSettings.frameCount;
+        let successCount = 0;
+
+        for (let frameNum = 1; frameNum <= animationSettings.frameCount; frameNum++) {
+          let enhancedPrompt = `${prompt}, frame ${frameNum} of ${animationSettings.frameCount} for ${animationName}`;
+
+          // Add frame-specific instructions based on position in sequence
+          if (frameNum === 1) {
+            enhancedPrompt += ', starting pose';
+          } else if (frameNum === animationSettings.frameCount) {
+            if (animationSettings.looping) {
+              enhancedPrompt += ', ending pose that loops back to frame 1';
+            } else {
+              enhancedPrompt += ', final pose';
+            }
+          } else {
+            const progress = Math.round((frameNum / animationSettings.frameCount) * 100);
+            enhancedPrompt += `, mid-animation ${progress}% through motion`;
+          }
+
+          // Apply pixel art settings if enabled
+          if (pixelArtEnabled) {
+            const paletteDescriptions: { [key: string]: string } = {
+              nes: 'classic 8-bit NES color palette',
+              gameboy: 'monochrome Game Boy green palette',
+              snes: 'vibrant SNES 16-bit palette',
+              c64: 'retro Commodore 64 palette',
+              cga: 'early CGA PC graphics palette',
+              pico8: 'fantasy console PICO-8 palette',
+            };
+
+            const paletteDesc = paletteDescriptions[pixelArtSettings.palette] || 'retro pixel art palette';
+            enhancedPrompt += `, pixel art style, ${paletteDesc}, sharp edges, no anti-aliasing, crisp pixels`;
+
+            if (pixelArtSettings.ditherLevel > 0) {
+              enhancedPrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+            }
+          }
+
+          // Apply isometric mode settings if enabled
+          if (isometricEnabled) {
+            const viewAngleDesc: { [key: string]: string } = {
+              classic: 'isometric projection 30° angle, 2:1 ratio',
+              dimetric: 'dimetric projection 26.565° angle',
+              cabinet: 'cabinet projection 45° angle',
+            };
+
+            const shadowDesc: { [key: string]: string } = {
+              soft: 'soft ambient occlusion shadows',
+              hard: 'hard cast shadows',
+              none: 'flat no-shadow lighting',
+            };
+
+            enhancedPrompt += `, ${viewAngleDesc[isometricSettings.viewAngle]}, ${shadowDesc[isometricSettings.shadowStyle]}`;
+
+            if (isometricSettings.gridAlignment) {
+              enhancedPrompt += `, grid-aligned tiles, ${isometricSettings.perspective} tile aspect ratio`;
+            }
+          }
+
+          const request: GenerationRequest = {
+            prompt: enhancedPrompt,
+            model,
+            dimensions,
+          };
+
+          try {
+            const response = await apiClient.generateAsset(request);
+            if (response.success) {
+              successCount++;
+            }
+          } catch (frameErr) {
+            console.error(`Failed to generate frame ${frameNum}:`, frameErr);
+          }
+        }
+
+        if (successCount > 0) {
+          setSuccess(`✓ Generated ${successCount}/${generatedCount} animation frames successfully!`);
+          setPrompt('');
+          onGenerated?.();
+        } else {
+          setError('Failed to generate any animation frames');
+        }
       } else {
         // Single asset generation
         let enhancedPrompt = prompt;
@@ -572,6 +680,17 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
             if (settings.enabled) {
               setDimensions({ width: settings.tileSize, height: settings.tileSize });
             }
+          }}
+        />
+
+        {/* Animation Settings */}
+        <AnimationSettings
+          enabled={animationEnabled}
+          onToggle={(enabled) => {
+            setAnimationEnabled(enabled);
+          }}
+          onSettingsChange={(settings) => {
+            setAnimationSettings(settings);
           }}
         />
 
