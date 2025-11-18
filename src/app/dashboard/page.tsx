@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { Plus, FolderOpen, Clock } from 'lucide-react';
 import type { Project } from '@/lib/db/schema';
 
@@ -37,6 +38,7 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto py-8">
+      <OnboardingFlow onComplete={() => {}} />
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Projects</h1>
