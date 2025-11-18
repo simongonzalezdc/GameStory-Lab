@@ -155,23 +155,23 @@ export function EnhancedExportModal({ selectedAssets, onClose, onExport }: Enhan
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transition-colors">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Export Assets</h2>
-            <p className="text-sm text-gray-500 mt-1">{totalAssets} asset{totalAssets !== 1 ? 's' : ''} selected</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Export Assets</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{totalAssets} asset{totalAssets !== 1 ? 's' : ''} selected</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             disabled={exporting}
           >
             <X size={24} />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 bg-white dark:bg-gray-800 transition-colors">
           {/* Presets Section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
