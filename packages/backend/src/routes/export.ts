@@ -6,7 +6,7 @@
 import express from 'express';
 import { prisma } from '../server.js';
 import { ExportRequestSchema } from '@gameforge/shared';
-import type { MechanicsData, LoreData, ExportTemplate } from '@gameforge/shared';
+import type { MechanicsData, LoreData } from '@gameforge/shared';
 import { generateGDD, generatePitch, generateTechnical } from '../services/export/templates.js';
 
 const router = express.Router();

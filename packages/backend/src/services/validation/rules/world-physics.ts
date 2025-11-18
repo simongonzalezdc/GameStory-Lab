@@ -12,8 +12,8 @@ export async function validateGravityConsistency(
   mechanics: MechanicsData,
   lore: LoreData
 ): Promise<ValidationIssue | null> {
-  const _playerActions = mechanics.playerActions || [];
-  const _worldRules = lore.worldRules;
+  const playerActions = mechanics.playerActions || [];
+  const worldRules = lore.worldRules;
 
   const hasJump = playerActions.some((action) =>
     action.toLowerCase().match(/jump|leap|fall|drop/)
@@ -52,14 +52,13 @@ export async function validateMaterialProperties(
   mechanics: MechanicsData,
   lore: LoreData
 ): Promise<ValidationIssue | null> {
-  const _playerActions = mechanics.playerActions || [];
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
 
   // Check for physically impossible actions
   const burnWater = mechanicsText.includes('burn water') || mechanicsText.includes('ignite water');
   const freezeFire = mechanicsText.includes('freeze fire') || mechanicsText.includes('ice fire');
 
-  const _worldRules = lore.worldRules;
+  const worldRules = lore.worldRules;
   const hasMagic = worldRules?.magic && worldRules.magic.toLowerCase() !== 'none';
 
   if ((burnWater || freezeFire) && !hasMagic) {
@@ -95,7 +94,7 @@ export async function validateTimeConsistency(
     return null;
   }
 
-  const _worldRules = lore.worldRules;
+  const worldRules = lore.worldRules;
   const physicsText = worldRules?.physics?.toLowerCase() || '';
   const hasTemporalRules = physicsText.includes('time') || physicsText.includes('temporal');
 
@@ -135,7 +134,7 @@ export async function validateSpatialLogic(
   const hasUnlimitedStorage = mechanicsText.includes('unlimited') ||
                              mechanicsText.includes('infinite inventory');
 
-  const _worldRules = lore.worldRules;
+  const worldRules = lore.worldRules;
   const hasMagicStorage = worldRules?.magic?.toLowerCase().includes('storage') ||
                          worldRules?.magic?.toLowerCase().includes('pocket dimension') ||
                          worldRules?.magic?.toLowerCase().includes('bag of holding');
@@ -162,7 +161,7 @@ export async function validateSpatialLogic(
  */
 export async function validateCausality(
   mechanics: MechanicsData,
-  lore: LoreData
+  _lore: LoreData
 ): Promise<ValidationIssue | null> {
   const winConditions = mechanics.winConditions || [];
   const failConditions = mechanics.failConditions || [];

@@ -26,7 +26,7 @@ router.get('/', async (_req, res, next) => {
     });
 
     res.json({
-      projects: projects.map((p) => ({
+      projects: projects.map((p: { id: string; name: string; genre: string | null; createdAt: Date; updatedAt: Date; concepts: Array<{ id: string; version: number }>; _count?: { concepts: number } }) => ({
         id: p.id,
         name: p.name,
         genre: p.genre,

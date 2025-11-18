@@ -10,7 +10,7 @@ import type { MechanicsData, LoreData, ValidationIssue } from '@gameforge/shared
  */
 export async function validatePowerCurve(
   mechanics: MechanicsData,
-  lore: LoreData
+  _lore: LoreData
 ): Promise<ValidationIssue | null> {
   const progression = mechanics.progressionSystems;
 
@@ -58,7 +58,7 @@ export async function validateGatingJustification(
     return null;
   }
 
-  const _loreText = JSON.stringify(lore).toLowerCase();
+  const loreText = JSON.stringify(lore).toLowerCase();
   const hasJustification = loreText.includes('barrier') ||
                           loreText.includes('seal') ||
                           loreText.includes('forbidden') ||
@@ -87,10 +87,10 @@ export async function validateGatingJustification(
  */
 export async function validateSkillMastery(
   mechanics: MechanicsData,
-  lore: LoreData
+  _lore: LoreData
 ): Promise<ValidationIssue | null> {
   const progression = mechanics.progressionSystems;
-  const _playerActions = mechanics.playerActions || [];
+  const playerActions = mechanics.playerActions || [];
 
   if (!progression || playerActions.length === 0) {
     return null;

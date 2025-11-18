@@ -113,7 +113,6 @@ export async function validateResourceLogic(
   }
 
   // Check if world rules explain resources
-  const worldRules = lore.worldRules;
   const loreText = JSON.stringify(lore).toLowerCase();
 
   const unexplainedResources: string[] = [];
@@ -263,13 +262,9 @@ export async function validateCombatSystemConsistency(
   const hasMagic = combatActions.some((action) =>
     action.toLowerCase().match(/magic|spell|cast|enchant/)
   );
-  const hasMelee = combatActions.some((action) =>
-    action.toLowerCase().match(/sword|blade|melee|slash/)
-  );
 
   const settingText = JSON.stringify(setting).toLowerCase();
   const isMedieval = settingText.includes('medieval') || settingText.includes('fantasy');
-  const isSciFi = settingText.includes('sci-fi') || settingText.includes('space') || settingText.includes('future');
 
   if (hasGuns && isMedieval && !settingText.includes('steampunk')) {
     return {
@@ -352,15 +347,8 @@ export async function validateTechnologyLevelMatch(
   const hasAdvancedTech = playerActions.some((action) =>
     action.toLowerCase().match(/hack|cyber|robot|ai|laser|plasma|digital/)
   );
-  const hasModernTech = playerActions.some((action) =>
-    action.toLowerCase().match(/gun|computer|phone|vehicle|electricity/)
-  );
-  const hasLowTech = playerActions.some((action) =>
-    action.toLowerCase().match(/sword|bow|horse|manual|primitive/)
-  );
 
   const settingText = JSON.stringify(setting).toLowerCase();
-  const loreText = JSON.stringify(lore).toLowerCase();
 
   if (hasAdvancedTech && settingText.includes('medieval')) {
     return {
@@ -401,16 +389,11 @@ export async function validateDeathConsequencesAlign(
   lore: LoreData
 ): Promise<ValidationIssue | null> {
   const failConditions = mechanics.failConditions || [];
-  const worldRules = lore.worldRules;
-  const setting = lore.setting;
 
   if (failConditions.length === 0) {
     return null;
   }
 
-  const hasPermadeath = failConditions.some((condition) =>
-    condition.toLowerCase().includes('permadeath')
-  );
   const hasRespawn = failConditions.some((condition) =>
     condition.toLowerCase().match(/respawn|revive|continue/)
   );

@@ -9,7 +9,6 @@ import type {
   AIClientConfig,
   AICompletionRequest,
   AICompletionResponse,
-  AIClientError,
 } from './base.js';
 
 export class OllamaClient implements IAIClient {
@@ -62,7 +61,6 @@ export class OllamaClient implements IAIClient {
         },
       };
     } catch (error) {
-      const aiError = error as AIClientError;
       throw {
         name: 'AIClientError',
         message: `Ollama generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,

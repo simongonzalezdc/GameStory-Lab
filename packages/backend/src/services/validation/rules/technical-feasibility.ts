@@ -10,9 +10,9 @@ import type { MechanicsData, LoreData, ValidationIssue } from '@gameforge/shared
  */
 export async function validateComplexityEstimate(
   mechanics: MechanicsData,
-  lore: LoreData
+  _lore: LoreData
 ): Promise<ValidationIssue | null> {
-  const _playerActions = mechanics.playerActions || [];
+  const playerActions = mechanics.playerActions || [];
   const resourceSystems = mechanics.resourceSystems || [];
   const progression = mechanics.progressionSystems;
 
@@ -65,7 +65,7 @@ export async function validateComplexityEstimate(
  */
 export async function validatePerformanceConsiderations(
   mechanics: MechanicsData,
-  lore: LoreData
+  _lore: LoreData
 ): Promise<ValidationIssue | null> {
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
 
@@ -111,9 +111,9 @@ export async function validateScopeRealityCheck(
   lore: LoreData,
   genre?: string
 ): Promise<ValidationIssue | null> {
-  const _playerActions = mechanics.playerActions || [];
+  const playerActions = mechanics.playerActions || [];
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
-  const _loreText = JSON.stringify(lore).toLowerCase();
+  const loreText = JSON.stringify(lore).toLowerCase();
 
   const ambitiousFeatures: string[] = [];
 

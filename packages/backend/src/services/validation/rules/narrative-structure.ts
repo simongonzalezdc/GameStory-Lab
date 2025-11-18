@@ -9,7 +9,7 @@ import type { MechanicsData, LoreData, ValidationIssue } from '@gameforge/shared
  * Validate protagonist has clear motivation
  */
 export async function validateProtagonistMotivation(
-  mechanics: MechanicsData,
+  _mechanics: MechanicsData,
   lore: LoreData
 ): Promise<ValidationIssue | null> {
   const protagonist = lore.protagonist;
@@ -129,7 +129,7 @@ export async function validateThemeConsistency(
 
   // Check if mechanics reinforce themes
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
-  const _loreText = JSON.stringify(lore).toLowerCase();
+  const loreText = JSON.stringify(lore).toLowerCase();
 
   const themesNotReinforced: string[] = [];
 

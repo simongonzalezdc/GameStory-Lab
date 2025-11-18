@@ -9,7 +9,6 @@ import type {
   AIClientConfig,
   AICompletionRequest,
   AICompletionResponse,
-  AIClientError,
 } from './base.js';
 
 export class GoogleClient implements IAIClient {
@@ -84,7 +83,6 @@ export class GoogleClient implements IAIClient {
         },
       };
     } catch (error) {
-      const aiError = error as AIClientError;
       throw {
         name: 'AIClientError',
         message: `Google Gemini generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,

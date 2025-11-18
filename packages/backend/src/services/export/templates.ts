@@ -166,7 +166,7 @@ TBD - Music and sound effects to enhance ${lore.themes?.[0] || 'gameplay'}
  * Condensed 2-page format for pitching
  */
 export function generatePitch(
-  projectName: string,
+  _projectName: string,
   title: string,
   mechanics: MechanicsData,
   lore: LoreData,

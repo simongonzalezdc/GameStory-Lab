@@ -306,7 +306,7 @@ export class AIOrchestrator {
     costLimit: number;
   }> {
     const clientStatus = await Promise.all(
-      Array.from(this.clients.entries()).map(async ([name, client]) => ({
+      Array.from(this.clients.entries()).map(async ([_name, client]) => ({
         name: client.name,
         type: client.type,
         available: await client.isAvailable(),
