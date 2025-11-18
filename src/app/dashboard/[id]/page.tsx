@@ -9,6 +9,8 @@ import { QualityResults } from '@/components/analysis/QualityResults';
 import { MarketingContent } from '@/components/marketing/MarketingContent';
 import { DeploymentConfigs } from '@/components/deployment/DeploymentConfigs';
 import { LicenseSelector } from '@/components/licensing/LicenseSelector';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, FolderOpen, GitBranch, Calendar, FileSearch, FileText, Sparkles, Loader2, Megaphone, Rocket, Scale } from 'lucide-react';
 import type { Project } from '@/lib/db/schema';
 import type { QualityAnalysisResult } from '@/lib/analysis/quality';
@@ -19,6 +21,7 @@ type ActiveTab = 'chat' | 'quality' | 'docs' | 'marketing' | 'deployment' | 'lic
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const { toast } = useToast();
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ActiveTab>('chat');
@@ -69,9 +72,17 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
       const data = await response.json();
       setQualityResults(data.result);
+      toast({
+        title: "Analysis Complete",
+        description: `Found ${data.result.issues.length} issues in your code.`,
+      });
     } catch (error) {
       console.error('Analysis error:', error);
-      alert('Failed to run quality analysis. Make sure the project path is valid.');
+      toast({
+        variant: "destructive",
+        title: "Analysis Failed",
+        description: "Failed to run quality analysis. Make sure the project path is valid.",
+      });
     } finally {
       setIsAnalyzing(false);
     }
@@ -93,9 +104,17 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
       const data = await response.json();
       setGeneratedDocs({ type: 'README', content: data.document.content });
+      toast({
+        title: "README Generated",
+        description: "Your README documentation has been created successfully.",
+      });
     } catch (error) {
       console.error('README generation error:', error);
-      alert('Failed to generate README. The AI service may be unavailable.');
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: "Failed to generate README. The AI service may be unavailable.",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -117,9 +136,17 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
       const data = await response.json();
       setGeneratedDocs({ type: 'API', content: data.document.content });
+      toast({
+        title: "API Docs Generated",
+        description: "Your API documentation has been created successfully.",
+      });
     } catch (error) {
       console.error('API docs generation error:', error);
-      alert('Failed to generate API docs.');
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: "Failed to generate API docs. Please try again.",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -141,9 +168,17 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
       const data = await response.json();
       setMarketingContent(data.content);
+      toast({
+        title: "Marketing Content Generated",
+        description: "Your marketing materials are ready for landing pages, social media, and Product Hunt.",
+      });
     } catch (error) {
       console.error('Marketing generation error:', error);
-      alert('Failed to generate marketing content.');
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: "Failed to generate marketing content. Please try again.",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -165,9 +200,17 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
       const data = await response.json();
       setDeploymentConfigs(data.guide);
+      toast({
+        title: "Deployment Configs Generated",
+        description: "Deployment configurations for Vercel, Docker, and Railway are ready.",
+      });
     } catch (error) {
       console.error('Deployment config generation error:', error);
-      alert('Failed to generate deployment configs.');
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: "Failed to generate deployment configs. Please try again.",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -423,65 +466,67 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto">
-            {activeTab === 'chat' && (
-              <ChatInterface
-                projectId={project.id}
-                projectName={project.name}
-                projectLanguage={project.language}
-                projectFramework={project.framework || undefined}
-              />
-            )}
-
-            {activeTab === 'quality' && qualityResults && (
-              <div className="p-4">
-                <QualityResults
-                  result={qualityResults}
-                  onRunAnalysis={runQualityAnalysis}
-                  isAnalyzing={isAnalyzing}
+            <ErrorBoundary>
+              {activeTab === 'chat' && (
+                <ChatInterface
+                  projectId={project.id}
+                  projectName={project.name}
+                  projectLanguage={project.language}
+                  projectFramework={project.framework || undefined}
                 />
-              </div>
-            )}
+              )}
 
-            {activeTab === 'docs' && generatedDocs && (
-              <div className="p-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{generatedDocs.type} Documentation</CardTitle>
-                    <CardDescription>Generated documentation for your project</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg">
-                        {generatedDocs.content}
-                      </pre>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+              {activeTab === 'quality' && qualityResults && (
+                <div className="p-4">
+                  <QualityResults
+                    result={qualityResults}
+                    onRunAnalysis={runQualityAnalysis}
+                    isAnalyzing={isAnalyzing}
+                  />
+                </div>
+              )}
 
-            {activeTab === 'marketing' && marketingContent && (
-              <div className="p-4">
-                <MarketingContent content={marketingContent} />
-              </div>
-            )}
+              {activeTab === 'docs' && generatedDocs && (
+                <div className="p-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{generatedDocs.type} Documentation</CardTitle>
+                      <CardDescription>Generated documentation for your project</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="prose prose-sm max-w-none dark:prose-invert">
+                        <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg">
+                          {generatedDocs.content}
+                        </pre>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
 
-            {activeTab === 'deployment' && deploymentConfigs && (
-              <div className="p-4">
-                <DeploymentConfigs
-                  configs={deploymentConfigs.configs}
-                  guide={deploymentConfigs.guide}
-                  envTemplate={deploymentConfigs.envTemplate}
-                  dockerIgnore={deploymentConfigs.dockerIgnore}
-                />
-              </div>
-            )}
+              {activeTab === 'marketing' && marketingContent && (
+                <div className="p-4">
+                  <MarketingContent content={marketingContent} />
+                </div>
+              )}
 
-            {activeTab === 'licensing' && (
-              <div className="p-4">
-                <LicenseSelector projectId={project.id} />
-              </div>
-            )}
+              {activeTab === 'deployment' && deploymentConfigs && (
+                <div className="p-4">
+                  <DeploymentConfigs
+                    configs={deploymentConfigs.configs}
+                    guide={deploymentConfigs.guide}
+                    envTemplate={deploymentConfigs.envTemplate}
+                    dockerIgnore={deploymentConfigs.dockerIgnore}
+                  />
+                </div>
+              )}
+
+              {activeTab === 'licensing' && (
+                <div className="p-4">
+                  <LicenseSelector projectId={project.id} />
+                </div>
+              )}
+            </ErrorBoundary>
           </div>
         </div>
       </div>
