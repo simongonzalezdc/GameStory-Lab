@@ -4,6 +4,7 @@ import { apiClient } from '../services/api';
 import type { GenerationRequest } from '../types/generation';
 import type { Asset } from '../types/asset';
 import { BatchGenerationModal } from './BatchGenerationModal';
+import { ErrorMessage } from './ErrorMessage';
 
 interface GenerationFormProps {
   onGenerated?: () => void;
@@ -58,10 +59,15 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     }
   };
 
+  const handleRetry = () => {
+    setError(null);
+    handleSubmit(new Event('submit') as any);
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <Sparkles className="text-purple-500" />
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-2xl mx-auto transition-colors">
+      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-900 dark:text-white">
+        <Sparkles className="text-purple-500 dark:text-purple-400" />
         Generate Game Asset
       </h2>
 
@@ -130,11 +136,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         </div>
 
         {/* Error/Success Messages */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-3">
-            {error}
-          </div>
-        )}
+        {error && <ErrorMessage error={error} onRetry={handleRetry} />}
         {success && (
           <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-3">
             {success}
