@@ -12,6 +12,7 @@ import { IsometricModeSettings, type IsometricModeSettings as IsometricModeSetti
 import { TilesetSettings, type TilesetSettings as TilesetSettingsType } from './TilesetSettings';
 import { AnimationSettings, type AnimationSettings as AnimationSettingsType } from './AnimationSettings';
 import { BackgroundLayersSettings, type BackgroundLayersSettings as BackgroundLayersSettingsType } from './BackgroundLayersSettings';
+import { CharacterCustomizationSettings, type CharacterCustomizationSettings as CharacterCustomizationSettingsType } from './CharacterCustomizationSettings';
 import { AssetTemplatesModal } from './AssetTemplatesModal';
 import { PromptHistory } from './PromptHistory';
 
@@ -96,6 +97,16 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     generateAsSet: true,
   });
 
+  // Character Customization
+  const [characterCustomizationEnabled, setCharacterCustomizationEnabled] = useState(false);
+  const [characterCustomizationSettings, setCharacterCustomizationSettings] = useState<CharacterCustomizationSettingsType>({
+    enabled: false,
+    equipmentSlots: ['helmet', 'chest', 'weapon'],
+    variationsPerSlot: 3,
+    maintainConsistency: true,
+    generateBase: true,
+  });
+
   // Note: Ollama status check infrastructure kept for future text-based features
   // (prompt enhancement, chat assistance, etc.)
   // const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
@@ -116,6 +127,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     if (tilesetEnabled) features.push('tileset');
     if (animationEnabled) features.push('animation');
     if (backgroundLayersEnabled) features.push('backgroundLayers');
+    if (characterCustomizationEnabled) features.push('characterCustomization');
 
     (window as any).recordGenerationStat?.({
       timestamp: Date.now(),
@@ -625,6 +637,219 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
           setError('Failed to generate any background layers');
           recordGenerationStat(false);
         }
+      } else if (characterCustomizationEnabled && characterCustomizationSettings.equipmentSlots.length > 0) {
+        // Character customization mode
+        const equipmentDescriptions: { [key: string]: string[] } = {
+          helmet: [
+            'wearing iron helmet, basic metal headgear',
+            'wearing golden crown helmet, royal headpiece',
+            'wearing horned viking helmet, warrior headgear',
+            'wearing feathered ceremonial helmet',
+            'wearing futuristic combat helmet',
+          ],
+          chest: [
+            'wearing leather chest armor, basic protection',
+            'wearing full plate armor, heavy metal chestplate',
+            'wearing chainmail shirt, linked metal armor',
+            'wearing royal tunic with embroidery',
+            'wearing armored vest, tactical gear',
+          ],
+          legs: [
+            'wearing leather leg guards, basic leg armor',
+            'wearing plate leg armor, heavy metal greaves',
+            'wearing chainmail leggings',
+            'wearing cloth pants with reinforced knees',
+            'wearing armored leg plates',
+          ],
+          weapon: [
+            'holding iron sword, basic blade',
+            'wielding ornate longsword, decorated blade',
+            'carrying battle axe, heavy two-handed weapon',
+            'holding magical staff with glowing crystal',
+            'equipped with crossbow, ranged weapon',
+          ],
+          shield: [
+            'carrying wooden shield, round basic defense',
+            'holding tower shield, large rectangular protection',
+            'bearing kite shield with emblem',
+            'equipped with buckler, small parrying shield',
+            'carrying magical barrier shield',
+          ],
+          cape: [
+            'wearing red cloth cape, flowing back accessory',
+            'draped in royal purple mantle',
+            'wearing tattered battle cloak',
+            'adorned with fur-lined cape',
+            'equipped with armored pauldron cape',
+          ],
+          boots: [
+            'wearing leather boots, basic footwear',
+            'equipped with armored sabatons, metal boots',
+            'wearing fur-lined boots',
+            'sporting reinforced combat boots',
+            'donning magical enchanted boots',
+          ],
+          gloves: [
+            'wearing leather gloves, basic hand protection',
+            'equipped with gauntlets, armored hand gear',
+            'wearing fingerless combat gloves',
+            'donning silk gloves',
+            'sporting magical power gloves',
+          ],
+        };
+
+        let generatedCount = 0;
+        let successCount = 0;
+
+        // Generate base character if enabled
+        if (characterCustomizationSettings.generateBase) {
+          generatedCount++;
+          let basePrompt = `${prompt}, base character without equipment, neutral pose`;
+
+          if (characterCustomizationSettings.maintainConsistency) {
+            basePrompt += ', consistent character design for customization, reference design';
+          }
+
+          // Apply pixel art settings if enabled
+          if (pixelArtEnabled) {
+            const paletteDescriptions: { [key: string]: string } = {
+              nes: 'classic 8-bit NES color palette',
+              gameboy: 'monochrome Game Boy green palette',
+              snes: 'vibrant SNES 16-bit palette',
+              c64: 'retro Commodore 64 palette',
+              cga: 'early CGA PC graphics palette',
+              pico8: 'fantasy console PICO-8 palette',
+            };
+
+            const paletteDesc = paletteDescriptions[pixelArtSettings.palette] || 'retro pixel art palette';
+            basePrompt += `, pixel art style, ${paletteDesc}, sharp edges, no anti-aliasing, crisp pixels`;
+
+            if (pixelArtSettings.ditherLevel > 0) {
+              basePrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+            }
+          }
+
+          // Apply isometric mode settings if enabled
+          if (isometricEnabled) {
+            const viewAngleDesc: { [key: string]: string } = {
+              classic: 'isometric projection 30° angle, 2:1 ratio',
+              dimetric: 'dimetric projection 26.565° angle',
+              cabinet: 'cabinet projection 45° angle',
+            };
+
+            const shadowDesc: { [key: string]: string } = {
+              soft: 'soft ambient occlusion shadows',
+              hard: 'hard cast shadows',
+              none: 'flat no-shadow lighting',
+            };
+
+            basePrompt += `, ${viewAngleDesc[isometricSettings.viewAngle]}, ${shadowDesc[isometricSettings.shadowStyle]}`;
+
+            if (isometricSettings.gridAlignment) {
+              basePrompt += `, grid-aligned tiles, ${isometricSettings.perspective} tile aspect ratio`;
+            }
+          }
+
+          const baseRequest: GenerationRequest = {
+            prompt: basePrompt,
+            model,
+            dimensions,
+          };
+
+          try {
+            const response = await apiClient.generateAsset(baseRequest);
+            if (response.success) {
+              successCount++;
+            }
+          } catch (baseErr) {
+            console.error('Failed to generate base character:', baseErr);
+          }
+        }
+
+        // Generate equipment variations
+        for (const slot of characterCustomizationSettings.equipmentSlots) {
+          const descriptions = equipmentDescriptions[slot] || [];
+          const variationCount = Math.min(characterCustomizationSettings.variationsPerSlot, descriptions.length);
+
+          for (let i = 0; i < variationCount; i++) {
+            generatedCount++;
+            const equipmentDesc = descriptions[i] || `${slot} variation ${i + 1}`;
+
+            let enhancedPrompt = `${prompt}, ${equipmentDesc}`;
+
+            if (characterCustomizationSettings.maintainConsistency) {
+              enhancedPrompt += ', consistent with base character design, same character style';
+            }
+
+            // Apply pixel art settings if enabled
+            if (pixelArtEnabled) {
+              const paletteDescriptions: { [key: string]: string } = {
+                nes: 'classic 8-bit NES color palette',
+                gameboy: 'monochrome Game Boy green palette',
+                snes: 'vibrant SNES 16-bit palette',
+                c64: 'retro Commodore 64 palette',
+                cga: 'early CGA PC graphics palette',
+                pico8: 'fantasy console PICO-8 palette',
+              };
+
+              const paletteDesc = paletteDescriptions[pixelArtSettings.palette] || 'retro pixel art palette';
+              enhancedPrompt += `, pixel art style, ${paletteDesc}, sharp edges, no anti-aliasing, crisp pixels`;
+
+              if (pixelArtSettings.ditherLevel > 0) {
+                enhancedPrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+              }
+            }
+
+            // Apply isometric mode settings if enabled
+            if (isometricEnabled) {
+              const viewAngleDesc: { [key: string]: string } = {
+                classic: 'isometric projection 30° angle, 2:1 ratio',
+                dimetric: 'dimetric projection 26.565° angle',
+                cabinet: 'cabinet projection 45° angle',
+              };
+
+              const shadowDesc: { [key: string]: string } = {
+                soft: 'soft ambient occlusion shadows',
+                hard: 'hard cast shadows',
+                none: 'flat no-shadow lighting',
+              };
+
+              enhancedPrompt += `, ${viewAngleDesc[isometricSettings.viewAngle]}, ${shadowDesc[isometricSettings.shadowStyle]}`;
+
+              if (isometricSettings.gridAlignment) {
+                enhancedPrompt += `, grid-aligned tiles, ${isometricSettings.perspective} tile aspect ratio`;
+              }
+            }
+
+            const request: GenerationRequest = {
+              prompt: enhancedPrompt,
+              model,
+              dimensions,
+            };
+
+            try {
+              const response = await apiClient.generateAsset(request);
+              if (response.success) {
+                successCount++;
+              }
+            } catch (equipErr) {
+              console.error(`Failed to generate ${slot} variation ${i + 1}:`, equipErr);
+            }
+          }
+        }
+
+        if (successCount > 0) {
+          setSuccess(`✓ Generated ${successCount}/${generatedCount} character customization assets successfully!`);
+          (window as any).addPromptToHistory?.(prompt);
+          for (let i = 0; i < successCount; i++) {
+            recordGenerationStat(true);
+          }
+          setPrompt('');
+          onGenerated?.();
+        } else {
+          setError('Failed to generate any character customization assets');
+          recordGenerationStat(false);
+        }
       } else {
         // Single asset generation
         let enhancedPrompt = prompt;
@@ -876,6 +1101,17 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
           }}
           onSettingsChange={(settings) => {
             setBackgroundLayersSettings(settings);
+          }}
+        />
+
+        {/* Character Customization Settings */}
+        <CharacterCustomizationSettings
+          enabled={characterCustomizationEnabled}
+          onToggle={(enabled) => {
+            setCharacterCustomizationEnabled(enabled);
+          }}
+          onSettingsChange={(settings) => {
+            setCharacterCustomizationSettings(settings);
           }}
         />
 
