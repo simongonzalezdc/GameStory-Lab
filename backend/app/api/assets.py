@@ -139,7 +139,7 @@ async def update_asset(asset_id: str, update_data: AssetUpdate):
                 detail="No fields provided for update"
             )
 
-        updated_asset = await db_service.update_asset(user_id, asset_id, update_dict)
+        updated_asset = await db_service.update_asset(asset_id, user_id, update_dict)
 
         if not updated_asset:
             raise HTTPException(

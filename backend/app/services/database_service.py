@@ -153,9 +153,9 @@ class DatabaseService:
                 INSERT INTO assets (
                     id, user_id, file_url, file_name, file_size, mime_type,
                     width, height, generation_prompt, generation_model,
-                    style_tags, project_name, is_favorite, metadata,
+                    style_tags, project_name, is_favorite, metadata, notes,
                     parent_asset_id, version_number, refinement_instruction
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 asset_data['id'],
                 asset_data.get('user_id', 'local-user'),
@@ -171,6 +171,7 @@ class DatabaseService:
                 asset_data.get('project_name'),
                 int(asset_data.get('is_favorite', False)),
                 str(asset_data.get('metadata', {})),
+                asset_data.get('notes'),
                 asset_data.get('parent_asset_id'),
                 asset_data.get('version_number', 1),
                 asset_data.get('refinement_instruction')
