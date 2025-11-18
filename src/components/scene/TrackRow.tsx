@@ -9,6 +9,7 @@ import { exportTrackToMidi } from '@/lib/io/midi-export';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { AlertDialog } from '../ui/AlertDialog';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+import { getAudioEngine } from '@/lib/audio/engine';
 
 interface TrackRowProps {
   sceneId: string;
@@ -85,6 +86,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
               variant={track.muted ? 'secondary' : 'ghost'}
               onClick={() => updateTrack(sceneId, track.id, { muted: !track.muted })}
               title="Mute/Unmute"
+              aria-label={track.muted ? `Unmute ${track.name || track.role} track` : `Mute ${track.name || track.role} track`}
             >
               {track.muted ? '🔇' : '🔊'}
             </Button>
@@ -93,6 +95,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
               variant={track.solo ? 'primary' : 'ghost'}
               onClick={() => updateTrack(sceneId, track.id, { solo: !track.solo })}
               title="Solo"
+              aria-label={track.solo ? `Disable solo for ${track.name || track.role} track` : `Enable solo for ${track.name || track.role} track`}
             >
               S
             </Button>
@@ -102,6 +105,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
               onClick={handleExportMidi}
               disabled={exporting || track.clips.length === 0}
               title="Export track as MIDI"
+              aria-label={`Export ${track.name || track.role} track as MIDI file`}
             >
               {exporting ? '⏳' : '🎹'}
             </Button>
@@ -110,6 +114,8 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
               variant="ghost"
               onClick={() => setExpanded(!expanded)}
               title="Show/Hide clips"
+              aria-label={expanded ? `Hide clips for ${track.name || track.role} track` : `Show clips for ${track.name || track.role} track`}
+              aria-expanded={expanded}
             >
               {expanded ? '▼' : '▶'}
             </Button>
@@ -119,6 +125,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
               onClick={() => setShowDeleteConfirm(true)}
               className="text-red-600"
               title="Delete track"
+              aria-label={`Delete ${track.name || track.role} track`}
             >
               🗑
             </Button>
@@ -140,14 +147,24 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
           <Slider
             label="Volume"
             value={[track.volume * 100]}
-            onValueChange={([v]) => updateTrack(sceneId, track.id, { volume: v / 100 })}
+            onValueChange={([v]) => {
+              const newVolume = v / 100;
+              updateTrack(sceneId, track.id, { volume: newVolume });
+              // Update audio engine in real-time
+              getAudioEngine().updateVolume(track.id, newVolume);
+            }}
             min={0}
             max={100}
           />
           <Slider
             label="Pan"
             value={[(track.pan + 1) * 50]}
-            onValueChange={([v]) => updateTrack(sceneId, track.id, { pan: (v / 50) - 1 })}
+            onValueChange={([v]) => {
+              const newPan = (v / 50) - 1;
+              updateTrack(sceneId, track.id, { pan: newPan });
+              // Update audio engine in real-time
+              getAudioEngine().updatePan(track.id, newPan);
+            }}
             min={0}
             max={100}
           />

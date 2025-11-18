@@ -1,51 +1,81 @@
 /**
  * Error Reporting Service Integration
- * Placeholder for Sentry or similar error tracking service
+ * Supports Sentry or similar error tracking service
+ * 
+ * To enable Sentry:
+ * 1. Install: npm install @sentry/react
+ * 2. Set VITE_SENTRY_DSN in .env
+ * 3. Uncomment Sentry code below
  */
 
 import type { AppError } from './error-handler';
+
+// Uncomment when Sentry is installed:
+// import * as Sentry from '@sentry/react';
+
+let isInitialized = false;
 
 /**
  * Initialize error reporting service
  * Call this once at app startup
  */
 export function initErrorReporting(): void {
-  // TODO: Initialize Sentry or similar service
-  // Example:
-  // Sentry.init({
-  //   dsn: import.meta.env.VITE_SENTRY_DSN,
-  //   environment: import.meta.env.MODE,
-  // });
+  if (isInitialized) return;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sentryDsn = (import.meta as any).env?.VITE_SENTRY_DSN;
+  
+  if (sentryDsn) {
+    // Uncomment when Sentry is installed:
+    // Sentry.init({
+    //   dsn: sentryDsn,
+    //   environment: (import.meta as any).env?.MODE || 'development',
+    //   integrations: [
+    //     Sentry.browserTracingIntegration(),
+    //     Sentry.replayIntegration(),
+    //   ],
+    //   tracesSampleRate: 1.0,
+    //   replaysSessionSampleRate: 0.1,
+    //   replaysOnErrorSampleRate: 1.0,
+    // });
+    console.log('[Error Reporting] Sentry DSN found but Sentry not installed. Install @sentry/react to enable.');
+  } else {
+    console.log('[Error Reporting] Initialized (no Sentry DSN configured)');
+  }
+
+  isInitialized = true;
 }
 
 /**
  * Report error to external service
  */
 export function reportError(error: AppError): void {
-  // TODO: Send to Sentry or similar
-  // Example:
+  // Uncomment when Sentry is installed:
   // Sentry.captureException(new Error(error.message), {
   //   level: mapSeverityToSentryLevel(error.severity),
   //   tags: {
-  //     context: error.details,
+  //     context: error.context || 'Unknown',
   //   },
   //   extra: {
   //     id: error.id,
   //     timestamp: error.timestamp,
   //     recoverable: error.recoverable,
+  //     details: error.details,
   //   },
   // });
 
-  // For now, just log (in production, this would send to service)
+  // Log in production for now (will send to Sentry when configured)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if ((import.meta as any).env?.MODE === 'production') {
-    // In production, you would send to error reporting service
-    // For now, we'll just ensure errors are logged
+  const isProduction = (import.meta as any).env?.MODE === 'production';
+  
+  if (isProduction || error.severity === 'critical' || error.severity === 'error') {
     console.error('[Error Reporting]', {
       id: error.id,
       severity: error.severity,
       message: error.message,
+      context: error.context,
       timestamp: error.timestamp,
+      recoverable: error.recoverable,
     });
   }
 }

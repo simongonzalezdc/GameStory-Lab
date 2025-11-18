@@ -23,19 +23,19 @@ export default function InstrumentSelector({
   const { updateTrack } = useProjectStore();
   const presets = INSTRUMENT_PRESETS[role] || INSTRUMENT_PRESETS.other;
 
-  const handleInstrumentChange = (presetName: string) => {
+  const handleInstrumentChange = (presetId: string) => {
     updateTrack(sceneId, trackId, {
-      instrumentRef: presetName,
+      instrumentRef: presetId,
     });
   };
 
   const options = presets.map((preset) => ({
-    value: preset.name,
+    value: preset.id,
     label: `${preset.name} - ${preset.description}`,
   }));
 
   // Add default option if current instrument is not in presets
-  const hasCurrentPreset = presets.some((p) => p.name === currentInstrumentRef);
+  const hasCurrentPreset = presets.some((p) => p.id === currentInstrumentRef);
   if (!hasCurrentPreset && currentInstrumentRef) {
     options.unshift({
       value: currentInstrumentRef,
@@ -46,7 +46,7 @@ export default function InstrumentSelector({
   return (
     <Select
       label="Instrument"
-      value={currentInstrumentRef || getDefaultInstrument(role).name}
+      value={currentInstrumentRef || getDefaultInstrument(role).id}
       onValueChange={handleInstrumentChange}
       options={options}
     />

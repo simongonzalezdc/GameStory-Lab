@@ -7,15 +7,18 @@ import type { Scene, Track, Clip } from '@/types';
 import { generateNotes } from '@/lib/generators/factory';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { createInstrument, getDefaultInstrument, getInstrumentById } from './instruments';
+import { DEFAULT_BPM, AUDIO_INIT_RETRY_BASE_DELAY_MS, AUDIO_INIT_MAX_RETRIES } from '@/lib/utils/constants';
 
 export class AudioEngine {
   private instruments: Map<string, Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth>;
+  private panners: Map<string, Tone.Panner>;
   private scheduledParts: Tone.Part[];
   private currentScene: Scene | null = null;
   private isInitialized = false;
 
   constructor() {
     this.instruments = new Map();
+    this.panners = new Map();
     this.scheduledParts = [];
   }
 
@@ -23,11 +26,11 @@ export class AudioEngine {
    * Initialize audio context (requires user interaction)
    * Implements retry logic with exponential backoff for reliability
    */
-  async init(maxRetries: number = 3): Promise<void> {
+  async init(maxRetries: number = AUDIO_INIT_MAX_RETRIES): Promise<void> {
     if (this.isInitialized) return;
 
     let lastError: Error | null = null;
-    const baseDelay = 500; // Start with 500ms delay
+    const baseDelay = AUDIO_INIT_RETRY_BASE_DELAY_MS;
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
@@ -80,20 +83,29 @@ export class AudioEngine {
       this.stop();
       this.clearScheduledParts();
       
-      // Dispose of previous scene's instruments to prevent memory leaks
+      // Dispose of previous scene's instruments and panners to prevent memory leaks
       this.instruments.forEach((instrument) => {
         try {
           instrument.dispose();
-        } catch (error) {
+        } catch {
           // Ignore disposal errors
         }
       });
       this.instruments.clear();
+      
+      this.panners.forEach((panner) => {
+        try {
+          panner.dispose();
+        } catch {
+          // Ignore disposal errors
+        }
+      });
+      this.panners.clear();
 
       this.currentScene = scene;
 
       // Set BPM
-      const bpm = scene.bpm || 120;
+      const bpm = scene.bpm || DEFAULT_BPM;
       Tone.getTransport().bpm.value = bpm;
 
       // Load instruments for all tracks
@@ -126,8 +138,12 @@ export class AudioEngine {
     const instrument = createInstrument(instrumentConfig);
     
     // Wrap MonoSynth, DuoSynth, FMSynth, AMSynth in PolySynth for polyphonic support
-    let polyInstrument: Tone.PolySynth | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth;
-    if (instrument instanceof Tone.MonoSynth || instrument instanceof Tone.DuoSynth || 
+    // Sampler and PolySynth don't need wrapping
+    let polyInstrument: Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth;
+    if (instrument instanceof Tone.Sampler || instrument instanceof Tone.PolySynth) {
+      // Sampler and PolySynth are already polyphonic
+      polyInstrument = instrument;
+    } else if (instrument instanceof Tone.MonoSynth || instrument instanceof Tone.DuoSynth || 
         instrument instanceof Tone.FMSynth || instrument instanceof Tone.AMSynth) {
       // For monophonic synths, wrap in PolySynth for polyphonic support
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -148,6 +164,7 @@ export class AudioEngine {
     polyInstrument.volume.value = Tone.gainToDb(track.volume);
 
     this.instruments.set(track.id, polyInstrument);
+    this.panners.set(track.id, panner);
   }
 
   /**
@@ -155,6 +172,9 @@ export class AudioEngine {
    */
   scheduleScene(): void {
     if (!this.currentScene) return;
+
+    // Clear any existing scheduled parts to prevent memory leaks
+    this.clearScheduledParts();
 
     for (const track of this.currentScene.tracks) {
       if (track.muted) continue;
@@ -182,7 +202,7 @@ export class AudioEngine {
     // Get scene key and scale
     const key = this.currentScene.key || 'C';
     const scale = this.currentScene.scale || 'major';
-    const bpm = this.currentScene.bpm || 120;
+    const bpm = this.currentScene.bpm || DEFAULT_BPM;
 
     // Generate notes using the clip's generator
     const generatedNotes = generateNotes(
@@ -205,7 +225,7 @@ export class AudioEngine {
     const part = new Tone.Part((time, value) => {
       if (instrument instanceof Tone.PolySynth || instrument instanceof Tone.MonoSynth || 
           instrument instanceof Tone.DuoSynth || instrument instanceof Tone.FMSynth || 
-          instrument instanceof Tone.AMSynth) {
+          instrument instanceof Tone.AMSynth || instrument instanceof Tone.Sampler) {
         instrument.triggerAttackRelease(
           value.note,
           value.duration,
@@ -292,6 +312,26 @@ export class AudioEngine {
   }
 
   /**
+   * Update pan value for a track
+   */
+  updatePan(trackId: string, pan: number): void {
+    const panner = this.panners.get(trackId);
+    if (panner) {
+      panner.pan.value = pan;
+    }
+  }
+
+  /**
+   * Update volume for a track
+   */
+  updateVolume(trackId: string, volume: number): void {
+    const instrument = this.instruments.get(trackId);
+    if (instrument) {
+      instrument.volume.value = Tone.gainToDb(volume);
+    }
+  }
+
+  /**
    * Clear all scheduled parts
    */
   private clearScheduledParts(): void {
@@ -313,6 +353,11 @@ export class AudioEngine {
       instrument.dispose();
     });
     this.instruments.clear();
+
+    this.panners.forEach((panner) => {
+      panner.dispose();
+    });
+    this.panners.clear();
 
     this.currentScene = null;
     this.isInitialized = false;

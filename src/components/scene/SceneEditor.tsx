@@ -9,7 +9,7 @@ import { useKeyboardShortcuts, isTypingInInput } from '@/hooks/useKeyboardShortc
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 export default function SceneEditor() {
-  const { project, currentSceneId, setCurrentScene } = useProjectStore();
+  const { project, currentSceneId, setCurrentScene, addTrack } = useProjectStore();
   const { isPlaying, setPlaying } = useAudioStore();
   const audioEngine = getAudioEngine();
   const [showMidiExport, setShowMidiExport] = useState(false);
@@ -95,7 +95,6 @@ export default function SceneEditor() {
       action: () => {
         if (!isTypingInInput() && currentScene) {
           // Add new track
-          const { addTrack } = useProjectStore.getState();
           addTrack(currentScene.id, {
             name: `Track ${currentScene.tracks.length + 1}`,
             role: 'lead',

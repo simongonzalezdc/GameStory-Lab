@@ -38,6 +38,7 @@ export class LocalAIClient implements AIClient {
             top_p: 0.95,
           },
         }),
+        signal: input.signal,
       });
 
       if (!response.ok) {

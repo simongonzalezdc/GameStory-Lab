@@ -7,6 +7,8 @@ import { Midi, Track as MidiTrack } from '@tonejs/midi';
 import type { Scene, Track, Clip } from '@/types';
 import { generateNotes } from '@/lib/generators/factory';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+import { sanitizeFilename } from '@/lib/utils/filename';
+import { DEFAULT_BPM } from '@/lib/utils/constants';
 
 /**
  * Export options for MIDI generation
@@ -65,7 +67,7 @@ function createMidiFromScene(scene: Scene, tracks: Track[]): Midi {
   const midi = new Midi();
 
   // Set tempo (BPM)
-  midi.header.setTempo(scene.bpm || 120);
+  midi.header.setTempo(scene.bpm || DEFAULT_BPM);
 
   // Add each track
   tracks.forEach((track) => {
@@ -95,7 +97,7 @@ function createMidiFromTrack(scene: Scene, track: Track): Midi {
   const midi = new Midi();
 
   // Set tempo (BPM)
-  midi.header.setTempo(scene.bpm || 120);
+  midi.header.setTempo(scene.bpm || DEFAULT_BPM);
 
   // Add single track
   const midiTrack = midi.addTrack();
@@ -118,7 +120,7 @@ function createMidiFromTrack(scene: Scene, track: Track): Midi {
 function addClipToMidiTrack(midiTrack: MidiTrack, clip: Clip, scene: Scene): void {
   const key = scene.key || 'C';
   const scale = scene.scale || 'major';
-  const bpm = scene.bpm || 120;
+  const bpm = scene.bpm || DEFAULT_BPM;
 
   // Generate notes from the clip's generator
   const notes = generateNotes(clip.generator, key, scale, clip.lengthBars, bpm);
@@ -200,20 +202,6 @@ function getInstrumentNumberForRole(role: string): number {
   };
 
   return instrumentMap[role] || 0;
-}
-
-/**
- * Sanitize filename for safe download across all OSes
- */
-function sanitizeFilename(filename: string): string {
-  // Remove/replace invalid characters for Windows/Mac/Linux
-  return filename
-    // eslint-disable-next-line no-control-regex
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_') // Replace invalid chars
-    .replace(/^\.+/, '') // Remove leading dots
-    .replace(/\.+$/, '') // Remove trailing dots
-    .replace(/\s+/g, '_') // Replace spaces with underscores
-    .substring(0, 255); // Limit length
 }
 
 /**

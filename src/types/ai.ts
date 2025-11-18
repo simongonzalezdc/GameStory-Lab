@@ -17,6 +17,7 @@ export interface AIRequest {
   messages: ChatMessage[];
   projectContext?: ProjectContext;
   maxTokens?: number;
+  signal?: AbortSignal;
 }
 
 export interface ChatMessage {

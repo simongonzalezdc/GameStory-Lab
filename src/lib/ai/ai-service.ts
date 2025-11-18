@@ -23,8 +23,7 @@ export async function sendAIMessage(
   config: AIConfig,
   messages: ChatMessage[],
   projectContext?: ProjectContext,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _signal?: AbortSignal // TODO: Pass signal to AI clients' fetch calls
+  signal?: AbortSignal
 ): Promise<AIResponse> {
   try {
     const client = createAIClient(config);
@@ -41,6 +40,7 @@ export async function sendAIMessage(
     const response = await client.sendMessage({
       messages: messagesWithSystem,
       projectContext,
+      signal: _signal,
     });
 
     return response;

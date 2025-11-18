@@ -31,6 +31,10 @@ export const DEFAULT_DECAY = 0.1;
 export const DEFAULT_SUSTAIN = 0.3;
 export const DEFAULT_RELEASE = 0.5;
 export const AUDIO_LATENCY_MS = 100;
+export const AUDIO_INIT_RETRY_BASE_DELAY_MS = 500; // Base delay for exponential backoff
+export const AUDIO_INIT_MAX_RETRIES = 3;
+export const AUDIO_FILTER_DEFAULT_FREQUENCY = 2000; // Hz
+export const AUDIO_FILTER_DEFAULT_Q = 1;
 
 // ===== GENERATORS =====
 export const DEFAULT_EUCLIDEAN_STEPS = 16;

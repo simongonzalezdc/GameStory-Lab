@@ -13,10 +13,12 @@ import { useAutoSave } from './hooks/useAutoSave';
 import { TutorialErrorBoundary } from './components/TutorialErrorBoundary';
 import { errorHandler, ErrorSeverity } from './lib/errors/error-handler';
 import { initErrorReporting } from './lib/errors/error-reporting';
+import { initAnalytics } from './lib/analytics/analytics';
 
 // Lazy load heavy components
 const AIChat = lazy(() => import('./components/ai/AIChat'));
 const ExportDialog = lazy(() => import('./components/project/ExportDialog'));
+const ShareDialog = lazy(() => import('./components/project/ShareDialog'));
 const TutorialOverlay = lazy(() => import('./components/tutorial/TutorialOverlay'));
 
 function App() {
@@ -24,15 +26,17 @@ function App() {
   const { isCompleted, startTutorial } = useTutorialStore();
   const { toggleAIChat } = useUIStore();
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
   // Enable auto-save
   useAutoSave();
 
-  // Initialize error reporting on mount
+  // Initialize error reporting and analytics on mount
   useEffect(() => {
     initErrorReporting();
+    initAnalytics();
   }, []);
 
   useEffect(() => {
@@ -151,6 +155,11 @@ function App() {
               onClose={() => setShowExportDialog(false)}
               project={project}
             />
+            <ShareDialog
+              open={showShareDialog}
+              onClose={() => setShowShareDialog(false)}
+              project={project}
+            />
           </Suspense>
           <KeyboardShortcutsHelp
             open={showShortcutsHelp}
@@ -214,6 +223,13 @@ function App() {
                 data-tutorial="export"
               >
                 Export Project
+              </button>
+              <button
+                className="px-4 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition"
+                onClick={() => setShowShareDialog(true)}
+                aria-label="Share Project"
+              >
+                Share
               </button>
             </div>
           </div>

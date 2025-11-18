@@ -43,6 +43,20 @@ export default function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcu
       action: () => {},
       description: 'Toggle AI Chat (alternate)',
     },
+    {
+      key: 'z',
+      ctrl: true,
+      shift: false,
+      action: () => {},
+      description: 'Undo',
+    },
+    {
+      key: 'z',
+      ctrl: true,
+      shift: true,
+      action: () => {},
+      description: 'Redo',
+    },
   ];
 
   return (

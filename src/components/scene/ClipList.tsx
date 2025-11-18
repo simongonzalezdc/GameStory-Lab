@@ -6,6 +6,8 @@ import { Select } from '../ui/Select';
 import { Input } from '../ui/Input';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { generatorPresets } from '@/lib/generators/presets';
+import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+import { DEFAULT_CLIP_LENGTH_BARS, MAX_CLIPS_PER_TRACK } from '@/lib/utils/constants';
 import type { GeneratorType } from '@/types';
 
 interface ClipListProps {
@@ -41,9 +43,10 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [clipToDelete, setClipToDelete] = useState<string | null>(null);
   const [generatorType, setGeneratorType] = useState<GeneratorType>('euclidean');
-  const [lengthBars, setLengthBars] = useState(4);
+  const [lengthBars, setLengthBars] = useState(DEFAULT_CLIP_LENGTH_BARS);
   const [selectedPreset, setSelectedPreset] = useState<string>('');
   const [usePreset, setUsePreset] = useState(false);
+  const [validationError, setValidationError] = useState<string>('');
 
   // Memoize scene and track lookups
   const scene = useMemo(
@@ -57,6 +60,30 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
   );
 
   const handleAddClip = useCallback(() => {
+    setValidationError('');
+
+    // Validate clip length
+    if (!lengthBars || lengthBars < 1 || lengthBars > 128) {
+      setValidationError('Clip length must be between 1 and 128 bars');
+      errorHandler.handle(
+        new Error('Invalid clip length'),
+        'Clip Validation',
+        ErrorSeverity.WARNING
+      );
+      return;
+    }
+
+    // Validate track clip limit
+    if (track && track.clips.length >= MAX_CLIPS_PER_TRACK) {
+      setValidationError(`Maximum ${MAX_CLIPS_PER_TRACK} clips per track`);
+      errorHandler.handle(
+        new Error(`Track already has maximum number of clips (${MAX_CLIPS_PER_TRACK})`),
+        'Clip Validation',
+        ErrorSeverity.WARNING
+      );
+      return;
+    }
+
     let generatorConfig;
     
     if (usePreset && selectedPreset) {
@@ -86,7 +113,8 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     setShowAddDialog(false);
     setUsePreset(false);
     setSelectedPreset('');
-  }, [generatorType, lengthBars, addClip, sceneId, trackId, usePreset, selectedPreset]);
+    setLengthBars(DEFAULT_CLIP_LENGTH_BARS);
+  }, [generatorType, lengthBars, addClip, sceneId, trackId, usePreset, selectedPreset, track]);
 
   const handleDeleteClick = useCallback((clipId: string) => {
     setClipToDelete(clipId);
@@ -116,7 +144,12 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
       <div>
       <div className="flex items-center justify-between mb-3">
         <h5 className="font-medium text-gray-900">Clips</h5>
-        <Button size="sm" onClick={() => setShowAddDialog(true)} data-tutorial="add-clip">
+        <Button 
+          size="sm" 
+          onClick={() => setShowAddDialog(true)} 
+          data-tutorial="add-clip"
+          aria-label="Add new clip to track"
+        >
           + Add Clip
         </Button>
       </div>
@@ -124,23 +157,32 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
       {track.clips.length === 0 ? (
         <p className="text-sm text-gray-500">No clips. Add a clip to start generating music!</p>
       ) : (
-        <div className="space-y-2">
+        <div 
+          className="space-y-2"
+          role="list"
+          aria-label="Clip list"
+        >
           {track.clips.map(clip => (
-            <div key={clip.id} className="bg-white p-3 rounded border border-gray-200">
+            <div 
+              key={clip.id} 
+              className="bg-white p-3 rounded border border-gray-200"
+              role="listitem"
+            >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900" aria-label={`Clip: ${clip.generator.type} generator, ${clip.lengthBars} bars long`}>
                     {clip.generator.type} • {clip.lengthBars} bars
                   </p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleDeleteClick(clip.id)}
-                  className="text-red-600"
-                >
-                  🗑
-                </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDeleteClick(clip.id)}
+                      className="text-red-600"
+                      aria-label={`Delete clip: ${clip.generator.type} (${clip.lengthBars} bars)`}
+                    >
+                      🗑
+                    </Button>
               </div>
             </div>
           ))}
@@ -198,13 +240,26 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
             />
           )}
 
+          {validationError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+              {validationError}
+            </div>
+          )}
+
           <Input
             label="Length (bars)"
             type="number"
             value={lengthBars}
-            onChange={(e) => setLengthBars(parseInt(e.target.value) || 4)}
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              if (!isNaN(value) && value > 0) {
+                setLengthBars(Math.min(128, Math.max(1, value)));
+              } else if (e.target.value === '') {
+                setLengthBars(1);
+              }
+            }}
             min={1}
-            max={64}
+            max={128}
           />
 
           <div className="flex gap-2 justify-end mt-6">

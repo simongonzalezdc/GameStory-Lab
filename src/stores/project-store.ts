@@ -4,6 +4,9 @@ import type { Project, Scene, Track, Clip } from '@/types';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { MIN_BPM, MAX_BPM } from '@/lib/utils/constants';
 import { useHistoryStore } from './history-store';
+import { sceneStore } from './scene-store';
+import { trackStore } from './track-store';
+import { clipStore } from './clip-store';
 
 interface ProjectState {
   // State
@@ -22,6 +25,7 @@ interface ProjectState {
   updateScene: (sceneId: string, updates: Partial<Scene>) => void;
   deleteScene: (sceneId: string) => void;
   duplicateScene: (sceneId: string) => void;
+  reorderScenes: (fromIndex: number, toIndex: number) => void;
   setCurrentScene: (sceneId: string | null) => void;
 
   // Track operations
@@ -65,6 +69,7 @@ export const useProjectStore = create<ProjectState>()(
 
       loadProject: (project) => {
         set({ project, isDirty: false });
+        useHistoryStore.getState().push(project);
       },
 
       createNewProject: (name) => {
@@ -121,14 +126,69 @@ export const useProjectStore = create<ProjectState>()(
         const { project } = get();
         if (!project) return;
 
-        const newScene: Scene = {
-          ...sceneData,
-          id: crypto.randomUUID(),
-        };
+        const result = sceneStore.addScene(project, sceneData);
+        set({
+          project: result.project,
+          isDirty: true,
+          currentSceneId: result.currentSceneId,
+        });
+        useHistoryStore.getState().push(result.project);
+      },
+
+      updateScene: (sceneId, updates) => {
+        const { project } = get();
+        if (!project) return;
+
+        const updatedProject = sceneStore.updateScene(project, sceneId, updates);
+        if (updatedProject === project) return; // Validation failed, no change
+
+        set({
+          project: updatedProject,
+          isDirty: true,
+        });
+        useHistoryStore.getState().push(updatedProject);
+      },
+
+      deleteScene: (sceneId) => {
+        const { project, currentSceneId } = get();
+        if (!project) return;
+
+        const result = sceneStore.deleteScene(project, currentSceneId, sceneId);
+        if (result.project === project) return; // Validation failed, no change
+
+        set({
+          project: result.project,
+          currentSceneId: result.currentSceneId,
+          isDirty: true,
+        });
+        useHistoryStore.getState().push(result.project);
+      },
+
+      duplicateScene: (sceneId) => {
+        const { project } = get();
+        if (!project) return;
+
+        const updatedProject = sceneStore.duplicateScene(project, sceneId);
+        if (updatedProject === project) return; // Scene not found
+
+        set({
+          project: updatedProject,
+          isDirty: true,
+        });
+        useHistoryStore.getState().push(updatedProject);
+      },
+
+      reorderScenes: (fromIndex, toIndex) => {
+        const { project } = get();
+        if (!project) return;
+
+        const scenes = [...project.scenes];
+        const [moved] = scenes.splice(fromIndex, 1);
+        scenes.splice(toIndex, 0, moved);
 
         const updatedProject = {
           ...project,
-          scenes: [...project.scenes, newScene],
+          scenes,
           metadata: {
             ...project.metadata,
             modified: new Date().toISOString(),
@@ -137,93 +197,8 @@ export const useProjectStore = create<ProjectState>()(
         set({
           project: updatedProject,
           isDirty: true,
-          currentSceneId: newScene.id,
         });
         useHistoryStore.getState().push(updatedProject);
-      },
-
-      updateScene: (sceneId, updates) => {
-        const { project } = get();
-        if (!project) return;
-
-        const updatedScenes = project.scenes.map((scene) =>
-          scene.id === sceneId ? { ...scene, ...updates } : scene
-        );
-
-        set({
-          project: {
-            ...project,
-            scenes: updatedScenes,
-            metadata: {
-              ...project.metadata,
-              modified: new Date().toISOString(),
-            },
-          },
-          isDirty: true,
-        });
-      },
-
-      deleteScene: (sceneId) => {
-        const { project, currentSceneId } = get();
-        if (!project) return;
-        if (project.scenes.length === 1) {
-          errorHandler.handle(
-            new Error('Cannot delete the last scene in a project'),
-            'Scene Deletion',
-            ErrorSeverity.WARNING
-          );
-          return;
-        }
-
-        const updatedScenes = project.scenes.filter((scene) => scene.id !== sceneId);
-        const newCurrentSceneId = currentSceneId === sceneId ? null : currentSceneId;
-
-        set({
-          project: {
-            ...project,
-            scenes: updatedScenes,
-            metadata: {
-              ...project.metadata,
-              modified: new Date().toISOString(),
-            },
-          },
-          currentSceneId: newCurrentSceneId,
-          isDirty: true,
-        });
-      },
-
-      duplicateScene: (sceneId) => {
-        const { project } = get();
-        if (!project) return;
-
-        const sceneToDuplicate = project.scenes.find((s) => s.id === sceneId);
-        if (!sceneToDuplicate) return;
-
-        const duplicatedScene: Scene = {
-          ...sceneToDuplicate,
-          id: crypto.randomUUID(),
-          name: `${sceneToDuplicate.name} (Copy)`,
-          tracks: sceneToDuplicate.tracks.map((track) => ({
-            ...track,
-            id: crypto.randomUUID(),
-            clips: track.clips.map((clip) => ({
-              ...clip,
-              id: crypto.randomUUID(),
-            })),
-          })),
-        };
-
-        set({
-          project: {
-            ...project,
-            scenes: [...project.scenes, duplicatedScene],
-            metadata: {
-              ...project.metadata,
-              modified: new Date().toISOString(),
-            },
-          },
-          isDirty: true,
-        });
       },
 
       setCurrentScene: (sceneId) => {
@@ -234,86 +209,38 @@ export const useProjectStore = create<ProjectState>()(
         const { project } = get();
         if (!project) return;
 
-        const newTrack: Track = {
-          ...trackData,
-          id: crypto.randomUUID(),
-        };
-
-        const updatedScenes = project.scenes.map((scene) =>
-          scene.id === sceneId
-            ? { ...scene, tracks: [...scene.tracks, newTrack] }
-            : scene
-        );
-
+        const result = trackStore.addTrack(project, sceneId, trackData);
         set({
-          project: {
-            ...project,
-            scenes: updatedScenes,
-            metadata: {
-              ...project.metadata,
-              modified: new Date().toISOString(),
-            },
-          },
+          project: result.project,
           isDirty: true,
-          selectedTrackId: newTrack.id,
+          selectedTrackId: result.selectedTrackId,
         });
+        useHistoryStore.getState().push(result.project);
       },
 
       updateTrack: (sceneId, trackId, updates) => {
         const { project } = get();
         if (!project) return;
 
-        const updatedScenes = project.scenes.map((scene) =>
-          scene.id === sceneId
-            ? {
-                ...scene,
-                tracks: scene.tracks.map((track) =>
-                  track.id === trackId ? { ...track, ...updates } : track
-                ),
-              }
-            : scene
-        );
-
+        const updatedProject = trackStore.updateTrack(project, sceneId, trackId, updates);
         set({
-          project: {
-            ...project,
-            scenes: updatedScenes,
-            metadata: {
-              ...project.metadata,
-              modified: new Date().toISOString(),
-            },
-          },
+          project: updatedProject,
           isDirty: true,
         });
+        useHistoryStore.getState().push(updatedProject);
       },
 
       deleteTrack: (sceneId, trackId) => {
         const { project, selectedTrackId } = get();
         if (!project) return;
 
-        const updatedScenes = project.scenes.map((scene) =>
-          scene.id === sceneId
-            ? {
-                ...scene,
-                tracks: scene.tracks.filter((track) => track.id !== trackId),
-              }
-            : scene
-        );
-
-        const newSelectedTrackId = selectedTrackId === trackId ? null : selectedTrackId;
-
+        const result = trackStore.deleteTrack(project, selectedTrackId, sceneId, trackId);
         set({
-          project: {
-            ...project,
-            scenes: updatedScenes,
-            metadata: {
-              ...project.metadata,
-              modified: new Date().toISOString(),
-            },
-          },
-          selectedTrackId: newSelectedTrackId,
+          project: result.project,
+          selectedTrackId: result.selectedTrackId,
           isDirty: true,
         });
+        useHistoryStore.getState().push(result.project);
       },
 
       setSelectedTrack: (trackId) => {
@@ -324,103 +251,38 @@ export const useProjectStore = create<ProjectState>()(
         const { project } = get();
         if (!project) return;
 
-        const newClip: Clip = {
-          ...clipData,
-          id: crypto.randomUUID(),
-        };
-
-        const updatedScenes = project.scenes.map((scene) =>
-          scene.id === sceneId
-            ? {
-                ...scene,
-                tracks: scene.tracks.map((track) =>
-                  track.id === trackId
-                    ? { ...track, clips: [...track.clips, newClip] }
-                    : track
-                ),
-              }
-            : scene
-        );
-
+        const updatedProject = clipStore.addClip(project, sceneId, trackId, clipData);
         set({
-          project: {
-            ...project,
-            scenes: updatedScenes,
-            metadata: {
-              ...project.metadata,
-              modified: new Date().toISOString(),
-            },
-          },
+          project: updatedProject,
           isDirty: true,
         });
+        useHistoryStore.getState().push(updatedProject);
       },
 
       updateClip: (sceneId, trackId, clipId, updates) => {
         const { project } = get();
         if (!project) return;
 
-        const updatedScenes = project.scenes.map((scene) =>
-          scene.id === sceneId
-            ? {
-                ...scene,
-                tracks: scene.tracks.map((track) =>
-                  track.id === trackId
-                    ? {
-                        ...track,
-                        clips: track.clips.map((clip) =>
-                          clip.id === clipId ? { ...clip, ...updates } : clip
-                        ),
-                      }
-                    : track
-                ),
-              }
-            : scene
-        );
+        const updatedProject = clipStore.updateClip(project, sceneId, trackId, clipId, updates);
+        if (updatedProject === project) return; // Validation failed, no change
 
         set({
-          project: {
-            ...project,
-            scenes: updatedScenes,
-            metadata: {
-              ...project.metadata,
-              modified: new Date().toISOString(),
-            },
-          },
+          project: updatedProject,
           isDirty: true,
         });
+        useHistoryStore.getState().push(updatedProject);
       },
 
       deleteClip: (sceneId, trackId, clipId) => {
         const { project } = get();
         if (!project) return;
 
-        const updatedScenes = project.scenes.map((scene) =>
-          scene.id === sceneId
-            ? {
-                ...scene,
-                tracks: scene.tracks.map((track) =>
-                  track.id === trackId
-                    ? {
-                        ...track,
-                        clips: track.clips.filter((clip) => clip.id !== clipId),
-                      }
-                    : track
-                ),
-              }
-            : scene
-        );
-
+        const updatedProject = clipStore.deleteClip(project, sceneId, trackId, clipId);
         set({
-          project: {
-            ...project,
-            scenes: updatedScenes,
-            metadata: {
-              ...project.metadata,
-              modified: new Date().toISOString(),
-            },
-          },
+          project: updatedProject,
           isDirty: true,
         });
+        useHistoryStore.getState().push(updatedProject);
       },
 
       exportProject: () => {
@@ -437,6 +299,7 @@ export const useProjectStore = create<ProjectState>()(
             throw new Error('Invalid project file');
           }
           set({ project, isDirty: false });
+          useHistoryStore.getState().push(project);
         } catch (error) {
           errorHandler.handle(error, 'Project Import', ErrorSeverity.ERROR);
           throw new Error('Invalid project JSON');

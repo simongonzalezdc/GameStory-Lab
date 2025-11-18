@@ -5,6 +5,7 @@
 import type { Project } from '@/types';
 import { serializeProject } from './serializer';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+import { sanitizeFilename } from '@/lib/utils/filename';
 
 /**
  * Export project to user's file system
@@ -20,7 +21,7 @@ export async function exportProject(project: Project): Promise<void> {
 
     // Show save file picker
     const handle = await window.showSaveFilePicker({
-      suggestedName: `${project.name.replace(/[^a-z0-9]/gi, '-')}.json`,
+      suggestedName: `${sanitizeFilename(project.name)}.json`,
       types: [
         {
           description: 'Generative Score Lab Project',
@@ -61,7 +62,7 @@ function downloadProject(project: Project): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${project.name.replace(/[^a-z0-9]/gi, '-')}.json`;
+  a.download = `${sanitizeFilename(project.name)}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

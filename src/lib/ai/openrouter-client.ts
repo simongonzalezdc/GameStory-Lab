@@ -37,6 +37,7 @@ export class OpenRouterClient implements AIClient {
           ],
           max_tokens: input.maxTokens || 2048,
         }),
+        signal: input.signal,
       });
 
       if (!response.ok) {
