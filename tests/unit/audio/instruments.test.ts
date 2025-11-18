@@ -3,7 +3,46 @@
  * These tests verify that instruments are created correctly and match expected types
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
+import type * as ToneType from 'tone';
+
+// Mock Tone.js to avoid Web Audio API issues in test environment
+vi.mock('tone', () => {
+  // Create mock classes for each synth type
+  class MockPolySynth {
+    constructor(public voice?: any, public options?: any) {}
+  }
+  class MockMonoSynth {
+    constructor(public options?: any) {}
+  }
+  class MockDuoSynth {
+    constructor(public options?: any) {}
+  }
+  class MockFMSynth {
+    constructor(public options?: any) {}
+  }
+  class MockAMSynth {
+    constructor(public options?: any) {}
+  }
+  class MockSampler {
+    constructor(public options?: any) {}
+  }
+  class MockSynth {
+    constructor(public options?: any) {}
+  }
+
+  return {
+    PolySynth: MockPolySynth,
+    MonoSynth: MockMonoSynth,
+    DuoSynth: MockDuoSynth,
+    FMSynth: MockFMSynth,
+    AMSynth: MockAMSynth,
+    Sampler: MockSampler,
+    Synth: MockSynth,
+  };
+});
+
+// Import after mocking
 import * as Tone from 'tone';
 import { createInstrument, type InstrumentConfig } from '@/lib/audio/instruments';
 
@@ -117,7 +156,16 @@ describe('createInstrument', () => {
 
     const instrument = createInstrument(config);
     expect(instrument).toBeInstanceOf(Tone.PolySynth);
-    // The envelope should be configured (we can't easily test the exact values without accessing internals)
+
+    // Verify envelope was passed to constructor
+    const polySynth = instrument as any;
+    expect(polySynth.options).toBeDefined();
+    expect(polySynth.options.envelope).toEqual({
+      attack: 0.5,
+      decay: 0.3,
+      sustain: 0.7,
+      release: 1.0,
+    });
   });
 
   it('should handle filter settings for synth', () => {
@@ -136,5 +184,41 @@ describe('createInstrument', () => {
 
     const instrument = createInstrument(config);
     expect(instrument).toBeInstanceOf(Tone.PolySynth);
+
+    // Verify filter was passed to constructor
+    const polySynth = instrument as any;
+    expect(polySynth.options).toBeDefined();
+    expect(polySynth.options.filter).toEqual({
+      type: 'lowpass',
+      frequency: 1000,
+      Q: 5,
+    });
+  });
+
+  it('should handle filter settings for mono synth', () => {
+    const config: InstrumentConfig = {
+      id: 'test-mono-filter',
+      type: 'mono',
+      name: 'Test Mono Filter',
+      description: 'Test',
+      oscillator: { type: 'sawtooth' },
+      filter: {
+        type: 'highpass',
+        frequency: 2000,
+        Q: 3,
+      },
+    };
+
+    const instrument = createInstrument(config);
+    expect(instrument).toBeInstanceOf(Tone.MonoSynth);
+
+    // Verify filter was passed to constructor
+    const monoSynth = instrument as any;
+    expect(monoSynth.options).toBeDefined();
+    expect(monoSynth.options.filter).toEqual({
+      type: 'highpass',
+      frequency: 2000,
+      Q: 3,
+    });
   });
 });
