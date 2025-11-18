@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Package, Plus, Eye, Edit, Trash2 } from 'lucide-react';
 import { AssetPack } from '../types/asset_pack';
 import { AssetPackModal } from './AssetPackModal';
 import { AssetPackDetailsModal } from './AssetPackDetailsModal';
+import { API_ENDPOINTS } from '../config/api';
 
 export function AssetPacksPanel() {
   const [packs, setPacks] = useState<AssetPack[]>([]);
@@ -12,29 +13,34 @@ export function AssetPacksPanel() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [editingPack, setEditingPack] = useState<AssetPack | null>(null);
 
-  const fetchPacks = async () => {
+  const fetchPacks = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await fetch('http://localhost:8000/api/packs');
+      const response = await fetch(API_ENDPOINTS.packs, { signal });
       if (!response.ok) throw new Error('Failed to fetch packs');
       const data = await response.json();
       setPacks(data.packs || []);
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return; // Ignore abort errors
+      }
       console.error('Error fetching packs:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchPacks();
-  }, []);
+    const abortController = new AbortController();
+    fetchPacks(abortController.signal);
+    return () => abortController.abort();
+  }, [fetchPacks]);
 
   const handleDelete = async (packId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm('Delete this asset pack?')) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/packs/${packId}`, {
+      const response = await fetch(API_ENDPOINTS.packById(packId), {
         method: 'DELETE',
       });
 

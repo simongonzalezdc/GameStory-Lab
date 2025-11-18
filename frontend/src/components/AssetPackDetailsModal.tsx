@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Package, Download, Calendar, Tag } from 'lucide-react';
 import { AssetPack } from '../types/asset_pack';
 import { Asset } from '../types/asset';
+import { API_ENDPOINTS, getAssetFileUrl } from '../config/api';
 
 interface AssetPackDetailsModalProps {
   pack: AssetPack;
@@ -13,15 +14,12 @@ export function AssetPackDetailsModal({ pack, onClose }: AssetPackDetailsModalPr
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchPackAssets();
-  }, [pack.id]);
-
-  const fetchPackAssets = async () => {
+  const fetchPackAssets = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     try {
       // Fetch all assets and filter by pack's asset_ids
-      const response = await fetch('http://localhost:8000/api/assets?limit=1000');
+      // TODO: This should be optimized with a backend endpoint that takes asset IDs
+      const response = await fetch(`${API_ENDPOINTS.assets}?limit=1000`, { signal });
       if (!response.ok) throw new Error('Failed to fetch assets');
       const data = await response.json();
 
@@ -30,11 +28,20 @@ export function AssetPackDetailsModal({ pack, onClose }: AssetPackDetailsModalPr
       );
       setAssets(packAssets);
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return; // Ignore abort errors
+      }
       console.error('Error fetching pack assets:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [pack.asset_ids]);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    fetchPackAssets(abortController.signal);
+    return () => abortController.abort();
+  }, [fetchPackAssets]);
 
   const handleDownloadPack = async () => {
     if (assets.length === 0) {
@@ -43,14 +50,14 @@ export function AssetPackDetailsModal({ pack, onClose }: AssetPackDetailsModalPr
     }
 
     // For now, download assets individually
-    // In production, you'd create a ZIP file on the backend
+    // TODO: Create a ZIP file on the backend for batch download
     for (const asset of assets) {
       const link = document.createElement('a');
-      link.href = `http://localhost:8000${asset.file_url}`;
+      link.href = getAssetFileUrl(asset.file_url);
       link.download = asset.file_name;
       link.click();
 
-      // Small delay between downloads
+      // Small delay between downloads to avoid browser throttling
       await new Promise(resolve => setTimeout(resolve, 100));
     }
   };
@@ -133,7 +140,7 @@ export function AssetPackDetailsModal({ pack, onClose }: AssetPackDetailsModalPr
                   className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition"
                 >
                   <img
-                    src={`http://localhost:8000${asset.file_url}`}
+                    src={getAssetFileUrl(asset.file_url)}
                     alt={asset.file_name}
                     className="w-full h-full object-cover"
                   />

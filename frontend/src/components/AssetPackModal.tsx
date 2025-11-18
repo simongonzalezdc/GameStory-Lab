@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Package, Tag } from 'lucide-react';
 import { AssetPack, AssetPackCreate } from '../types/asset_pack';
 import { Asset } from '../types/asset';
+import { API_ENDPOINTS, getAssetFileUrl } from '../config/api';
 
 interface AssetPackModalProps {
   pack?: AssetPack | null;
@@ -18,23 +19,28 @@ export function AssetPackModal({ pack, onClose, onSaved }: AssetPackModalProps) 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchAssets();
-  }, []);
-
-  const fetchAssets = async () => {
+  const fetchAssets = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/assets?limit=100');
+      const response = await fetch(`${API_ENDPOINTS.assets}?limit=100`, { signal });
       if (!response.ok) throw new Error('Failed to fetch assets');
       const data = await response.json();
       setAvailableAssets(data.assets || []);
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return; // Ignore abort errors
+      }
       console.error('Error fetching assets:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    fetchAssets(abortController.signal);
+    return () => abortController.abort();
+  }, [fetchAssets]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,10 +58,7 @@ export function AssetPackModal({ pack, onClose, onSaved }: AssetPackModalProps) 
         asset_ids: selectedAssetIds,
       };
 
-      const url = pack
-        ? `http://localhost:8000/api/packs/${pack.id}`
-        : 'http://localhost:8000/api/packs';
-
+      const url = pack ? API_ENDPOINTS.packById(pack.id) : API_ENDPOINTS.packs;
       const method = pack ? 'PATCH' : 'POST';
 
       const response = await fetch(url, {
@@ -207,7 +210,7 @@ export function AssetPackModal({ pack, onClose, onSaved }: AssetPackModalProps) 
                     }`}
                   >
                     <img
-                      src={`http://localhost:8000${asset.file_url}`}
+                      src={getAssetFileUrl(asset.file_url)}
                       alt={asset.file_name}
                       className="w-full h-full object-cover"
                     />

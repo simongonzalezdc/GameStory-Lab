@@ -411,6 +411,7 @@ class DatabaseService:
     async def create_asset_pack(self, pack_data: dict) -> dict:
         """Create a new asset pack."""
         import uuid
+        import json
         async with aiosqlite.connect(self.db_path) as db:
             pack_id = str(uuid.uuid4())
             await db.execute("""
@@ -422,8 +423,8 @@ class DatabaseService:
                 pack_data.get('user_id', 'local-user'),
                 pack_data['name'],
                 pack_data.get('description'),
-                str(pack_data.get('tags', [])),
-                str(pack_data.get('asset_ids', []))
+                json.dumps(pack_data.get('tags', [])),
+                json.dumps(pack_data.get('asset_ids', []))
             ))
             await db.commit()
 
@@ -459,25 +460,30 @@ class DatabaseService:
 
     async def update_asset_pack(self, pack_id: str, user_id: str, update_data: dict) -> Optional[dict]:
         """Update asset pack metadata."""
+        import json
+
+        # Whitelist of allowed fields for update
+        allowed_fields = {'name', 'description', 'tags', 'asset_ids'}
+
         async with aiosqlite.connect(self.db_path) as db:
             update_fields = []
             values = []
 
-            if 'name' in update_data:
+            if 'name' in update_data and 'name' in allowed_fields:
                 update_fields.append("name = ?")
                 values.append(update_data['name'])
 
-            if 'description' in update_data:
+            if 'description' in update_data and 'description' in allowed_fields:
                 update_fields.append("description = ?")
                 values.append(update_data['description'])
 
-            if 'tags' in update_data:
+            if 'tags' in update_data and 'tags' in allowed_fields:
                 update_fields.append("tags = ?")
-                values.append(str(update_data['tags']))
+                values.append(json.dumps(update_data['tags']))
 
-            if 'asset_ids' in update_data:
+            if 'asset_ids' in update_data and 'asset_ids' in allowed_fields:
                 update_fields.append("asset_ids = ?")
-                values.append(str(update_data['asset_ids']))
+                values.append(json.dumps(update_data['asset_ids']))
 
             if not update_fields:
                 return None
@@ -485,6 +491,7 @@ class DatabaseService:
             update_fields.append("updated_at = CURRENT_TIMESTAMP")
             values.extend([pack_id, user_id])
 
+            # Safe SQL construction - update_fields are whitelisted
             query = f"""
                 UPDATE asset_packs
                 SET {', '.join(update_fields)}
@@ -516,15 +523,21 @@ class DatabaseService:
         # Parse JSON fields
         if 'tags' in pack and pack['tags']:
             try:
-                pack['tags'] = json.loads(pack['tags'].replace("'", '"'))
-            except:
+                pack['tags'] = json.loads(pack['tags']) if isinstance(pack['tags'], str) else pack['tags']
+            except (json.JSONDecodeError, TypeError) as e:
+                logger.warning(f"Failed to parse tags JSON: {e}")
                 pack['tags'] = []
+        else:
+            pack['tags'] = []
 
         if 'asset_ids' in pack and pack['asset_ids']:
             try:
-                pack['asset_ids'] = json.loads(pack['asset_ids'].replace("'", '"'))
-            except:
+                pack['asset_ids'] = json.loads(pack['asset_ids']) if isinstance(pack['asset_ids'], str) else pack['asset_ids']
+            except (json.JSONDecodeError, TypeError) as e:
+                logger.warning(f"Failed to parse asset_ids JSON: {e}")
                 pack['asset_ids'] = []
+        else:
+            pack['asset_ids'] = []
 
         # Add asset count
         pack['asset_count'] = len(pack.get('asset_ids', []))
