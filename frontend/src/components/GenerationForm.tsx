@@ -7,6 +7,7 @@ import { BatchGenerationModal } from './BatchGenerationModal';
 import { ErrorMessage } from './ErrorMessage';
 import { PixelArtSettings, type PixelArtSettings as PixelArtSettingsType } from './PixelArtSettings';
 import { MultiAngleSettings, type MultiAngleSettings as MultiAngleSettingsType } from './MultiAngleSettings';
+import { ColorVariationSettings, type ColorVariationSettings as ColorVariationSettingsType } from './ColorVariationSettings';
 
 interface GenerationFormProps {
   onGenerated?: () => void;
@@ -37,6 +38,15 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     angleCount: 4,
     includeAngles: ['front', 'back', 'left', 'right'],
     generationType: 'batch',
+  });
+
+  // Color Variation Mode
+  const [colorVariationEnabled, setColorVariationEnabled] = useState(false);
+  const [colorVariationSettings, setColorVariationSettings] = useState<ColorVariationSettingsType>({
+    enabled: false,
+    variationCount: 3,
+    colorSchemes: ['red', 'blue', 'green'],
+    baseColor: 'original',
   });
 
   // Note: Ollama status check infrastructure kept for future text-based features
@@ -117,6 +127,78 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
           onGenerated?.();
         } else {
           setError('Failed to generate any multi-angle sprites');
+        }
+      } else if (colorVariationEnabled && colorVariationSettings.colorSchemes.length > 0) {
+        // Color variation generation mode
+        const colorSchemeDescriptions: { [key: string]: string } = {
+          red: 'red, crimson, scarlet color palette',
+          blue: 'blue, azure, cobalt color palette',
+          green: 'green, emerald, jade color palette',
+          purple: 'purple, violet, amethyst color palette',
+          yellow: 'yellow, gold, amber color palette',
+          orange: 'orange, tangerine, sunset color palette',
+          pink: 'pink, magenta, rose color palette',
+          teal: 'teal, cyan, aqua color palette',
+          brown: 'brown, tan, earth tone color palette',
+          gray: 'gray, silver, monochrome color palette',
+          black: 'black, dark, shadow color palette',
+          white: 'white, light, bright color palette',
+        };
+
+        const baseColorDesc: { [key: string]: string } = {
+          original: '',
+          neutral: ', neutral base colors',
+          vibrant: ', vibrant saturated colors',
+          muted: ', muted desaturated colors',
+        };
+
+        const generatedCount = colorVariationSettings.colorSchemes.length;
+        let successCount = 0;
+
+        for (const colorScheme of colorVariationSettings.colorSchemes) {
+          let enhancedPrompt = `${prompt}, ${colorSchemeDescriptions[colorScheme]}${baseColorDesc[colorVariationSettings.baseColor] || ''}`;
+
+          // Apply pixel art settings if enabled
+          if (pixelArtEnabled) {
+            const paletteDescriptions: { [key: string]: string } = {
+              nes: 'classic 8-bit NES color palette',
+              gameboy: 'monochrome Game Boy green palette',
+              snes: 'vibrant SNES 16-bit palette',
+              c64: 'retro Commodore 64 palette',
+              cga: 'early CGA PC graphics palette',
+              pico8: 'fantasy console PICO-8 palette',
+            };
+
+            const paletteDesc = paletteDescriptions[pixelArtSettings.palette] || 'retro pixel art palette';
+            enhancedPrompt += `, pixel art style, ${paletteDesc}, ${pixelArtSettings.pixelSize}x${pixelArtSettings.pixelSize} resolution, sharp edges, no anti-aliasing, crisp pixels, retro gaming aesthetic`;
+
+            if (pixelArtSettings.ditherLevel > 0) {
+              enhancedPrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+            }
+          }
+
+          const request: GenerationRequest = {
+            prompt: enhancedPrompt,
+            model,
+            dimensions,
+          };
+
+          try {
+            const response = await apiClient.generateAsset(request);
+            if (response.success) {
+              successCount++;
+            }
+          } catch (colorErr) {
+            console.error(`Failed to generate ${colorScheme} variation:`, colorErr);
+          }
+        }
+
+        if (successCount > 0) {
+          setSuccess(`✓ Generated ${successCount}/${generatedCount} color variations successfully!`);
+          setPrompt('');
+          onGenerated?.();
+        } else {
+          setError('Failed to generate any color variations');
         }
       } else {
         // Single asset generation
@@ -265,6 +347,17 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
           }}
           onSettingsChange={(settings) => {
             setMultiAngleSettings(settings);
+          }}
+        />
+
+        {/* Color Variation Settings */}
+        <ColorVariationSettings
+          enabled={colorVariationEnabled}
+          onToggle={(enabled) => {
+            setColorVariationEnabled(enabled);
+          }}
+          onSettingsChange={(settings) => {
+            setColorVariationSettings(settings);
           }}
         />
 
