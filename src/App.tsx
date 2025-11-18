@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { useEffect, useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useProjectStore } from './stores/project-store';
 import { useTutorialStore } from './stores/tutorial-store';
 import { useUIStore } from './stores/ui-store';
@@ -14,6 +14,7 @@ import { TutorialErrorBoundary } from './components/TutorialErrorBoundary';
 import { errorHandler, ErrorSeverity } from './lib/errors/error-handler';
 import { initErrorReporting } from './lib/errors/error-reporting';
 import { initAnalytics } from './lib/analytics/analytics';
+import { initPerformanceMonitoring } from './lib/analytics/performance';
 import { useAIStore } from './stores/ai-store';
 import { setupOllama } from './lib/ai/ollama-setup';
 import type { LocalConfig } from './types';
@@ -38,10 +39,11 @@ function App() {
 
   const { config } = useAIStore();
 
-  // Initialize error reporting and analytics on mount
+  // Initialize error reporting, analytics, and performance monitoring on mount
   useEffect(() => {
     initErrorReporting();
     initAnalytics();
+    initPerformanceMonitoring();
   }, []);
 
   // Check Ollama setup if local provider is configured
@@ -104,69 +106,80 @@ function App() {
     };
   }, []);
 
+  // Memoize keyboard shortcut callbacks for better performance
+  const handleExport = useCallback(() => {
+    if (!isTypingInInput()) {
+      setShowExportDialog(true);
+    }
+  }, []);
+
+  const handleShowShortcuts = useCallback(() => {
+    if (!isTypingInInput()) {
+      setShowShortcutsHelp(true);
+    }
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    if (!isTypingInInput() && canUndo()) {
+      undo();
+    }
+  }, [canUndo, undo]);
+
+  const handleRedo = useCallback(() => {
+    if (!isTypingInInput() && canRedo()) {
+      redo();
+    }
+  }, [canRedo, redo]);
+
+  // Memoize keyboard shortcuts array to prevent recreation on every render
+  const shortcuts = useMemo(
+    () => [
+      {
+        key: 's',
+        ctrl: true,
+        action: handleExport,
+        description: 'Export Project (Save)',
+      },
+      {
+        key: '/',
+        ctrl: true,
+        action: toggleAIChat,
+        description: 'Toggle AI Chat',
+      },
+      {
+        key: 'k',
+        ctrl: true,
+        action: toggleAIChat,
+        description: 'Toggle AI Chat (alternate)',
+      },
+      {
+        key: '?',
+        action: handleShowShortcuts,
+        description: 'Show keyboard shortcuts',
+        preventDefault: false,
+      },
+      {
+        key: 'z',
+        ctrl: true,
+        shift: false,
+        action: handleUndo,
+        description: 'Undo',
+        preventDefault: true,
+      },
+      {
+        key: 'z',
+        ctrl: true,
+        shift: true,
+        action: handleRedo,
+        description: 'Redo',
+        preventDefault: true,
+      },
+    ],
+    [handleExport, handleShowShortcuts, handleUndo, handleRedo, toggleAIChat]
+  );
+
   // Register global keyboard shortcuts
-  useKeyboardShortcuts([
-    {
-      key: 's',
-      ctrl: true,
-      action: () => {
-        if (!isTypingInInput()) {
-          setShowExportDialog(true);
-        }
-      },
-      description: 'Export Project (Save)',
-    },
-    {
-      key: '/',
-      ctrl: true,
-      action: () => {
-        toggleAIChat();
-      },
-      description: 'Toggle AI Chat',
-    },
-    {
-      key: 'k',
-      ctrl: true,
-      action: () => {
-        toggleAIChat();
-      },
-      description: 'Toggle AI Chat (alternate)',
-    },
-    {
-      key: '?',
-      action: () => {
-        if (!isTypingInInput()) {
-          setShowShortcutsHelp(true);
-        }
-      },
-      description: 'Show keyboard shortcuts',
-      preventDefault: false,
-    },
-    {
-      key: 'z',
-      ctrl: true,
-      shift: false,
-      action: () => {
-        if (!isTypingInInput() && canUndo()) {
-          undo();
-        }
-      },
-      description: 'Undo',
-      preventDefault: true,
-    },
-    {
-      key: 'z',
-      ctrl: true,
-      shift: true,
-      action: () => {
-        if (!isTypingInInput() && canRedo()) {
-          redo();
-        }
-      },
-      description: 'Redo',
-      preventDefault: true,
-    },
-  ]);
+  useKeyboardShortcuts(shortcuts);
 
   if (!project) {
     return (

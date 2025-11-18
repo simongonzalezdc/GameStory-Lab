@@ -4,6 +4,7 @@
 
 import { create } from 'zustand';
 import type { Project } from '@/types';
+import { fastDeepEqual } from '@/lib/utils/fast-equals';
 
 interface HistoryState {
   past: Project[];
@@ -28,9 +29,9 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
 
   push: (project: Project) => {
     const { present, past, maxHistorySize } = get();
-    
-    // Don't push if project hasn't changed
-    if (present && JSON.stringify(present) === JSON.stringify(project)) {
+
+    // Don't push if project hasn't changed (optimized deep equality check)
+    if (present && fastDeepEqual(present, project)) {
       return;
     }
 

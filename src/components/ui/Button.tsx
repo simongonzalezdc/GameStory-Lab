@@ -1,4 +1,5 @@
 import { clsx } from 'clsx';
+import { memo } from 'react';
 import type { ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -6,7 +7,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export function Button({
+// Memoized to prevent unnecessary re-renders
+export const Button = memo(function Button({
   variant = 'primary',
   size = 'md',
   className,
@@ -36,4 +38,4 @@ export function Button({
       {children}
     </button>
   );
-}
+});
