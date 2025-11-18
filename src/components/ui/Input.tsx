@@ -1,4 +1,5 @@
 import { clsx } from 'clsx';
+import { memo } from 'react';
 import type { InputHTMLAttributes } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -6,7 +7,8 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
-export function Input({ label, error, className, ...props }: InputProps) {
+// Memoized to prevent unnecessary re-renders
+export const Input = memo(function Input({ label, error, className, ...props }: InputProps) {
   return (
     <div className="w-full">
       {label && (
@@ -33,4 +35,4 @@ export function Input({ label, error, className, ...props }: InputProps) {
       )}
     </div>
   );
-}
+});

@@ -1,5 +1,6 @@
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { clsx } from 'clsx';
+import { memo } from 'react';
 
 interface SelectOption {
   value: string;
@@ -16,7 +17,8 @@ interface SelectProps {
   className?: string;
 }
 
-export function Select({
+// Memoized to prevent unnecessary re-renders
+export const Select = memo(function Select({
   value,
   onValueChange,
   options,
@@ -78,4 +80,4 @@ export function Select({
       </SelectPrimitive.Root>
     </div>
   );
-}
+});

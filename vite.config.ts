@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import viteCompression from 'vite-plugin-compression';
+import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -7,7 +9,68 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Gzip compression
+    viteCompression({
+      algorithm: 'gzip',
+      ext: '.gz',
+      threshold: 1024, // Only compress files > 1KB
+      deleteOriginFile: false,
+    }),
+    // Brotli compression (better compression than gzip)
+    viteCompression({
+      algorithm: 'brotliCompress',
+      ext: '.br',
+      threshold: 1024,
+      deleteOriginFile: false,
+    }),
+    // PWA with service worker for offline support and caching
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', '*.png', '*.svg'],
+      manifest: {
+        name: 'Generative Score Lab',
+        short_name: 'Score Lab',
+        description: 'AI-powered music composition web application',
+        theme_color: '#059669',
+        background_color: '#ffffff',
+        display: 'standalone',
+        icons: [
+          {
+            src: '/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: '/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+        ],
+      },
+      workbox: {
+        // Cache all static assets
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // Runtime caching for API calls
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\./,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 300, // 5 minutes
+              },
+            },
+          },
+        ],
+        // Increase max file size for audio engine chunk
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB
+      },
+    }),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

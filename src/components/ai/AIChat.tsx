@@ -54,13 +54,22 @@ export default function AIChat() {
         s => s.id === projectStore.currentSceneId
       );
 
-      // Build context with recent actions - PASSING FULL PROJECT FOR PROJECT-WIDE CONTEXT
+      // Build optimized context - send only current scene and project metadata
+      // This reduces payload size significantly while maintaining functionality
       const contextWithHistory = {
         currentScene,
         projectSnapshot: projectStore.project ? {
-          // Include all project data including scenes array for project-wide context
-          ...projectStore.project,
-          scenes: projectStore.project.scenes // Ensure scenes are included
+          schemaVersion: projectStore.project.schemaVersion,
+          projectId: projectStore.project.projectId,
+          name: projectStore.project.name,
+          bpm: projectStore.project.bpm,
+          timeSignature: projectStore.project.timeSignature,
+          defaultKey: projectStore.project.defaultKey,
+          defaultScale: projectStore.project.defaultScale,
+          // Send only scene count and current scene info, not all scenes
+          sceneCount: projectStore.project.scenes.length,
+          currentSceneId: projectStore.currentSceneId,
+          metadata: projectStore.project.metadata,
         } : undefined,
         recentActions: recentActions.slice(-3) // Last 3 actions
       };
