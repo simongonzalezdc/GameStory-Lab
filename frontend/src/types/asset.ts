@@ -13,6 +13,7 @@ export interface Asset {
   project_name: string | null;
   is_favorite: boolean;
   metadata: Record<string, any>;
+  notes: string | null;
   created_at: string;
   updated_at: string;
   // Phase 2: Versioning fields

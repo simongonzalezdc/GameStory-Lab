@@ -125,6 +125,27 @@ class DatabaseService:
             logger.error(f"Migration failed: {e}")
             # Non-critical - continue anyway
 
+        # Migration: Add notes field
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                # Check if notes column exists
+                cursor = await db.execute("PRAGMA table_info(assets)")
+                columns = await cursor.fetchall()
+                has_notes = any(col[1] == 'notes' for col in columns)
+
+                if not has_notes:
+                    logger.info("Running migration: Adding notes field")
+                    await db.execute("""
+                        ALTER TABLE assets
+                        ADD COLUMN notes TEXT
+                    """)
+                    await db.commit()
+                    logger.info("Migration complete: Notes field added")
+
+        except Exception as e:
+            logger.error(f"Migration failed: {e}")
+            # Non-critical - continue anyway
+
     async def insert_asset(self, asset_data: dict) -> dict:
         """Insert new asset into database."""
         async with aiosqlite.connect(self.db_path) as db:
@@ -182,6 +203,10 @@ class DatabaseService:
             if 'is_favorite' in update_data:
                 update_fields.append("is_favorite = ?")
                 values.append(int(update_data['is_favorite']))
+
+            if 'notes' in update_data:
+                update_fields.append("notes = ?")
+                values.append(update_data['notes'])
 
             if not update_fields:
                 # No fields to update

@@ -37,6 +37,7 @@ class AssetResponse(BaseModel):
     project_name: Optional[str]
     is_favorite: bool
     metadata: dict
+    notes: Optional[str] = None
     created_at: str
     updated_at: str
     # Phase 2: Versioning fields
@@ -54,6 +55,7 @@ class AssetUpdate(BaseModel):
     style_tags: Optional[List[str]] = None
     project_name: Optional[str] = None
     is_favorite: Optional[bool] = None
+    notes: Optional[str] = None
 
 
 class AssetFilter(BaseModel):

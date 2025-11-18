@@ -84,6 +84,7 @@ export const apiClient = {
     style_tags?: string[];
     project_name?: string | null;
     is_favorite?: boolean;
+    notes?: string | null;
   }): Promise<Asset> {
     const response = await api.patch<Asset>(`/api/assets/${assetId}`, updateData);
     return response.data;
