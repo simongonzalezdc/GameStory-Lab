@@ -8,6 +8,7 @@ import { ErrorMessage } from './ErrorMessage';
 import { PixelArtSettings, type PixelArtSettings as PixelArtSettingsType } from './PixelArtSettings';
 import { MultiAngleSettings, type MultiAngleSettings as MultiAngleSettingsType } from './MultiAngleSettings';
 import { ColorVariationSettings, type ColorVariationSettings as ColorVariationSettingsType } from './ColorVariationSettings';
+import { IsometricModeSettings, type IsometricModeSettings as IsometricModeSettingsType } from './IsometricModeSettings';
 
 interface GenerationFormProps {
   onGenerated?: () => void;
@@ -47,6 +48,16 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     variationCount: 3,
     colorSchemes: ['red', 'blue', 'green'],
     baseColor: 'original',
+  });
+
+  // Isometric Mode
+  const [isometricEnabled, setIsometricEnabled] = useState(false);
+  const [isometricSettings, setIsometricSettings] = useState<IsometricModeSettingsType>({
+    enabled: false,
+    viewAngle: 'classic',
+    gridAlignment: true,
+    shadowStyle: 'soft',
+    perspective: '2:1',
   });
 
   // Note: Ollama status check infrastructure kept for future text-based features
@@ -102,6 +113,27 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
 
             if (pixelArtSettings.ditherLevel > 0) {
               enhancedPrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+            }
+          }
+
+          // Apply isometric mode settings if enabled
+          if (isometricEnabled) {
+            const viewAngleDesc: { [key: string]: string } = {
+              classic: 'isometric projection 30° angle, 2:1 ratio',
+              dimetric: 'dimetric projection 26.565° angle',
+              cabinet: 'cabinet projection 45° angle',
+            };
+
+            const shadowDesc: { [key: string]: string } = {
+              soft: 'soft ambient occlusion shadows',
+              hard: 'hard cast shadows',
+              none: 'flat no-shadow lighting',
+            };
+
+            enhancedPrompt += `, ${viewAngleDesc[isometricSettings.viewAngle]}, ${shadowDesc[isometricSettings.shadowStyle]}`;
+
+            if (isometricSettings.gridAlignment) {
+              enhancedPrompt += `, grid-aligned tiles, ${isometricSettings.perspective} tile aspect ratio`;
             }
           }
 
@@ -177,6 +209,27 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
             }
           }
 
+          // Apply isometric mode settings if enabled
+          if (isometricEnabled) {
+            const viewAngleDesc: { [key: string]: string } = {
+              classic: 'isometric projection 30° angle, 2:1 ratio',
+              dimetric: 'dimetric projection 26.565° angle',
+              cabinet: 'cabinet projection 45° angle',
+            };
+
+            const shadowDesc: { [key: string]: string } = {
+              soft: 'soft ambient occlusion shadows',
+              hard: 'hard cast shadows',
+              none: 'flat no-shadow lighting',
+            };
+
+            enhancedPrompt += `, ${viewAngleDesc[isometricSettings.viewAngle]}, ${shadowDesc[isometricSettings.shadowStyle]}`;
+
+            if (isometricSettings.gridAlignment) {
+              enhancedPrompt += `, grid-aligned tiles, ${isometricSettings.perspective} tile aspect ratio`;
+            }
+          }
+
           const request: GenerationRequest = {
             prompt: enhancedPrompt,
             model,
@@ -218,6 +271,31 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
 
           if (pixelArtSettings.ditherLevel > 0) {
             enhancedPrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+          }
+        }
+
+        // Apply isometric mode settings if enabled
+        if (isometricEnabled) {
+          const viewAngleDesc: { [key: string]: string } = {
+            classic: 'isometric projection 30° angle, 2:1 ratio',
+            dimetric: 'dimetric projection 26.565° angle',
+            cabinet: 'cabinet projection 45° angle',
+          };
+
+          const shadowDesc: { [key: string]: string } = {
+            soft: 'soft ambient occlusion shadows',
+            hard: 'hard cast shadows',
+            none: 'flat no-shadow lighting',
+          };
+
+          if (pixelArtEnabled) {
+            enhancedPrompt += `, ${viewAngleDesc[isometricSettings.viewAngle]}, ${shadowDesc[isometricSettings.shadowStyle]}`;
+          } else {
+            enhancedPrompt = `${prompt}, ${viewAngleDesc[isometricSettings.viewAngle]}, ${shadowDesc[isometricSettings.shadowStyle]}`;
+          }
+
+          if (isometricSettings.gridAlignment) {
+            enhancedPrompt += `, grid-aligned tiles, ${isometricSettings.perspective} tile aspect ratio`;
           }
         }
 
@@ -358,6 +436,17 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
           }}
           onSettingsChange={(settings) => {
             setColorVariationSettings(settings);
+          }}
+        />
+
+        {/* Isometric Mode Settings */}
+        <IsometricModeSettings
+          enabled={isometricEnabled}
+          onToggle={(enabled) => {
+            setIsometricEnabled(enabled);
+          }}
+          onSettingsChange={(settings) => {
+            setIsometricSettings(settings);
           }}
         />
 
