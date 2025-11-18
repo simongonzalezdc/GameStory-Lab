@@ -9,6 +9,7 @@ import { PixelArtSettings, type PixelArtSettings as PixelArtSettingsType } from 
 import { MultiAngleSettings, type MultiAngleSettings as MultiAngleSettingsType } from './MultiAngleSettings';
 import { ColorVariationSettings, type ColorVariationSettings as ColorVariationSettingsType } from './ColorVariationSettings';
 import { IsometricModeSettings, type IsometricModeSettings as IsometricModeSettingsType } from './IsometricModeSettings';
+import { TilesetSettings, type TilesetSettings as TilesetSettingsType } from './TilesetSettings';
 
 interface GenerationFormProps {
   onGenerated?: () => void;
@@ -58,6 +59,16 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     gridAlignment: true,
     shadowStyle: 'soft',
     perspective: '2:1',
+  });
+
+  // Tileset Generation
+  const [tilesetEnabled, setTilesetEnabled] = useState(false);
+  const [tilesetSettings, setTilesetSettings] = useState<TilesetSettingsType>({
+    enabled: false,
+    tilesetType: 'basic',
+    includePieces: ['center', 'top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'],
+    tileSize: 32,
+    seamless: true,
   });
 
   // Note: Ollama status check infrastructure kept for future text-based features
@@ -253,6 +264,103 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         } else {
           setError('Failed to generate any color variations');
         }
+      } else if (tilesetEnabled && tilesetSettings.includePieces.length > 0) {
+        // Tileset generation mode
+        const pieceDescriptions: { [key: string]: string } = {
+          center: 'center tile, middle piece with all sides connecting',
+          top: 'top edge tile, connects to bottom',
+          bottom: 'bottom edge tile, connects to top',
+          left: 'left edge tile, connects to right',
+          right: 'right edge tile, connects to left',
+          'top-left': 'top-left corner tile, connects bottom and right',
+          'top-right': 'top-right corner tile, connects bottom and left',
+          'bottom-left': 'bottom-left corner tile, connects top and right',
+          'bottom-right': 'bottom-right corner tile, connects top and left',
+          'inner-top-left': 'inner top-left corner piece',
+          'inner-top-right': 'inner top-right corner piece',
+          'inner-bottom-left': 'inner bottom-left corner piece',
+          'inner-bottom-right': 'inner bottom-right corner piece',
+          horizontal: 'horizontal bridge tile',
+          vertical: 'vertical bridge tile',
+          single: 'single isolated tile',
+          'autotile-full': 'complete autotile set with all variations',
+        };
+
+        const generatedCount = tilesetSettings.includePieces.length;
+        let successCount = 0;
+
+        for (const piece of tilesetSettings.includePieces) {
+          let enhancedPrompt = `${prompt}, ${pieceDescriptions[piece]}`;
+
+          if (tilesetSettings.seamless) {
+            enhancedPrompt += ', seamless tileable edges';
+          }
+
+          enhancedPrompt += `, ${tilesetSettings.tileSize}x${tilesetSettings.tileSize} tile`;
+
+          // Apply pixel art settings if enabled
+          if (pixelArtEnabled) {
+            const paletteDescriptions: { [key: string]: string } = {
+              nes: 'classic 8-bit NES color palette',
+              gameboy: 'monochrome Game Boy green palette',
+              snes: 'vibrant SNES 16-bit palette',
+              c64: 'retro Commodore 64 palette',
+              cga: 'early CGA PC graphics palette',
+              pico8: 'fantasy console PICO-8 palette',
+            };
+
+            const paletteDesc = paletteDescriptions[pixelArtSettings.palette] || 'retro pixel art palette';
+            enhancedPrompt += `, pixel art style, ${paletteDesc}, sharp edges, no anti-aliasing, crisp pixels`;
+
+            if (pixelArtSettings.ditherLevel > 0) {
+              enhancedPrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+            }
+          }
+
+          // Apply isometric mode settings if enabled
+          if (isometricEnabled) {
+            const viewAngleDesc: { [key: string]: string } = {
+              classic: 'isometric projection 30° angle, 2:1 ratio',
+              dimetric: 'dimetric projection 26.565° angle',
+              cabinet: 'cabinet projection 45° angle',
+            };
+
+            const shadowDesc: { [key: string]: string } = {
+              soft: 'soft ambient occlusion shadows',
+              hard: 'hard cast shadows',
+              none: 'flat no-shadow lighting',
+            };
+
+            enhancedPrompt += `, ${viewAngleDesc[isometricSettings.viewAngle]}, ${shadowDesc[isometricSettings.shadowStyle]}`;
+
+            if (isometricSettings.gridAlignment) {
+              enhancedPrompt += `, grid-aligned tiles, ${isometricSettings.perspective} tile aspect ratio`;
+            }
+          }
+
+          const request: GenerationRequest = {
+            prompt: enhancedPrompt,
+            model,
+            dimensions: { width: tilesetSettings.tileSize, height: tilesetSettings.tileSize },
+          };
+
+          try {
+            const response = await apiClient.generateAsset(request);
+            if (response.success) {
+              successCount++;
+            }
+          } catch (tileErr) {
+            console.error(`Failed to generate ${piece} tile:`, tileErr);
+          }
+        }
+
+        if (successCount > 0) {
+          setSuccess(`✓ Generated ${successCount}/${generatedCount} tileset pieces successfully!`);
+          setPrompt('');
+          onGenerated?.();
+        } else {
+          setError('Failed to generate any tileset pieces');
+        }
       } else {
         // Single asset generation
         let enhancedPrompt = prompt;
@@ -382,7 +490,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
               onChange={(e) => setDimensions({ ...dimensions, width: parseInt(e.target.value) })}
               min={16}
               max={2048}
-              disabled={pixelArtEnabled}
+              disabled={pixelArtEnabled || tilesetEnabled}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
             />
           </div>
@@ -394,7 +502,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
               onChange={(e) => setDimensions({ ...dimensions, height: parseInt(e.target.value) })}
               min={16}
               max={2048}
-              disabled={pixelArtEnabled}
+              disabled={pixelArtEnabled || tilesetEnabled}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
             />
           </div>
@@ -447,6 +555,23 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
           }}
           onSettingsChange={(settings) => {
             setIsometricSettings(settings);
+          }}
+        />
+
+        {/* Tileset Settings */}
+        <TilesetSettings
+          enabled={tilesetEnabled}
+          onToggle={(enabled) => {
+            setTilesetEnabled(enabled);
+            if (enabled) {
+              setDimensions({ width: tilesetSettings.tileSize, height: tilesetSettings.tileSize });
+            }
+          }}
+          onSettingsChange={(settings) => {
+            setTilesetSettings(settings);
+            if (settings.enabled) {
+              setDimensions({ width: settings.tileSize, height: settings.tileSize });
+            }
           }}
         />
 
