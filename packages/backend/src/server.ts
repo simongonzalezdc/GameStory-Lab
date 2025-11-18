@@ -6,6 +6,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { config } from 'dotenv';
 import { PrismaClient } from '@prisma/client';
@@ -68,6 +69,24 @@ const validationLimiter = rateLimit({
 
 // Middleware
 app.use(helmet());
+
+// Enable gzip compression for all responses
+app.use(compression({
+  // Only compress responses larger than 1KB
+  threshold: 1024,
+  // Compression level (0-9, where 6 is default and good balance)
+  level: 6,
+  // Filter function to determine which responses to compress
+  filter: (req, res) => {
+    // Don't compress if client doesn't accept encoding
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    // Use compression's default filter
+    return compression.filter(req, res);
+  },
+}));
+
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',

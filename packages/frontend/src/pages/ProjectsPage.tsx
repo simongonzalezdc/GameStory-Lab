@@ -6,6 +6,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { projectsAPI } from '../services/api';
+import { useDebounce } from '../hooks';
 
 interface Project {
   id: string;
@@ -60,6 +61,9 @@ export function ProjectsPage() {
   const [creating, setCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
+
+  // Debounce search query to avoid excessive re-renders while typing
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const loadProjects = async () => {
     try {
@@ -127,7 +131,7 @@ export function ProjectsPage() {
   }, [projects]);
 
   const filteredProjects = useMemo(() => {
-    const normalized = searchQuery.trim().toLowerCase();
+    const normalized = debouncedSearchQuery.trim().toLowerCase();
     const filtered = normalized
       ? projects.filter((project) => {
           const haystack = `${project.name} ${project.genre ?? ''}`.toLowerCase();
@@ -147,7 +151,7 @@ export function ProjectsPage() {
           (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         );
     }
-  }, [projects, searchQuery, sortMode]);
+  }, [projects, debouncedSearchQuery, sortMode]);
 
   const recentActivity = useMemo(() => {
     return [...projects]

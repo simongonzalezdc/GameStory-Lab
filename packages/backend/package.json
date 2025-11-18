@@ -16,31 +16,32 @@
     "db:push": "prisma db push"
   },
   "dependencies": {
+    "@gameforge/shared": "*",
     "@google/generative-ai": "^0.17.0",
     "@prisma/client": "^6.19.0",
     "axios": "^1.7.9",
-    "bullmq": "^5.28.0",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "express-rate-limit": "^7.4.1",
     "helmet": "^8.0.0",
-    "ioredis": "^5.4.1",
     "ollama": "^0.5.10",
     "winston": "^3.17.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.2",
     "@types/supertest": "^6.0.2",
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/coverage-v8": "^4.0.10",
     "eslint": "^9.16.0",
     "prisma": "^6.19.0",
     "supertest": "^7.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.8"
+    "vitest": "^4.0.10"
   }
 }

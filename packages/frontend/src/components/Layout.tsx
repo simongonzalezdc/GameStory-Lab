@@ -1,16 +1,25 @@
 /**
  * Main Layout Component
  * Provides navigation and consistent page structure
+ * Memoized for performance optimization
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-export function Layout({ children }: LayoutProps) {
+// Navigation items constant (defined outside component to prevent recreation)
+const NAV_ITEMS = [
+  { path: '/', label: 'Projects', icon: '📁' },
+  { path: '/templates', label: 'Templates', icon: '🎨' },
+  { path: '/tutorial', label: 'Tutorial', icon: '📖' },
+  { path: '/health', label: 'Status', icon: '⚡' },
+] as const;
+
+function LayoutComponent({ children }: LayoutProps) {
   const location = useLocation();
   const [isDark, setIsDark] = useState(false);
 
@@ -19,7 +28,7 @@ export function Layout({ children }: LayoutProps) {
     const stored = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const shouldBeDark = stored === 'dark' || (!stored && prefersDark);
-    
+
     setIsDark(shouldBeDark);
     if (shouldBeDark) {
       document.documentElement.classList.add('dark');
@@ -31,7 +40,7 @@ export function Layout({ children }: LayoutProps) {
   const toggleTheme = () => {
     const newIsDark = !isDark;
     setIsDark(newIsDark);
-    
+
     if (newIsDark) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
@@ -40,13 +49,6 @@ export function Layout({ children }: LayoutProps) {
       localStorage.setItem('theme', 'light');
     }
   };
-
-  const navItems = [
-    { path: '/', label: 'Projects', icon: '📁' },
-    { path: '/templates', label: 'Templates', icon: '🎨' },
-    { path: '/tutorial', label: 'Tutorial', icon: '📖' },
-    { path: '/health', label: 'Status', icon: '⚡' },
-  ];
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
@@ -84,7 +86,7 @@ export function Layout({ children }: LayoutProps) {
 
             {/* Navigation */}
             <nav className="flex items-center gap-1" aria-label="Main navigation">
-              {navItems.map((item) => {
+              {NAV_ITEMS.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
                   <Link
@@ -175,3 +177,6 @@ export function Layout({ children }: LayoutProps) {
     </div>
   );
 }
+
+// Export memoized version to prevent unnecessary re-renders
+export const Layout = memo(LayoutComponent);

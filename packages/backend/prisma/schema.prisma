@@ -33,6 +33,8 @@ model Project {
   versions Version[]
 
   @@index([userId])
+  @@index([userId, updatedAt])
+  @@index([createdAt])
   @@map("projects")
 }
 
@@ -51,6 +53,8 @@ model Version {
   validationResults  ValidationResult[]
 
   @@index([projectId])
+  @@index([projectId, createdAt])
+  @@index([projectId, version])
   @@index([mechanics(ops: JsonbPathOps)], type: Gin)
   @@index([lore(ops: JsonbPathOps)], type: Gin)
   @@map("concepts")
@@ -72,6 +76,8 @@ model AiGeneration {
 
   @@index([conceptId])
   @@index([taskType])
+  @@index([conceptId, createdAt])
+  @@index([taskType, createdAt])
   @@map("ai_generations")
 }
 
@@ -90,5 +96,8 @@ model ValidationResult {
 
   @@index([conceptId])
   @@index([severity])
+  @@index([conceptId, dismissed])
+  @@index([conceptId, severity])
+  @@index([dismissed, severity])
   @@map("validation_results")
 }
