@@ -9,6 +9,9 @@ import { GenerationRequestSchema } from '@gameforge/shared';
 import type { MechanicsData, LoreData, Genre } from '@gameforge/shared';
 import { getMechanicsPrompt } from '../services/ai/prompts/mechanics.js';
 import { getLorePrompt } from '../services/ai/prompts/lore.js';
+import { getTitlePrompt } from '../services/ai/prompts/title.js';
+import { getRefinementPrompt } from '../services/ai/prompts/refinement.js';
+import { logger } from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -112,32 +115,70 @@ router.post('/', async (req, res, next) => {
       modelPreference || 'auto'
     );
 
-    // Parse AI response
+    // Parse AI response with improved error handling
     let generatedContent: any;
     try {
       // Clean the response (remove markdown code blocks if present)
       let cleanedContent = response.content.trim();
+      
+      // Remove markdown code blocks
       if (cleanedContent.startsWith('```json')) {
         cleanedContent = cleanedContent.replace(/```json\n?/g, '').replace(/```\n?/g, '');
       } else if (cleanedContent.startsWith('```')) {
         cleanedContent = cleanedContent.replace(/```\n?/g, '');
       }
+      
+      // Try to extract JSON if wrapped in text
+      const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedContent = jsonMatch[0];
+      }
+      
+      // Parse JSON
       generatedContent = JSON.parse(cleanedContent);
+      
+      // Validate that we got meaningful content
+      if (!generatedContent || (typeof generatedContent === 'object' && Object.keys(generatedContent).length === 0)) {
+        throw new Error('Empty or invalid content in AI response');
+      }
     } catch (error) {
+      logger.error('Failed to parse AI response', {
+        error,
+        taskType,
+        model: response.model,
+        responseLength: response.content.length,
+        responsePreview: response.content.substring(0, 200),
+      });
+      
       return res.status(500).json({
         error: {
           code: 'PARSE_ERROR',
-          message: 'Failed to parse AI response as JSON',
-          details: { rawResponse: response.content },
+          message: 'Failed to parse AI response as JSON. The AI model may have returned invalid or incomplete data.',
+          details: {
+            taskType,
+            model: response.model,
+            responsePreview: response.content.substring(0, 500),
+            suggestion: 'Try regenerating or using a different AI model',
+          },
         },
       });
     }
+
+    // Determine next version number based on existing concepts
+    const existingConcepts = await prisma.concept.findMany({
+      where: { projectId },
+      select: { version: true },
+      orderBy: { version: 'desc' },
+      take: 1,
+    });
+
+    const nextVersion = existingConcepts.length > 0 ? existingConcepts[0].version + 1 : 1;
 
     // Create concept in database
     const concept = await prisma.concept.create({
       data: {
         projectId,
-        version: 1, // Will be incremented for refinements
+        version: nextVersion,
         title: taskType === 'title' ? generatedContent.title : null,
         mechanics: taskType === 'mechanics' ? generatedContent : (context.existingContent?.mechanics || {}),
         lore: taskType === 'lore' ? generatedContent : (context.existingContent?.lore || {}),
@@ -181,65 +222,10 @@ router.post('/', async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('[Generate] Error:', error);
+    logger.error('Generation request failed', { error, projectId: req.body.projectId });
     next(error);
   }
 });
 
-/**
- * Generate title prompt
- */
-function getTitlePrompt(mechanics?: MechanicsData, lore?: LoreData, genre?: Genre): string {
-  return `Generate 10 compelling game title suggestions based on the following concept.
-
-${genre ? `Genre: ${genre}` : ''}
-
-${lore ? `Lore summary: ${JSON.stringify(lore, null, 2)}` : ''}
-
-${mechanics ? `Mechanics summary: ${JSON.stringify(mechanics, null, 2)}` : ''}
-
-Return as JSON array:
-{
-  "titles": [
-    {
-      "title": "Game Title",
-      "rationale": "Brief explanation of why this title fits"
-    }
-  ]
-}
-
-Titles should be:
-- Memorable and unique
-- Genre-appropriate
-- 1-5 words
-- Evocative of the game's themes
-- Easy to pronounce
-
-Output ONLY valid JSON.`;
-}
-
-/**
- * Generate refinement prompt
- */
-function getRefinementPrompt(mechanics?: MechanicsData, lore?: LoreData, focus?: string): string {
-  return `Refine and improve the following game concept with focus on: ${focus}
-
-Current Mechanics:
-${JSON.stringify(mechanics, null, 2)}
-
-Current Lore:
-${JSON.stringify(lore, null, 2)}
-
-Provide refined versions of BOTH mechanics and lore, ensuring they are more coherent and polished.
-
-Return as JSON:
-{
-  "mechanics": { ...improved mechanics... },
-  "lore": { ...improved lore... },
-  "improvements": ["list of specific improvements made"]
-}
-
-Output ONLY valid JSON.`;
-}
 
 export default router;

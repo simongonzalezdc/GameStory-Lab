@@ -8,6 +8,7 @@ import { prisma } from '../server.js';
 import { ValidationRequestSchema } from '@gameforge/shared';
 import type { MechanicsData, LoreData } from '@gameforge/shared';
 import { ValidationEngine } from '../services/validation/engine.js';
+import { logger } from '../utils/logger.js';
 
 const router = express.Router();
 const validationEngine = new ValidationEngine();
@@ -56,17 +57,15 @@ router.post('/', async (req, res, next) => {
       concept.project.genre || undefined
     );
 
-    // Store validation results in database
-    const validationId = crypto.randomUUID();
-
     // Delete previous validation results for this concept
     await prisma.validationResult.deleteMany({
       where: { conceptId },
     });
 
-    // Store new validation results
+    // Store new validation results and get the first ID as validationId
+    let validationId: string | null = null;
     if (result.issues.length > 0) {
-      await prisma.validationResult.createMany({
+      const createdResults = await prisma.validationResult.createMany({
         data: result.issues.map((issue) => ({
           conceptId,
           ruleName: issue.rule,
@@ -77,6 +76,17 @@ router.post('/', async (req, res, next) => {
           dismissed: false,
         })),
       });
+      
+      // Get the first validation result ID for the response
+      const firstResult = await prisma.validationResult.findFirst({
+        where: { conceptId },
+        select: { id: true },
+        orderBy: { createdAt: 'desc' },
+      });
+      validationId = firstResult?.id || null;
+    } else {
+      // Generate a UUID for the response even if no issues
+      validationId = crypto.randomUUID();
     }
 
     // Update concept metadata with consistency score
@@ -97,7 +107,7 @@ router.post('/', async (req, res, next) => {
       overallScore: result.overallScore,
     });
   } catch (error) {
-    console.error('[Validate] Error:', error);
+    logger.error('Validation request failed', { error, conceptId: req.body.conceptId });
     next(error);
   }
 });

@@ -6,6 +6,7 @@
 import type { MechanicsData, LoreData, Genre } from '@gameforge/shared';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { logger } from '../../utils/logger.js';
 
 export interface GenreTemplate {
   id: Genre;
@@ -39,13 +40,13 @@ export class TemplateService {
         const template = JSON.parse(fileContent) as GenreTemplate;
 
         this.templates.set(genre, template);
-        console.log(`[TemplateService] Loaded template: ${genre}`);
+        logger.debug('Loaded template', { genre });
       } catch (error) {
-        console.error(`[TemplateService] Failed to load template ${genre}:`, error);
+        logger.error('Failed to load template', { genre, error });
       }
     }
 
-    console.log(`[TemplateService] Loaded ${this.templates.size}/5 genre templates`);
+    logger.info('Template service initialized', { loadedTemplates: this.templates.size });
   }
 
   /**
@@ -58,7 +59,7 @@ export class TemplateService {
 
     const template = this.templates.get(genre);
     if (!template) {
-      console.warn(`[TemplateService] Template not found for genre: ${genre}`);
+      logger.warn('Template not found', { genre });
       return null;
     }
 

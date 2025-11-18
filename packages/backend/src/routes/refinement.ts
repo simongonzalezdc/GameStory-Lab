@@ -9,6 +9,7 @@ import type { RefinementFocus } from '@gameforge/shared';
 import { prisma } from '../lib/prisma.js';
 import { aiOrchestrator } from '../server.js';
 import { RefinementService } from '../services/refinement/refinement-service.js';
+import { logger } from '../utils/logger.js';
 
 const router = Router();
 
@@ -64,7 +65,7 @@ router.post('/', async (req: Request, res: Response) => {
       ...result,
     });
   } catch (error) {
-    console.error('[Refinement API] Error refining concept:', error);
+    logger.error('Refinement request failed', { error, conceptId: req.body.conceptId });
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to refine concept',
     });
@@ -87,7 +88,7 @@ router.get('/history/:projectId', async (req: Request, res: Response) => {
       count: history.length,
     });
   } catch (error) {
-    console.error('[Refinement API] Error getting version history:', error);
+    logger.error('Failed to get version history', { error, conceptId: req.params.conceptId });
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to get version history',
     });
@@ -116,7 +117,7 @@ router.post('/compare', async (req: Request, res: Response) => {
 
     res.json(comparison);
   } catch (error) {
-    console.error('[Refinement API] Error comparing versions:', error);
+    logger.error('Failed to compare versions', { error, conceptId: req.params.conceptId });
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to compare versions',
     });
@@ -149,7 +150,7 @@ router.post('/rollback', async (req: Request, res: Response) => {
       message: `Rolled back to version ${targetVersion}`,
     });
   } catch (error) {
-    console.error('[Refinement API] Error rolling back:', error);
+    logger.error('Failed to rollback concept', { error, conceptId: req.params.conceptId });
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to rollback',
     });

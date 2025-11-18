@@ -287,7 +287,7 @@ export class RefinementService {
         lore: parsed.lore,
       };
     } catch (error) {
-      console.error('[RefinementService] Failed to parse AI response:', error);
+      logger.error('Failed to parse AI response in refinement service', { error });
       throw new Error('Failed to parse refinement response');
     }
   }

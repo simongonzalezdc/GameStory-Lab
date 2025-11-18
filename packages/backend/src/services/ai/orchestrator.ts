@@ -12,6 +12,7 @@ import { OpenRouterClient } from './clients/openrouter.js';
 import { GoogleClient } from './clients/google.js';
 import { OllamaClient } from './clients/ollama.js';
 import type { IAIClient, AICompletionRequest, AICompletionResponse } from './clients/base.js';
+import { logger } from '../../utils/logger.js';
 
 export interface OrchestratorConfig {
   openrouterApiKey?: string;
@@ -40,7 +41,7 @@ export class AIOrchestrator {
         this.clients.set('openrouter', new OpenRouterClient({ apiKey: config.openrouterApiKey }));
       }
     } catch (error) {
-      console.warn('OpenRouter client initialization failed:', error);
+      logger.warn('OpenRouter client initialization failed', { error });
     }
 
     try {
@@ -48,13 +49,13 @@ export class AIOrchestrator {
         this.clients.set('google', new GoogleClient({ apiKey: config.googleApiKey }));
       }
     } catch (error) {
-      console.warn('Google client initialization failed:', error);
+      logger.warn('Google client initialization failed', { error });
     }
 
     try {
       this.clients.set('ollama', new OllamaClient({ baseUrl: config.ollamaBaseUrl }));
     } catch (error) {
-      console.warn('Ollama client initialization failed:', error);
+      logger.warn('Ollama client initialization failed', { error });
     }
   }
 
@@ -70,9 +71,10 @@ export class AIOrchestrator {
     // Check cost limits
     const currentHourCost = this.getCurrentHourCost();
     if (currentHourCost >= this.costLimit) {
-      console.warn(
-        `Cost limit reached ($${currentHourCost.toFixed(2)}/$${this.costLimit}), forcing Ollama`
-      );
+      logger.warn('Cost limit reached, forcing Ollama', {
+        currentCost: currentHourCost,
+        limit: this.costLimit,
+      });
       preference = 'ollama';
     }
 
@@ -83,7 +85,7 @@ export class AIOrchestrator {
       throw new Error('No AI clients available. Please configure at least one AI provider.');
     }
 
-    console.log(`[Orchestrator] Using ${selection.rationale}`);
+    logger.debug('Model selected', { rationale: selection.rationale, model: selection.model });
 
     // Execute the completion
     const request: AICompletionRequest = {
@@ -104,11 +106,14 @@ export class AIOrchestrator {
 
       return response;
     } catch (error) {
-      console.error(`[Orchestrator] Generation failed with ${selection.client.name}:`, error);
+      logger.error('Generation failed, attempting fallback', {
+        client: selection.client.name,
+        error,
+      });
 
       // Fallback to Ollama if available
       if (selection.client.type !== 'ollama' && this.clients.has('ollama')) {
-        console.log('[Orchestrator] Falling back to Ollama');
+        logger.info('Falling back to Ollama');
         const ollamaClient = this.clients.get('ollama')!;
         const fallbackRequest: AICompletionRequest = {
           ...request,

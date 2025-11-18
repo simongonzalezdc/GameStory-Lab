@@ -5,6 +5,7 @@
 
 import type { MechanicsData, LoreData, Genre } from '@gameforge/shared';
 import { AIOrchestrator } from '../ai/orchestrator.js';
+import { logger } from '../../utils/logger.js';
 
 export interface TitleSuggestion {
   title: string;
@@ -265,7 +266,7 @@ Return as JSON array:
       const parsed = JSON.parse(jsonMatch[0]);
       return parsed.titles || [];
     } catch (error) {
-      console.error('[TitleService] Failed to parse AI response:', error);
+      logger.error('Failed to parse AI response in title service', { error });
       return [];
     }
   }

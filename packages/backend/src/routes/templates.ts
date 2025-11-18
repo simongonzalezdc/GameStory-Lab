@@ -7,6 +7,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { Genre, MechanicsData, LoreData } from '@gameforge/shared';
 import { getTemplateService } from '../services/templates/template-service.js';
+import { logger } from '../utils/logger.js';
 
 const router = Router();
 const templateService = getTemplateService();
@@ -23,7 +24,7 @@ router.get('/', (_req: Request, res: Response) => {
       count: genres.length,
     });
   } catch (error) {
-    console.error('[Templates API] Error listing templates:', error);
+    logger.error('Failed to list templates', { error });
     res.status(500).json({ error: 'Failed to list templates' });
   }
 });
@@ -43,7 +44,7 @@ router.get('/:genre', (req: Request, res: Response) => {
 
     res.json(template);
   } catch (error) {
-    console.error('[Templates API] Error getting template:', error);
+    logger.error('Failed to get template', { error, genre: req.params.genre });
     res.status(500).json({ error: 'Failed to get template' });
   }
 });
@@ -63,7 +64,7 @@ router.get('/:genre/stats', (req: Request, res: Response) => {
 
     res.json(stats);
   } catch (error) {
-    console.error('[Templates API] Error getting template stats:', error);
+    logger.error('Failed to get template stats', { error, genre: req.params.genre });
     res.status(500).json({ error: 'Failed to get template stats' });
   }
 });
@@ -100,7 +101,7 @@ router.post('/:genre/customize', (req: Request, res: Response) => {
       customized: true,
     });
   } catch (error) {
-    console.error('[Templates API] Error customizing template:', error);
+    logger.error('Failed to customize template', { error, genre: req.params.genre });
     res.status(500).json({ error: 'Failed to customize template' });
   }
 });
@@ -167,7 +168,7 @@ router.post('/:genre/create-project', async (req: Request, res: Response) => {
       message: `Project created from ${genre} template`,
     });
   } catch (error) {
-    console.error('[Templates API] Error creating project from template:', error);
+    logger.error('Failed to create project from template', { error, genre: req.params.genre });
     res.status(500).json({ error: 'Failed to create project from template' });
   }
 });

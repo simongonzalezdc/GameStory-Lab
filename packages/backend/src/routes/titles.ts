@@ -8,6 +8,7 @@ import type { Request, Response } from 'express';
 import type { Genre } from '@gameforge/shared';
 import { aiOrchestrator } from '../server.js';
 import { TitleService } from '../services/title/title-service.js';
+import { logger } from '../utils/logger.js';
 
 const router = Router();
 
@@ -49,7 +50,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       topPick: titles[0], // Highest scoring title
     });
   } catch (error) {
-    console.error('[Titles API] Error generating titles:', error);
+    logger.error('Title generation failed', { error, projectId: req.body.projectId });
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to generate titles',
     });
@@ -82,7 +83,7 @@ router.post('/variations', async (req: Request, res: Response) => {
       count: variations.length,
     });
   } catch (error) {
-    console.error('[Titles API] Error generating variations:', error);
+    logger.error('Title variation generation failed', { error, conceptId: req.params.conceptId });
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to generate variations',
     });
@@ -117,7 +118,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
       recommendations: seoAnalysis.suggestions,
     });
   } catch (error) {
-    console.error('[Titles API] Error analyzing title:', error);
+    logger.error('Title analysis failed', { error, title: req.body.title });
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to analyze title',
     });

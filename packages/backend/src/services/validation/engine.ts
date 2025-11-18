@@ -4,6 +4,7 @@
  */
 
 import type { MechanicsData, LoreData, ValidationIssue, ValidationCategory } from '@gameforge/shared';
+import { logger } from '../../utils/logger.js';
 
 // Mechanics-Lore Alignment rules
 import {
@@ -271,7 +272,10 @@ export class ValidationEngine {
       execute: validateScopeRealityCheck,
     });
 
-    console.log(`[ValidationEngine] Registered ${this.rules.length} validation rules across ${new Set(this.rules.map(r => r.category)).size} categories`);
+    logger.info('Validation engine initialized', {
+      ruleCount: this.rules.length,
+      categoryCount: new Set(this.rules.map((r) => r.category)).size,
+    });
   }
 
   /**
@@ -292,7 +296,7 @@ export class ValidationEngine {
           const issue = await rule.execute(mechanics, lore, genre);
           return { rule, issue };
         } catch (error) {
-          console.error(`[Validation] Rule ${rule.name} failed:`, error);
+          logger.error('Validation rule failed', { rule: rule.name, error });
           return { rule, issue: null };
         }
       })

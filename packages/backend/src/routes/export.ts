@@ -5,6 +5,7 @@
 
 import express from 'express';
 import { prisma } from '../server.js';
+import { logger } from '../utils/logger.js';
 import { ExportRequestSchema } from '@gameforge/shared';
 import type { MechanicsData, LoreData } from '@gameforge/shared';
 import { generateGDD, generatePitch, generateTechnical } from '../services/export/templates.js';
@@ -110,7 +111,7 @@ router.post('/', async (req, res, next) => {
       filename,
     });
   } catch (error) {
-    console.error('[Export] Error:', error);
+    logger.error('Export request failed', { error, conceptId: req.body.conceptId });
     next(error);
   }
 });

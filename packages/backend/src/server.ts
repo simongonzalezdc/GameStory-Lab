@@ -6,9 +6,12 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { config } from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { AIOrchestrator } from './services/ai/orchestrator.js';
+import { handleApiError, createErrorResponse } from './utils/errors.js';
+import { logger } from './utils/logger.js';
 
 // Load environment variables
 config();
@@ -23,6 +26,20 @@ export const prisma = new PrismaClient();
 // Initialize AI Orchestrator
 export const aiOrchestrator = new AIOrchestrator();
 
+// Rate limiting middleware
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute default
+  max: parseInt(process.env.RATE_LIMIT_MAX || '20', 10), // 20 requests per window default
+  message: {
+    error: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many requests from this IP, please try again later.',
+    },
+  },
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false, // Disable `X-RateLimit-*` headers
+});
+
 // Middleware
 app.use(helmet());
 app.use(
@@ -34,9 +51,12 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Apply rate limiting to all API routes (excluding health check)
+app.use('/api', limiter);
+
 // Request logging
 app.use((req, _res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  logger.debug(`${req.method} ${req.path}`, { ip: req.ip });
   next();
 });
 
@@ -96,19 +116,12 @@ app.use('/api/refinement', refinementRouter);
 app.use('/api/titles', titlesRouter);
 
 // Error handling middleware
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('[Error]', err);
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const apiError = handleApiError(err);
+  const statusCode = apiError.statusCode;
+  const includeStack = process.env.NODE_ENV === 'development';
 
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal server error';
-
-  res.status(statusCode).json({
-    error: {
-      code: err.code || 'INTERNAL_ERROR',
-      message,
-      details: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    },
-  });
+  res.status(statusCode).json(createErrorResponse(apiError, includeStack));
 });
 
 // 404 handler
@@ -126,34 +139,36 @@ async function start() {
   try {
     // Test database connection
     await prisma.$connect();
-    console.log('✓ Database connected');
+    logger.info('Database connected');
 
     // Check AI providers
     const aiStatus = await aiOrchestrator.getStatus();
-    console.log('✓ AI Orchestrator initialized');
-    console.log('  Available providers:', aiStatus.clients.filter((c) => c.available).map((c) => c.name).join(', '));
+    logger.info('AI Orchestrator initialized', {
+      availableProviders: aiStatus.clients.filter((c) => c.available).map((c) => c.name),
+    });
 
     // Start listening
     app.listen(PORT, () => {
-      console.log(`\n🚀 GameForge Studio API running on http://localhost:${PORT}`);
-      console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`   API Docs: http://localhost:${PORT}/api\n`);
+      logger.info(`GameForge Studio API running on http://localhost:${PORT}`, {
+        environment: process.env.NODE_ENV || 'development',
+        port: PORT,
+      });
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    logger.error('Failed to start server', { error });
     process.exit(1);
   }
 }
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('\nShutting down gracefully...');
+  logger.info('Shutting down gracefully (SIGINT)');
   await prisma.$disconnect();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('\nShutting down gracefully...');
+  logger.info('Shutting down gracefully (SIGTERM)');
   await prisma.$disconnect();
   process.exit(0);
 });
