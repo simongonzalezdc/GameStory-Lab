@@ -7,6 +7,7 @@ import { sendAIMessage, applyMusicActions } from '@/lib/ai/ai-service';
 import AISetupWizard from './AISetupWizard';
 import { AlertDialog } from '../ui/AlertDialog';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
+import type { MusicAction } from '@/types/ai';
 
 export default function AIChat() {
   const { isAIChatOpen, toggleAIChat } = useUIStore();
@@ -15,6 +16,11 @@ export default function AIChat() {
   const [input, setInput] = useState('');
   const [showSetup, setShowSetup] = useState(false);
   const [showConfigError, setShowConfigError] = useState(false);
+  const [recentActions, setRecentActions] = useState<Array<{
+    action: MusicAction;
+    success: boolean;
+    error?: string;
+  }>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when messages change
@@ -48,20 +54,22 @@ export default function AIChat() {
         s => s.id === projectStore.currentSceneId
       );
 
+      // Build context with recent actions - PASSING FULL PROJECT FOR PROJECT-WIDE CONTEXT
+      const contextWithHistory = {
+        currentScene,
+        projectSnapshot: projectStore.project ? {
+          // Include all project data including scenes array for project-wide context
+          ...projectStore.project,
+          scenes: projectStore.project.scenes // Ensure scenes are included
+        } : undefined,
+        recentActions: recentActions.slice(-3) // Last 3 actions
+      };
+
       // Send message to AI
       const response = await sendAIMessage(
         config,
         [...messages, { role: 'user', content: userMessage }],
-        {
-          currentScene,
-          projectSnapshot: projectStore.project
-            ? {
-                bpm: projectStore.project.bpm,
-                defaultKey: projectStore.project.defaultKey,
-                defaultScale: projectStore.project.defaultScale,
-              }
-            : undefined,
-        },
+        contextWithHistory,
         controller.signal
       );
 
@@ -72,18 +80,47 @@ export default function AIChat() {
 
       // Apply actions if any
       if (response.actions && response.actions.length > 0) {
-        const result = applyMusicActions(response.actions, projectStore as Parameters<typeof applyMusicActions>[1]);
+        // Log actions in development for debugging
+        if (import.meta.env.MODE === 'development') {
+          console.info('[AI Actions]', response.actions);
+        }
+
+        const result = applyMusicActions(response.actions, {
+          ...projectStore,
+          currentSceneId: projectStore.currentSceneId,
+        } as Parameters<typeof applyMusicActions>[1]);
+
+        // Track action results for feedback loop
+        const actionResults = response.actions.map(action => ({
+          action,
+          success: result.success > 0 && !result.errors.find(e => e.includes(action.type)),
+          error: result.errors.find(e => e.includes(action.type))
+        }));
+
+        // Update recent actions (keep last 5)
+        setRecentActions(prev => [
+          ...prev.slice(-4),
+          ...actionResults
+        ]);
 
         if (result.failed > 0) {
+          const errorDetails = result.errors.join('; ');
           errorHandler.handle(
-            new Error(`${result.failed} AI actions failed: ${result.errors.join(', ')}`),
+            new Error(`${result.failed} AI actions failed: ${errorDetails}`),
             'AI Actions',
             ErrorSeverity.WARNING
           );
+          
+          // Show detailed error message to user
           addMessage({
             role: 'assistant',
-            content: `Note: ${result.failed} action(s) could not be applied. ${result.success} succeeded.`,
+            content: `⚠️ ${result.failed} action(s) could not be applied: ${errorDetails}. ${result.success} action(s) succeeded.`,
           });
+        } else if (result.success > 0) {
+          // Confirm successful actions
+          if (import.meta.env.MODE === 'development') {
+            console.info(`[AI Actions] Successfully applied ${result.success} action(s)`);
+          }
         }
       }
     } catch (error) {
@@ -96,7 +133,7 @@ export default function AIChat() {
       setLoading(false);
       setAbortController(null);
     }
-  }, [input, isLoading, config, addMessage, setLoading, setAbortController, messages, projectStore]);
+  }, [input, isLoading, config, addMessage, setLoading, setAbortController, messages, projectStore, recentActions]);
 
   if (!isAIChatOpen) {
     return (

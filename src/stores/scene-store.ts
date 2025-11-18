@@ -98,7 +98,7 @@ export const sceneStore: SceneStoreActions = {
       tracks: sceneToDuplicate.tracks.map((track: Track) => ({
         ...track,
         id: crypto.randomUUID(),
-        clips: track.clips.map((clip: Clip) => ({
+        clips: (track.clips ?? []).map((clip: Clip) => ({
           ...clip,
           id: crypto.randomUUID(),
         })),
@@ -115,4 +115,3 @@ export const sceneStore: SceneStoreActions = {
     };
   },
 };
-

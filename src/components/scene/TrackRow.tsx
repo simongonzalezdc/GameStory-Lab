@@ -52,6 +52,9 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
     }
   }, [scene, track.id]);
 
+  const clips = track.clips ?? [];
+  const clipCount = clips.length;
+
   return (
     <>
       <ConfirmDialog
@@ -77,14 +80,18 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
           <span className="text-2xl">{ROLE_ICONS[track.role] || '🎵'}</span>
           <div className="flex-1">
             <h4 className="font-semibold text-gray-900">{track.name || `${track.role} Track`}</h4>
-            <p className="text-sm text-gray-500">{track.clips.length} clips</p>
+            <p className="text-sm text-gray-500">{clipCount} {clipCount === 1 ? 'clip' : 'clips'}</p>
           </div>
 
           <div className="flex items-center gap-2">
             <Button
               size="sm"
               variant={track.muted ? 'secondary' : 'ghost'}
-              onClick={() => updateTrack(sceneId, track.id, { muted: !track.muted })}
+              onClick={() => {
+                updateTrack(sceneId, track.id, { muted: !track.muted });
+                // Reschedule scene to reflect mute changes
+                getAudioEngine().rescheduleScene();
+              }}
               title="Mute/Unmute"
               aria-label={track.muted ? `Unmute ${track.name || track.role} track` : `Mute ${track.name || track.role} track`}
             >
@@ -93,7 +100,11 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
             <Button
               size="sm"
               variant={track.solo ? 'primary' : 'ghost'}
-              onClick={() => updateTrack(sceneId, track.id, { solo: !track.solo })}
+              onClick={() => {
+                updateTrack(sceneId, track.id, { solo: !track.solo });
+                // Reschedule scene to reflect solo changes
+                getAudioEngine().rescheduleScene();
+              }}
               title="Solo"
               aria-label={track.solo ? `Disable solo for ${track.name || track.role} track` : `Enable solo for ${track.name || track.role} track`}
             >
@@ -103,7 +114,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
               size="sm"
               variant="ghost"
               onClick={handleExportMidi}
-              disabled={exporting || track.clips.length === 0}
+              disabled={exporting || clipCount === 0}
               title="Export track as MIDI"
               aria-label={`Export ${track.name || track.role} track as MIDI file`}
             >

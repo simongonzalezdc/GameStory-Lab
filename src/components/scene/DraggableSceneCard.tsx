@@ -2,7 +2,7 @@
  * Draggable wrapper for SceneCard
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import SceneCard from './SceneCard';
 import type { Scene } from '@/types';
 
@@ -56,4 +56,3 @@ export default function DraggableSceneCard({ scene, index, onDragEnd }: Draggabl
     </div>
   );
 }
-

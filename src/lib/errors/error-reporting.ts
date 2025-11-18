@@ -83,9 +83,9 @@ export function reportError(error: AppError): void {
  * @internal - Used when integrating Sentry
  * @unused - Reserved for future Sentry integration
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
-// @ts-ignore - Reserved for future use
-function mapSeverityToSentryLevel(severity: string): 'info' | 'warning' | 'error' | 'fatal' {
+// Export to prevent unused variable linting error
+// Reserved for future use when Sentry is integrated
+export function mapSeverityToSentryLevel(severity: string): 'info' | 'warning' | 'error' | 'fatal' {
   switch (severity) {
     case 'info':
       return 'info';
@@ -99,4 +99,3 @@ function mapSeverityToSentryLevel(severity: string): 'info' | 'warning' | 'error
       return 'error';
   }
 }
-

@@ -14,10 +14,42 @@ export default function SceneEditor() {
   const audioEngine = getAudioEngine();
   const [showMidiExport, setShowMidiExport] = useState(false);
 
-  // Memoize scene lookup
+  // Memoize scene lookup - use JSON.stringify to detect deep changes
   const currentScene = useMemo(
     () => project?.scenes.find(s => s.id === currentSceneId),
     [project?.scenes, currentSceneId]
+  );
+
+  // Create a stable reference that changes when scene data changes
+  const sceneDataString = useMemo(
+    () => currentScene ? JSON.stringify({
+      id: currentScene.id,
+      bpm: currentScene.bpm,
+      key: currentScene.key,
+      scale: currentScene.scale,
+      intensityRange: currentScene.intensityRange,
+      tracks: (currentScene.tracks ?? []).map(t => ({
+        id: t.id,
+        muted: t.muted,
+        solo: t.solo,
+        volume: t.volume,
+        pan: t.pan,
+        clips: (t.clips ?? []).map(c => ({
+          id: c.id,
+          muted: c.muted,
+          generator: c.generator,
+          lengthBars: c.lengthBars,
+          offset: c.offset || 0,
+          customNotes: (c.customNotes ?? []).map(note => [
+            note.pitch,
+            note.time,
+            note.duration,
+            note.velocity,
+          ]),
+        })),
+      })),
+    }) : null,
+    [currentScene]
   );
 
   useEffect(() => {
@@ -26,7 +58,8 @@ export default function SceneEditor() {
         errorHandler.handle(error, 'Scene Loading', ErrorSeverity.ERROR);
       });
     }
-  }, [currentScene, audioEngine]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSceneId, sceneDataString, audioEngine]); // Use sceneDataString to detect changes (currentScene excluded to avoid infinite loop)
 
   const handlePlayPause = useCallback(async () => {
     if (!audioEngine.initialized) {

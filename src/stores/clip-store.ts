@@ -17,6 +17,7 @@ export const clipStore: ClipStoreActions = {
     const newClip: Clip = {
       ...clipData,
       id: crypto.randomUUID(),
+      customNotes: clipData.customNotes ?? [],
     };
 
     const updatedScenes = project.scenes.map((scene: any) =>
@@ -25,7 +26,7 @@ export const clipStore: ClipStoreActions = {
             ...scene,
             tracks: scene.tracks.map((track: any) =>
               track.id === trackId
-                ? { ...track, clips: [...track.clips, newClip] }
+                ? { ...track, clips: [...(Array.isArray(track.clips) ? track.clips : []), newClip] }
                 : track
             ),
           }
@@ -63,7 +64,7 @@ export const clipStore: ClipStoreActions = {
               track.id === trackId
                 ? {
                     ...track,
-                    clips: track.clips.map((clip: Clip) =>
+                    clips: (Array.isArray(track.clips) ? track.clips : []).map((clip: Clip) =>
                       clip.id === clipId ? { ...clip, ...updates } : clip
                     ),
                   }
@@ -92,7 +93,7 @@ export const clipStore: ClipStoreActions = {
               track.id === trackId
                 ? {
                     ...track,
-                    clips: track.clips.filter((clip: Clip) => clip.id !== clipId),
+                    clips: (Array.isArray(track.clips) ? track.clips : []).filter((clip: Clip) => clip.id !== clipId),
                   }
                 : track
             ),
@@ -110,4 +111,3 @@ export const clipStore: ClipStoreActions = {
     };
   },
 };
-

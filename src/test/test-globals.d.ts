@@ -13,11 +13,20 @@ declare global {
     showOpenFilePicker: () => Promise<FileSystemFileHandle[]>;
     showSaveFilePicker: () => Promise<FileSystemFileHandle>;
   }
+
+  // Define FileSystem API types that are missing in test environment
+  interface FileSystemDirectoryHandle {
+    kind: 'directory';
+    name: string;
+  }
+
+  interface FileSystemFileHandle {
+    kind: 'file';
+    name: string;
+  }
 }
 
 // Mock class for AudioContext in tests
-declare class MockAudioContext {
+export class MockAudioContext {
   constructor();
 }
-
-export {};

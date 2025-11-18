@@ -1,8 +1,7 @@
-/// <reference path="./test-globals.d.ts" />
-
 import '@testing-library/jest-dom';
 import { afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
+import './test-globals.d.ts';
 
 // Cleanup after each test
 afterEach(() => {

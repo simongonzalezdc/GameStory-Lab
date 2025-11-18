@@ -51,6 +51,14 @@ export interface Track {
 
 export type TrackRole = 'drums' | 'bass' | 'pad' | 'lead' | 'fx' | 'other';
 
+export interface PianoRollNote {
+  id: string;
+  pitch: number; // MIDI note number
+  time: number; // In bars
+  duration: number; // In bars
+  velocity: number; // 0-1
+}
+
 export interface Clip {
   id: string;
   lengthBars: number;
@@ -59,6 +67,7 @@ export interface Clip {
   probability?: number; // 0-1, likelihood of playing
   muted: boolean;
   offset?: number; // Start offset in bars
+  customNotes?: PianoRollNote[]; // Optional piano roll override data
 }
 
 export interface GeneratorConfig {

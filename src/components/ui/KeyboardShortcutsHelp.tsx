@@ -60,11 +60,13 @@ export default function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcu
   ];
 
   return (
-    <Dialog open={open} onClose={onClose} title="Keyboard Shortcuts">
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      title="Keyboard Shortcuts"
+      description="Use these keyboard shortcuts to speed up your workflow"
+    >
       <div className="space-y-4">
-        <p className="text-sm text-gray-600">
-          Use these keyboard shortcuts to speed up your workflow:
-        </p>
 
         <div className="space-y-2">
           {shortcuts.map((shortcut, idx) => (

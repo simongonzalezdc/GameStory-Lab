@@ -5,10 +5,11 @@
 
 import { Midi, Track as MidiTrack } from '@tonejs/midi';
 import type { Scene, Track, Clip } from '@/types';
-import { generateNotes } from '@/lib/generators/factory';
+import { getClipPlaybackNotes } from '@/lib/audio/clip-note-utils';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { sanitizeFilename } from '@/lib/utils/filename';
 import { DEFAULT_BPM } from '@/lib/utils/constants';
+import { noteNameToMidi } from '@/lib/theory/scales';
 
 /**
  * Export options for MIDI generation
@@ -80,8 +81,10 @@ function createMidiFromScene(scene: Scene, tracks: Track[]): Midi {
     midiTrack.channel = getChannelForRole(track.role);
     midiTrack.instrument.number = getInstrumentNumberForRole(track.role);
 
+    const clips = track.clips ?? [];
+
     // Add all clips from this track
-    track.clips.forEach((clip) => {
+    clips.forEach((clip) => {
       if (clip.muted) return;
       addClipToMidiTrack(midiTrack, clip, scene);
     });
@@ -106,7 +109,8 @@ function createMidiFromTrack(scene: Scene, track: Track): Midi {
   midiTrack.instrument.number = getInstrumentNumberForRole(track.role);
 
   // Add all clips from this track
-  track.clips.forEach((clip) => {
+  const clips = track.clips ?? [];
+  clips.forEach((clip) => {
     if (clip.muted) return;
     addClipToMidiTrack(midiTrack, clip, scene);
   });
@@ -123,7 +127,7 @@ function addClipToMidiTrack(midiTrack: MidiTrack, clip: Clip, scene: Scene): voi
   const bpm = scene.bpm || DEFAULT_BPM;
 
   // Generate notes from the clip's generator
-  const notes = generateNotes(clip.generator, key, scale, clip.lengthBars, bpm);
+  const notes = getClipPlaybackNotes(clip, key, scale, bpm);
 
   // Convert to MIDI notes
   notes.forEach((note) => {
@@ -138,47 +142,6 @@ function addClipToMidiTrack(midiTrack: MidiTrack, clip: Clip, scene: Scene): voi
       velocity: note.velocity,
     });
   });
-}
-
-/**
- * Convert note name (e.g., "C4") to MIDI number
- */
-function noteNameToMidi(noteName: string): number {
-  const noteMap: { [key: string]: number } = {
-    C: 0,
-    'C#': 1,
-    Db: 1,
-    D: 2,
-    'D#': 3,
-    Eb: 3,
-    E: 4,
-    F: 5,
-    'F#': 6,
-    Gb: 6,
-    G: 7,
-    'G#': 8,
-    Ab: 8,
-    A: 9,
-    'A#': 10,
-    Bb: 10,
-    B: 11,
-  };
-
-  // Parse note name (e.g., "C#4" -> note="C#", octave=4)
-  const match = noteName.match(/^([A-G][#b]?)(-?\d+)$/);
-  if (!match) {
-    errorHandler.handle(
-      new Error(`Invalid note name: ${noteName}`),
-      'MIDI Note Conversion',
-      ErrorSeverity.WARNING
-    );
-    return 60; // Default to middle C
-  }
-
-  const [, note, octaveStr] = match;
-  const octave = parseInt(octaveStr, 10);
-
-  return noteMap[note] + (octave + 1) * 12;
 }
 
 /**
@@ -246,7 +209,8 @@ export async function exportTrackToMidi(
       throw new Error(`Track ${trackId} not found`);
     }
 
-    if (track.clips.length === 0) {
+    const clips = track.clips ?? [];
+    if (clips.length === 0) {
       throw new Error('Track has no clips to export');
     }
 

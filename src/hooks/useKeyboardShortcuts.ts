@@ -27,6 +27,11 @@ export function useKeyboardShortcuts(
     if (!enabled) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Don't interfere if user is typing in an input field
+      if (isTypingInInput(event)) {
+        return;
+      }
+
       for (const shortcut of shortcuts) {
         const keyMatches = event.key.toLowerCase() === shortcut.key.toLowerCase();
         const ctrlMatches = shortcut.ctrl === undefined || shortcut.ctrl === (event.ctrlKey || event.metaKey);

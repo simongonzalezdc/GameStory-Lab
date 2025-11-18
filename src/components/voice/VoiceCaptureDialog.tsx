@@ -100,12 +100,13 @@ export default function VoiceCaptureDialog({
   }, [handleStopRecording, onClose]);
 
   return (
-    <Dialog open={open} onClose={handleClose} title="Capture Voice Melody">
+    <Dialog 
+      open={open} 
+      onClose={handleClose} 
+      title="Capture Voice Melody"
+      description="Hum or sing a melody into your microphone. The app will detect the pitches and convert them to MIDI notes."
+    >
       <div className="space-y-4">
-        <div className="text-sm text-gray-600">
-          Hum or sing a melody into your microphone. The app will detect the pitches and convert
-          them to MIDI notes.
-        </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">

@@ -14,6 +14,9 @@ import { TutorialErrorBoundary } from './components/TutorialErrorBoundary';
 import { errorHandler, ErrorSeverity } from './lib/errors/error-handler';
 import { initErrorReporting } from './lib/errors/error-reporting';
 import { initAnalytics } from './lib/analytics/analytics';
+import { useAIStore } from './stores/ai-store';
+import { setupOllama } from './lib/ai/ollama-setup';
+import type { LocalConfig } from './types';
 
 // Lazy load heavy components
 const AIChat = lazy(() => import('./components/ai/AIChat'));
@@ -33,11 +36,41 @@ function App() {
   // Enable auto-save
   useAutoSave();
 
+  const { config } = useAIStore();
+
   // Initialize error reporting and analytics on mount
   useEffect(() => {
     initErrorReporting();
     initAnalytics();
   }, []);
+
+  // Check Ollama setup if local provider is configured
+  // Automatically download missing models
+  useEffect(() => {
+    if (config?.provider === 'local' && 'baseURL' in config && 'model' in config) {
+      const localConfig = config as LocalConfig;
+      setupOllama(localConfig, true).then((result) => {
+        if (!result.success) {
+          errorHandler.handle(
+            new Error(result.message),
+            'Ollama Setup Check',
+            ErrorSeverity.WARNING
+          );
+        } else {
+          // Log success in development mode
+          if (import.meta.env.MODE === 'development') {
+            console.info('[Ollama Setup]', result.message);
+          }
+        }
+      }).catch((error) => {
+        errorHandler.handle(
+          error,
+          'Ollama Setup Check',
+          ErrorSeverity.WARNING
+        );
+      });
+    }
+  }, [config]);
 
   useEffect(() => {
     // Create default project if none exists

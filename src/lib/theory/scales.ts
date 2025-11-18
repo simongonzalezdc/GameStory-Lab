@@ -4,6 +4,18 @@
 
 export const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
+const ENHARMONIC_EQUIVALENTS: Record<string, string> = {
+  Db: 'C#',
+  Eb: 'D#',
+  Fb: 'E',
+  'E#': 'F',
+  Gb: 'F#',
+  Ab: 'G#',
+  Bb: 'A#',
+  Cb: 'B',
+  'B#': 'C',
+};
+
 export const SCALE_INTERVALS: Record<string, number[]> = {
   major: [0, 2, 4, 5, 7, 9, 11],
   minor: [0, 2, 3, 5, 7, 8, 10],
@@ -40,6 +52,31 @@ export function midiToNote(midi: number): { note: string; octave: number } {
     note: NOTES[noteIndex],
     octave,
   };
+}
+
+/**
+ * Convert a note name (e.g., "C#4", "Bb3") to a MIDI note number.
+ */
+export function noteNameToMidi(noteName: string): number {
+  const match = noteName.match(/^([A-Ga-g][#b]?)(-?\d+)$/);
+  if (!match) {
+    return 60; // Default to middle C on invalid input
+  }
+
+  const [, rawNote, octaveStr] = match;
+  const normalizedNote =
+    ENHARMONIC_EQUIVALENTS[formatNoteName(rawNote)] ?? formatNoteName(rawNote);
+  const octave = parseInt(octaveStr, 10);
+
+  return noteToMidi(normalizedNote, octave);
+}
+
+function formatNoteName(note: string): string {
+  if (note.length === 1) {
+    return note.toUpperCase();
+  }
+
+  return note[0].toUpperCase() + note.slice(1);
 }
 
 /**

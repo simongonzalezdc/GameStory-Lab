@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { Input } from '../ui/Input';
 import type { AIClientId, AIConfig, OpenRouterConfig, MinimaxConfig, GLMConfig, LocalConfig } from '@/types';
+import { setupOllama } from '@/lib/ai/ollama-setup';
 
 interface AISetupWizardProps {
   open: boolean;
@@ -70,7 +71,12 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} title="Configure AI Assistant">
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      title="Configure AI Assistant"
+      description="Set up your AI provider and API credentials to enable AI-powered music generation"
+    >
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -190,6 +196,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
               onChange={(e) => setModel(e.target.value)}
               placeholder="llama3.1"
             />
+            <TestOllamaConnection baseURL={baseURL} model={model} />
             <p className="text-xs text-gray-500">
               Make sure Ollama is running and the model is downloaded. Install Ollama from{' '}
               <a
@@ -212,5 +219,71 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
         </div>
       </div>
     </Dialog>
+  );
+}
+
+/**
+ * Test Ollama connection component
+ */
+function TestOllamaConnection({ baseURL, model }: { baseURL: string; model: string }) {
+  const [testing, setTesting] = useState(false);
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const handleTest = async () => {
+    if (!baseURL || !model) {
+      setResult({
+        success: false,
+        message: 'Please enter both Ollama URL and Model Name',
+      });
+      return;
+    }
+
+    setTesting(true);
+    setResult(null);
+
+    try {
+      const testResult = await setupOllama({
+        provider: 'local',
+        baseURL,
+        model,
+      });
+      setResult(testResult);
+    } catch (error) {
+      setResult({
+        success: false,
+        message: error instanceof Error ? error.message : 'Connection test failed',
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        onClick={handleTest}
+        disabled={testing || !baseURL || !model}
+        className="w-full"
+      >
+        {testing ? 'Testing...' : 'Test Connection'}
+      </Button>
+      {result && (
+        <div
+          className={`text-xs p-2 rounded ${
+            result.success
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
+          }`}
+        >
+          <div className="font-semibold mb-1">
+            {result.success ? '✓ Connection Successful' : '✗ Connection Failed'}
+          </div>
+          <div className="whitespace-pre-line">{result.message}</div>
+        </div>
+      )}
+    </div>
   );
 }

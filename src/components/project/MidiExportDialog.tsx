@@ -89,7 +89,12 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
   }, [exporting, onClose]);
 
   return (
-    <Dialog open={open} onClose={handleClose} title="Export to MIDI">
+    <Dialog 
+      open={open} 
+      onClose={handleClose} 
+      title="Export to MIDI"
+      description="Export your scene as a MIDI file that can be used in any DAW or music software"
+    >
       <div className="space-y-4">
         {exportSuccess ? (
           <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
@@ -128,33 +133,36 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
               </div>
 
               <div className="border border-gray-200 rounded-lg divide-y divide-gray-200 max-h-64 overflow-y-auto">
-                {scene.tracks.map((track) => (
-                  <label
-                    key={track.id}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedTracks.has(track.id)}
-                      onChange={() => handleToggleTrack(track.id)}
-                      className="w-4 h-4 text-forest-600 border-gray-300 rounded focus:ring-forest-500"
-                    />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900">
-                        {track.name || track.role}
+                {(scene.tracks ?? []).map((track) => {
+                  const clipCount = (track.clips ?? []).length;
+                  return (
+                    <label
+                      key={track.id}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedTracks.has(track.id)}
+                        onChange={() => handleToggleTrack(track.id)}
+                        className="w-4 h-4 text-forest-600 border-gray-300 rounded focus:ring-forest-500"
+                      />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-900">
+                          {track.name || track.role}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {clipCount} clip{clipCount !== 1 ? 's' : ''} •{' '}
+                          {track.role}
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {track.clips.length} clip{track.clips.length !== 1 ? 's' : ''} •{' '}
-                        {track.role}
-                      </div>
-                    </div>
-                    {track.muted && (
-                      <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                        Muted
-                      </span>
-                    )}
-                  </label>
-                ))}
+                      {track.muted && (
+                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                          Muted
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
               </div>
 
               <div className="text-xs text-gray-500 mt-2">

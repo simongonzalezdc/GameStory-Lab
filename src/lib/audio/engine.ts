@@ -4,7 +4,7 @@
 
 import * as Tone from 'tone';
 import type { Scene, Track, Clip } from '@/types';
-import { generateNotes } from '@/lib/generators/factory';
+import { getClipPlaybackNotes } from '@/lib/audio/clip-note-utils';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { createInstrument, getDefaultInstrument, getInstrumentById } from './instruments';
 import { DEFAULT_BPM, AUDIO_INIT_RETRY_BASE_DELAY_MS, AUDIO_INIT_MAX_RETRIES } from '@/lib/utils/constants';
@@ -36,11 +36,6 @@ export class AudioEngine {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
         await Tone.start();
-        errorHandler.handle(
-          new Error('Audio engine initialized'),
-          'Audio Engine',
-          ErrorSeverity.INFO
-        );
         this.isInitialized = true;
         return; // Success, exit retry loop
       } catch (error) {
@@ -76,6 +71,11 @@ export class AudioEngine {
    */
   async loadScene(scene: Scene): Promise<void> {
     try {
+      // Validate scene parameter
+      if (!scene) {
+        throw new Error('Scene is required but was null or undefined');
+      }
+
       if (!this.isInitialized) {
         await this.init();
       }
@@ -85,40 +85,77 @@ export class AudioEngine {
       this.clearScheduledParts();
       
       // Dispose of previous scene's instruments and panners to prevent memory leaks
-      this.instruments.forEach((instrument) => {
-        try {
-          instrument.dispose();
-        } catch {
-          // Ignore disposal errors
-        }
-      });
-      this.instruments.clear();
+      if (this.instruments && this.instruments instanceof Map) {
+        this.instruments.forEach((instrument) => {
+          if (instrument) {
+            try {
+              instrument.dispose();
+            } catch {
+              // Ignore disposal errors
+            }
+          }
+        });
+        this.instruments.clear();
+      } else {
+        this.instruments = new Map();
+      }
       
-      this.panners.forEach((panner) => {
-        try {
-          panner.dispose();
-        } catch {
-          // Ignore disposal errors
-        }
-      });
-      this.panners.clear();
+      if (this.panners && this.panners instanceof Map) {
+        this.panners.forEach((panner) => {
+          if (panner) {
+            try {
+              panner.dispose();
+            } catch {
+              // Ignore disposal errors
+            }
+          }
+        });
+        this.panners.clear();
+      } else {
+        this.panners = new Map();
+      }
 
       this.currentScene = scene;
 
       // Set BPM
       const bpm = scene.bpm || DEFAULT_BPM;
-      Tone.getTransport().bpm.value = bpm;
+      try {
+        const transport = Tone.getTransport();
+        if (transport && transport.bpm) {
+          transport.bpm.value = bpm;
+        }
+      } catch (error) {
+        errorHandler.handle(
+          error,
+          'Audio BPM Setting',
+          ErrorSeverity.WARNING
+        );
+      }
+
+      // Validate and load instruments for all tracks
+      if (!scene.tracks || !Array.isArray(scene.tracks)) {
+        errorHandler.handle(
+          new Error('Scene tracks is missing or not an array'),
+          'Audio Scene Loading',
+          ErrorSeverity.WARNING
+        );
+        return; // Exit early if tracks are invalid
+      }
 
       // Load instruments for all tracks
       for (const track of scene.tracks) {
-        await this.loadInstrument(track);
+        if (track && track.id) {
+          await this.loadInstrument(track);
+        }
       }
 
-      errorHandler.handle(
-        new Error(`Scene "${scene.name}" loaded successfully`),
-        'Audio Engine',
-        ErrorSeverity.INFO
-      );
+      // Schedule clips after instruments are loaded
+      // Only schedule if transport is already started (playing)
+      // Otherwise, scheduleScene() will be called when play() is called
+      const transport = Tone.getTransport();
+      if (transport && transport.state === 'started') {
+        this.scheduleScene();
+      }
     } catch (error) {
       errorHandler.handle(error, 'Audio Scene Loading', ErrorSeverity.ERROR);
       throw error; // Re-throw to allow caller to handle
@@ -129,12 +166,30 @@ export class AudioEngine {
    * Load an instrument for a track
    */
   private async loadInstrument(track: Track): Promise<void> {
+    if (!track || !track.id) {
+      errorHandler.handle(
+        new Error('Invalid track provided to loadInstrument'),
+        'Audio Instrument Loading',
+        ErrorSeverity.WARNING
+      );
+      return;
+    }
+
     if (this.instruments.has(track.id)) return;
 
     // Get instrument config based on track.instrumentRef or use default for role
     const instrumentConfig = track.instrumentRef && track.instrumentRef !== 'default-synth'
       ? getInstrumentById(track.role, track.instrumentRef) || getDefaultInstrument(track.role)
       : getDefaultInstrument(track.role);
+
+    if (!instrumentConfig) {
+      errorHandler.handle(
+        new Error(`Failed to get instrument config for track ${track.id}`),
+        'Audio Instrument Loading',
+        ErrorSeverity.WARNING
+      );
+      return;
+    }
 
     const instrument = createInstrument(instrumentConfig);
     
@@ -147,7 +202,7 @@ export class AudioEngine {
     } else if (instrument instanceof Tone.MonoSynth || instrument instanceof Tone.DuoSynth ||
         instrument instanceof Tone.FMSynth || instrument instanceof Tone.AMSynth) {
       // For monophonic synths, wrap in PolySynth for polyphonic support
-      // Determine the synth class based on instrument type
+      // Determine synth class based on instrument type
       let SynthClass: typeof Tone.MonoSynth | typeof Tone.DuoSynth | typeof Tone.FMSynth | typeof Tone.AMSynth;
       if (instrument instanceof Tone.MonoSynth) {
         SynthClass = Tone.MonoSynth;
@@ -159,9 +214,8 @@ export class AudioEngine {
         SynthClass = Tone.AMSynth;
       }
 
-      // PolySynth requires all constructors to be the same type, but we have a union
+      // PolySynth requires all constructors to be same type, but we have a union
       // This is a limitation of Tone.js's type system, not our code
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       polyInstrument = new Tone.PolySynth(
         SynthClass as any,
         toPolySynthOptions({
@@ -174,11 +228,14 @@ export class AudioEngine {
     }
 
     // Create panner for stereo positioning
-    const panner = new Tone.Panner(track.pan).toDestination();
+    const pan = typeof track.pan === 'number' ? track.pan : 0;
+    const volume = typeof track.volume === 'number' ? track.volume : 0.5;
+    
+    const panner = new Tone.Panner(pan).toDestination();
     polyInstrument.connect(panner);
 
     // Apply volume
-    polyInstrument.volume.value = Tone.gainToDb(track.volume);
+    polyInstrument.volume.value = Tone.gainToDb(volume);
 
     this.instruments.set(track.id, polyInstrument);
     this.panners.set(track.id, panner);
@@ -190,17 +247,46 @@ export class AudioEngine {
   scheduleScene(): void {
     if (!this.currentScene) return;
 
+    // Validate tracks array
+    if (!this.currentScene.tracks || !Array.isArray(this.currentScene.tracks)) {
+      errorHandler.handle(
+        new Error('Scene tracks is missing or not an array'),
+        'Audio Scene Scheduling',
+        ErrorSeverity.WARNING
+      );
+      return;
+    }
+
     // Clear any existing scheduled parts to prevent memory leaks
     this.clearScheduledParts();
 
+    // Check if any track is soloed
+    const hasSoloedTrack = this.currentScene.tracks.some(track => track && track.solo);
+
     for (const track of this.currentScene.tracks) {
+      if (!track) continue;
+
+      // Skip muted tracks
       if (track.muted) continue;
 
-      const instrument = this.instruments.get(track.id);
-      if (!instrument) continue;
+      // If any track is soloed, only play soloed tracks
+      if (hasSoloedTrack && !track.solo) continue;
 
-      for (const clip of track.clips) {
-        if (clip.muted) continue;
+      const instrument = this.instruments.get(track.id);
+      if (!instrument) {
+        // Instrument not loaded yet, try to load it
+        this.loadInstrument(track).catch((error) => {
+          errorHandler.handle(error, 'Audio Instrument Loading', ErrorSeverity.WARNING);
+        });
+        continue;
+      }
+
+      // Validate clips array
+      const clips = Array.isArray(track.clips) ? track.clips : [];
+      if (clips.length === 0) continue;
+
+      for (const clip of clips) {
+        if (!clip || clip.muted) continue;
         this.scheduleClip(track, clip, instrument);
       }
     }
@@ -221,14 +307,8 @@ export class AudioEngine {
     const scale = this.currentScene.scale || 'major';
     const bpm = this.currentScene.bpm || DEFAULT_BPM;
 
-    // Generate notes using the clip's generator
-    const generatedNotes = generateNotes(
-      clip.generator,
-      key,
-      scale,
-      clip.lengthBars,
-      bpm
-    );
+    // Generate notes using clip's generator
+    const generatedNotes = getClipPlaybackNotes(clip, key, scale, bpm);
 
     // Convert to Tone.js Part format
     const toneNotes = generatedNotes.map((note) => ({
@@ -240,22 +320,34 @@ export class AudioEngine {
 
     // Create and schedule Tone.js Part
     const part = new Tone.Part((time, value) => {
+      // Check if instrument is still valid (not disposed)
+      // Tone.js instruments have a `disposed` property when disposed
+      const instrumentAny = instrument as { disposed?: boolean };
+      if (!instrument || instrumentAny.disposed === true) {
+        return; // Instrument was disposed, skip this note
+      }
+      
       if (instrument instanceof Tone.PolySynth || instrument instanceof Tone.MonoSynth || 
           instrument instanceof Tone.DuoSynth || instrument instanceof Tone.FMSynth || 
           instrument instanceof Tone.AMSynth || instrument instanceof Tone.Sampler) {
-        instrument.triggerAttackRelease(
-          value.note,
-          value.duration,
-          time,
-          value.velocity
-        );
+        try {
+          instrument.triggerAttackRelease(
+            value.note,
+            value.duration,
+            time,
+            value.velocity
+          );
+        } catch {
+          // Instrument may have been disposed between check and use
+          // Silently ignore - this is expected when scene changes
+        }
       }
     }, toneNotes);
 
     // Start at clip offset
     part.start(clip.offset || 0);
 
-    // Loop the pattern
+    // Loop pattern
     part.loop = true;
     part.loopEnd = `${clip.lengthBars * 4}:0:0`; // Bars to Tone.js time format
 
@@ -297,9 +389,17 @@ export class AudioEngine {
    * Stop playback and return to beginning
    */
   stop(): void {
-    Tone.getTransport().stop();
-    Tone.getTransport().position = 0;
-    this.clearScheduledParts();
+    try {
+      const transport = Tone.getTransport();
+      if (transport) {
+        transport.stop();
+        transport.position = 0;
+      }
+      this.clearScheduledParts();
+    } catch (error) {
+      // Ignore errors if transport is not available
+      errorHandler.handle(error, 'Audio Stop', ErrorSeverity.WARNING);
+    }
   }
 
   /**
@@ -349,12 +449,38 @@ export class AudioEngine {
   }
 
   /**
+   * Reschedule the current scene (useful when scene data changes while playing)
+   */
+  rescheduleScene(): void {
+    if (!this.currentScene) return;
+    
+    const transport = Tone.getTransport();
+    const wasPlaying = transport && transport.state === 'started';
+    
+    // If playing, reschedule
+    if (wasPlaying) {
+      this.scheduleScene();
+    }
+  }
+
+  /**
    * Clear all scheduled parts
    */
   private clearScheduledParts(): void {
+    if (!this.scheduledParts || !Array.isArray(this.scheduledParts)) {
+      this.scheduledParts = [];
+      return;
+    }
+
     this.scheduledParts.forEach((part) => {
-      part.stop();
-      part.dispose();
+      if (part) {
+        try {
+          part.stop();
+          part.dispose();
+        } catch {
+          // Ignore disposal errors - part may already be disposed
+        }
+      }
     });
     this.scheduledParts = [];
   }

@@ -47,7 +47,7 @@ export const INSTRUMENT_PRESETS: Record<TrackRole, InstrumentConfig[]> = {
       name: 'Kick',
       description: 'Deep kick drum',
       oscillator: { type: 'sine' },
-      envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.1 },
+      envelope: { attack: 0.001, decay: 0.4, sustain: 0, release: 0.2 },
     },
     {
       id: 'snare',
@@ -170,40 +170,79 @@ export function createInstrument(config: InstrumentConfig): Tone.PolySynth | Ton
           console.error('Sampler error:', error);
         },
       });
-    case 'mono':
-      return new Tone.MonoSynth({
-        oscillator: toToneOscillatorConfig(oscillatorConfig),
-        envelope,
-        filter: config.filter ? {
+    case 'mono': {
+      const oscillator = toToneOscillatorConfig(oscillatorConfig);
+      const options: any = {
+        oscillator: oscillator || { type: 'sine' },
+        envelope: envelope || {
+          attack: 0.02,
+          decay: 0.1,
+          sustain: 0.3,
+          release: 0.5,
+        },
+      };
+      
+      if (config.filter) {
+        options.filter = {
           type: config.filter.type,
           frequency: config.filter.frequency,
           Q: config.filter.Q,
-        } : undefined,
-      });
+        };
+      }
+      
+      return new Tone.MonoSynth(options);
+    }
 
-    case 'duo':
+    case 'duo': {
+      const oscillator = toToneOscillatorConfig(oscillatorConfig) || { type: 'sine' };
+      const safeEnvelope = envelope || {
+        attack: 0.02,
+        decay: 0.1,
+        sustain: 0.3,
+        release: 0.5,
+      };
+      
       return new Tone.DuoSynth({
         voice0: {
-          oscillator: toToneOscillatorConfig(oscillatorConfig),
-          envelope,
+          oscillator,
+          envelope: safeEnvelope,
         },
         voice1: {
-          oscillator: toToneOscillatorConfig(oscillatorConfig),
-          envelope,
+          oscillator,
+          envelope: safeEnvelope,
         },
       });
+    }
 
-    case 'fm':
+    case 'fm': {
+      const oscillator = toToneOscillatorConfig(oscillatorConfig) || { type: 'sine' };
+      const safeEnvelope = envelope || {
+        attack: 0.02,
+        decay: 0.1,
+        sustain: 0.3,
+        release: 0.5,
+      };
+      
       return new Tone.FMSynth({
-        oscillator: toToneOscillatorConfig(oscillatorConfig),
-        envelope,
+        oscillator,
+        envelope: safeEnvelope,
       });
+    }
 
-    case 'am':
+    case 'am': {
+      const oscillator = toToneOscillatorConfig(oscillatorConfig) || { type: 'sine' };
+      const safeEnvelope = envelope || {
+        attack: 0.02,
+        decay: 0.1,
+        sustain: 0.3,
+        release: 0.5,
+      };
+      
       return new Tone.AMSynth({
-        oscillator: toToneOscillatorConfig(oscillatorConfig),
-        envelope,
+        oscillator,
+        envelope: safeEnvelope,
       });
+    }
 
     case 'synth':
     default:

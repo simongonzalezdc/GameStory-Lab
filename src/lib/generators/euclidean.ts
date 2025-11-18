@@ -36,11 +36,18 @@ export class EuclideanGenerator extends BaseGenerator {
     rotated.forEach((hit, index) => {
       if (hit === 1) {
         const pitch = this.getPitchForRole(params.patternRole, context);
+        // For kick drums, use longer duration and higher velocity for better audibility
+        const isKick = params.patternRole === 'kick';
+        const duration = isKick 
+          ? Math.min(stepDuration * 0.9, 0.3) // Longer duration for kick
+          : Math.min(stepDuration * 0.8, 0.1); // Short hit for other drums
+        const velocity = isKick ? 1.0 : 0.8; // Full velocity for kick
+        
         notes.push({
           time: index * stepDuration,
           pitch,
-          duration: Math.min(stepDuration * 0.8, 0.1), // Short hit
-          velocity: 0.8,
+          duration,
+          velocity,
         });
       }
     });
@@ -112,7 +119,7 @@ export class EuclideanGenerator extends BaseGenerator {
   private getPitchForRole(role: string, context: GenerationContext): number {
     switch (role) {
       case 'kick':
-        return noteToMidi('C', 1); // 36
+        return noteToMidi('C', 0); // C0 = MIDI 24, very low for kick drum
       case 'snare':
         return noteToMidi('D', 2); // 50
       case 'hat':

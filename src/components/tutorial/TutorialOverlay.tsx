@@ -132,13 +132,13 @@ export default function TutorialOverlay() {
       {/* Tutorial content card */}
       <div className="fixed z-50 pointer-events-none inset-0 flex items-center justify-center p-4 overflow-auto">
         <div
-          className={`bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 pointer-events-auto ${
+          className={`bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 pointer-events-auto flex flex-col ${
             step?.position === 'center' ? '' : getPositionClass(step, targetRect)
           }`}
           style={{
             ...getPositionStyle(step, targetRect),
-            maxHeight: `${window.innerHeight - 32}px`,
-            overflowY: 'auto',
+            maxHeight: `${Math.min(window.innerHeight - 32, 600)}px`,
+            maxWidth: `${Math.min(window.innerWidth - 32, 500)}px`,
           }}
           role="dialog"
           aria-labelledby="tutorial-title"
@@ -161,29 +161,32 @@ export default function TutorialOverlay() {
             </button>
           </div>
 
-          {/* Description */}
-          <p id="tutorial-description" className="text-gray-700 mb-6 leading-relaxed">{step?.description}</p>
+          {/* Scrollable content area */}
+          <div className="flex-1 overflow-y-auto min-h-0 mb-6">
+            {/* Description */}
+            <p id="tutorial-description" className="text-gray-700 mb-6 leading-relaxed">{step?.description}</p>
 
-          {/* Progress bar */}
-          <div className="mb-6">
-            <div className="flex justify-between text-xs text-gray-500 mb-2">
-              <span>Progress</span>
-              <span>
-                {currentStep + 1} / {tutorialSteps.length}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-forest-500 h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${((currentStep + 1) / tutorialSteps.length) * 100}%`,
-                }}
-              />
+            {/* Progress bar */}
+            <div className="mb-6">
+              <div className="flex justify-between text-xs text-gray-500 mb-2">
+                <span>Progress</span>
+                <span>
+                  {currentStep + 1} / {tutorialSteps.length}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-forest-500 h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${((currentStep + 1) / tutorialSteps.length) * 100}%`,
+                  }}
+                />
+              </div>
             </div>
           </div>
 
-          {/* Navigation buttons */}
-          <div className="flex items-center justify-between">
+          {/* Navigation buttons - always visible at bottom */}
+          <div className="flex items-center justify-between flex-shrink-0 pt-4 border-t border-gray-200">
             <Button
               onClick={previousStep}
               variant="secondary"
@@ -222,6 +225,7 @@ function getPositionClass(step: TutorialStep | undefined, targetRect: DOMRect | 
 /**
  * Get position style based on target element
  * Responsive positioning for mobile viewports
+ * Ensures the tutorial card always stays within viewport bounds
  */
 function getPositionStyle(
   step: TutorialStep | undefined,
@@ -232,6 +236,8 @@ function getPositionStyle(
   }
 
   const padding = 24; // Distance from target element
+  const estimatedCardHeight = 300; // Estimated card height (will be constrained by maxHeight)
+  const estimatedCardWidth = 400; // Estimated card width
   const isMobile = window.innerWidth < 768; // Mobile breakpoint
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
@@ -239,38 +245,146 @@ function getPositionStyle(
   // On mobile, prefer bottom or center positioning to avoid overflow
   const preferredPosition = isMobile ? 'bottom' : step.position;
 
+  // Calculate safe positioning that keeps the card within bounds
   switch (preferredPosition) {
-    case 'top':
+    case 'top': {
+      // Position above target, but ensure it doesn't go above viewport
+      const centerX = targetRect.left + targetRect.width / 2;
+      const maxCardWidth = Math.min(estimatedCardWidth, viewportWidth - padding * 2);
+      
+      // Calculate left position ensuring card (with -50% transform) stays in bounds
+      // After transform, card extends left by maxCardWidth/2 and right by maxCardWidth/2
+      const left = Math.max(
+        padding + maxCardWidth / 2,
+        Math.min(centerX, viewportWidth - padding - maxCardWidth / 2)
+      );
+      
+      // Calculate top position ensuring card (with -100% transform) stays in bounds
+      // After transform, card extends upward by full height
+      const desiredTop = targetRect.top - padding;
+      const minTop = padding + estimatedCardHeight; // Card needs this much space above
+      const cardTop = Math.max(minTop, desiredTop);
+      
+      // If card would still go out of bounds, position it below target instead
+      if (cardTop - estimatedCardHeight < padding) {
+        return {
+          left: `${left}px`,
+          top: `${targetRect.bottom + padding}px`,
+          transform: 'translateX(-50%)',
+          maxWidth: `${maxCardWidth}px`,
+        };
+      }
+      
       return {
-        left: `${Math.max(padding, Math.min(targetRect.left + targetRect.width / 2, viewportWidth - padding))}px`,
-        top: `${Math.max(padding, targetRect.top - padding)}px`,
+        left: `${left}px`,
+        top: `${cardTop}px`,
         transform: 'translate(-50%, -100%)',
-        maxWidth: `${viewportWidth - padding * 2}px`,
+        maxWidth: `${maxCardWidth}px`,
       };
+    }
 
-    case 'bottom':
+    case 'bottom': {
+      // Position below target, but ensure it doesn't go below viewport
+      const centerX = targetRect.left + targetRect.width / 2;
+      const maxCardWidth = Math.min(estimatedCardWidth, viewportWidth - padding * 2);
+      
+      // Calculate left position ensuring card (with -50% transform) stays in bounds
+      const left = Math.max(
+        padding + maxCardWidth / 2,
+        Math.min(centerX, viewportWidth - padding - maxCardWidth / 2)
+      );
+      
+      // Calculate top position ensuring card stays within viewport
+      const desiredTop = targetRect.bottom + padding;
+      const maxTop = viewportHeight - estimatedCardHeight - padding;
+      const cardTop = Math.min(desiredTop, maxTop);
+      
+      // If card would go out of bounds, position it above target instead
+      if (cardTop + estimatedCardHeight > viewportHeight - padding) {
+        return {
+          left: `${left}px`,
+          top: `${Math.max(padding, targetRect.top - padding - estimatedCardHeight)}px`,
+          transform: 'translate(-50%, -100%)',
+          maxWidth: `${maxCardWidth}px`,
+        };
+      }
+      
       return {
-        left: `${Math.max(padding, Math.min(targetRect.left + targetRect.width / 2, viewportWidth - padding))}px`,
-        top: `${Math.min(viewportHeight - padding, targetRect.bottom + padding)}px`,
+        left: `${left}px`,
+        top: `${cardTop}px`,
         transform: 'translateX(-50%)',
-        maxWidth: `${viewportWidth - padding * 2}px`,
+        maxWidth: `${maxCardWidth}px`,
       };
+    }
 
-    case 'left':
+    case 'left': {
+      // Position to the left of target, but ensure it doesn't go off left edge
+      const centerY = targetRect.top + targetRect.height / 2;
+      const maxCardWidth = Math.min(300, viewportWidth - padding * 2);
+      
+      // Calculate left position ensuring card (with -100% transform) stays in bounds
+      // After transform, card extends left by full width
+      const desiredLeft = targetRect.left - padding;
+      const minLeft = padding + maxCardWidth; // Card needs this much space to the left
+      const cardLeft = Math.max(minLeft, desiredLeft);
+      
+      // Calculate top position ensuring card (with -50% transform) stays in bounds
+      const top = Math.max(
+        padding + estimatedCardHeight / 2,
+        Math.min(centerY, viewportHeight - padding - estimatedCardHeight / 2)
+      );
+      
+      // If card would go out of bounds, position it to the right instead
+      if (cardLeft - maxCardWidth < padding) {
+        return {
+          left: `${Math.min(viewportWidth - padding, targetRect.right + padding)}px`,
+          top: `${top}px`,
+          transform: 'translateY(-50%)',
+          maxWidth: `${maxCardWidth}px`,
+        };
+      }
+      
       return {
-        left: `${Math.max(padding, targetRect.left - padding)}px`,
-        top: `${Math.max(padding, Math.min(targetRect.top + targetRect.height / 2, viewportHeight - padding))}px`,
+        left: `${cardLeft}px`,
+        top: `${top}px`,
         transform: 'translate(-100%, -50%)',
-        maxWidth: `${Math.min(300, viewportWidth - padding * 2)}px`,
+        maxWidth: `${maxCardWidth}px`,
       };
+    }
 
-    case 'right':
+    case 'right': {
+      // Position to the right of target, but ensure it doesn't go off right edge
+      const centerY = targetRect.top + targetRect.height / 2;
+      const maxCardWidth = Math.min(300, viewportWidth - padding * 2);
+      
+      // Calculate left position ensuring card stays within viewport
+      const desiredLeft = targetRect.right + padding;
+      const maxLeft = viewportWidth - maxCardWidth - padding;
+      const cardLeft = Math.min(desiredLeft, maxLeft);
+      
+      // Calculate top position ensuring card (with -50% transform) stays in bounds
+      const top = Math.max(
+        padding + estimatedCardHeight / 2,
+        Math.min(centerY, viewportHeight - padding - estimatedCardHeight / 2)
+      );
+      
+      // If card would go out of bounds, position it to the left instead
+      if (cardLeft + maxCardWidth > viewportWidth - padding) {
+        return {
+          left: `${Math.max(padding, targetRect.left - padding - maxCardWidth)}px`,
+          top: `${top}px`,
+          transform: 'translate(-100%, -50%)',
+          maxWidth: `${maxCardWidth}px`,
+        };
+      }
+      
       return {
-        left: `${Math.min(viewportWidth - padding, targetRect.right + padding)}px`,
-        top: `${Math.max(padding, Math.min(targetRect.top + targetRect.height / 2, viewportHeight - padding))}px`,
+        left: `${cardLeft}px`,
+        top: `${top}px`,
         transform: 'translateY(-50%)',
-        maxWidth: `${Math.min(300, viewportWidth - padding * 2)}px`,
+        maxWidth: `${maxCardWidth}px`,
       };
+    }
 
     default:
       return {

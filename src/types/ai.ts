@@ -40,6 +40,13 @@ export interface MusicAction {
 export interface ProjectContext {
   currentScene?: Scene;
   projectSnapshot?: Partial<Project>;
+  recentActions?: RecentAction[];
+}
+
+export interface RecentAction {
+  action: MusicAction;
+  success: boolean;
+  error?: string;
 }
 
 export interface AIConfig {

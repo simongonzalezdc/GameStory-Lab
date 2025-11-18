@@ -141,20 +141,43 @@ class ErrorHandler {
   }
 
   /**
-   * Log error
+   * Log error based on severity
    */
   private logError(error: AppError): void {
-    console.error('[ErrorHandler]', {
+    const logData = {
       id: error.id,
       severity: error.severity,
       message: error.message,
       timestamp: error.timestamp,
       details: error.details,
-    });
+    };
 
-    this.errorLog.unshift(error);
-    if (this.errorLog.length > this.maxLogSize) {
-      this.errorLog = this.errorLog.slice(0, this.maxLogSize);
+    // Use appropriate console method based on severity
+    // Only log INFO messages in development mode
+    const isDevelopment = import.meta.env.MODE === 'development';
+
+    switch (error.severity) {
+      case ErrorSeverity.INFO:
+        if (isDevelopment) {
+          console.info('[ErrorHandler]', logData);
+        }
+        break;
+      case ErrorSeverity.WARNING:
+        console.warn('[ErrorHandler]', logData);
+        break;
+      case ErrorSeverity.ERROR:
+      case ErrorSeverity.CRITICAL:
+        console.error('[ErrorHandler]', logData);
+        break;
+    }
+
+    // Only add to error log if it's a warning, error, or critical
+    // INFO messages are just for debugging and don't need to be tracked
+    if (error.severity !== ErrorSeverity.INFO) {
+      this.errorLog.unshift(error);
+      if (this.errorLog.length > this.maxLogSize) {
+        this.errorLog = this.errorLog.slice(0, this.maxLogSize);
+      }
     }
   }
 

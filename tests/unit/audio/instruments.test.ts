@@ -3,8 +3,7 @@
  * These tests verify that instruments are created correctly and match expected types
  */
 
-import { describe, it, expect, vi, beforeAll } from 'vitest';
-import type * as ToneType from 'tone';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock Tone.js to avoid Web Audio API issues in test environment
 vi.mock('tone', () => {
@@ -44,7 +43,7 @@ vi.mock('tone', () => {
 
 // Import after mocking
 import * as Tone from 'tone';
-import { createInstrument, type InstrumentConfig } from '@/lib/audio/instruments';
+import { createInstrument, type InstrumentConfig } from '../../../src/lib/audio/instruments';
 
 describe('createInstrument', () => {
   it('should create a PolySynth for synth type', () => {

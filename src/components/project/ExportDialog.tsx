@@ -56,7 +56,12 @@ export default function ExportDialog({ open, onClose, project }: ExportDialogPro
   }, [exporting, onClose]);
 
   return (
-    <Dialog open={open} onClose={handleClose} title="Export Project">
+    <Dialog 
+      open={open} 
+      onClose={handleClose} 
+      title="Export Project"
+      description="Save your project as a JSON file that can be imported later"
+    >
       <div className="space-y-4">
         {exportSuccess ? (
           <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">

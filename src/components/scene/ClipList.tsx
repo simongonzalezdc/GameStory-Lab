@@ -9,6 +9,7 @@ import { generatorPresets } from '@/lib/generators/presets';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { DEFAULT_CLIP_LENGTH_BARS, MAX_CLIPS_PER_TRACK } from '@/lib/utils/constants';
 import type { GeneratorType } from '@/types';
+import ClipPianoRoll from './ClipPianoRoll';
 
 interface ClipListProps {
   sceneId: string;
@@ -58,6 +59,10 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     () => scene?.tracks.find(t => t.id === trackId),
     [scene?.tracks, trackId]
   );
+  const trackClips = track?.clips ?? [];
+  const sceneKey = scene?.key || project?.defaultKey || 'C';
+  const sceneScale = scene?.scale || project?.defaultScale || 'major';
+  const sceneBpm = scene?.bpm || project?.bpm;
 
   const handleAddClip = useCallback(() => {
     setValidationError('');
@@ -74,7 +79,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     }
 
     // Validate track clip limit
-    if (track && track.clips.length >= MAX_CLIPS_PER_TRACK) {
+    if (track && trackClips.length >= MAX_CLIPS_PER_TRACK) {
       setValidationError(`Maximum ${MAX_CLIPS_PER_TRACK} clips per track`);
       errorHandler.handle(
         new Error(`Track already has maximum number of clips (${MAX_CLIPS_PER_TRACK})`),
@@ -114,7 +119,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     setUsePreset(false);
     setSelectedPreset('');
     setLengthBars(DEFAULT_CLIP_LENGTH_BARS);
-  }, [generatorType, lengthBars, addClip, sceneId, trackId, usePreset, selectedPreset, track]);
+  }, [generatorType, lengthBars, addClip, sceneId, trackId, usePreset, selectedPreset, track, trackClips.length]);
 
   const handleDeleteClick = useCallback((clipId: string) => {
     setClipToDelete(clipId);
@@ -154,7 +159,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
         </Button>
       </div>
 
-      {track.clips.length === 0 ? (
+      {trackClips.length === 0 ? (
         <p className="text-sm text-gray-500">No clips. Add a clip to start generating music!</p>
       ) : (
         <div 
@@ -162,7 +167,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
           role="list"
           aria-label="Clip list"
         >
-          {track.clips.map(clip => (
+          {trackClips.map(clip => (
             <div 
               key={clip.id} 
               className="bg-white p-3 rounded border border-gray-200"
@@ -184,6 +189,14 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
                       🗑
                     </Button>
               </div>
+              <ClipPianoRoll
+                sceneId={sceneId}
+                trackId={trackId}
+                clip={clip}
+                sceneKey={sceneKey}
+                sceneScale={sceneScale}
+                sceneBpm={sceneBpm}
+              />
             </div>
           ))}
         </div>

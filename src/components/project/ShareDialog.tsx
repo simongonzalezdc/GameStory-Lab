@@ -27,11 +27,13 @@ export default function ShareDialog({ open, onClose, project }: ShareDialogProps
   }, [project]);
 
   return (
-    <Dialog open={open} onClose={onClose} title="Share Project">
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      title="Share Project"
+      description="Share this project by copying the link below. Anyone with the link can import the project."
+    >
       <div className="space-y-4">
-        <p className="text-sm text-gray-600">
-          Share this project by copying the link below. Anyone with the link can import the project.
-        </p>
 
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
           <input

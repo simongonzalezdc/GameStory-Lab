@@ -2,7 +2,7 @@
  * Error boundary specifically for tutorial to prevent auto-start loop
  */
 
-import { Component, ReactNode } from 'react';
+import React, { Component, ReactNode } from 'react';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { useTutorialStore } from '@/stores/tutorial-store';
 
@@ -58,4 +58,3 @@ export class TutorialErrorBoundary extends Component<
     return this.props.children;
   }
 }
-
