@@ -12,6 +12,7 @@ import { IsometricModeSettings, type IsometricModeSettings as IsometricModeSetti
 import { TilesetSettings, type TilesetSettings as TilesetSettingsType } from './TilesetSettings';
 import { AnimationSettings, type AnimationSettings as AnimationSettingsType } from './AnimationSettings';
 import { AssetTemplatesModal } from './AssetTemplatesModal';
+import { PromptHistory } from './PromptHistory';
 
 interface GenerationFormProps {
   onGenerated?: () => void;
@@ -179,6 +180,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
 
         if (successCount > 0) {
           setSuccess(`✓ Generated ${successCount}/${generatedCount} multi-angle sprites successfully!`);
+          (window as any).addPromptToHistory?.(prompt);
           setPrompt('');
           onGenerated?.();
         } else {
@@ -272,6 +274,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
 
         if (successCount > 0) {
           setSuccess(`✓ Generated ${successCount}/${generatedCount} color variations successfully!`);
+          (window as any).addPromptToHistory?.(prompt);
           setPrompt('');
           onGenerated?.();
         } else {
@@ -369,6 +372,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
 
         if (successCount > 0) {
           setSuccess(`✓ Generated ${successCount}/${generatedCount} tileset pieces successfully!`);
+          (window as any).addPromptToHistory?.(prompt);
           setPrompt('');
           onGenerated?.();
         } else {
@@ -466,6 +470,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
 
         if (successCount > 0) {
           setSuccess(`✓ Generated ${successCount}/${generatedCount} animation frames successfully!`);
+          (window as any).addPromptToHistory?.(prompt);
           setPrompt('');
           onGenerated?.();
         } else {
@@ -527,6 +532,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
 
         if (response.success) {
           setSuccess(`Asset generated successfully in ${response.generation_time_ms}ms!`);
+          (window as any).addPromptToHistory?.(prompt);
           setPrompt('');
           onGenerated?.();
         } else {
@@ -559,14 +565,17 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Describe your asset
             </label>
-            <button
-              type="button"
-              onClick={() => setShowTemplatesModal(true)}
-              className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1"
-            >
-              <Sparkles size={16} />
-              Use Template
-            </button>
+            <div className="flex items-center gap-3">
+              <PromptHistory onSelectPrompt={(prompt) => setPrompt(prompt)} />
+              <button
+                type="button"
+                onClick={() => setShowTemplatesModal(true)}
+                className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1"
+              >
+                <Sparkles size={16} />
+                Use Template
+              </button>
+            </div>
           </div>
           <textarea
             value={prompt}
