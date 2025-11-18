@@ -52,6 +52,7 @@ dist-ssr/
 
 # Testing
 .coverage
+coverage.json
 .pytest_cache/
 htmlcov/
 coverage/
