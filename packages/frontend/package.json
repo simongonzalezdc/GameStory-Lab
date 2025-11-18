@@ -1,0 +1,37 @@
+{
+  "name": "@gameforge/frontend",
+  "version": "1.0.0",
+  "description": "GameForge Studio frontend UI",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@gameforge/shared": "*",
+    "@reduxjs/toolkit": "^2.5.0",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@tanstack/react-query": "^5.62.7",
+    "axios": "^1.7.9",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-markdown": "^9.0.0",
+    "react-router-dom": "^7.9.6",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.16.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.0",
+    "vitest": "^2.1.8"
+  }
+}

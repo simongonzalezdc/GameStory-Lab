@@ -1,0 +1,104 @@
+{
+  "id": "puzzle",
+  "name": "Puzzle Game",
+  "description": "Logic-based challenges with progressive difficulty and creative problem-solving",
+  "mechanics": {
+    "coreLoop": "Encounter puzzle → Analyze rules → Experiment with solutions → Solve puzzle → Unlock next challenge",
+    "playerActions": [
+      "Move blocks or tiles to match patterns",
+      "Rotate and arrange shapes",
+      "Connect matching colors or symbols",
+      "Solve logic chains within time/move limits",
+      "Undo moves to try different approaches",
+      "Use hint system for difficult puzzles",
+      "Complete bonus objectives for stars",
+      "Unlock new puzzle mechanics gradually"
+    ],
+    "progressionSystems": {
+      "type": "linear",
+      "mechanics": [
+        "Complete levels to unlock next area",
+        "Earn stars based on performance (time, moves, efficiency)",
+        "Unlock power-ups by collecting stars",
+        "Master levels unlock bonus content",
+        "Progressive difficulty with new mechanics",
+        "Achievement system for perfect solutions"
+      ]
+    },
+    "winConditions": [
+      "Achieve the target pattern or state",
+      "Complete objective within move limit",
+      "Clear all obstacles from the board",
+      "Connect all required elements"
+    ],
+    "failConditions": [
+      "Run out of moves without solving",
+      "Timer reaches zero",
+      "Retry level with no penalty (casual mode)",
+      "Lose one 'life' (limited retries mode)"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Moves/Actions",
+        "mechanics": "Limited number of moves per puzzle, efficiency is rewarded",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Hints",
+        "mechanics": "Show next optimal move, limited uses per level or earned through play",
+        "scarcity": "scarce"
+      },
+      {
+        "name": "Power-ups",
+        "mechanics": "Special tools (bomb, swap, shuffle) to overcome difficult sections",
+        "scarcity": "scarce"
+      },
+      {
+        "name": "Stars",
+        "mechanics": "Performance currency to unlock bonus levels",
+        "scarcity": "balanced"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Timeless or abstract",
+      "location": "Mystical puzzle realm, ancient ruins, or whimsical dreamscape",
+      "worldType": "Abstract or minimalist with thematic visual design"
+    },
+    "protagonist": {
+      "background": "A seeker of knowledge exploring a world of mysterious puzzles",
+      "motivation": "Restore order to a chaotic world by solving ancient puzzles",
+      "abilities": [
+        "Pattern recognition",
+        "Logical thinking",
+        "Spatial reasoning",
+        "Persistence and creativity"
+      ]
+    },
+    "conflict": {
+      "primary": "An ancient disorder has fragmented the world into puzzle pieces that must be reassembled",
+      "secondary": [
+        "Time itself is unstable and must be repaired",
+        "Rival puzzle-solver racing to unlock secrets",
+        "Mysterious force creating increasingly complex challenges",
+        "Personal journey of understanding abstract concepts"
+      ]
+    },
+    "worldRules": {
+      "physics": "Abstract puzzle logic overrides normal physics. Objects behave according to puzzle rules (gravity may be optional, colors can merge, shapes transform).",
+      "magic": "Puzzle magic: objects respond to pattern completion, symmetry creates power, logic gates control flow",
+      "technology": "Ancient mechanisms that respond to correct solutions, mystical symbols with mathematical properties"
+    },
+    "themes": [
+      "Order vs Chaos",
+      "Learning and mastery",
+      "Patience and persistence",
+      "Elegance in simplicity",
+      "Discovery and revelation"
+    ]
+  },
+  "tags": ["puzzle", "casual", "brain-teaser", "relaxing", "accessible"],
+  "difficulty": "Gradual difficulty curve from easy to mind-bending",
+  "targetAudience": "Players who enjoy logic challenges and problem-solving at their own pace"
+}

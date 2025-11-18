@@ -1,0 +1,103 @@
+{
+  "id": "fps",
+  "name": "First-Person Shooter (FPS)",
+  "description": "Fast-paced action shooter with weapon progression and competitive multiplayer",
+  "mechanics": {
+    "coreLoop": "Spawn → Navigate arena → Engage enemies → Eliminate targets → Collect power-ups → Respawn",
+    "playerActions": [
+      "Aim and shoot with various firearms",
+      "Sprint, crouch, and slide for tactical movement",
+      "Reload weapons and manage ammunition",
+      "Throw grenades and use tactical equipment",
+      "Capture objectives or defend positions",
+      "Switch between primary and secondary weapons",
+      "Use iron sights or scopes for precision",
+      "Call in killstreak rewards"
+    ],
+    "progressionSystems": {
+      "type": "linear",
+      "mechanics": [
+        "Unlock new weapons by reaching score milestones",
+        "Upgrade weapon attachments (scopes, grips, magazines)",
+        "Earn perks and abilities through match performance",
+        "Prestige system for long-term progression",
+        "Daily challenges for bonus XP",
+        "Seasonal battle pass with cosmetic rewards"
+      ]
+    },
+    "winConditions": [
+      "Team reaches target score first",
+      "Eliminate all enemy players",
+      "Successfully defend/attack objective",
+      "Complete campaign mission objectives"
+    ],
+    "failConditions": [
+      "Player is eliminated (respawn after 5 seconds)",
+      "Team loses match",
+      "Mission failure in campaign mode"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Ammunition",
+        "mechanics": "Limited ammo per magazine, reload required, can scavenge from enemies",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Health",
+        "mechanics": "Regenerates when not taking damage for 5 seconds",
+        "scarcity": "abundant"
+      },
+      {
+        "name": "Tactical Equipment",
+        "mechanics": "Grenades, flashbangs, smoke - limited uses per life",
+        "scarcity": "scarce"
+      },
+      {
+        "name": "Killstreak Points",
+        "mechanics": "Earned by consecutive kills without dying, spent on air support",
+        "scarcity": "scarce"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Modern day or near-future (2020-2050)",
+      "location": "Global conflict across urban cities, military bases, and war zones",
+      "worldType": "Realistic military or sci-fi warfare"
+    },
+    "protagonist": {
+      "background": "Elite special forces operative with extensive combat training",
+      "motivation": "Complete the mission and protect allies from hostile threats",
+      "abilities": [
+        "Expert marksmanship with all weapon types",
+        "Advanced tactical training",
+        "Peak physical conditioning",
+        "Combat experience in hostile environments"
+      ]
+    },
+    "conflict": {
+      "primary": "International terrorist organization threatens global security",
+      "secondary": [
+        "Rogue nation developing weapons of mass destruction",
+        "Corporate PMC operating outside the law",
+        "Rival special forces teams competing for objectives",
+        "AI-controlled drones going rogue"
+      ]
+    },
+    "worldRules": {
+      "physics": "Realistic bullet physics with drop and travel time. Realistic movement with momentum and weight.",
+      "magic": "None (unless sci-fi variant with energy shields/tech)",
+      "technology": "Modern firearms, drones, tactical gear, communication systems. Advanced optics and night vision."
+    },
+    "themes": [
+      "Duty and honor",
+      "Survival under fire",
+      "Teamwork and coordination",
+      "Strategic thinking",
+      "High-stakes combat"
+    ]
+  },
+  "tags": ["action", "competitive", "multiplayer", "fast-paced", "skill-based"],
+  "difficulty": "High skill ceiling with fast reflexes required",
+  "targetAudience": "Players who enjoy competitive combat and precision gameplay"
+}

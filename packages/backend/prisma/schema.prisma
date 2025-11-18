@@ -1,0 +1,94 @@
+// GameForge Studio Database Schema
+// Based on technical specification v1.0.0
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String   @unique @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  projects Project[]
+
+  @@map("users")
+}
+
+model Project {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  name      String   @db.VarChar(255)
+  genre     String?  @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user     User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  concepts Concept[]
+
+  @@index([userId])
+  @@map("projects")
+}
+
+model Concept {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  version   Int      @default(1)
+  title     String?  @db.VarChar(500)
+  mechanics Json     @default("{}") @db.JsonB
+  lore      Json     @default("{}") @db.JsonB
+  metadata  Json     @default("{}") @db.JsonB
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  project            Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  aiGenerations      AiGeneration[]
+  validationResults  ValidationResult[]
+
+  @@index([projectId])
+  @@index([mechanics(ops: JsonbPathOps)], type: Gin)
+  @@index([lore(ops: JsonbPathOps)], type: Gin)
+  @@map("concepts")
+}
+
+model AiGeneration {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conceptId   String   @map("concept_id") @db.Uuid
+  taskType    String   @map("task_type") @db.VarChar(50)
+  modelUsed   String   @map("model_used") @db.VarChar(100)
+  prompt      String   @db.Text
+  response    String   @db.Text
+  tokensUsed  Int?     @map("tokens_used")
+  costUsd     Decimal? @map("cost_usd") @db.Decimal(10, 6)
+  durationMs  Int?     @map("duration_ms")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  concept Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@index([conceptId])
+  @@index([taskType])
+  @@map("ai_generations")
+}
+
+model ValidationResult {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conceptId  String   @map("concept_id") @db.Uuid
+  ruleName   String   @map("rule_name") @db.VarChar(100)
+  severity   String   @db.VarChar(20)
+  confidence Decimal  @db.Decimal(3, 2)
+  message    String   @db.Text
+  suggestion String?  @db.Text
+  dismissed  Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  concept Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@index([conceptId])
+  @@index([severity])
+  @@map("validation_results")
+}

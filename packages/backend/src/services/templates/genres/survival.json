@@ -1,0 +1,118 @@
+{
+  "id": "survival",
+  "name": "Survival Game",
+  "description": "Gather resources, craft tools, and survive in a hostile environment",
+  "mechanics": {
+    "coreLoop": "Gather resources → Craft tools → Build shelter → Hunt/Farm food → Defend against threats → Expand base",
+    "playerActions": [
+      "Harvest resources (wood, stone, plants) from environment",
+      "Hunt animals or fish for food",
+      "Craft tools, weapons, and equipment",
+      "Build and upgrade shelter/base",
+      "Cook food to restore hunger",
+      "Drink water to restore thirst",
+      "Sleep to restore stamina and save progress",
+      "Fend off hostile creatures or players",
+      "Explore to discover new biomes and resources"
+    ],
+    "progressionSystems": {
+      "type": "open",
+      "mechanics": [
+        "Crafting recipe discovery through experimentation",
+        "Tool quality tiers (stone → iron → steel → advanced)",
+        "Base expansion from simple tent to fortified compound",
+        "Skill improvements from repeated actions",
+        "Unlock advanced crafting stations",
+        "Tame animals as companions or food sources"
+      ]
+    },
+    "winConditions": [
+      "Survive for target number of days",
+      "Defeat final boss or escape the island",
+      "Build signal fire and get rescued",
+      "Establish self-sustaining base (sandbox mode)"
+    ],
+    "failConditions": [
+      "Starvation (hunger reaches zero)",
+      "Dehydration (thirst reaches zero)",
+      "Freezing in cold biomes without shelter",
+      "Killed by hostile creatures or players",
+      "Disease or infection without medicine"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Hunger",
+        "mechanics": "Depletes over time, restored by eating cooked food. Starvation causes health loss.",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Thirst",
+        "mechanics": "Depletes faster than hunger, restored by drinking clean water. Dehydration causes stamina loss.",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Health",
+        "mechanics": "Damaged by falls, combat, environmental hazards. Heals slowly or with medical items.",
+        "scarcity": "scarce"
+      },
+      {
+        "name": "Stamina",
+        "mechanics": "Used for sprinting, swimming, combat. Regenerates when resting.",
+        "scarcity": "abundant"
+      },
+      {
+        "name": "Temperature",
+        "mechanics": "Affected by weather, biome, and clothing. Extreme temps cause health drain.",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Crafting Materials",
+        "mechanics": "Wood, stone, metal ore, plant fibers. Gathered from environment and enemies.",
+        "scarcity": "abundant"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Post-apocalyptic, prehistoric, or stranded on alien planet",
+      "location": "Vast wilderness with diverse biomes (forest, desert, tundra, swamp, mountains)",
+      "worldType": "Harsh and unforgiving natural environment with hostile wildlife"
+    },
+    "protagonist": {
+      "background": "Survivor of a catastrophe (plane crash, shipwreck, zombie outbreak, alien invasion)",
+      "motivation": "Stay alive, find other survivors, escape the hostile environment, or rebuild civilization",
+      "abilities": [
+        "Resourcefulness and adaptability",
+        "Basic survival skills (fire-making, hunting)",
+        "Physical endurance",
+        "Problem-solving under pressure"
+      ]
+    },
+    "conflict": {
+      "primary": "Survive against nature's harsh conditions and hostile creatures",
+      "secondary": [
+        "Scarcity of food and clean water",
+        "Dangerous wildlife and environmental hazards",
+        "Other survivors competing for resources (PvP)",
+        "Mysterious force preventing escape from the area",
+        "Moral dilemmas (help others vs self-preservation)"
+      ]
+    },
+    "worldRules": {
+      "physics": "Realistic physics with gravity, weather systems, day/night cycles, and seasonal changes",
+      "magic": "None (unless fantasy survival variant with mystical elements)",
+      "technology": "Primitive tools and crafting. Scavenge pre-collapse technology (optional: advanced crafting unlocks)"
+    },
+    "themes": [
+      "Survival against all odds",
+      "Adaptation and resilience",
+      "Self-sufficiency",
+      "Man vs Nature",
+      "Isolation and loneliness",
+      "Hope and determination"
+    ]
+  },
+  "tags": ["survival", "crafting", "open-world", "sandbox", "resource-management"],
+  "difficulty": "High difficulty with punishing consequences for mistakes",
+  "targetAudience": "Players who enjoy resource management, exploration, and overcoming harsh challenges"
+}
