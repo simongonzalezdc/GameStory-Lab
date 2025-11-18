@@ -1,11 +1,13 @@
 """Asset export API endpoints."""
 import logging
 import io
+import aiofiles
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import StreamingResponse
 
 from app.models.export import ExportRequest
 from app.services.local_storage_service import storage_service
+from app.services.database_service import db_service
 from app.services.export_service import ExportService
 
 router = APIRouter(prefix="/api/export", tags=["export"])
@@ -40,27 +42,32 @@ async def export_assets(request: ExportRequest):
     try:
         export_service = ExportService()
 
-        # Fetch all requested assets
-        assets_data = []
-        for asset_id in request.asset_ids:
-            asset = await storage_service.get_asset_by_id(user_id, asset_id)
-            if not asset:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Asset not found: {asset_id}"
-                )
+        # Batch fetch all requested assets (fixes N+1 query problem)
+        assets = await db_service.get_assets_batch(request.asset_ids, user_id)
 
-            # Read asset image from local storage
-            file_path = storage_service.get_file_path(asset.file_url)
-            with open(file_path, 'rb') as f:
-                image_bytes = f.read()
+        # Check if all requested assets were found
+        if len(assets) != len(request.asset_ids):
+            found_ids = {asset['id'] for asset in assets}
+            missing_ids = set(request.asset_ids) - found_ids
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Assets not found: {', '.join(missing_ids)}"
+            )
+
+        # Read all asset images asynchronously
+        assets_data = []
+        for asset in assets:
+            # Read asset image from local storage using async I/O
+            file_path = storage_service.get_file_path(asset['file_url'])
+            async with aiofiles.open(file_path, 'rb') as f:
+                image_bytes = await f.read()
 
             assets_data.append({
-                "id": asset.id,
-                "file_name": asset.file_name,
+                "id": asset['id'],
+                "file_name": asset['file_name'],
                 "image_bytes": image_bytes,
-                "width": asset.width,
-                "height": asset.height
+                "width": asset['width'],
+                "height": asset['height']
             })
 
         # Generate export based on format

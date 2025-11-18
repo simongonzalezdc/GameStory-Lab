@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Image as ImageIcon, Download, Trash2, Search, Filter, Star, StarOff, FolderOpen, Wand2, GitBranch, Grid3x3, Grid2x2, LayoutGrid, Tag } from 'lucide-react';
 import { apiClient } from '../services/api';
 import type { Asset } from '../types/asset';
@@ -13,7 +13,7 @@ interface AssetLibraryProps {
   selectedProject?: string | null;
 }
 
-export function AssetLibrary({ refreshTrigger, selectedProject: externalSelectedProject }: AssetLibraryProps) {
+export const AssetLibrary = memo(function AssetLibrary({ refreshTrigger, selectedProject: externalSelectedProject }: AssetLibraryProps) {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -690,4 +690,4 @@ export function AssetLibrary({ refreshTrigger, selectedProject: externalSelected
       )}
     </div>
   );
-}
+});

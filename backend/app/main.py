@@ -1,9 +1,12 @@
 """Main FastAPI application."""
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import os
 
 from app.core.config import settings
@@ -16,6 +19,9 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address, default_limits=[f"{settings.RATE_LIMIT_PER_HOUR}/hour"])
 
 
 @asynccontextmanager
@@ -67,13 +73,18 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure CORS
+# Configure rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Configure CORS - Restricted for security
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],  # Specific methods only
+    allow_headers=["Content-Type", "Authorization", "X-Request-ID"],  # Specific headers only
+    expose_headers=["X-Total-Count", "X-Rate-Limit-Remaining"],
 )
 
 # Mount static files for serving assets
@@ -82,12 +93,23 @@ if not os.path.exists(settings.STORAGE_PATH):
     os.makedirs(settings.STORAGE_PATH, exist_ok=True)
 app.mount("/assets", StaticFiles(directory=settings.STORAGE_PATH), name="assets")
 
-# Include routers
-app.include_router(health.router)
-app.include_router(generate.router)
-app.include_router(assets.router)
-app.include_router(asset_packs.router)
-app.include_router(export.router)
+# Create API v1 router
+api_v1 = APIRouter(prefix="/api/v1", tags=["v1"])
+api_v1.include_router(health.router, tags=["health"])
+api_v1.include_router(generate.router, tags=["generation"])
+api_v1.include_router(assets.router, tags=["assets"])
+api_v1.include_router(asset_packs.router, tags=["asset-packs"])
+api_v1.include_router(export.router, tags=["export"])
+
+# Include API v1
+app.include_router(api_v1)
+
+# Also include routers at /api/* for backward compatibility (will deprecate)
+app.include_router(health.router, deprecated=True)
+app.include_router(generate.router, deprecated=True)
+app.include_router(assets.router, deprecated=True)
+app.include_router(asset_packs.router, deprecated=True)
+app.include_router(export.router, deprecated=True)
 
 
 @app.get("/")

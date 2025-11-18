@@ -49,7 +49,7 @@ class DatabaseService:
                 )
             """)
 
-            # Create indexes
+            # Create indexes for performance
             await db.execute("""
                 CREATE INDEX IF NOT EXISTS idx_assets_user_id
                 ON assets(user_id)
@@ -57,6 +57,15 @@ class DatabaseService:
             await db.execute("""
                 CREATE INDEX IF NOT EXISTS idx_assets_created_at
                 ON assets(created_at DESC)
+            """)
+            # Composite indexes for common query patterns
+            await db.execute("""
+                CREATE INDEX IF NOT EXISTS idx_assets_user_project
+                ON assets(user_id, project_name)
+            """)
+            await db.execute("""
+                CREATE INDEX IF NOT EXISTS idx_assets_user_favorite
+                ON assets(user_id, is_favorite)
             """)
 
             # Create generation_history table
@@ -205,8 +214,19 @@ class DatabaseService:
             return self._row_to_asset(row, cursor.description)
 
     async def update_asset(self, asset_id: str, user_id: str, update_data: dict) -> Optional[dict]:
-        """Update asset metadata."""
+        """Update asset metadata with whitelisted fields only."""
+        # Whitelist of allowed fields for security (prevent SQL injection)
+        ALLOWED_UPDATE_FIELDS = {
+            'style_tags', 'project_name', 'is_favorite', 'notes',
+            'file_name', 'generation_prompt', 'metadata'
+        }
+
         async with aiosqlite.connect(self.db_path) as db:
+            # Validate all fields are in whitelist
+            invalid_fields = set(update_data.keys()) - ALLOWED_UPDATE_FIELDS
+            if invalid_fields:
+                raise ValueError(f"Invalid update fields: {invalid_fields}")
+
             # Build dynamic UPDATE query based on provided fields
             update_fields = []
             values = []
@@ -226,6 +246,18 @@ class DatabaseService:
             if 'notes' in update_data:
                 update_fields.append("notes = ?")
                 values.append(update_data['notes'])
+
+            if 'file_name' in update_data:
+                update_fields.append("file_name = ?")
+                values.append(update_data['file_name'])
+
+            if 'generation_prompt' in update_data:
+                update_fields.append("generation_prompt = ?")
+                values.append(update_data['generation_prompt'])
+
+            if 'metadata' in update_data:
+                update_fields.append("metadata = ?")
+                values.append(str(update_data['metadata']))
 
             if not update_fields:
                 # No fields to update
@@ -301,6 +333,33 @@ class DatabaseService:
             if row:
                 return self._row_to_asset(row, cursor.description)
             return None
+
+    async def get_assets_batch(self, asset_ids: List[str], user_id: str = 'local-user') -> List[dict]:
+        """
+        Get multiple assets by IDs in a single query (fixes N+1 problem).
+
+        Args:
+            asset_ids: List of asset IDs to fetch
+            user_id: User ID
+
+        Returns:
+            List of asset dictionaries (may be fewer than requested if some not found)
+        """
+        if not asset_ids:
+            return []
+
+        async with aiosqlite.connect(self.db_path) as db:
+            # Build query with placeholders for all IDs
+            placeholders = ','.join(['?' for _ in asset_ids])
+            query = f"""
+                SELECT * FROM assets
+                WHERE user_id = ? AND id IN ({placeholders})
+            """
+            params = [user_id] + list(asset_ids)
+
+            cursor = await db.execute(query, params)
+            rows = await cursor.fetchall()
+            return [self._row_to_asset(row, cursor.description) for row in rows]
 
     async def delete_asset(self, asset_id: str, user_id: str = 'local-user') -> bool:
         """Delete asset from database."""
