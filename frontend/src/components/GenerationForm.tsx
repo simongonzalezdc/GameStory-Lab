@@ -11,6 +11,7 @@ import { ColorVariationSettings, type ColorVariationSettings as ColorVariationSe
 import { IsometricModeSettings, type IsometricModeSettings as IsometricModeSettingsType } from './IsometricModeSettings';
 import { TilesetSettings, type TilesetSettings as TilesetSettingsType } from './TilesetSettings';
 import { AnimationSettings, type AnimationSettings as AnimationSettingsType } from './AnimationSettings';
+import { AssetTemplatesModal } from './AssetTemplatesModal';
 
 interface GenerationFormProps {
   onGenerated?: () => void;
@@ -24,6 +25,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showBatchModal, setShowBatchModal] = useState(false);
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
 
   // Pixel Art Mode
   const [pixelArtEnabled, setPixelArtEnabled] = useState(false);
@@ -553,9 +555,19 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Prompt Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Describe your asset
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Describe your asset
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowTemplatesModal(true)}
+              className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1"
+            >
+              <Sparkles size={16} />
+              Use Template
+            </button>
+          </div>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
@@ -740,6 +752,28 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
           basePrompt={prompt}
           onClose={() => setShowBatchModal(false)}
           onComplete={handleBatchComplete}
+        />
+      )}
+
+      {/* Asset Templates Modal */}
+      {showTemplatesModal && (
+        <AssetTemplatesModal
+          onClose={() => setShowTemplatesModal(false)}
+          onSelectTemplate={(template) => {
+            setPrompt(template.prompt);
+            // Apply recommended settings if available
+            if (template.recommendedSettings) {
+              if (template.recommendedSettings.pixelArt !== undefined) {
+                setPixelArtEnabled(template.recommendedSettings.pixelArt);
+              }
+              if (template.recommendedSettings.isometric !== undefined) {
+                setIsometricEnabled(template.recommendedSettings.isometric);
+              }
+              if (template.recommendedSettings.dimensions) {
+                setDimensions(template.recommendedSettings.dimensions);
+              }
+            }
+          }}
         />
       )}
     </div>
