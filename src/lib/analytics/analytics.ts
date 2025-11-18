@@ -31,13 +31,13 @@ export function initAnalytics(): void {
 export function trackEvent(eventName: string, properties?: Record<string, unknown>): void {
   // TODO: Send to analytics service
   // Example for Plausible:
-  // if (typeof window !== 'undefined' && (window as any).plausible) {
-  //   (window as any).plausible(eventName, { props: properties });
+  // if (typeof window !== 'undefined' && window.plausible) {
+  //   window.plausible(eventName, { props: properties });
   // }
-  
+
   // Example for PostHog:
-  // if (typeof window !== 'undefined' && (window as any).posthog) {
-  //   (window as any).posthog.capture(eventName, properties);
+  // if (typeof window !== 'undefined' && window.posthog) {
+  //   window.posthog.capture(eventName, properties);
   // }
 
   // For now, just log in development

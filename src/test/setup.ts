@@ -1,3 +1,5 @@
+/// <reference path="./test-globals.d.ts" />
+
 import '@testing-library/jest-dom';
 import { afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
@@ -9,7 +11,8 @@ afterEach(() => {
 
 // Mock Web Audio API (in browser environment only)
 if (typeof window !== 'undefined') {
-  (window as any).AudioContext = class MockAudioContext {};
+  // Test-only mock - extends Window interface via test-globals.d.ts
+  window.AudioContext = class MockAudioContext {} as any;
 
   // Mock getUserMedia for microphone tests
   if (!window.navigator.mediaDevices) {
@@ -22,22 +25,22 @@ if (typeof window !== 'undefined') {
     });
   }
 
-  // Mock File System Access API
-  (window as any).showDirectoryPicker = () =>
+  // Mock File System Access API - test-only mocks
+  window.showDirectoryPicker = () =>
     Promise.resolve({
       getFileHandle: () => Promise.resolve({}),
-    });
+    } as any);
 
-  (window as any).showOpenFilePicker = () =>
+  window.showOpenFilePicker = () =>
     Promise.resolve([{
       getFile: () => Promise.resolve(new File([], 'test.json')),
-    }]);
+    }] as any);
 
-  (window as any).showSaveFilePicker = () =>
+  window.showSaveFilePicker = () =>
     Promise.resolve({
       createWritable: () => Promise.resolve({
         write: () => Promise.resolve(),
         close: () => Promise.resolve(),
       }),
-    });
+    } as any);
 }
