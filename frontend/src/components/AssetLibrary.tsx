@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Image as ImageIcon, Download, Trash2, Search, Filter, Star, StarOff, FolderOpen, Wand2, GitBranch } from 'lucide-react';
+import { Image as ImageIcon, Download, Trash2, Search, Filter, Star, StarOff, FolderOpen, Wand2, GitBranch, Grid3x3, Grid2x2, LayoutGrid } from 'lucide-react';
 import { apiClient } from '../services/api';
 import type { Asset } from '../types/asset';
 import { ChatInterface } from './ChatInterface';
@@ -23,6 +23,13 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [selectedStyleTag, setSelectedStyleTag] = useState<string>('');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
+  // Grid size control
+  type GridSize = 'small' | 'medium' | 'large';
+  const [gridSize, setGridSize] = useState<GridSize>(() => {
+    const saved = localStorage.getItem('asset-grid-size');
+    return (saved as GridSize) || 'medium';
+  });
 
   // Phase 2: Refinement & Versioning
   const [refineAsset, setRefineAsset] = useState<Asset | null>(null);
@@ -65,6 +72,24 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
     }
     setFavorites(newFavorites);
     localStorage.setItem('asset-favorites', JSON.stringify(Array.from(newFavorites)));
+  };
+
+  const handleGridSizeChange = (size: GridSize) => {
+    setGridSize(size);
+    localStorage.setItem('asset-grid-size', size);
+  };
+
+  const getGridClasses = () => {
+    switch (gridSize) {
+      case 'small':
+        return 'grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3';
+      case 'medium':
+        return 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4';
+      case 'large':
+        return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+      default:
+        return 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4';
+    }
   };
 
   const handleDelete = async (assetId: string) => {
@@ -239,13 +264,50 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold">Asset Library ({filteredAssets.length})</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {/* Grid Size Controls */}
+          <div className="flex gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <button
+              onClick={() => handleGridSizeChange('small')}
+              className={`p-2 rounded transition ${
+                gridSize === 'small'
+                  ? 'bg-white dark:bg-gray-600 shadow'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+              title="Small thumbnails"
+            >
+              <Grid3x3 size={16} className={gridSize === 'small' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'} />
+            </button>
+            <button
+              onClick={() => handleGridSizeChange('medium')}
+              className={`p-2 rounded transition ${
+                gridSize === 'medium'
+                  ? 'bg-white dark:bg-gray-600 shadow'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+              title="Medium thumbnails"
+            >
+              <Grid2x2 size={16} className={gridSize === 'medium' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'} />
+            </button>
+            <button
+              onClick={() => handleGridSizeChange('large')}
+              className={`p-2 rounded transition ${
+                gridSize === 'large'
+                  ? 'bg-white dark:bg-gray-600 shadow'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+              title="Large thumbnails"
+            >
+              <LayoutGrid size={16} className={gridSize === 'large' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'} />
+            </button>
+          </div>
+
           <button
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             className={`px-4 py-2 rounded-lg flex items-center gap-2 transition ${
               showFavoritesOnly
                 ? 'bg-yellow-500 text-white'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
             }`}
           >
             <Star size={16} fill={showFavoritesOnly ? 'currentColor' : 'none'} />
@@ -339,7 +401,7 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className={getGridClasses()}>
           {filteredAssets.map((asset) => {
             const isFavorite = favorites.has(asset.id);
 
