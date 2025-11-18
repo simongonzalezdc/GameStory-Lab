@@ -11,9 +11,11 @@ vi.mock('../contexts/ThemeContext', () => ({
 describe('ThemeToggle', () => {
   it('renders moon icon in light mode', () => {
     const toggleTheme = vi.fn();
+    const setTheme = vi.fn();
     vi.spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'light',
       toggleTheme,
+      setTheme,
     });
 
     render(<ThemeToggle />);
@@ -24,9 +26,11 @@ describe('ThemeToggle', () => {
 
   it('renders sun icon in dark mode', () => {
     const toggleTheme = vi.fn();
+    const setTheme = vi.fn();
     vi.spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'dark',
       toggleTheme,
+      setTheme,
     });
 
     render(<ThemeToggle />);
@@ -36,9 +40,11 @@ describe('ThemeToggle', () => {
 
   it('calls toggleTheme when clicked', () => {
     const toggleTheme = vi.fn();
+    const setTheme = vi.fn();
     vi.spyOn(ThemeContext, 'useTheme').mockReturnValue({
       theme: 'light',
       toggleTheme,
+      setTheme,
     });
 
     render(<ThemeToggle />);
