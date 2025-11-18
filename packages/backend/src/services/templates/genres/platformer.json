@@ -1,0 +1,105 @@
+{
+  "id": "platformer",
+  "name": "Platformer",
+  "description": "Jump-and-run gameplay focused on precise movement, timing, and obstacle navigation",
+  "mechanics": {
+    "coreLoop": "Navigate platforming challenges → Collect items and power-ups → Defeat or avoid enemies → Reach level goal → Unlock new worlds/abilities → Master advanced techniques",
+    "playerActions": [
+      "Run, jump, and double jump across platforms",
+      "Wall jump, dash, and advanced movement techniques",
+      "Stomp or attack enemies",
+      "Collect coins, gems, or collectibles scattered in levels",
+      "Discover secret areas and hidden paths",
+      "Use power-ups for temporary abilities",
+      "Activate switches and solve simple puzzles",
+      "Time movements to avoid hazards (spikes, pits, moving obstacles)"
+    ],
+    "progressionSystems": {
+      "type": "linear",
+      "mechanics": [
+        "Complete levels sequentially to unlock new worlds",
+        "Collect all items in a level for 100% completion",
+        "Unlock new abilities through story milestones (double jump, dash, etc.)",
+        "Find secret exits to unlock bonus levels",
+        "Time trials and speedrun challenges",
+        "Extra lives system or checkpoint-based progression",
+        "Character upgrades or costume unlocks"
+      ]
+    },
+    "winConditions": [
+      "Reach the end goal/flagpole of the level",
+      "Defeat the world boss",
+      "Collect all required items (stars, moons, emblems)",
+      "Complete all main levels and bonus challenges"
+    ],
+    "failConditions": [
+      "Fall into pits or lava (lose a life)",
+      "Take damage when unprotected (life-based or checkpoint restart)",
+      "Run out of lives (game over, restart from checkpoint or world)",
+      "Time limit expires (in timed levels)"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Lives",
+        "mechanics": "Extra chances before game over, earned by collecting 100 coins or finding 1-ups",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Health/Hit Points",
+        "mechanics": "Some platformers use health system instead of instant death",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Collectibles (Coins/Gems)",
+        "mechanics": "Scattered throughout levels, unlock bonuses or extra lives",
+        "scarcity": "abundant"
+      },
+      {
+        "name": "Power-ups",
+        "mechanics": "Temporary abilities like fire flower, invincibility star, flight",
+        "scarcity": "scarce"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Fantastical or whimsical, often timeless",
+      "location": "Colorful kingdoms with themed worlds (grass, desert, water, ice, volcano, sky, space)",
+      "worldType": "Cartoonish and vibrant with imaginative level designs"
+    },
+    "protagonist": {
+      "background": "Unlikely hero (plumber, adventurer, small creature) with exceptional jumping ability",
+      "motivation": "Rescue kidnapped friend/princess, save the kingdom, stop evil villain, or explore for treasure",
+      "abilities": [
+        "Superhuman jumping and acrobatic prowess",
+        "Resilience and determination",
+        "Creative problem-solving through movement",
+        "Quick reflexes and precise timing"
+      ]
+    },
+    "conflict": {
+      "primary": "Evil villain has kidnapped someone or stolen something precious, threatening the peaceful world",
+      "secondary": [
+        "Navigate dangerous worlds created or corrupted by villain",
+        "Defeat minions and bosses guarding each world",
+        "Overcome environmental hazards",
+        "Rivals or anti-heroes complicating the mission"
+      ]
+    },
+    "worldRules": {
+      "physics": "Exaggerated jumping physics, players can float slightly or control air movement",
+      "magic": "Power-ups grant temporary magical abilities; some worlds have magical properties",
+      "technology": "Minimal technology, mostly mechanical contraptions and simple machines"
+    },
+    "themes": [
+      "Heroism and courage",
+      "Perseverance through challenges",
+      "Exploration and discovery",
+      "Good vs evil (straightforward morality)",
+      "Joy and whimsy"
+    ]
+  },
+  "tags": ["precision", "arcade", "collectathon", "family-friendly", "side-scrolling"],
+  "difficulty": "Accessible with optional hard challenges",
+  "targetAudience": "All ages, especially those who enjoy mechanical mastery"
+}

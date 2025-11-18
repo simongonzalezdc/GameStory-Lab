@@ -1,0 +1,109 @@
+{
+  "id": "simulation",
+  "name": "Simulation",
+  "description": "Realistic systems management and life/world simulation with emergent gameplay",
+  "mechanics": {
+    "coreLoop": "Build and manage complex systems → Make strategic decisions → Observe emergent behaviors → Optimize efficiency → Expand and grow → Face new challenges at scale",
+    "playerActions": [
+      "Place buildings, roads, and infrastructure",
+      "Manage budgets and allocate resources",
+      "Set policies and rules for the simulation",
+      "Monitor statistics and identify problems",
+      "Respond to random events and disasters",
+      "Customize and design (houses, characters, cities)",
+      "Plan long-term strategies and goals",
+      "Experiment with different approaches and systems"
+    ],
+    "progressionSystems": {
+      "type": "open",
+      "mechanics": [
+        "Population or city growth unlocks new buildings",
+        "Accumulate wealth to afford larger projects",
+        "Unlock new features through milestones",
+        "Research tree for advanced options",
+        "Reputation/happiness meters affect available choices",
+        "Sandbox mode for unlimited creativity",
+        "Scenario-based challenges with specific goals"
+      ]
+    },
+    "winConditions": [
+      "Reach population or wealth milestones",
+      "Complete scenario-specific objectives",
+      "Maintain stability for set duration",
+      "Achieve 100% satisfaction/happiness",
+      "No traditional win - open-ended sandbox"
+    ],
+    "failConditions": [
+      "Bankruptcy (no funds to continue)",
+      "Mass exodus (all citizens leave)",
+      "Fail scenario objectives",
+      "Generally forgiving - can usually recover from mistakes"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Money/Budget",
+        "mechanics": "Income from taxes/business, spent on construction and maintenance",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Population/Citizens",
+        "mechanics": "People move in/out based on conditions, drive demand for services",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Resources (Power/Water/Goods)",
+        "mechanics": "Must be produced and distributed to meet population needs",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Land/Space",
+        "mechanics": "Limited buildable area requires strategic planning",
+        "scarcity": "scarce"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Contemporary, historical, or futuristic depending on simulation type",
+      "location": "City, farm, business, household, or entire civilization",
+      "worldType": "Realistic simulation of systems and human behavior"
+    },
+    "protagonist": {
+      "background": "Mayor, manager, god-like overseer, or ordinary person living simulated life",
+      "motivation": "Build thriving community, achieve prosperity, create perfect world, live desired lifestyle",
+      "abilities": [
+        "Omniscient view of entire system",
+        "Ability to pause time and plan",
+        "Control over major decisions and policies",
+        "Understanding of complex interconnected systems"
+      ]
+    },
+    "conflict": {
+      "primary": "Balancing competing needs and limited resources to create sustainable, thriving system",
+      "secondary": [
+        "Natural disasters and random events",
+        "Economic recessions and budget crises",
+        "Citizen unhappiness and protests",
+        "Pollution and environmental degradation",
+        "Competition with neighboring cities/businesses",
+        "Balancing growth with sustainability"
+      ]
+    },
+    "worldRules": {
+      "physics": "Realistic simulation of real-world systems and economics",
+      "magic": "No magic - pure systems simulation and strategy",
+      "technology": "Modern or futuristic technology for infrastructure and services"
+    },
+    "themes": [
+      "Systems thinking and interconnectedness",
+      "Responsibility and stewardship",
+      "Growth vs sustainability",
+      "Community and social dynamics",
+      "Cause and effect",
+      "Planning and foresight"
+    ]
+  },
+  "tags": ["management", "sandbox", "strategic", "creative", "relaxing"],
+  "difficulty": "Variable - scales with player ambition",
+  "targetAudience": "Players who enjoy creative freedom and strategic planning"
+}

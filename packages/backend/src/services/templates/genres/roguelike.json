@@ -1,0 +1,107 @@
+{
+  "id": "roguelike",
+  "name": "Roguelike/Roguelite",
+  "description": "Procedurally generated runs with permadeath, meta-progression, and strategic depth",
+  "mechanics": {
+    "coreLoop": "Start fresh run → Explore procedural levels → Acquire random upgrades → Make risk/reward decisions → Die and lose progress → Unlock meta-upgrades → Start stronger run",
+    "playerActions": [
+      "Navigate procedurally generated rooms and levels",
+      "Choose between random power-ups and synergistic builds",
+      "Engage in skill-based combat or challenges",
+      "Decide between safe path vs risky reward rooms",
+      "Manage limited resources (health, currency, items)",
+      "Discover item synergies and broken combinations",
+      "Unlock new characters with different playstyles",
+      "Learn enemy patterns for future runs"
+    ],
+    "progressionSystems": {
+      "type": "branching",
+      "mechanics": [
+        "Run-based progression: grow powerful within single run, reset on death",
+        "Meta-progression: unlock new items, characters, and abilities for future runs",
+        "Branching paths with different biomes and challenges",
+        "Currency spent between runs for permanent upgrades",
+        "Knowledge-based progression: learn patterns and strategies",
+        "Daily/weekly challenge runs with leaderboards",
+        "Achievement-based unlocks"
+      ]
+    },
+    "winConditions": [
+      "Defeat final boss and complete the run",
+      "Reach the end of all biomes/chapters",
+      "Achieve specific challenge objectives",
+      "Unlock all endings or true final boss"
+    ],
+    "failConditions": [
+      "Health reaches zero (permadeath - start new run)",
+      "Some roguelites allow limited revives or continues",
+      "Must restart from beginning, keeping only meta-progression",
+      "Lose accumulated run-specific power and items"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Health",
+        "mechanics": "Limited healing, must be strategic about taking damage",
+        "scarcity": "scarce"
+      },
+      {
+        "name": "Currency (Gold/Coins)",
+        "mechanics": "Found in run, used for items in shops or between-run upgrades",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Meta-Currency (Gems/Souls)",
+        "mechanics": "Persists after death, used for permanent unlocks",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Item Slots/Build Capacity",
+        "mechanics": "Limited number of active items or upgrades",
+        "scarcity": "scarce"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Varies widely: fantasy dungeons, sci-fi spaceships, mythological underworlds",
+      "location": "Ever-changing procedural realms, dungeons, or dimensions",
+      "worldType": "Often metaphorical or abstract, with narrative emerging through gameplay"
+    },
+    "protagonist": {
+      "background": "Cursed soul trapped in cycle of death and rebirth, dungeon delver, or escaped prisoner",
+      "motivation": "Escape the cycle, reach the surface, defeat the source of the curse, seek vengeance or redemption",
+      "abilities": [
+        "Immortality through resurrection (explains permadeath loop)",
+        "Ability to learn and improve despite amnesia",
+        "Adaptability to ever-changing environments",
+        "Mastery of various weapons and powers"
+      ]
+    },
+    "conflict": {
+      "primary": "Trapped in an endless dungeon or realm, must fight through impossible odds to escape or break the cycle",
+      "secondary": [
+        "Increasingly difficult enemies and bosses",
+        "Environmental hazards unique to each biome",
+        "Curse or fate that forces the cycle to continue",
+        "Other trapped souls (NPCs) with their own agendas",
+        "The protagonist's own limitations and mortality"
+      ]
+    },
+    "worldRules": {
+      "physics": "Often fantastical with game-logic physics (bullet-hell, dash mechanics)",
+      "magic": "Magic or advanced tech grants random powers, creating unique build combinations",
+      "technology": "Ranges from medieval weapons to futuristic guns depending on setting"
+    },
+    "themes": [
+      "Persistence and mastery through failure",
+      "Emergent narratives from random events",
+      "Fate vs free will",
+      "The cycle of death and rebirth",
+      "Adaptation and improvisation",
+      "Risk vs reward decision-making"
+    ]
+  },
+  "tags": ["procedural", "permadeath", "replayability", "skill-based", "build-crafting"],
+  "difficulty": "Brutal but fair, rewards mastery",
+  "targetAudience": "Players who enjoy high replayability and overcoming challenges"
+}

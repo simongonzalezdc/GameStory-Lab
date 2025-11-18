@@ -1,0 +1,105 @@
+{
+  "id": "sports",
+  "name": "Sports",
+  "description": "Competitive athletic simulation with realistic physics, team management, and skill-based gameplay",
+  "mechanics": {
+    "coreLoop": "Select team/athlete → Practice and train → Compete in matches → Earn rewards and upgrades → Improve stats → Advance through seasons",
+    "playerActions": [
+      "Control individual athlete or entire team",
+      "Execute sport-specific moves (shooting, passing, tackling, etc.)",
+      "Manage stamina and substitutions during matches",
+      "Call plays and adjust tactics in real-time",
+      "Participate in training drills to improve skills",
+      "Negotiate contracts and manage team roster (in career mode)",
+      "Customize player appearance and equipment",
+      "Execute signature moves and special abilities"
+    ],
+    "progressionSystems": {
+      "type": "linear",
+      "mechanics": [
+        "Player/team stats increase through gameplay and training",
+        "Unlock new abilities and signature moves",
+        "Career mode progression through seasons and championships",
+        "Transfer market and team building (collect better players)",
+        "Ultimate team mode with card packs and upgrades",
+        "Achievement-based unlocks for cosmetics and arenas"
+      ]
+    },
+    "winConditions": [
+      "Outscore opponent by end of match/game",
+      "Win championship or tournament",
+      "Complete season objectives (playoffs, MVP awards)",
+      "Build legendary team in ultimate mode"
+    ],
+    "failConditions": [
+      "Lose match (can retry or continue season)",
+      "Fail to meet season objectives",
+      "Team morale or finances collapse (in management modes)",
+      "Generally forgiving with retry options"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Stamina",
+        "mechanics": "Players tire during matches, affecting performance; manage with substitutions",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Virtual Currency",
+        "mechanics": "Earned from matches, used for player upgrades and acquisitions",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Player Cards/Roster Slots",
+        "mechanics": "Collect athletes through packs or transfers, limited team size",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Training Points",
+        "mechanics": "Spent to upgrade individual player attributes",
+        "scarcity": "scarce"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Contemporary (current sports season)",
+      "location": "Famous stadiums and arenas worldwide, realistic sports environments",
+      "worldType": "Authentic recreation of professional sports leagues and competitions"
+    },
+    "protagonist": {
+      "background": "Rising athlete seeking glory, veteran player in final season, or rookie with untapped potential",
+      "motivation": "Win championships, achieve personal records, earn Hall of Fame status, prove doubters wrong",
+      "abilities": [
+        "Elite athleticism in chosen sport",
+        "Sport-specific skills (shooting accuracy, passing vision, defensive prowess)",
+        "Leadership and team chemistry",
+        "Clutch performance under pressure"
+      ]
+    },
+    "conflict": {
+      "primary": "Compete against rival teams/athletes to become champion and cement legacy",
+      "secondary": [
+        "Overcome injuries and physical limitations",
+        "Navigate team drama and rivalries",
+        "Prove worth to coaches and fans",
+        "Handle pressure of high-stakes moments",
+        "Balance personal life with athletic career"
+      ]
+    },
+    "worldRules": {
+      "physics": "Realistic sports physics with subtle arcade enhancements for fun",
+      "magic": "No magic - pure athletic skill and strategy",
+      "technology": "Modern sports equipment, instant replay systems, statistics tracking, sports science"
+    },
+    "themes": [
+      "Competition and excellence",
+      "Teamwork and leadership",
+      "Perseverance through adversity",
+      "Glory and legacy",
+      "Fair play vs winning at all costs"
+    ]
+  },
+  "tags": ["competitive", "simulation", "multiplayer", "team-based", "skill-based"],
+  "difficulty": "Easy to learn, difficult to master",
+  "targetAudience": "Sports fans seeking authentic competitive experiences"
+}

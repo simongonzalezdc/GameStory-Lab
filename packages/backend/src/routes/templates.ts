@@ -107,6 +107,67 @@ router.post('/:genre/customize', (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/templates/blend
+ * Blend multiple genres into a hybrid template
+ *
+ * Body:
+ * {
+ *   "genres": [
+ *     { "genre": "rpg", "weight": 0.7 },
+ *     { "genre": "fps", "weight": 0.3 }
+ *   ]
+ * }
+ *
+ * Examples:
+ * - RPG (70%) + FPS (30%) = Action RPG
+ * - Platformer (50%) + Adventure (50%) = Metroidvania
+ * - Survival (60%) + Horror (40%) = Survival Horror
+ * - Roguelike (40%) + Action-Adventure (40%) + RPG (20%) = Roguelite Action RPG
+ */
+router.post('/blend', (req: Request, res: Response) => {
+  try {
+    const { genres } = req.body;
+
+    if (!genres || !Array.isArray(genres) || genres.length === 0) {
+      return res.status(400).json({
+        error: 'genres array is required with at least one genre',
+        example: {
+          genres: [
+            { genre: 'rpg', weight: 0.7 },
+            { genre: 'fps', weight: 0.3 },
+          ],
+        },
+      });
+    }
+
+    // Validate each genre config
+    for (const config of genres) {
+      if (!config.genre || typeof config.weight !== 'number') {
+        return res.status(400).json({
+          error: 'Each genre config must have "genre" (string) and "weight" (number)',
+          example: { genre: 'rpg', weight: 0.5 },
+        });
+      }
+    }
+
+    const blendedTemplate = templateService.blendGenres(genres);
+
+    if (!blendedTemplate) {
+      return res.status(400).json({ error: 'Failed to blend genres. Check that all genres are valid.' });
+    }
+
+    res.json({
+      blended: true,
+      template: blendedTemplate,
+      sourceGenres: genres,
+    });
+  } catch (error) {
+    logger.error('Failed to blend genres', { error, genres: req.body.genres });
+    res.status(500).json({ error: 'Failed to blend genres' });
+  }
+});
+
+/**
  * POST /api/templates/:genre/create-project
  * Create a new project from a template
  *
