@@ -116,29 +116,34 @@ export class AIOrchestrator {
         logger.info('Falling back to Ollama');
         const ollamaClient = this.clients.get('ollama')!;
         // Try to get an available model
-        // Default: Qwen 2.5 7B - best balance of quality/performance on Mac M4 16GB
-        let fallbackModel = 'qwen2.5:7b';
+        // Default: Qwen3-30B-A3B (MoE) - 30B quality with only 3B activated!
+        let fallbackModel = 'qwen3:30b-a3b';
         try {
           const availableModels = await ollamaClient.listModels?.() || [];
           if (availableModels.length > 0) {
-            // Optimized for Mac M4 16GB: Prefer models that fit in memory with good performance
-            // Priority order based on Dec 2024 benchmarks for structured output & creative writing:
-            // 1. qwen2.5-coder:7b (best for creative narrative, 4.7GB)
-            // 2. qwen2.5:7b (excellent structured output, 4.7GB)
-            // 3. phi4:14b (highest quality but uses 9GB, may strain 16GB systems)
-            // 4. qwen2.5:3b (fast, lightweight fallback, 1.9GB)
+            // OPTIMIZED FOR MAC M4 16GB (November 2025):
+            // Priority order based on April-November 2025 releases & benchmarks:
+            // 1. qwen3:30b-a3b (MoE: 30B total, 3B active - BEST quality/memory ratio!, 8-12GB)
+            // 2. phi4:14b (9.8T tokens, excellent reasoning, 11-13GB)
+            // 3. qwen3-coder:7b (best creative writing, 6-8GB)
+            // 4. qwen3:7b (excellent JSON/structured, 6-8GB)
+            // 5. deepseek-r1:8b (advanced reasoning, 7-9GB)
+            // 6. llama4:8b (versatile, <8GB)
             const preferredModels = [
-              'qwen2.5-coder:7b',  // Best for lore/narrative (creative writing optimized)
-              'qwen2.5:7b',        // Best for mechanics (JSON/structured output)
-              'phi4:14b',          // Highest quality but higher memory usage
-              'qwen2.5:3b',        // Fast, lightweight
-              'llama3.2:3b',       // Ultra-lightweight fallback
+              'qwen3:30b-a3b',     // MoE magic: 30B quality, 3B memory!
+              'phi4:14b',          // Top quality for 16GB
+              'qwen3-coder:7b',    // Best creative/narrative
+              'qwen3:7b',          // Best structured JSON
+              'deepseek-r1:8b',    // Best reasoning
+              'llama4:8b',         // Versatile lightweight
+              'mistral:7b',        // Fast workhorse
+              'qwen3:3b',          // Ultra-lightweight
             ];
             const generalPurposeModel = availableModels.find(m =>
               preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
               !m.toLowerCase().includes('embed')
             );
-            fallbackModel = generalPurposeModel || availableModels.find(m => m.toLowerCase().includes('qwen2.5')) || availableModels[0];
+            fallbackModel = generalPurposeModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
           }
         } catch {
           // If we can't list models, use default
@@ -156,7 +161,7 @@ export class AIOrchestrator {
 
   /**
    * Select the optimal model based on task type and preferences
-   * Based on Nov 2025 benchmarks from technical spec
+   * Based on November 2025 benchmarks (Qwen 3, Phi-4, Llama 4, DeepSeek R1)
    */
   private async selectModel(
     taskType: TaskType,
@@ -167,30 +172,34 @@ export class AIOrchestrator {
       const ollamaClient = this.clients.get('ollama');
       if (ollamaClient && (await ollamaClient.isAvailable())) {
         // Try to get an available model, fallback to default if listModels fails
-        // Default: Qwen 2.5 7B - excellent for Mac M4 16GB (4.7GB model size, ~6-8GB RAM usage)
-        let model = 'qwen2.5:7b';
+        // Default: Qwen3-30B-A3B (MoE) - 30B quality with only 3B activated!
+        let model = 'qwen3:30b-a3b';
         try {
           const availableModels = await ollamaClient.listModels?.() || [];
           if (availableModels.length > 0) {
-            // OPTIMIZED FOR MAC M4 16GB (Dec 2024):
-            // Qwen 2.5 series offers best structured output + creative writing
-            // Model selection strategy:
-            // - Task-agnostic: Use qwen2.5:7b (balanced, 35-45 tok/s)
-            // - Creative tasks: qwen2.5-coder:7b performs better for narrative
-            // - Memory constrained: qwen2.5:3b (55-75 tok/s, only 1.9GB)
-            // - Max quality: phi4:14b (25-35 tok/s, needs 11-13GB RAM)
+            // OPTIMIZED FOR MAC M4 16GB (November 2025):
+            // Model selection strategy based on April-November 2025 releases:
+            // - Best overall: qwen3:30b-a3b (MoE: 30B quality, 3B memory, 20-30 tok/s)
+            // - Max quality: phi4:14b (9.8T tokens training, 25-35 tok/s, 11-13GB RAM)
+            // - Creative tasks: qwen3-coder:7b (excellent narrative, 35-45 tok/s)
+            // - Structured output: qwen3:7b (best JSON, 35-45 tok/s)
+            // - Reasoning: deepseek-r1:8b (shows thinking process, 30-40 tok/s)
+            // - Lightweight: llama4:8b (<8GB, 35-45 tok/s)
             const preferredModels = [
-              'qwen2.5-coder:7b',  // Best creative writing (lore, titles)
-              'qwen2.5:7b',        // Best structured output (mechanics, JSON)
-              'phi4:14b',          // Highest quality (if RAM allows)
-              'qwen2.5:3b',        // Lightweight, fast
-              'llama3.2:3b',       // Ultra-lightweight
+              'qwen3:30b-a3b',     // MoE: 30B quality, 3B memory!
+              'phi4:14b',          // Highest quality reasoning
+              'qwen3-coder:7b',    // Best creative writing
+              'qwen3:7b',          // Best structured JSON
+              'deepseek-r1:8b',    // Best reasoning
+              'llama4:8b',         // Versatile lightweight
+              'mistral:7b',        // Fast workhorse
+              'qwen3:3b',          // Ultra-lightweight
             ];
             const generalPurposeModel = availableModels.find(m =>
               preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
               !m.toLowerCase().includes('embed')
             );
-            model = generalPurposeModel || availableModels.find(m => m.toLowerCase().includes('qwen2.5')) || availableModels[0];
+            model = generalPurposeModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
           }
         } catch {
           // If we can't list models, use default
@@ -232,22 +241,24 @@ export class AIOrchestrator {
           const ollamaClient = this.clients.get('ollama');
           if (ollamaClient && (await ollamaClient.isAvailable())) {
             // For mechanics: Prefer models with strong structured JSON output
-            let model = 'qwen2.5:7b';
+            let model = 'qwen3:30b-a3b';
             try {
               const availableModels = await ollamaClient.listModels?.() || [];
               if (availableModels.length > 0) {
-                // Mechanics generation needs structured output - Qwen 2.5 series excels at this
+                // Mechanics generation needs structured output - Qwen 3 excels, MoE gives best quality/memory
                 const preferredModels = [
-                  'qwen2.5:7b',       // Best JSON/structured output
-                  'phi4:14b',         // High quality reasoning
-                  'qwen2.5:3b',       // Fast, lightweight
+                  'qwen3:30b-a3b',  // MoE: Best quality for JSON (Qwen3-4B rivals Qwen2.5-72B!)
+                  'phi4:14b',       // High quality reasoning (9.8T tokens)
+                  'qwen3:7b',       // Excellent JSON/structured output
+                  'deepseek-r1:8b', // Good reasoning for complex mechanics
+                  'qwen3:3b',       // Fast, lightweight
                 ];
                 const mechanicsModel = availableModels.find(m =>
                   preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
                   !m.toLowerCase().includes('embed') &&
                   !m.toLowerCase().includes('coder')  // Avoid coder variants for pure JSON tasks
                 );
-                model = mechanicsModel || availableModels.find(m => m.toLowerCase().includes('qwen2.5')) || availableModels[0];
+                model = mechanicsModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
               }
             } catch {
               // If we can't list models, use default
@@ -262,36 +273,39 @@ export class AIOrchestrator {
         }
 
         case 'lore': {
-          // Qwen 2.5 72B via OpenRouter - 128K context for deep creative narratives
+          // Qwen 3 72B via OpenRouter - 128K context for deep creative narratives
           const openrouterClient = this.clients.get('openrouter');
           if (openrouterClient && (await openrouterClient.isAvailable())) {
             return {
               client: openrouterClient,
               model: 'qwen/qwen-2.5-72b-instruct',
-              rationale: 'Qwen 2.5 72B for lore (128K context, creative depth)',
+              rationale: 'Qwen 3 72B for lore (128K context, creative depth)',
             };
           }
           // Fallback to Ollama if OpenRouter not available
           const ollamaClient = this.clients.get('ollama');
           if (ollamaClient && (await ollamaClient.isAvailable())) {
-            // For lore: Prefer creative writing models (coder variants excel at narrative)
-            let model = 'qwen2.5-coder:7b';
+            // For lore: Prefer creative writing models (coder variants + MoE excel at narrative)
+            let model = 'qwen3-coder:7b';
             try {
               const availableModels = await ollamaClient.listModels?.() || [];
               if (availableModels.length > 0) {
                 // Lore needs creative, narrative-focused models
-                // Qwen 2.5 Coder variants perform better at creative writing than base models
+                // Qwen 3 Coder variants + Phi-4 excel at creative writing
+                // MoE models provide superior quality for worldbuilding
                 const preferredModels = [
-                  'qwen2.5-coder:7b',  // Best creative writing
-                  'phi4:14b',          // High quality narrative
-                  'qwen2.5:7b',        // Solid general purpose
-                  'qwen2.5:3b',        // Lightweight
+                  'qwen3:30b-a3b',     // MoE: Best quality for deep lore
+                  'phi4:14b',          // Excellent narrative quality (9.8T tokens)
+                  'qwen3-coder:7b',    // Best creative writing in 7B class
+                  'llama4:8b',         // Good narrative, versatile
+                  'qwen3:7b',          // Solid general purpose
+                  'qwen3:3b',          // Lightweight
                 ];
                 const loreModel = availableModels.find(m =>
                   preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
                   !m.toLowerCase().includes('embed')
                 );
-                model = loreModel || availableModels.find(m => m.toLowerCase().includes('qwen2.5')) || availableModels[0];
+                model = loreModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
               }
             } catch {
               // If we can't list models, use default
@@ -335,23 +349,26 @@ export class AIOrchestrator {
           // Ollama for unlimited iterations - refinement benefits from best available model
           const ollamaClient = this.clients.get('ollama');
           if (ollamaClient && (await ollamaClient.isAvailable())) {
-            // For refinement: Use highest quality model available (needs both creative + analytical skills)
-            let model = 'qwen2.5-coder:7b';
+            // For refinement: Use highest quality model (needs creative + analytical + reasoning)
+            let model = 'phi4:14b';
             try {
               const availableModels = await ollamaClient.listModels?.() || [];
               if (availableModels.length > 0) {
-                // Refinement needs balanced creative + analytical capabilities
+                // Refinement needs balanced creative + analytical + deep reasoning
+                // MoE and reasoning models excel here
                 const preferredModels = [
-                  'phi4:14b',          // Highest quality (if memory allows)
-                  'qwen2.5-coder:7b',  // Excellent all-rounder
-                  'qwen2.5:7b',        // Strong analytical
-                  'qwen2.5:3b',        // Fast iterations
+                  'qwen3:30b-a3b',     // MoE: Best overall quality
+                  'phi4:14b',          // Highest quality reasoning (9.8T tokens)
+                  'deepseek-r1:8b',    // Explicit reasoning for improvements
+                  'qwen3-coder:7b',    // Excellent all-rounder
+                  'qwen3:7b',          // Strong analytical
+                  'qwen3:3b',          // Fast iterations
                 ];
                 const refinementModel = availableModels.find(m =>
                   preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
                   !m.toLowerCase().includes('embed')
                 );
-                model = refinementModel || availableModels.find(m => m.toLowerCase().includes('qwen2.5')) || availableModels[0];
+                model = refinementModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
               }
             } catch {
               // If we can't list models, use default
@@ -376,19 +393,22 @@ export class AIOrchestrator {
           try {
             const availableModels = await client.listModels();
             if (availableModels.length > 0) {
-              // Prefer Qwen 2.5 series (best for Mac M4 16GB)
+              // Prefer November 2025 models (optimized for Mac M4 16GB)
               const preferredModels = [
-                'qwen2.5-coder:7b',  // Best creative + analytical
-                'qwen2.5:7b',        // Best structured output
-                'phi4:14b',          // Highest quality (if RAM allows)
-                'qwen2.5:3b',        // Lightweight, fast
-                'llama3.2:3b',       // Ultra-lightweight
+                'qwen3:30b-a3b',     // MoE: Best quality/memory ratio
+                'phi4:14b',          // Highest quality reasoning
+                'qwen3-coder:7b',    // Best creative + analytical
+                'qwen3:7b',          // Best structured output
+                'deepseek-r1:8b',    // Best reasoning
+                'llama4:8b',         // Versatile lightweight
+                'mistral:7b',        // Fast workhorse
+                'qwen3:3b',          // Lightweight, fast
               ];
               const generalPurposeModel = availableModels.find(m =>
                 preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
                 !m.toLowerCase().includes('embed')
               );
-              model = generalPurposeModel || availableModels.find(m => m.toLowerCase().includes('qwen2.5')) || availableModels[0];
+              model = generalPurposeModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
             }
           } catch {
             // If we can't list models, use default
@@ -416,10 +436,11 @@ export class AIOrchestrator {
       case 'google':
         return 'gemini-2.0-flash-exp';
       case 'ollama':
-        // Qwen 2.5 7B: Best balance for Mac M4 16GB (4.7GB model, ~6-8GB RAM usage, 35-45 tok/s)
-        return 'qwen2.5:7b';
+        // Qwen3-30B-A3B (MoE): Best quality/memory ratio (30B quality, 3B active, 8-12GB RAM, 20-30 tok/s)
+        // Falls back to Qwen3-7B if MoE not available
+        return 'qwen3:30b-a3b';
       default:
-        return 'qwen2.5:7b';
+        return 'qwen3:30b-a3b';
     }
   }
 
