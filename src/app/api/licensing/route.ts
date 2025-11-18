@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { join } from 'path';
 import {
   getLicenseRecommendation,
   generateLicenseText,
   getAllLicenses,
   compareLicenses,
+  checkDependencyLicenseCompatibility,
   POPULAR_LICENSES,
 } from '@/lib/generators/licensing';
 import { getProject, createDocument } from '@/lib/db/queries';
@@ -12,13 +15,14 @@ import { getProject, createDocument } from '@/lib/db/queries';
 // GET endpoint - list all licenses or get recommendation
 const getSchema = z.object({
   projectId: z.string().optional(),
-  action: z.enum(['list', 'recommend', 'compare']).optional().default('list'),
+  action: z.enum(['list', 'recommend', 'compare', 'check-compatibility']).optional().default('list'),
   projectType: z.enum(['library', 'application', 'saas', 'utility']).optional(),
   allowCommercial: z.string().optional().transform((val) => val === 'true'),
   requireOpenSource: z.string().optional().transform((val) => val === 'true'),
   allowPatentUse: z.string().optional().transform((val) => val === 'true'),
   simplicityPreferred: z.string().optional().transform((val) => val === 'true'),
   compareIds: z.string().optional(),
+  licenseId: z.string().optional(),
   model: z.string().optional().default('smollm2:1.7b'),
 });
 
@@ -78,6 +82,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         recommendation,
+      });
+    }
+
+    if (validated.action === 'check-compatibility') {
+      // Check dependency license compatibility
+      if (!validated.projectId || !validated.licenseId) {
+        return NextResponse.json(
+          { error: 'projectId and licenseId required for compatibility check' },
+          { status: 400 }
+        );
+      }
+
+      const project = await getProject(validated.projectId);
+      if (!project) {
+        return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+      }
+
+      const licenseName = POPULAR_LICENSES[validated.licenseId]?.name || validated.licenseId;
+      const compatibility = await checkDependencyLicenseCompatibility(project.path, licenseName);
+
+      return NextResponse.json({
+        success: true,
+        compatibility,
       });
     }
 
@@ -149,6 +176,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Update package.json if it exists
+    let packageJsonUpdated = false;
+    try {
+      const packageJsonPath = join(project.path, 'package.json');
+      if (existsSync(packageJsonPath)) {
+        const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+        packageJson.license = POPULAR_LICENSES[validated.licenseId].spdxId;
+        writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n', 'utf-8');
+        packageJsonUpdated = true;
+      }
+    } catch (error) {
+      console.error('Failed to update package.json:', error);
+      // Don't fail the request if package.json update fails
+    }
+
     return NextResponse.json({
       success: true,
       license: {
@@ -157,6 +199,7 @@ export async function POST(request: NextRequest) {
         name: POPULAR_LICENSES[validated.licenseId].name,
         content: licenseText,
       },
+      packageJsonUpdated,
     });
   } catch (error) {
     console.error('License generation error:', error);

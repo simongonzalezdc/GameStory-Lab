@@ -205,6 +205,82 @@ export function DeploymentConfigs({
               </Card>
             )}
 
+            {/* Cost Estimate */}
+            {config.costEstimate && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Cost Estimate</CardTitle>
+                  <CardDescription>
+                    Estimated hosting costs for {config.platform}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Estimated Monthly Cost */}
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium">Estimated Monthly Cost</p>
+                      <p className="text-2xl font-bold text-primary">{config.costEstimate.estimatedMonthlyCost}</p>
+                    </div>
+                    {config.costEstimate.free && (
+                      <Badge variant="default" className="text-sm">
+                        Free Tier Available
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Free Tier */}
+                  {config.costEstimate.freeTier && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Free Tier</h4>
+                      <p className="text-sm text-muted-foreground">{config.costEstimate.freeTier}</p>
+                    </div>
+                  )}
+
+                  {/* Paid Tiers */}
+                  {config.costEstimate.paidTiers && config.costEstimate.paidTiers.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Paid Plans</h4>
+                      <div className="space-y-2">
+                        {config.costEstimate.paidTiers.map((tier, index) => (
+                          <div key={index} className="border rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="font-medium">{tier.name}</h5>
+                              <span className="text-sm font-semibold text-primary">
+                                {tier.pricePerMonth}
+                              </span>
+                            </div>
+                            <ul className="space-y-1">
+                              {tier.features.map((feature, fIndex) => (
+                                <li key={fIndex} className="text-xs text-muted-foreground flex items-start">
+                                  <span className="mr-2">•</span>
+                                  <span>{feature}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Important Notes */}
+                  {config.costEstimate.notes && config.costEstimate.notes.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Important Notes</h4>
+                      <ul className="space-y-1">
+                        {config.costEstimate.notes.map((note, index) => (
+                          <li key={index} className="text-xs text-muted-foreground flex items-start">
+                            <span className="mr-2">•</span>
+                            <span>{note}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Instructions */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">

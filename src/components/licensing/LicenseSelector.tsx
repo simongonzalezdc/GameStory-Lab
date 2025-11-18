@@ -107,6 +107,11 @@ export function LicenseSelector({ projectId, projectType = 'application', onLice
       if (data.success) {
         setGeneratedLicense(data.license.content);
         onLicenseSelected?.(data.license.licenseId, data.license.content);
+        if (data.packageJsonUpdated) {
+          alert(`License generated successfully! package.json has been updated with the ${data.license.name} license.`);
+        } else {
+          alert('License generated successfully!');
+        }
       } else {
         alert(`Failed to generate license: ${data.error}`);
       }

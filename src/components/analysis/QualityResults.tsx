@@ -10,9 +10,11 @@ interface QualityResultsProps {
   result: QualityAnalysisResult;
   onRunAnalysis?: () => void;
   isAnalyzing?: boolean;
+  onAutoFix?: () => void;
+  isFixing?: boolean;
 }
 
-export function QualityResults({ result, onRunAnalysis, isAnalyzing }: QualityResultsProps) {
+export function QualityResults({ result, onRunAnalysis, isAnalyzing, onAutoFix, isFixing }: QualityResultsProps) {
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
   const [selectedTool, setSelectedTool] = useState<string>('all');
 
@@ -58,11 +60,22 @@ export function QualityResults({ result, onRunAnalysis, isAnalyzing }: QualityRe
                   ` (${result.summary.fixableIssues} fixable)`}
               </CardDescription>
             </div>
-            {onRunAnalysis && (
-              <Button onClick={onRunAnalysis} disabled={isAnalyzing}>
-                {isAnalyzing ? 'Analyzing...' : 'Re-run Analysis'}
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {onAutoFix && result.summary.fixableIssues > 0 && (
+                <Button
+                  onClick={onAutoFix}
+                  disabled={isFixing || isAnalyzing}
+                  variant="default"
+                >
+                  {isFixing ? 'Fixing...' : `Auto-fix ${result.summary.fixableIssues} Issue${result.summary.fixableIssues !== 1 ? 's' : ''}`}
+                </Button>
+              )}
+              {onRunAnalysis && (
+                <Button onClick={onRunAnalysis} disabled={isAnalyzing || isFixing} variant="outline">
+                  {isAnalyzing ? 'Analyzing...' : 'Re-run Analysis'}
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>

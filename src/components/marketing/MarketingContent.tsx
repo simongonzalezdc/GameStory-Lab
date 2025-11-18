@@ -37,11 +37,12 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
   return (
     <div className="space-y-4">
       <Tabs defaultValue="landing" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="landing">Landing Page</TabsTrigger>
           <TabsTrigger value="twitter">Twitter</TabsTrigger>
           <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>
           <TabsTrigger value="producthunt">Product Hunt</TabsTrigger>
+          <TabsTrigger value="seo">SEO</TabsTrigger>
         </TabsList>
 
         {/* Landing Page Tab */}
@@ -295,6 +296,96 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
                     </li>
                   ))}
                 </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* SEO Tab */}
+        <TabsContent value="seo" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>SEO Meta Tags</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopy(content.seo.metaTags, 'seo-tags')}
+                >
+                  {copiedItem === 'seo-tags' ? (
+                    <>
+                      <Check className="h-3 w-3 mr-1" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copy All
+                    </>
+                  )}
+                </Button>
+              </div>
+              <CardDescription>HTML meta tags for SEO optimization</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* SEO Preview */}
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <h3 className="text-sm font-medium mb-2">Search Engine Preview</h3>
+                <div className="space-y-1">
+                  <p className="text-blue-600 text-lg font-medium">{content.seo.title}</p>
+                  <p className="text-green-700 text-xs">https://yoursite.com/</p>
+                  <p className="text-sm text-muted-foreground">{content.seo.description}</p>
+                </div>
+              </div>
+
+              {/* Keywords */}
+              <div>
+                <h3 className="text-sm font-medium mb-2">Keywords</h3>
+                <div className="flex flex-wrap gap-2">
+                  {content.seo.keywords.map((keyword, index) => (
+                    <span key={index} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Open Graph */}
+              <div>
+                <h3 className="text-sm font-medium mb-2">Open Graph (Facebook, LinkedIn)</h3>
+                <div className="space-y-2 text-sm">
+                  <p><strong>Title:</strong> {content.seo.ogTitle}</p>
+                  <p><strong>Description:</strong> {content.seo.ogDescription}</p>
+                  <p><strong>Image:</strong> {content.seo.ogImage}</p>
+                </div>
+              </div>
+
+              {/* Twitter Card */}
+              <div>
+                <h3 className="text-sm font-medium mb-2">Twitter Card</h3>
+                <div className="space-y-2 text-sm">
+                  <p><strong>Card Type:</strong> {content.seo.twitterCard}</p>
+                  <p><strong>Title:</strong> {content.seo.twitterTitle}</p>
+                  <p><strong>Description:</strong> {content.seo.twitterDescription}</p>
+                </div>
+              </div>
+
+              {/* HTML Meta Tags */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-medium">HTML Meta Tags</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDownload(content.seo.metaTags, 'meta-tags.html')}
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    Download
+                  </Button>
+                </div>
+                <pre className="text-xs bg-muted p-4 rounded-lg overflow-x-auto">
+                  <code>{content.seo.metaTags}</code>
+                </pre>
               </div>
             </CardContent>
           </Card>

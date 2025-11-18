@@ -24,6 +24,18 @@ export interface MarketingContent {
       features: string[];
     };
   };
+  seo: {
+    title: string;
+    description: string;
+    keywords: string[];
+    ogTitle: string;
+    ogDescription: string;
+    ogImage?: string;
+    twitterCard: string;
+    twitterTitle: string;
+    twitterDescription: string;
+    metaTags: string;
+  };
   emailCampaign?: {
     subject: string;
     preview: string;
@@ -241,9 +253,13 @@ Make it engaging, use relevant hashtags, and focus on benefits over features.`;
 
   const socialMedia = parseSocialMediaContent(socialMediaResponse.content);
 
+  // Generate SEO meta tags
+  const seo = generateSEOMetaTags(landingPage, analysis.name, analysis.description);
+
   return {
     landingPage,
     socialMedia,
+    seo,
   };
 }
 
@@ -328,6 +344,80 @@ function parseSocialMediaContent(content: string): MarketingContent['socialMedia
       description: descriptionMatch?.[1]?.trim() || 'A modern toolkit for developers',
       features: phFeatures.length > 0 ? phFeatures : ['Modern tech stack', 'Easy to use'],
     },
+  };
+}
+
+/**
+ * Generate SEO meta tags for the project
+ */
+function generateSEOMetaTags(
+  landingPage: MarketingContent['landingPage'],
+  projectName: string,
+  projectDescription?: string
+): MarketingContent['seo'] {
+  // Extract keywords from features and description
+  const keywords: string[] = [];
+
+  // Add project type keywords
+  keywords.push('developer tools', 'software development', 'web application');
+
+  // Add feature-based keywords
+  landingPage.features.forEach((feature) => {
+    const words = feature.title.toLowerCase().split(' ');
+    keywords.push(...words.filter((w) => w.length > 3));
+  });
+
+  // Create meta description
+  const description = projectDescription || landingPage.subheadline || landingPage.heroSection.substring(0, 155);
+  const truncatedDescription = description.length > 160 ? description.substring(0, 157) + '...' : description;
+
+  // SEO title (optimal length: 50-60 characters)
+  const seoTitle = `${projectName} - ${landingPage.headline.substring(0, 50)}`;
+
+  // Open Graph and Twitter Card content
+  const ogTitle = landingPage.headline;
+  const ogDescription = landingPage.subheadline || truncatedDescription;
+  const twitterTitle = landingPage.headline.substring(0, 70);
+  const twitterDescription = landingPage.subheadline || truncatedDescription.substring(0, 200);
+
+  // Generate HTML meta tags
+  const metaTags = `<!-- Primary Meta Tags -->
+<title>${seoTitle}</title>
+<meta name="title" content="${seoTitle}">
+<meta name="description" content="${truncatedDescription}">
+<meta name="keywords" content="${keywords.slice(0, 10).join(', ')}">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://yoursite.com/">
+<meta property="og:title" content="${ogTitle}">
+<meta property="og:description" content="${ogDescription}">
+<meta property="og:image" content="https://yoursite.com/og-image.png">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="https://yoursite.com/">
+<meta property="twitter:title" content="${twitterTitle}">
+<meta property="twitter:description" content="${twitterDescription}">
+<meta property="twitter:image" content="https://yoursite.com/twitter-image.png">
+
+<!-- Additional SEO -->
+<meta name="robots" content="index, follow">
+<meta name="language" content="English">
+<meta name="author" content="${projectName} Team">
+<link rel="canonical" href="https://yoursite.com/">`;
+
+  return {
+    title: seoTitle,
+    description: truncatedDescription,
+    keywords: keywords.slice(0, 15),
+    ogTitle,
+    ogDescription,
+    ogImage: 'https://yoursite.com/og-image.png',
+    twitterCard: 'summary_large_image',
+    twitterTitle,
+    twitterDescription,
+    metaTags,
   };
 }
 

@@ -13,6 +13,17 @@ export interface DeploymentConfig {
     required: boolean;
     defaultValue?: string;
   }>;
+  costEstimate?: {
+    free: boolean;
+    freeTier?: string;
+    paidTiers?: Array<{
+      name: string;
+      pricePerMonth: string;
+      features: string[];
+    }>;
+    estimatedMonthlyCost: string;
+    notes: string[];
+  };
 }
 
 export interface ProjectDeploymentInfo {
@@ -138,6 +149,106 @@ async function analyzeProjectForDeployment(projectPath: string, projectName: str
 }
 
 /**
+ * Get cost estimate for a deployment platform
+ */
+function getCostEstimate(platform: DeploymentConfig['platform']): DeploymentConfig['costEstimate'] {
+  const estimates = {
+    vercel: {
+      free: true,
+      freeTier: 'Hobby - Free for personal projects',
+      paidTiers: [
+        {
+          name: 'Pro',
+          pricePerMonth: '$20/user',
+          features: ['Unlimited domains', 'Analytics', 'Team collaboration', 'Priority support'],
+        },
+        {
+          name: 'Enterprise',
+          pricePerMonth: 'Custom pricing',
+          features: ['Advanced security', 'SLA', 'Dedicated support', 'Custom infrastructure'],
+        },
+      ],
+      estimatedMonthlyCost: '$0-20 (Free tier suitable for most projects)',
+      notes: [
+        'Free tier includes 100GB bandwidth and 6,000 build minutes per month',
+        'Serverless functions limited to 10 second execution time on free tier',
+        'Commercial projects require Pro plan ($20/month minimum)',
+      ],
+    },
+    docker: {
+      free: false,
+      estimatedMonthlyCost: '$5-50+ (Depends on hosting provider)',
+      notes: [
+        'Docker itself is free, but you need a host to run containers',
+        'Popular options: DigitalOcean ($5/month), AWS ECS (varies), Google Cloud Run (pay-as-you-go)',
+        'VPS costs: $5-10/month for basic, $20-50/month for production',
+        'Add $10-20/month for managed database if needed',
+      ],
+    },
+    railway: {
+      free: true,
+      freeTier: '$5 free credit per month',
+      paidTiers: [
+        {
+          name: 'Developer',
+          pricePerMonth: 'Usage-based ($0.000463/GB-hour)',
+          features: ['Pay for what you use', 'No monthly minimum', 'All features included'],
+        },
+      ],
+      estimatedMonthlyCost: '$5-20 (Free credit + usage-based)',
+      notes: [
+        'Free $5 credit per month covers small projects',
+        'Typical app costs $10-15/month after free credit',
+        'Includes databases, cron jobs, and custom domains',
+        'Auto-scaling based on usage',
+      ],
+    },
+    netlify: {
+      free: true,
+      freeTier: 'Free - 100GB bandwidth, 300 build minutes/month',
+      paidTiers: [
+        {
+          name: 'Pro',
+          pricePerMonth: '$19/user',
+          features: ['Password protection', 'Form submissions', 'Analytics', 'Background functions'],
+        },
+      ],
+      estimatedMonthlyCost: '$0-19 (Free tier for most sites)',
+      notes: [
+        'Best for static sites and JAMstack applications',
+        'Serverless functions available on free tier (125,000 requests/month)',
+        'Pro plan needed for team collaboration',
+      ],
+    },
+    render: {
+      free: true,
+      freeTier: 'Free tier available with limitations',
+      paidTiers: [
+        {
+          name: 'Starter',
+          pricePerMonth: '$7/service',
+          features: ['Always-on services', 'Custom domains', 'Auto-deploy from Git'],
+        },
+        {
+          name: 'Standard',
+          pricePerMonth: '$25/service',
+          features: ['More resources', 'Faster builds', 'Priority support'],
+        },
+      ],
+      estimatedMonthlyCost: '$0-25 (Free tier spins down after inactivity)',
+      notes: [
+        'Free tier services spin down after 15 minutes of inactivity',
+        'Cold starts can take 30-60 seconds on free tier',
+        'Paid plans stay always-on',
+        'Database costs separate: $7-25/month',
+      ],
+    },
+  };
+
+  return estimates[platform];
+}
+
+/**
  * Generate Vercel deployment configuration
  */
 export async function generateVercelConfig(
@@ -205,6 +316,7 @@ ${info.hasDatabase ? '\n⚠️ **Database Note**: Make sure to configure your da
     content: JSON.stringify(config, null, 2),
     instructions,
     environmentVariables: envVars,
+    costEstimate: getCostEstimate('vercel'),
   };
 }
 
@@ -371,6 +483,7 @@ ${info.hasDatabase ? '⚠️ **Database**: A PostgreSQL container is included. A
       description: `Environment variable: ${key}`,
       required: true,
     })),
+    costEstimate: getCostEstimate('docker'),
   };
 }
 
@@ -466,6 +579,7 @@ Add a custom domain in the Railway dashboard under your service settings.
       description: `Environment variable: ${key}`,
       required: true,
     })),
+    costEstimate: getCostEstimate('railway'),
   };
 }
 

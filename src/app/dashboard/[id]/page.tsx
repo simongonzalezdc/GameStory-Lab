@@ -9,15 +9,17 @@ import { QualityResults } from '@/components/analysis/QualityResults';
 import { MarketingContent } from '@/components/marketing/MarketingContent';
 import { DeploymentConfigs } from '@/components/deployment/DeploymentConfigs';
 import { LicenseSelector } from '@/components/licensing/LicenseSelector';
+import { GitHubActionsWorkflows } from '@/components/github/GitHubActionsWorkflows';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, FolderOpen, GitBranch, Calendar, FileSearch, FileText, Sparkles, Loader2, Megaphone, Rocket, Scale } from 'lucide-react';
+import { ArrowLeft, FolderOpen, GitBranch, Calendar, FileSearch, FileText, Sparkles, Loader2, Megaphone, Rocket, Scale, Workflow } from 'lucide-react';
 import type { Project } from '@/lib/db/schema';
 import type { QualityAnalysisResult } from '@/lib/analysis/quality';
 import type { MarketingContent as MarketingContentType } from '@/lib/generators/marketing';
 import type { DeploymentConfig } from '@/lib/generators/deployment';
+import type { GitHubWorkflow } from '@/lib/generators/github-actions';
 
-type ActiveTab = 'chat' | 'quality' | 'docs' | 'marketing' | 'deployment' | 'licensing';
+type ActiveTab = 'chat' | 'quality' | 'docs' | 'marketing' | 'deployment' | 'licensing' | 'github-actions';
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -27,6 +29,10 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const [activeTab, setActiveTab] = useState<ActiveTab>('chat');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isFixing, setIsFixing] = useState(false);
+  const [isEditingDocs, setIsEditingDocs] = useState(false);
+  const [editedDocsContent, setEditedDocsContent] = useState('');
+  const [isSavingToGit, setIsSavingToGit] = useState(false);
   const [qualityResults, setQualityResults] = useState<QualityAnalysisResult | null>(null);
   const [generatedDocs, setGeneratedDocs] = useState<{ type: string; content: string } | null>(null);
   const [marketingContent, setMarketingContent] = useState<MarketingContentType | null>(null);
@@ -35,6 +41,10 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     guide: string;
     envTemplate: string;
     dockerIgnore?: string;
+  } | null>(null);
+  const [githubActionsWorkflows, setGithubActionsWorkflows] = useState<{
+    workflows: GitHubWorkflow[];
+    setupInstructions: string;
   } | null>(null);
 
   useEffect(() => {
@@ -85,6 +95,104 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       });
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const applyAutoFixes = async () => {
+    setIsFixing(true);
+    try {
+      const response = await fetch('/api/analyze/quality', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: id, autoFix: true }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Auto-fix failed');
+      }
+
+      const data = await response.json();
+      setQualityResults(data.result);
+      toast({
+        title: "Auto-fix Complete",
+        description: "Fixable issues have been automatically resolved. Re-run analysis to see updated results.",
+      });
+    } catch (error) {
+      console.error('Auto-fix error:', error);
+      toast({
+        variant: "destructive",
+        title: "Auto-fix Failed",
+        description: "Failed to apply automatic fixes. Please try again.",
+      });
+    } finally {
+      setIsFixing(false);
+    }
+  };
+
+  const startEditingDocs = () => {
+    if (generatedDocs) {
+      setEditedDocsContent(generatedDocs.content);
+      setIsEditingDocs(true);
+    }
+  };
+
+  const saveEditedDocs = () => {
+    if (generatedDocs) {
+      setGeneratedDocs({ ...generatedDocs, content: editedDocsContent });
+      setIsEditingDocs(false);
+      toast({
+        title: "Changes Saved",
+        description: "Your documentation has been updated.",
+      });
+    }
+  };
+
+  const cancelEditingDocs = () => {
+    setIsEditingDocs(false);
+    setEditedDocsContent('');
+  };
+
+  const saveDocsToGit = async () => {
+    if (!generatedDocs) return;
+
+    setIsSavingToGit(true);
+    try {
+      const fileName = generatedDocs.type === 'README' ? 'README.md' : 'API_DOCS.md';
+      const commitMessage = generatedDocs.type === 'README'
+        ? 'docs: Update README.md with ShipLab'
+        : 'docs: Update API documentation with ShipLab';
+
+      const response = await fetch('/api/git/commit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: id,
+          filePath: fileName,
+          content: generatedDocs.content,
+          commitMessage,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save to git');
+      }
+
+      toast({
+        title: data.warning ? "File Saved" : "Committed to Git",
+        description: data.warning || `${fileName} has been committed to your repository.`,
+        variant: data.warning ? "default" : "default",
+      });
+    } catch (error) {
+      console.error('Save to git error:', error);
+      toast({
+        variant: "destructive",
+        title: "Save Failed",
+        description: error instanceof Error ? error.message : "Failed to save file to git.",
+      });
+    } finally {
+      setIsSavingToGit(false);
     }
   };
 
@@ -210,6 +318,41 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         variant: "destructive",
         title: "Generation Failed",
         description: "Failed to generate deployment configs. Please try again.",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const generateGitHubActions = async () => {
+    setIsGenerating(true);
+    setActiveTab('github-actions');
+    try {
+      const response = await fetch('/api/generate/github-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: id }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Generation failed');
+      }
+
+      const data = await response.json();
+      setGithubActionsWorkflows({
+        workflows: data.workflows,
+        setupInstructions: data.setupInstructions,
+      });
+      toast({
+        title: "GitHub Actions Generated",
+        description: "CI/CD workflow files have been created.",
+      });
+    } catch (error) {
+      console.error('GitHub Actions generation error:', error);
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: "Failed to generate GitHub Actions workflows. Please try again.",
       });
     } finally {
       setIsGenerating(false);
@@ -403,6 +546,20 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                 variant="outline"
                 className="w-full justify-start"
                 size="sm"
+                onClick={generateGitHubActions}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Workflow className="mr-2 h-4 w-4" />
+                )}
+                GitHub Actions
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                size="sm"
                 onClick={() => setActiveTab('licensing')}
               >
                 <Scale className="mr-2 h-4 w-4" />
@@ -456,6 +613,14 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               Deployment
             </Button>
             <Button
+              variant={activeTab === 'github-actions' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('github-actions')}
+              disabled={!githubActionsWorkflows}
+            >
+              CI/CD
+            </Button>
+            <Button
               variant={activeTab === 'licensing' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setActiveTab('licensing')}
@@ -482,6 +647,8 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                     result={qualityResults}
                     onRunAnalysis={runQualityAnalysis}
                     isAnalyzing={isAnalyzing}
+                    onAutoFix={applyAutoFixes}
+                    isFixing={isFixing}
                   />
                 </div>
               )}
@@ -490,15 +657,48 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                 <div className="p-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle>{generatedDocs.type} Documentation</CardTitle>
-                      <CardDescription>Generated documentation for your project</CardDescription>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle>{generatedDocs.type} Documentation</CardTitle>
+                          <CardDescription>Generated documentation for your project</CardDescription>
+                        </div>
+                        <div className="flex gap-2">
+                          {isEditingDocs ? (
+                            <>
+                              <Button onClick={saveEditedDocs} variant="default" size="sm">
+                                Save Changes
+                              </Button>
+                              <Button onClick={cancelEditingDocs} variant="outline" size="sm">
+                                Cancel
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button onClick={saveDocsToGit} variant="default" size="sm" disabled={isSavingToGit}>
+                                {isSavingToGit ? 'Saving...' : 'Save to Git'}
+                              </Button>
+                              <Button onClick={startEditingDocs} variant="outline" size="sm">
+                                Edit
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="prose prose-sm max-w-none dark:prose-invert">
-                        <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg">
-                          {generatedDocs.content}
-                        </pre>
-                      </div>
+                      {isEditingDocs ? (
+                        <textarea
+                          className="w-full min-h-[500px] p-4 font-mono text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                          value={editedDocsContent}
+                          onChange={(e) => setEditedDocsContent(e.target.value)}
+                        />
+                      ) : (
+                        <div className="prose prose-sm max-w-none dark:prose-invert">
+                          <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg">
+                            {generatedDocs.content}
+                          </pre>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -517,6 +717,15 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                     guide={deploymentConfigs.guide}
                     envTemplate={deploymentConfigs.envTemplate}
                     dockerIgnore={deploymentConfigs.dockerIgnore}
+                  />
+                </div>
+              )}
+
+              {activeTab === 'github-actions' && githubActionsWorkflows && (
+                <div className="p-4">
+                  <GitHubActionsWorkflows
+                    workflows={githubActionsWorkflows.workflows}
+                    setupInstructions={githubActionsWorkflows.setupInstructions}
                   />
                 </div>
               )}

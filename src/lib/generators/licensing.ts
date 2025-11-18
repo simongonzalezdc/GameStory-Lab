@@ -496,3 +496,166 @@ export function compareLicenses(licenseIds: string[]): {
 export function getAllLicenses(): License[] {
   return Object.values(POPULAR_LICENSES);
 }
+
+/**
+ * Dependency license information
+ */
+export interface DependencyLicense {
+  name: string;
+  version: string;
+  license: string;
+  compatible: boolean;
+  warning?: string;
+}
+
+/**
+ * License compatibility result
+ */
+export interface LicenseCompatibilityResult {
+  compatible: boolean;
+  dependencies: DependencyLicense[];
+  incompatibleCount: number;
+  warnings: string[];
+  summary: string;
+}
+
+/**
+ * Check if a dependency license is compatible with the selected license
+ */
+function isLicenseCompatible(projectLicense: string, dependencyLicense: string): { compatible: boolean; warning?: string } {
+  // Normalize license strings
+  const normProjectLicense = projectLicense.toLowerCase().replace(/\s+/g, '-');
+  const normDepLicense = dependencyLicense.toLowerCase().replace(/\s+/g, '-');
+
+  // GPL licenses are very restrictive - dependencies must be GPL-compatible
+  if (normProjectLicense.includes('gpl') || normProjectLicense.includes('agpl')) {
+    // Permissive licenses are compatible with GPL
+    if (normDepLicense.includes('mit') || normDepLicense.includes('bsd') || normDepLicense.includes('apache') || normDepLicense.includes('isc')) {
+      return { compatible: true };
+    }
+    // Same GPL version or LGPL is compatible
+    if (normDepLicense.includes(normProjectLicense) || normDepLicense.includes('lgpl')) {
+      return { compatible: true };
+    }
+    return {
+      compatible: false,
+      warning: `GPL/AGPL requires all dependencies to be GPL-compatible. ${dependencyLicense} may not be compatible.`,
+    };
+  }
+
+  // Permissive licenses (MIT, BSD, Apache) are generally compatible with most licenses
+  if (normProjectLicense.includes('mit') || normProjectLicense.includes('bsd') || normProjectLicense.includes('apache')) {
+    // GPL dependencies in permissive projects can be problematic
+    if (normDepLicense.includes('gpl') && !normDepLicense.includes('lgpl')) {
+      return {
+        compatible: false,
+        warning: `GPL dependency in a ${projectLicense} project requires the entire project to be GPL. Consider using LGPL alternative if available.`,
+      };
+    }
+    return { compatible: true };
+  }
+
+  // Default: assume compatible but add warning for unknown combinations
+  return {
+    compatible: true,
+    warning: `License compatibility between ${projectLicense} and ${dependencyLicense} should be verified manually.`,
+  };
+}
+
+/**
+ * Check dependency license compatibility
+ * Note: This is a simplified check. For production use, consider using a dedicated tool like 'license-checker'
+ */
+export async function checkDependencyLicenseCompatibility(
+  projectPath: string,
+  selectedLicense: string
+): Promise<LicenseCompatibilityResult> {
+  const dependencies: DependencyLicense[] = [];
+  const warnings: string[] = [];
+  let incompatibleCount = 0;
+
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    // Read package.json
+    const packageJsonPath = path.join(projectPath, 'package.json');
+    if (!fs.existsSync(packageJsonPath)) {
+      return {
+        compatible: true,
+        dependencies: [],
+        incompatibleCount: 0,
+        warnings: ['No package.json found'],
+        summary: 'No package.json found in project',
+      };
+    }
+
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+    const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies };
+
+    // Read node_modules to check installed dependency licenses
+    const nodeModulesPath = path.join(projectPath, 'node_modules');
+    if (!fs.existsSync(nodeModulesPath)) {
+      warnings.push('node_modules not found. Run npm install to check dependency licenses.');
+    } else {
+      // Check each dependency
+      for (const [depName, depVersion] of Object.entries(allDeps)) {
+        try {
+          const depPackageJsonPath = path.join(nodeModulesPath, depName as string, 'package.json');
+          if (fs.existsSync(depPackageJsonPath)) {
+            const depPackageJson = JSON.parse(fs.readFileSync(depPackageJsonPath, 'utf-8'));
+            const depLicense = depPackageJson.license || 'Unknown';
+
+            const { compatible, warning } = isLicenseCompatible(selectedLicense, depLicense);
+
+            dependencies.push({
+              name: depName as string,
+              version: depVersion as string,
+              license: depLicense,
+              compatible,
+              warning,
+            });
+
+            if (!compatible) {
+              incompatibleCount++;
+            }
+
+            if (warning) {
+              warnings.push(`${depName}: ${warning}`);
+            }
+          }
+        } catch (error) {
+          // Skip dependencies that can't be read
+          continue;
+        }
+      }
+    }
+
+    // Generate summary
+    let summary = `Checked ${dependencies.length} dependencies for compatibility with ${selectedLicense}.\n`;
+    if (incompatibleCount > 0) {
+      summary += `⚠️  Found ${incompatibleCount} potentially incompatible ${incompatibleCount === 1 ? 'dependency' : 'dependencies'}.\n`;
+    } else if (dependencies.length > 0) {
+      summary += `✓ All dependencies appear to be compatible.\n`;
+    }
+    if (warnings.length > 0) {
+      summary += `${warnings.length} ${warnings.length === 1 ? 'warning' : 'warnings'} found.`;
+    }
+
+    return {
+      compatible: incompatibleCount === 0,
+      dependencies,
+      incompatibleCount,
+      warnings,
+      summary,
+    };
+  } catch (error) {
+    return {
+      compatible: true,
+      dependencies: [],
+      incompatibleCount: 0,
+      warnings: [`Error checking dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`],
+      summary: 'Failed to check dependency licenses',
+    };
+  }
+}
