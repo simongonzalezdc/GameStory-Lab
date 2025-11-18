@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Download, Save, Folder, Settings, Eye, FileImage } from 'lucide-react';
+import { X, Download, Save, Folder, Eye, FileImage } from 'lucide-react';
 import type { Asset } from '../types/asset';
 
 interface ExportPreset {

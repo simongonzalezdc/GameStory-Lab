@@ -5,6 +5,7 @@ import type { GenerationRequest } from '../types/generation';
 import type { Asset } from '../types/asset';
 import { BatchGenerationModal } from './BatchGenerationModal';
 import { ErrorMessage } from './ErrorMessage';
+import { PixelArtSettings, type PixelArtSettings as PixelArtSettingsType } from './PixelArtSettings';
 
 interface GenerationFormProps {
   onGenerated?: () => void;
@@ -18,6 +19,15 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showBatchModal, setShowBatchModal] = useState(false);
+
+  // Pixel Art Mode
+  const [pixelArtEnabled, setPixelArtEnabled] = useState(false);
+  const [pixelArtSettings, setPixelArtSettings] = useState<PixelArtSettingsType>({
+    enabled: false,
+    palette: 'nes',
+    ditherLevel: 0,
+    pixelSize: 32,
+  });
 
   // Note: Ollama status check infrastructure kept for future text-based features
   // (prompt enhancement, chat assistance, etc.)
@@ -37,8 +47,28 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     setSuccess(null);
 
     try {
+      // Enhance prompt with pixel art settings if enabled
+      let enhancedPrompt = prompt;
+      if (pixelArtEnabled) {
+        const paletteDescriptions: { [key: string]: string } = {
+          nes: 'classic 8-bit NES color palette',
+          gameboy: 'monochrome Game Boy green palette',
+          snes: 'vibrant SNES 16-bit palette',
+          c64: 'retro Commodore 64 palette',
+          cga: 'early CGA PC graphics palette',
+          pico8: 'fantasy console PICO-8 palette',
+        };
+
+        const paletteDesc = paletteDescriptions[pixelArtSettings.palette] || 'retro pixel art palette';
+        enhancedPrompt = `${prompt}, pixel art style, ${paletteDesc}, ${pixelArtSettings.pixelSize}x${pixelArtSettings.pixelSize} resolution, sharp edges, no anti-aliasing, crisp pixels, retro gaming aesthetic`;
+
+        if (pixelArtSettings.ditherLevel > 0) {
+          enhancedPrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+        }
+      }
+
       const request: GenerationRequest = {
-        prompt,
+        prompt: enhancedPrompt,
         model,
         dimensions,
       };
@@ -74,37 +104,37 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Prompt Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Describe your asset
           </label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="e.g., pixel art fantasy sword with blue gems, 32x32, transparent background"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             rows={3}
             required
             minLength={10}
             maxLength={2000}
           />
-          <p className="text-sm text-gray-500 mt-1">{prompt.length}/2000 characters</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{prompt.length}/2000 characters</p>
         </div>
 
         {/* Model Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             AI Model
           </label>
           <select
             value={model}
             onChange={(e) => setModel(e.target.value as any)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
             <option value="openrouter">OpenRouter (Gemini 2.5 Flash) - Free</option>
             <option value="google">Google (Imagen 3) - Cloud</option>
             <option value="chatgpt">OpenAI (DALL-E 3) - Cloud</option>
           </select>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             💡 Tip: OpenRouter model is free with 20 requests/minute limit. Local models (Ollama) coming soon for text features.
           </p>
         </div>
@@ -112,28 +142,47 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         {/* Dimensions */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Width</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Width</label>
             <input
               type="number"
               value={dimensions.width}
               onChange={(e) => setDimensions({ ...dimensions, width: parseInt(e.target.value) })}
               min={16}
               max={2048}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              disabled={pixelArtEnabled}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Height</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Height</label>
             <input
               type="number"
               value={dimensions.height}
               onChange={(e) => setDimensions({ ...dimensions, height: parseInt(e.target.value) })}
               min={16}
               max={2048}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              disabled={pixelArtEnabled}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
             />
           </div>
         </div>
+
+        {/* Pixel Art Settings */}
+        <PixelArtSettings
+          enabled={pixelArtEnabled}
+          onToggle={(enabled) => {
+            setPixelArtEnabled(enabled);
+            if (enabled) {
+              setDimensions({ width: pixelArtSettings.pixelSize, height: pixelArtSettings.pixelSize });
+            }
+          }}
+          onSettingsChange={(settings) => {
+            setPixelArtSettings(settings);
+            if (settings.enabled) {
+              setDimensions({ width: settings.pixelSize, height: settings.pixelSize });
+            }
+          }}
+        />
 
         {/* Error/Success Messages */}
         {error && <ErrorMessage error={error} onRetry={handleRetry} />}
