@@ -5,17 +5,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ArchitectService } from './architect-service.js';
 
-// Mock the dependencies
-vi.mock('./interview-manager.js', () => ({
-  InterviewManager: vi.fn().mockImplementation(() => ({
-    createSession: vi.fn().mockReturnValue({
+// Mock the dependencies - vitest v4 compatible syntax
+vi.mock('./interview-manager.js', () => {
+  const MockInterviewManager = vi.fn(function(this: any) {
+    this.createSession = vi.fn().mockReturnValue({
       id: 'test-session-123',
       projectId: 'project-123',
       currentPhase: 'vision',
       answers: {},
       startedAt: new Date(),
-    }),
-    submitAnswer: vi.fn().mockReturnValue({
+    });
+    this.submitAnswer = vi.fn().mockReturnValue({
       nextQuestion: {
         id: 'q2',
         phase: 'vision',
@@ -25,27 +25,32 @@ vi.mock('./interview-manager.js', () => ({
       currentPhase: 'vision',
       progress: { completed: 1, total: 20 },
       isComplete: false,
-    }),
-    getSessionProgress: vi.fn().mockReturnValue({
+    });
+    this.getSessionProgress = vi.fn().mockReturnValue({
       sessionId: 'test-session-123',
       currentPhase: 'vision',
       completedPhases: [],
       progress: { completed: 0, total: 20 },
       isComplete: false,
-    }),
-    buildProjectContext: vi.fn().mockReturnValue({
+    });
+    this.buildProjectContext = vi.fn().mockReturnValue({
       projectName: 'Test Project',
       vision: { tagline: 'Test tagline' },
       targetAudience: { primaryAge: '18-35' },
       features: { coreFeatures: [] },
       technical: { targetPlatforms: ['PC'] },
-    }),
-  })),
-}));
+    });
+    return this;
+  });
 
-vi.mock('./document-generator.js', () => ({
-  DocumentGenerator: vi.fn().mockImplementation(() => ({
-    generateDocumentation: vi.fn().mockResolvedValue({
+  return {
+    InterviewManager: MockInterviewManager,
+  };
+});
+
+vi.mock('./document-generator.js', () => {
+  const MockDocumentGenerator = vi.fn(function(this: any) {
+    this.generateDocumentation = vi.fn().mockResolvedValue({
       projectId: 'project-123',
       sessionId: 'test-session-123',
       generatedAt: new Date(),
@@ -58,9 +63,14 @@ vi.mock('./document-generator.js', () => ({
           generatedAt: new Date(),
         },
       ],
-    }),
-  })),
-}));
+    });
+    return this;
+  });
+
+  return {
+    DocumentGenerator: MockDocumentGenerator,
+  };
+});
 
 describe('ArchitectService', () => {
   let service: ArchitectService;
