@@ -18,21 +18,24 @@ router.get('/', async (_req, res, next) => {
     const projects = await prisma.project.findMany({
       orderBy: { updatedAt: 'desc' },
       include: {
-        concepts: {
-          orderBy: { version: 'desc' },
-          take: 1, // Only latest version
+        _count: {
+          select: {
+            concepts: true,
+          },
         },
       },
     });
 
     res.json({
-      projects: projects.map((p: { id: string; name: string; genre: string | null; createdAt: Date; updatedAt: Date; concepts: Array<{ id: string; version: number }>; _count?: { concepts: number } }) => ({
+      projects: projects.map((p) => ({
         id: p.id,
         name: p.name,
         genre: p.genre,
-        createdAt: p.createdAt,
-        updatedAt: p.updatedAt,
-        latestConcept: p.concepts[0] || null,
+        createdAt: p.createdAt.toISOString(),
+        updatedAt: p.updatedAt.toISOString(),
+        _count: {
+          concepts: p._count.concepts,
+        },
       })),
     });
   } catch (error) {
@@ -67,7 +70,7 @@ router.post('/', async (req, res, next) => {
       },
     });
 
-    res.status(201).json(project);
+    res.status(201).json({ project });
   } catch (error) {
     next(error);
   }
@@ -99,7 +102,26 @@ router.get('/:id', async (req, res, next) => {
       });
     }
 
-    res.json(project);
+    // Format response to match frontend expectations
+    const { concepts, ...projectData } = project;
+    res.json({
+      project: {
+        id: projectData.id,
+        name: projectData.name,
+        genre: projectData.genre,
+        createdAt: projectData.createdAt.toISOString(),
+        updatedAt: projectData.updatedAt.toISOString(),
+      },
+      concepts: concepts.map((c) => ({
+        id: c.id,
+        version: c.version,
+        title: c.title,
+        mechanics: c.mechanics,
+        lore: c.lore,
+        metadata: c.metadata,
+        createdAt: c.createdAt.toISOString(),
+      })),
+    });
   } catch (error) {
     next(error);
   }

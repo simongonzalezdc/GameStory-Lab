@@ -34,6 +34,6 @@ Titles should be:
 - Evocative of the game's themes
 - Easy to pronounce
 
-Output ONLY valid JSON.`;
+Output ONLY valid JSON, no markdown formatting, no explanations, no reasoning, no chain of thought. Just the JSON object.`;
 }
 

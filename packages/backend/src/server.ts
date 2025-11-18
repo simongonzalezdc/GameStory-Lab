@@ -13,8 +13,16 @@ import { AIOrchestrator } from './services/ai/orchestrator.js';
 import { handleApiError, createErrorResponse } from './utils/errors.js';
 import { logger } from './utils/logger.js';
 
-// Load environment variables
-config();
+// Load environment variables from root directory
+import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rootEnvPath = resolve(__dirname, '../../.env');
+
+config({ path: rootEnvPath });
 
 // Initialize Express app
 const app = express();
@@ -137,15 +145,27 @@ app.use((req, res) => {
 // Start server
 async function start() {
   try {
-    // Test database connection
-    await prisma.$connect();
-    logger.info('Database connected');
+    // Test database connection (non-blocking)
+    try {
+      await prisma.$connect();
+      logger.info('Database connected');
+    } catch (dbError) {
+      logger.warn('Database connection failed - server will start but database features will be unavailable', {
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+      });
+    }
 
     // Check AI providers
-    const aiStatus = await aiOrchestrator.getStatus();
-    logger.info('AI Orchestrator initialized', {
-      availableProviders: aiStatus.clients.filter((c) => c.available).map((c) => c.name),
-    });
+    try {
+      const aiStatus = await aiOrchestrator.getStatus();
+      logger.info('AI Orchestrator initialized', {
+        availableProviders: aiStatus.clients.filter((c) => c.available).map((c) => c.name),
+      });
+    } catch (aiError) {
+      logger.warn('AI Orchestrator initialization warning', {
+        error: aiError instanceof Error ? aiError.message : String(aiError),
+      });
+    }
 
     // Start listening
     app.listen(PORT, () => {

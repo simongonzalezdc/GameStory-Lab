@@ -30,7 +30,15 @@ export class OllamaClient implements IAIClient {
 
     try {
       // Convert messages to Ollama format
-      const prompt = this.formatMessages(request.messages);
+      let prompt = this.formatMessages(request.messages);
+      
+      // For Qwen models, disable chain-of-thought/thinking mode
+      // Qwen has a thinking mode that outputs reasoning - we want to disable it
+      const isQwenModel = request.model.toLowerCase().includes('qwen');
+      if (isQwenModel) {
+        // Add explicit instruction to skip thinking/reasoning
+        prompt = `You are a helpful assistant. Respond directly without showing your reasoning process or chain of thought. Output only the requested content.\n\n${prompt}`;
+      }
 
       const response = await this.client.generate({
         model: request.model,
@@ -39,6 +47,11 @@ export class OllamaClient implements IAIClient {
           temperature: request.temperature ?? 0.7,
           num_predict: request.maxTokens ?? 2000,
           top_p: request.topP ?? 0.9,
+          // Disable thinking mode for Qwen (if supported by Ollama)
+          ...(isQwenModel && { 
+            // Some Qwen models support thinking_mode parameter
+            // We'll rely on prompt instructions if Ollama doesn't support this
+          }),
         },
         stream: false,
       });

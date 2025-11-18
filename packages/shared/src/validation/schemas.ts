@@ -10,12 +10,12 @@ import { z } from 'zod';
 
 export const CreateProjectSchema = z.object({
   name: z.string().min(3).max(255),
-  genre: z.enum(['rpg', 'fps', 'strategy', 'puzzle', 'survival', 'blank']).optional(),
+  genre: z.string().max(100).optional(),
 });
 
 export const UpdateProjectSchema = z.object({
   name: z.string().min(3).max(255).optional(),
-  genre: z.enum(['rpg', 'fps', 'strategy', 'puzzle', 'survival', 'blank']).optional(),
+  genre: z.string().max(100).optional(),
 });
 
 export const GenerationRequestSchema = z.object({

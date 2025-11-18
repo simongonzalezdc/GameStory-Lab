@@ -22,9 +22,20 @@ interface Template {
     resources: string[];
   };
   lore: {
-    setting: string;
-    protagonist: string;
-    conflict: string;
+    setting: {
+      era?: string;
+      location?: string;
+      worldType?: string;
+    };
+    protagonist: {
+      background?: string;
+      motivation?: string;
+      abilities?: string[];
+    };
+    conflict: {
+      primary?: string;
+      secondary?: string[];
+    };
     themes: string[];
   };
 }
@@ -93,7 +104,7 @@ export function TemplateBrowserPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500">Loading templates...</div>
+        <div className="text-gray-500 dark:text-gray-400">Loading templates...</div>
       </div>
     );
   }
@@ -101,20 +112,20 @@ export function TemplateBrowserPage() {
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900">Genre Templates</h2>
-        <p className="text-gray-600 mt-1">Start with a professionally crafted template</p>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Genre Templates</h2>
+        <p className="text-gray-600 dark:text-gray-300 mt-1">Start with a professionally crafted template</p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-700">{error}</p>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+          <p className="text-red-700 dark:text-red-300">{error}</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Genre Selection */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Select a Genre</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Select a Genre</h3>
           <div className="space-y-3">
             {genres.map((genre) => (
               <button
@@ -122,12 +133,12 @@ export function TemplateBrowserPage() {
                 onClick={() => loadTemplate(genre.id)}
                 className={`w-full text-left p-4 rounded-lg border-2 transition ${
                   selectedGenre === genre.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                    ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30'
+                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-gray-600'
                 }`}
               >
-                <h4 className="font-semibold text-gray-900 mb-1">{genre.name}</h4>
-                <p className="text-sm text-gray-600">{genre.description}</p>
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{genre.name}</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">{genre.description}</p>
               </button>
             ))}
           </div>
@@ -135,22 +146,22 @@ export function TemplateBrowserPage() {
 
         {/* Template Preview */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Template Preview</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Template Preview</h3>
           {loadingTemplate ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-              <p className="text-gray-500">Loading template...</p>
+            <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+              <p className="text-gray-500 dark:text-gray-400">Loading template...</p>
             </div>
           ) : template ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-6">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Mechanics</h4>
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Mechanics</h4>
                 <div className="space-y-2 text-sm">
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 dark:text-gray-300">
                     <span className="font-medium">Core Loop:</span> {template.mechanics.coreLoop}
                   </p>
                   <div>
-                    <span className="font-medium text-gray-700">Player Actions:</span>
-                    <ul className="list-disc list-inside text-gray-600 ml-2">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Player Actions:</span>
+                    <ul className="list-disc list-inside text-gray-600 dark:text-gray-400 ml-2">
                       {template.mechanics.playerActions.slice(0, 3).map((action, i) => (
                         <li key={i}>{action}</li>
                       ))}
@@ -162,42 +173,85 @@ export function TemplateBrowserPage() {
                 </div>
               </div>
 
-              <div className="border-t pt-4">
-                <h4 className="font-semibold text-gray-900 mb-2">Lore</h4>
+              <div className="border-t dark:border-gray-700 pt-4">
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Lore</h4>
                 <div className="space-y-2 text-sm">
-                  <p className="text-gray-700">
-                    <span className="font-medium">Setting:</span> {template.lore.setting}
-                  </p>
-                  <p className="text-gray-700">
-                    <span className="font-medium">Conflict:</span> {template.lore.conflict}
-                  </p>
-                  <div>
-                    <span className="font-medium text-gray-700">Themes:</span>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {template.lore.themes.map((theme, i) => (
-                        <span
-                          key={i}
-                          className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
-                        >
-                          {theme}
-                        </span>
-                      ))}
+                  {template.lore.setting && (
+                    <div className="text-gray-700 dark:text-gray-300">
+                      <span className="font-medium">Setting:</span>
+                      <ul className="list-disc list-inside ml-2 mt-1 space-y-1">
+                        {template.lore.setting.era && (
+                          <li><span className="font-medium">Era:</span> {template.lore.setting.era}</li>
+                        )}
+                        {template.lore.setting.location && (
+                          <li><span className="font-medium">Location:</span> {template.lore.setting.location}</li>
+                        )}
+                        {template.lore.setting.worldType && (
+                          <li><span className="font-medium">World Type:</span> {template.lore.setting.worldType}</li>
+                        )}
+                      </ul>
                     </div>
-                  </div>
+                  )}
+                  {template.lore.protagonist && (
+                    <div className="text-gray-700 dark:text-gray-300">
+                      <span className="font-medium">Protagonist:</span>
+                      <ul className="list-disc list-inside ml-2 mt-1 space-y-1">
+                        {template.lore.protagonist.background && (
+                          <li><span className="font-medium">Background:</span> {template.lore.protagonist.background}</li>
+                        )}
+                        {template.lore.protagonist.motivation && (
+                          <li><span className="font-medium">Motivation:</span> {template.lore.protagonist.motivation}</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                  {template.lore.conflict && (
+                    <div className="text-gray-700 dark:text-gray-300">
+                      <span className="font-medium">Conflict:</span>
+                      {template.lore.conflict.primary && (
+                        <p className="ml-2 mt-1">{template.lore.conflict.primary}</p>
+                      )}
+                      {template.lore.conflict.secondary && template.lore.conflict.secondary.length > 0 && (
+                        <ul className="list-disc list-inside ml-2 mt-1">
+                          {template.lore.conflict.secondary.slice(0, 3).map((conflict, i) => (
+                            <li key={i}>{conflict}</li>
+                          ))}
+                          {template.lore.conflict.secondary.length > 3 && (
+                            <li>+ {template.lore.conflict.secondary.length - 3} more</li>
+                          )}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                  {template.lore.themes && template.lore.themes.length > 0 && (
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Themes:</span>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {template.lore.themes.map((theme, i) => (
+                          <span
+                            key={i}
+                            className="px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-full text-xs"
+                          >
+                            {theme}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                className="w-full px-4 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium"
               >
                 Create Project from Template
               </button>
             </div>
           ) : (
-            <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
+            <div className="bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
               <div className="text-4xl mb-2">📋</div>
-              <p className="text-gray-500">Select a genre to see the template</p>
+              <p className="text-gray-500 dark:text-gray-400">Select a genre to see the template</p>
             </div>
           )}
         </div>
@@ -206,25 +260,25 @@ export function TemplateBrowserPage() {
       {/* Create Project Modal */}
       {showCreateModal && selectedGenre && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               Create Project from {genres.find((g) => g.id === selectedGenre)?.name} Template
             </h3>
             <form onSubmit={handleCreateProject}>
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Project Name *
                 </label>
                 <input
                   type="text"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                   placeholder="My Game Project"
                   required
                   autoFocus
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   The template will be customized and added to your new project
                 </p>
               </div>
@@ -235,14 +289,14 @@ export function TemplateBrowserPage() {
                     setShowCreateModal(false);
                     setProjectName('');
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
+                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition font-medium"
                   disabled={creating}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium disabled:opacity-50"
                   disabled={creating || !projectName.trim()}
                 >
                   {creating ? 'Creating...' : 'Create'}

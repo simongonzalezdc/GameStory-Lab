@@ -55,7 +55,7 @@ router.post('/', async (req, res, next) => {
 
     switch (taskType) {
       case 'mechanics': {
-        systemMessage = 'You are an expert game designer.';
+        systemMessage = 'You are an expert game designer. Respond directly with only the requested JSON output, no explanations or reasoning.';
         prompt = getMechanicsPrompt(
           context.genre as Genre,
           context.existingContent?.lore as LoreData,
@@ -65,7 +65,7 @@ router.post('/', async (req, res, next) => {
       }
 
       case 'lore': {
-        systemMessage = 'You are an expert narrative designer and worldbuilder.';
+        systemMessage = 'You are an expert narrative designer and worldbuilder. Respond directly with only the requested JSON output, no explanations or reasoning.';
         prompt = getLorePrompt(
           context.genre as Genre,
           context.existingContent?.mechanics as MechanicsData,
@@ -75,7 +75,7 @@ router.post('/', async (req, res, next) => {
       }
 
       case 'title': {
-        systemMessage = 'You are an expert at creating memorable game titles.';
+        systemMessage = 'You are an expert at creating memorable game titles. Respond directly with only the requested JSON output, no explanations or reasoning.';
         prompt = getTitlePrompt(
           context.existingContent?.mechanics as MechanicsData,
           context.existingContent?.lore as LoreData,
@@ -85,7 +85,7 @@ router.post('/', async (req, res, next) => {
       }
 
       case 'refinement': {
-        systemMessage = 'You are an expert game designer who excels at refining concepts.';
+        systemMessage = 'You are an expert game designer who excels at refining concepts. Respond directly with only the requested JSON output, no explanations or reasoning.';
         prompt = getRefinementPrompt(
           context.existingContent?.mechanics as MechanicsData,
           context.existingContent?.lore as LoreData,
@@ -120,6 +120,15 @@ router.post('/', async (req, res, next) => {
     try {
       // Clean the response (remove markdown code blocks if present)
       let cleanedContent = response.content.trim();
+      
+      // For Qwen models, strip any chain-of-thought/reasoning patterns
+      // Qwen sometimes outputs thinking tags or reasoning blocks
+      cleanedContent = cleanedContent
+        .replace(/<think>[\s\S]*?<\/think>/gi, '') // Remove <think> tags
+        .replace(/\[REASONING\][\s\S]*?\[\/REASONING\]/gi, '') // Remove [REASONING] blocks
+        .replace(/Let me think[\s\S]*?(?=\{)/gi, '') // Remove "Let me think..." prefixes
+        .replace(/First, let me[\s\S]*?(?=\{)/gi, '') // Remove "First, let me..." prefixes
+        .trim();
       
       // Remove markdown code blocks
       if (cleanedContent.startsWith('```json')) {
@@ -174,24 +183,83 @@ router.post('/', async (req, res, next) => {
 
     const nextVersion = existingConcepts.length > 0 ? existingConcepts[0].version + 1 : 1;
 
-    // Create concept in database
-    const concept = await prisma.concept.create({
-      data: {
-        projectId,
-        version: nextVersion,
-        title: taskType === 'title' ? generatedContent.title : null,
-        mechanics: taskType === 'mechanics' ? generatedContent : (context.existingContent?.mechanics || {}),
-        lore: taskType === 'lore' ? generatedContent : (context.existingContent?.lore || {}),
-        metadata: {
-          aiModel: response.model,
-          promptTokens: response.tokensUsed.prompt,
-          completionTokens: response.tokensUsed.completion,
-          generationTime: Date.now() - startTime,
-          userEdited: false,
-          startedWith: taskType === 'mechanics' ? 'mechanics' : taskType === 'lore' ? 'lore' : undefined,
+    // Create or update concept in database
+    // If we're generating lore and there's a recent mechanics-only concept, update it instead of creating new
+    let concept;
+    if (taskType === 'lore') {
+      // Check if there's a recent concept with mechanics but no lore (or empty lore)
+      const recentConcept = await prisma.concept.findFirst({
+        where: { 
+          projectId,
         },
-      },
-    });
+        orderBy: { version: 'desc' },
+        take: 1,
+      });
+      
+      // If recent concept exists and has mechanics but empty/missing lore, update it
+      if (recentConcept && 
+          recentConcept.mechanics && 
+          Object.keys(recentConcept.mechanics as object).length > 0 &&
+          (!recentConcept.lore || Object.keys(recentConcept.lore as object).length === 0)) {
+        logger.info('Updating existing concept with lore', { conceptId: recentConcept.id });
+        concept = await prisma.concept.update({
+          where: { id: recentConcept.id },
+          data: {
+            lore: generatedContent,
+            metadata: {
+              ...(recentConcept.metadata as object || {}),
+              aiModel: response.model,
+              promptTokens: response.tokensUsed.prompt,
+              completionTokens: response.tokensUsed.completion,
+              generationTime: Date.now() - startTime,
+            },
+          },
+        });
+        logger.info('Concept updated successfully', { 
+          conceptId: concept.id, 
+          hasLore: !!concept.lore && Object.keys(concept.lore as object).length > 0 
+        });
+      } else {
+        // Create new concept with mechanics from context or empty
+        logger.info('Creating new concept with lore', { hasMechanics: !!context.existingContent?.mechanics });
+        concept = await prisma.concept.create({
+          data: {
+            projectId,
+            version: nextVersion,
+            title: taskType === 'title' ? generatedContent.title : null,
+            mechanics: context.existingContent?.mechanics || {},
+            lore: generatedContent,
+            metadata: {
+              aiModel: response.model,
+              promptTokens: response.tokensUsed.prompt,
+              completionTokens: response.tokensUsed.completion,
+              generationTime: Date.now() - startTime,
+              userEdited: false,
+              startedWith: context.existingContent?.mechanics ? 'both' : 'lore',
+            },
+          },
+        });
+      }
+    } else {
+      // Create new concept
+      concept = await prisma.concept.create({
+        data: {
+          projectId,
+          version: nextVersion,
+          title: taskType === 'title' ? generatedContent.title : null,
+          mechanics: taskType === 'mechanics' ? generatedContent : (context.existingContent?.mechanics || {}),
+          lore: taskType === 'lore' ? generatedContent : (context.existingContent?.lore || {}),
+          metadata: {
+            aiModel: response.model,
+            promptTokens: response.tokensUsed.prompt,
+            completionTokens: response.tokensUsed.completion,
+            generationTime: Date.now() - startTime,
+            userEdited: false,
+            startedWith: taskType === 'mechanics' ? 'mechanics' : taskType === 'lore' ? 'lore' : undefined,
+          },
+        },
+      });
+    }
 
     // Log generation to database
     await prisma.aiGeneration.create({

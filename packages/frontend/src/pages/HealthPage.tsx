@@ -44,7 +44,7 @@ export function HealthPage() {
   if (loading && !health) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500">Checking system status...</div>
+        <div className="text-gray-500 dark:text-gray-400">Checking system status...</div>
       </div>
     );
   }
@@ -53,12 +53,12 @@ export function HealthPage() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">System Status</h2>
-          <p className="text-gray-600 mt-1">Monitor backend health and AI providers</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">System Status</h2>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Monitor backend health and AI providers</p>
         </div>
         <button
           onClick={loadHealth}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+          className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium"
           disabled={loading}
         >
           {loading ? 'Refreshing...' : '🔄 Refresh'}
@@ -66,22 +66,22 @@ export function HealthPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-700">{error}</p>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+          <p className="text-red-700 dark:text-red-300">{error}</p>
         </div>
       )}
 
       {health && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <p className="text-sm text-gray-500 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               Last checked: {new Date(health.timestamp).toLocaleString()}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-green-800 mb-2">API Status</h3>
-                <p className="text-green-700 text-3xl font-bold">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">API Status</h3>
+                <p className="text-green-700 dark:text-green-300 text-3xl font-bold">
                   {health.status.toUpperCase()}
                 </p>
               </div>
@@ -95,23 +95,23 @@ export function HealthPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">AI Providers</h3>
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">AI Providers</h3>
             <div className="space-y-3">
               {health.ai.clients.map((client) => (
                 <div
                   key={client.name}
-                  className="flex items-center justify-between bg-gray-50 rounded-lg p-4"
+                  className="flex items-center justify-between bg-gray-50 dark:bg-slate-700/50 rounded-lg p-4"
                 >
                   <div>
-                    <p className="font-medium text-gray-900">{client.name}</p>
-                    <p className="text-sm text-gray-500">{client.type}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{client.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{client.type}</p>
                   </div>
                   <div
                     className={`px-3 py-1 rounded-full text-sm font-medium ${
                       client.available
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+                        : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
                     }`}
                   >
                     {client.available ? 'Available' : 'Offline'}
@@ -121,15 +121,15 @@ export function HealthPage() {
             </div>
           </div>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-yellow-800 mb-2">Cost Tracking</h3>
-            <p className="text-yellow-700">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Cost Tracking</h3>
+            <p className="text-yellow-700 dark:text-yellow-300">
               Current hour: ${health.ai.currentHourCost.toFixed(4)} / $
               {health.ai.costLimit.toFixed(2)} limit
             </p>
-            <div className="mt-3 bg-yellow-100 rounded-full h-2">
+            <div className="mt-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-full h-2">
               <div
-                className="bg-yellow-600 h-2 rounded-full transition-all"
+                className="bg-yellow-600 dark:bg-yellow-500 h-2 rounded-full transition-all"
                 style={{
                   width: `${Math.min(
                     (health.ai.currentHourCost / health.ai.costLimit) * 100,

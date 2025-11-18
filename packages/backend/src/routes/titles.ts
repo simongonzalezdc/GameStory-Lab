@@ -6,14 +6,24 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { Genre } from '@gameforge/shared';
-import { aiOrchestrator } from '../server.js';
+// Will be initialized lazily to avoid circular dependency
 import { TitleService } from '../services/title/title-service.js';
 import { logger } from '../utils/logger.js';
 
 const router = Router();
 
 // Initialize title service
-const titleService = new TitleService(aiOrchestrator);
+// Lazy initialization to avoid circular dependency
+let titleService: TitleService | null = null;
+
+async function getTitleService() {
+  if (!titleService) {
+    // Lazy import to avoid circular dependency - use the singleton instance
+    const serverModule = await import('../server.js');
+    titleService = new TitleService(serverModule.aiOrchestrator);
+  }
+  return titleService;
+}
 
 /**
  * POST /api/titles/generate
@@ -34,7 +44,8 @@ router.post('/generate', async (req: Request, res: Response) => {
   try {
     const { mechanics, lore, genre, style, count, excludeWords, mustIncludeWords } = req.body;
 
-    const titles = await titleService.generateTitles({
+    const service = await getTitleService();
+    const titles = await service.generateTitles({
       mechanics,
       lore,
       genre: genre as Genre,
@@ -75,7 +86,8 @@ router.post('/variations', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'baseTitle is required' });
     }
 
-    const variations = await titleService.generateVariations(baseTitle, count || 5);
+    const service = await getTitleService();
+    const variations = await service.generateVariations(baseTitle, count || 5);
 
     res.json({
       baseTitle,
@@ -108,8 +120,9 @@ router.post('/analyze', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'title is required' });
     }
 
-    const seoAnalysis = titleService.analyzeSEO(title, genre as Genre);
-    const availability = await titleService.checkAvailability(title);
+    const service = await getTitleService();
+    const seoAnalysis = service.analyzeSEO(title, genre as Genre);
+    const availability = await service.checkAvailability(title);
 
     res.json({
       title,

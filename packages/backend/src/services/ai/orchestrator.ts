@@ -115,9 +115,26 @@ export class AIOrchestrator {
       if (selection.client.type !== 'ollama' && this.clients.has('ollama')) {
         logger.info('Falling back to Ollama');
         const ollamaClient = this.clients.get('ollama')!;
+        // Try to get an available model
+        let fallbackModel = 'llama3.3:70b';
+        try {
+          const availableModels = await ollamaClient.listModels?.() || [];
+          if (availableModels.length > 0) {
+            // Prefer general-purpose models over coding models
+            const preferredModels = ['llama3.3:70b', 'llama3.1', 'qwen3', 'phi4', 'llama3', 'qwen'];
+            const generalPurposeModel = availableModels.find(m => 
+              preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
+              !m.toLowerCase().includes('coder') &&
+              !m.toLowerCase().includes('embed')
+            );
+            fallbackModel = generalPurposeModel || availableModels.find(m => m.includes('llama3.3:70b')) || availableModels[0];
+          }
+        } catch {
+          // If we can't list models, use default
+        }
         const fallbackRequest: AICompletionRequest = {
           ...request,
-          model: 'llama3.3:70b',
+          model: fallbackModel,
         };
         return await ollamaClient.complete(fallbackRequest);
       }
@@ -138,10 +155,35 @@ export class AIOrchestrator {
     if (preference === 'ollama') {
       const ollamaClient = this.clients.get('ollama');
       if (ollamaClient && (await ollamaClient.isAvailable())) {
+        // Try to get an available model, fallback to default if listModels fails
+        let model = 'llama3.3:70b';
+        try {
+          const availableModels = await ollamaClient.listModels?.() || [];
+          if (availableModels.length > 0) {
+            // Prefer qwen3 first, then other general-purpose models
+            // Order: qwen3 > llama3.3:70b > llama3.1 > phi4 > others (skip coding/embedding models)
+            const preferredModels = [
+              'qwen3',      // Preferred: Qwen3 for game concepts
+              'llama3.3:70b',
+              'llama3.1',
+              'phi4',
+              'llama3',
+              'qwen',
+            ];
+            const generalPurposeModel = availableModels.find(m => 
+              preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
+              !m.toLowerCase().includes('coder') &&
+              !m.toLowerCase().includes('embed')
+            );
+            model = generalPurposeModel || availableModels.find(m => m.includes('llama3.3:70b')) || availableModels[0];
+          }
+        } catch {
+          // If we can't list models, use default
+        }
         return {
           client: ollamaClient,
-          model: 'llama3.3:70b',
-          rationale: 'Ollama Llama 3.3 70B (user preference, local, free)',
+          model,
+          rationale: `Ollama ${model} (user preference, local, free)`,
         };
       }
     }
@@ -171,6 +213,31 @@ export class AIOrchestrator {
               rationale: 'DeepSeek V3 for mechanics (40.5% LiveCodeBench, structured output)',
             };
           }
+          // Fallback to Ollama if OpenRouter not available
+          const ollamaClient = this.clients.get('ollama');
+          if (ollamaClient && (await ollamaClient.isAvailable())) {
+            let model = 'llama3.3:70b';
+            try {
+              const availableModels = await ollamaClient.listModels?.() || [];
+              if (availableModels.length > 0) {
+                // Prefer qwen3 first, then other general-purpose models
+                const preferredModels = ['qwen3', 'llama3.3:70b', 'llama3.1', 'phi4', 'llama3', 'qwen'];
+                const generalPurposeModel = availableModels.find(m => 
+                  preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
+                  !m.toLowerCase().includes('coder') &&
+                  !m.toLowerCase().includes('embed')
+                );
+                model = generalPurposeModel || availableModels.find(m => m.includes('llama3.3:70b')) || availableModels[0];
+              }
+            } catch {
+              // If we can't list models, use default
+            }
+            return {
+              client: ollamaClient,
+              model,
+              rationale: `Ollama ${model} for mechanics (fallback, local, free)`,
+            };
+          }
           break;
         }
 
@@ -182,6 +249,31 @@ export class AIOrchestrator {
               client: openrouterClient,
               model: 'qwen/qwen-2.5-72b-instruct',
               rationale: 'Qwen 2.5 72B for lore (128K context, creative depth)',
+            };
+          }
+          // Fallback to Ollama if OpenRouter not available
+          const ollamaClient = this.clients.get('ollama');
+          if (ollamaClient && (await ollamaClient.isAvailable())) {
+            let model = 'llama3.3:70b';
+            try {
+              const availableModels = await ollamaClient.listModels?.() || [];
+              if (availableModels.length > 0) {
+                // Prefer qwen3 first, then other general-purpose models
+                const preferredModels = ['qwen3', 'llama3.3:70b', 'llama3.1', 'phi4', 'llama3', 'qwen'];
+                const generalPurposeModel = availableModels.find(m => 
+                  preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
+                  !m.toLowerCase().includes('coder') &&
+                  !m.toLowerCase().includes('embed')
+                );
+                model = generalPurposeModel || availableModels.find(m => m.includes('llama3.3:70b')) || availableModels[0];
+              }
+            } catch {
+              // If we can't list models, use default
+            }
+            return {
+              client: ollamaClient,
+              model,
+              rationale: `Ollama ${model} for lore (fallback, local, free)`,
             };
           }
           break;
@@ -217,10 +309,27 @@ export class AIOrchestrator {
           // Ollama for unlimited iterations
           const ollamaClient = this.clients.get('ollama');
           if (ollamaClient && (await ollamaClient.isAvailable())) {
+            // Try to get an available model
+            let model = 'llama3.3:70b';
+            try {
+              const availableModels = await ollamaClient.listModels?.() || [];
+              if (availableModels.length > 0) {
+                // Prefer qwen3 first, then other general-purpose models
+                const preferredModels = ['qwen3', 'llama3.3:70b', 'llama3.1', 'phi4', 'llama3', 'qwen'];
+                const generalPurposeModel = availableModels.find(m => 
+                  preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
+                  !m.toLowerCase().includes('coder') &&
+                  !m.toLowerCase().includes('embed')
+                );
+                model = generalPurposeModel || availableModels.find(m => m.includes('llama3.3:70b')) || availableModels[0];
+              }
+            } catch {
+              // If we can't list models, use default
+            }
             return {
               client: ollamaClient,
-              model: 'llama3.3:70b',
-              rationale: 'Ollama Llama 3.3 70B for refinement (local, unlimited iterations)',
+              model,
+              rationale: `Ollama ${model} for refinement (local, unlimited iterations)`,
             };
           }
           break;
@@ -231,7 +340,25 @@ export class AIOrchestrator {
     // Fallback chain: try clients in order of preference
     for (const [_name, client] of this.clients.entries()) {
       if (await client.isAvailable()) {
-        const model = this.getDefaultModel(client);
+        let model = this.getDefaultModel(client);
+        // For Ollama, try to get an available model
+        if (client.type === 'ollama' && client.listModels) {
+          try {
+            const availableModels = await client.listModels();
+            if (availableModels.length > 0) {
+              // Prefer general-purpose models over coding models
+              const preferredModels = ['llama3.3:70b', 'llama3.1', 'qwen3', 'phi4', 'llama3', 'qwen'];
+              const generalPurposeModel = availableModels.find(m => 
+                preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
+                !m.toLowerCase().includes('coder') &&
+                !m.toLowerCase().includes('embed')
+              );
+              model = generalPurposeModel || availableModels.find(m => m.includes('llama3.3:70b')) || availableModels[0];
+            }
+          } catch {
+            // If we can't list models, use default
+          }
+        }
         return {
           client,
           model,
@@ -253,6 +380,7 @@ export class AIOrchestrator {
       case 'google':
         return 'gemini-2.0-flash-exp';
       case 'ollama':
+        // Default to llama3.3:70b, but will be overridden by listModels if available
         return 'llama3.3:70b';
       default:
         return 'llama3.3:70b';

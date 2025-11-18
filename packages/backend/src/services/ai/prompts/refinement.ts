@@ -30,6 +30,6 @@ Return as JSON:
   "improvements": ["list of specific improvements made"]
 }
 
-Output ONLY valid JSON.`;
+Output ONLY valid JSON, no markdown formatting, no explanations, no reasoning, no chain of thought. Just the JSON object.`;
 }
 

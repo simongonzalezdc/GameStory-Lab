@@ -6,15 +6,22 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { RefinementFocus } from '@gameforge/shared';
-import { prisma } from '../lib/prisma.js';
-import { aiOrchestrator } from '../server.js';
 import { RefinementService } from '../services/refinement/refinement-service.js';
 import { logger } from '../utils/logger.js';
 
 const router = Router();
 
-// Initialize refinement service
-const refinementService = new RefinementService(prisma, aiOrchestrator);
+// Lazy initialization to avoid circular dependencies
+let refinementService: RefinementService | null = null;
+
+async function getRefinementService() {
+  if (!refinementService) {
+    // Lazy import to avoid circular dependency - use the singleton instances
+    const serverModule = await import('../server.js');
+    refinementService = new RefinementService(serverModule.prisma, serverModule.aiOrchestrator);
+  }
+  return refinementService;
+}
 
 /**
  * POST /api/refinement
@@ -53,7 +60,8 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    const result = await refinementService.refineConcept({
+    const service = await getRefinementService();
+    const result = await service.refineConcept({
       conceptId,
       focus,
       specificInstructions,
@@ -80,7 +88,8 @@ router.get('/history/:projectId', async (req: Request, res: Response) => {
   try {
     const { projectId } = req.params;
 
-    const history = await refinementService.getVersionHistory(projectId);
+    const service = await getRefinementService();
+    const history = await service.getVersionHistory(projectId);
 
     res.json({
       projectId,
@@ -113,7 +122,8 @@ router.post('/compare', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Both conceptId1 and conceptId2 are required' });
     }
 
-    const comparison = await refinementService.compareVersions(conceptId1, conceptId2);
+    const service = await getRefinementService();
+    const comparison = await service.compareVersions(conceptId1, conceptId2);
 
     res.json(comparison);
   } catch (error) {
@@ -142,7 +152,8 @@ router.post('/rollback', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'projectId and targetVersion are required' });
     }
 
-    const result = await refinementService.rollbackToVersion(projectId, targetVersion);
+    const service = await getRefinementService();
+    const result = await service.rollbackToVersion(projectId, targetVersion);
 
     res.status(201).json({
       success: true,

@@ -3,22 +3,27 @@
  * Centralized error handling for API routes
  */
 
-import { AppError } from '@gameforge/shared';
 import type { Prisma } from '@prisma/client';
 
 /**
  * Custom application error class
- * Extends the shared AppError with additional utilities
  */
-export class ApiError extends AppError {
+export class ApiError extends Error {
+  public code: string;
+  public statusCode: number;
+  public details?: unknown;
+
   constructor(
     code: string,
     message: string,
     statusCode: number = 500,
     details?: unknown
   ) {
-    super(code, message, statusCode, details);
+    super(message);
     this.name = 'ApiError';
+    this.code = code;
+    this.statusCode = statusCode;
+    this.details = details;
   }
 }
 
@@ -27,10 +32,8 @@ export class ApiError extends AppError {
  */
 export function handleApiError(error: unknown): ApiError {
   // If it's already an ApiError, return it
-  if (error instanceof ApiError || error instanceof AppError) {
-    return error instanceof ApiError
-      ? error
-      : new ApiError(error.code, error.message, error.statusCode, error.details);
+  if (error instanceof ApiError) {
+    return error;
   }
 
   // Handle Prisma errors

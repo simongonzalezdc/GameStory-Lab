@@ -46,7 +46,7 @@ IMPORTANT RULES:
 6. Keep mechanics focused - avoid feature creep
 7. Consider player skill ceiling and learning curve
 
-Output ONLY valid JSON, no markdown formatting.`;
+Output ONLY valid JSON, no markdown formatting, no explanations, no reasoning, no chain of thought. Just the JSON object.`;
 }
 
 function getGenreGuidance(genre?: Genre): string {

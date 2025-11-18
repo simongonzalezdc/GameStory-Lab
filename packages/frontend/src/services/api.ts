@@ -27,24 +27,55 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     },
   };
 
+  // Add timeout for long-running requests (like generation)
+  // Note: TypeScript doesn't know about our custom timeout option, so we'll handle it manually
+  const customTimeout = (options as any).timeout || (endpoint.includes('/generate') ? 300000 : 30000); // 5 min for generate, 30s default
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), customTimeout);
+  config.signal = controller.signal;
+
   try {
+    console.log(`[API] ${options.method || 'GET'} ${url}`, options.body ? JSON.parse(options.body as string) : '');
+    
     const response = await fetch(url, config);
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error(`[API] Error ${response.status}:`, errorData);
       throw new APIError(
-        errorData.error || `HTTP ${response.status}: ${response.statusText}`,
+        errorData.error?.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`,
         response.status,
         errorData
       );
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log(`[API] Success:`, endpoint);
+    return data;
   } catch (error) {
+    clearTimeout(timeoutId);
+    
     if (error instanceof APIError) {
       throw error;
     }
-    throw new APIError('Network error', 0, error);
+    
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error(`[API] Request timeout after ${customTimeout}ms:`, url);
+      throw new APIError(
+        `Request timed out after ${customTimeout / 1000} seconds. The AI model may be taking longer than expected.`,
+        0,
+        { timeout: true }
+      );
+    }
+    
+    console.error(`[API] Network error:`, error);
+    throw new APIError(
+      error instanceof Error ? error.message : 'Network error - check if backend is running',
+      0,
+      error
+    );
   }
 }
 

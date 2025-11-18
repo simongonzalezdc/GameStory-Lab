@@ -420,6 +420,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## 📚 Documentation
+
+- **[TUTORIAL.md](TUTORIAL.md)** - Complete user tutorial (start here!)
+- **[SETUP.md](SETUP.md)** - Detailed setup instructions
+- **[QUICK_START.md](QUICK_START.md)** - Quick setup guide
+- **[Dev Docs/](Dev%20Docs/)** - Technical specifications and requirements
+
 ## 📧 Support
 
 - **Issues**: [GitHub Issues](https://github.com/Pastorsimon1798/GameStory-Lab/issues)

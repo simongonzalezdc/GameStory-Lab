@@ -51,7 +51,7 @@ IMPORTANT RULES:
 6. Motivation should emotionally engage players
 7. Themes should be woven into gameplay, not just told
 
-Output ONLY valid JSON, no markdown formatting.`;
+Output ONLY valid JSON, no markdown formatting, no explanations, no reasoning, no chain of thought. Just the JSON object.`;
 }
 
 function getGenreGuidance(genre?: Genre): string {

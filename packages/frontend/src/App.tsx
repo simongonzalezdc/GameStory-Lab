@@ -9,6 +9,7 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { ConceptEditorPage } from './pages/ConceptEditorPage';
 import { TemplateBrowserPage } from './pages/TemplateBrowserPage';
 import { HealthPage } from './pages/HealthPage';
+import { TutorialPage } from './pages/TutorialPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/projects/:projectId" element={<ConceptEditorPage />} />
           <Route path="/templates" element={<TemplateBrowserPage />} />
           <Route path="/health" element={<HealthPage />} />
+          <Route path="/tutorial" element={<TutorialPage />} />
         </Routes>
       </Layout>
     </Router>
