@@ -9,76 +9,165 @@ export function getLorePrompt(genre?: Genre, mechanics?: MechanicsData, userProm
   const genreGuidance = getGenreGuidance(genre);
   const mechanicsContext = mechanics ? getMechanicsContext(mechanics) : '';
 
-  return `You are an expert narrative designer and worldbuilder specializing in video game storytelling.
+  return `You are a master narrative designer and worldbuilder with credits on critically acclaimed story-driven games. You specialize in environmental storytelling, ludonarrative harmony (story and gameplay alignment), and creating emotionally resonant narratives that emerge through player interaction.
 
 ${genreGuidance}
 
 ${mechanicsContext}
 
-${userPrompt ? `User's concept: ${userPrompt}\n\n` : ''}
+${userPrompt ? `User's Creative Vision: ${userPrompt}\n\n` : ''}
 
-Generate game lore and narrative in the following JSON structure:
+CRITICAL TASK: Generate game lore and narrative following the EXACT JSON structure below. Do NOT include any reasoning, explanations, thinking process, markdown code blocks, or commentary. Output ONLY raw JSON.
 
+REQUIRED JSON STRUCTURE (must match exactly):
 {
   "setting": {
-    "era": "time period or age",
-    "location": "where the game takes place",
-    "worldType": "genre/type of world (sci-fi, fantasy, realistic, etc.)"
+    "era": "Specific time period, age, or year (e.g., 'Post-apocalyptic 2147', 'Medieval 1200s', 'Mythic Age of Heroes')",
+    "location": "Concrete place with geographic/cultural details (e.g., 'Floating sky-city of Aetherholm', 'War-torn trenches of Europa', 'Isolated research station Polaris-7')",
+    "worldType": "Genre/aesthetic (e.g., 'Hard sci-fi', 'Dark fantasy', 'Cyberpunk dystopia', 'Historical fiction', 'Surreal dreamscape')"
   },
   "protagonist": {
-    "background": "character's history and current situation",
-    "motivation": "why they're undertaking this journey/quest",
-    "abilities": ["list", "of", "special", "abilities", "or", "skills"]
+    "background": "2-3 sentences covering: Who they are, what they've done, and their current situation. Make it personal and specific - not 'a warrior' but 'a disgraced royal guard blamed for the queen's assassination'",
+    "motivation": "Deep, relatable reason they're on this journey. Not 'save the world' but WHY they personally need to (revenge, redemption, protecting loved ones, proving themselves, uncovering truth). Include emotional stakes.",
+    "abilities": [
+      "ability1: Explain how it works and why protagonist has it (training, mutation, technology, magic, etc.)",
+      "ability2: Tie to background - skills from past experiences",
+      "ability3: Must justify gameplay actions from mechanics"
+    ]
   },
   "conflict": {
-    "primary": "main antagonist or central problem",
-    "secondary": ["additional challenges", "subplots", "faction conflicts"]
+    "primary": "Main antagonist or central problem. If antagonist: name them, give motivation, explain why they oppose protagonist. If problem: describe the threat/challenge and why it's urgent.",
+    "secondary": [
+      "Subplot or complication that deepens the main conflict",
+      "Faction or character with conflicting goals",
+      "Internal struggle or moral dilemma protagonist faces",
+      "Environmental or systemic threat beyond the main antagonist"
+    ]
   },
   "worldRules": {
-    "physics": "how the physical world works",
-    "magic": "if applicable, how magic/supernatural elements function",
-    "technology": "tech level and key technologies"
+    "physics": "How the physical world works - gravity, day/night cycles, environmental hazards. Be specific about deviations from real-world physics.",
+    "magic": "If applicable: What is the source? Who can use it? What are the costs/limitations? How does society view it? If no magic, write 'None' or explain the supernatural absence.",
+    "technology": "Tech level (Stone Age to post-singularity), key technologies that impact daily life and gameplay, societal relationship with tech (embraced, feared, lost knowledge?)"
   },
-  "themes": ["central themes", "explored in", "the narrative"]
+  "themes": [
+    "Central theme 1: Express as conflict or question (e.g., 'nature vs civilization', 'cost of revenge', 'what makes us human?')",
+    "Central theme 2: Should emerge through gameplay, not cutscenes",
+    "Central theme 3: Resonant, mature themes that give narrative weight"
+  ]
 }
 
-IMPORTANT RULES:
-1. Lore must be internally consistent (no contradictions)
-2. Protagonist's abilities must justify the gameplay actions (if mechanics provided)
-3. Conflict must be compelling and resolvable through gameplay
-4. World rules must explain why mechanics work the way they do
-5. Setting should be vivid but leave room for player discovery
-6. Motivation should emotionally engage players
-7. Themes should be woven into gameplay, not just told
+NARRATIVE DESIGN PRINCIPLES (must follow):
+1. **Internal Consistency**: Zero contradictions - every lore element must logically fit with others
+2. **Ludonarrative Harmony**: If mechanics are provided, protagonist abilities MUST justify gameplay actions (no shooting fireballs if abilities don't explain it)
+3. **Compelling Conflict**: Antagonist/problem must be worthy of the entire game's length - high stakes, personal relevance, satisfying to resolve through gameplay
+4. **Diegetic World Rules**: World rules must explain WHY mechanics work (magic system explains abilities, tech explains tools, physics explains movement)
+5. **Show, Don't Tell**: Setting should be evocative with sensory details players can discover, not exposition dumps
+6. **Emotional Engagement**: Motivation must create emotional investment - players should CARE about protagonist's journey
+7. **Thematic Depth**: Themes woven into mechanics and player choices, creating meaningful resonance (e.g., game about revenge has revenge-driven mechanics)
+8. **Player Agency**: Leave room for player interpretation and discovery - not every mystery needs explicit answers
 
-Output ONLY valid JSON, no markdown formatting, no explanations, no reasoning, no chain of thought. Just the JSON object.`;
+STRICT OUTPUT REQUIREMENTS:
+- Output ONLY the JSON object - start with { and end with }
+- NO markdown code fences (\`\`\`json)
+- NO explanatory text before or after the JSON
+- NO chain-of-thought reasoning
+- NO <think> tags or reasoning blocks
+- NO comments within the JSON
+- Ensure all strings use double quotes, not single quotes
+- Ensure proper JSON syntax (commas, brackets, valid types)
+- All fields must have substantive content - no placeholders like "TBD" or "None specified"
+
+BEGIN JSON OUTPUT NOW:`;
 }
 
 function getGenreGuidance(genre?: Genre): string {
   if (!genre || genre === 'blank') {
-    return 'Genre: Not specified - create original, compelling lore that could define a new experience.';
+    return `Genre: Not Specified - Create Original, Genre-Defining Lore
+Design lore that establishes a unique world with its own identity. Think Hollow Knight's cryptic fallen kingdom, Disco Elysium's political intrigue, or Kentucky Route Zero's magical realism. Focus on atmosphere, mystery, and a world that feels lived-in.`;
   }
 
   const guidance: Record<Genre, string> = {
     rpg: `Genre: RPG (Role-Playing Game)
-Expected lore elements: Rich world history, multiple factions/cultures, deep protagonist backstory, character-driven narrative, meaningful choices, lore that explains why the player grows in power.
-Tone: Epic, personal growth, hero's journey or subversion thereof.`,
+NARRATIVE ELEMENTS REQUIRED:
+- **World History**: Ancient civilizations, fallen empires, wars that shaped current politics, myths/legends that hint at truth
+- **Factions/Cultures**: 3-5 distinct groups with conflicting ideologies, cultures, aesthetics. Each should offer different gameplay/story paths
+- **Protagonist Backstory**: Deep personal history tied to world events - family legacy, past trauma, connection to major factions
+- **Character-Driven Plot**: NPCs with agency, relationships that evolve, companions with personal arcs
+- **Meaningful Choices**: Decisions that branch story, affect faction standing, determine endings (no fake choices)
+- **Power Justification**: Lore explanation for why protagonist grows stronger (inherited bloodline, ancient pact, training montage, absorbing souls, etc.)
+
+NARRATIVE TONE:
+- Epic scope (world-changing stakes) balanced with intimate moments (personal relationships, quiet discoveries)
+- Hero's Journey OR deliberate subversion (reluctant hero, anti-hero, chosen one prophecy is a lie)
+- Player as active participant in story, not passive observer
+- Environmental storytelling (item descriptions, NPC dialogue, world design tells story)
+
+INSPIRATION: The Witcher 3 (morally grey choices), Planescape: Torment (philosophical depth), Baldur's Gate 3 (reactivity), Dark Souls (environmental lore)`,
 
     fps: `Genre: FPS (First-Person Shooter)
-Expected lore elements: Military/conflict context, clear enemy motivation, soldier/operative protagonist, mission-driven narrative, wartime/combat setting.
-Tone: Intense, action-focused, but with human stakes. Lore should justify constant combat.`,
+NARRATIVE ELEMENTS REQUIRED:
+- **Military/Conflict Context**: Active war, covert ops, resistance movement, mercenary work - clear reason for combat
+- **Enemy Motivation**: Why are they fighting? Resources, ideology, survival, revenge? Make antagonists understandable, not cartoonish
+- **Protagonist Role**: Soldier (elite special forces, grunt promoted through action), operative (spy, assassin), civilian forced into combat
+- **Mission Structure**: Overarching campaign goal broken into discrete missions with clear objectives and stakes
+- **Wartime Setting**: Front lines, occupied cities, enemy territory, bombed-out landscapes, propaganda, civilian casualties
 
-    strategy: `Genre: Strategy
-Expected lore elements: Factional conflict, leaders/commanders as protagonists, political intrigue, resource scarcity reasons, historical context for war/competition.
-Tone: Grand scale, tactical thinking, consequences of decisions. Lore explains why factions fight.`,
+NARRATIVE TONE:
+- Intense, visceral action with breathing room for character moments between missions
+- Human stakes amid chaos - focus on squad camaraderie, civilian impact, cost of war
+- Lore justifies constant combat (you're in a warzone, behind enemy lines, defending last stronghold)
+- Optional: Subvert military shooter tropes (Spec Ops: The Line questioning player actions, Titanfall 2's bond with BT)
+
+INSPIRATION: Half-Life 2 (environmental storytelling), Titanfall 2 (emotional player-AI bond), Halo (epic sci-fi war), Spec Ops: The Line (war critique)`,
+
+    strategy: `Genre: Strategy (RTS/Turn-Based/4X)
+NARRATIVE ELEMENTS REQUIRED:
+- **Factional Conflict**: 3-7 factions with distinct cultures, units, playstyles, and ideological differences (democracy vs autocracy, tradition vs progress, etc.)
+- **Leader Protagonists**: Player is commander, general, ruler, emperor - decisions have political and strategic weight
+- **Political Intrigue**: Alliances shift, betrayals, espionage, internal coups, diplomatic negotiations with hidden agendas
+- **Resource Scarcity**: Lore reason for competition (limited fertile land, rare magical crystals, control of hyperspace lanes, etc.)
+- **Historical Context**: Deep timeline of past wars, treaties, grudges, technological revolutions that led to current state
+
+NARRATIVE TONE:
+- Grand historical scale (centuries of conflict, rise and fall of empires)
+- Tactical, cerebral - player as mastermind, not individual soldier
+- Consequences ripple across entire civilizations
+- Lore explains strategic mechanics (why factions fight, why resources matter, why tech trees follow this path)
+
+INSPIRATION: StarCraft (asymmetric factions with deep lore), Civilization VI (historical "what-if" scenarios), Total War (grand strategy meets personal stories), Dune (political intrigue)`,
 
     puzzle: `Genre: Puzzle
-Expected lore elements: Mystery to unravel, reason for puzzles (ancient civilization, training, test), curious protagonist, secrets to discover.
-Tone: Thoughtful, mysterious, discovery-focused. Lore makes puzzles feel purposeful, not arbitrary.`,
+NARRATIVE ELEMENTS REQUIRED:
+- **Central Mystery**: What happened here? Who built this? Why do these puzzles exist? What is the protagonist discovering?
+- **Purpose for Puzzles**: Ancient civilization's trial, AI testing protocols, magical barriers guarding secrets, architect's grand design, memory reconstruction
+- **Curious Protagonist**: Archaeologist, scientist, amnesiac reconstructing past, apprentice learning ancient knowledge, AI gaining sentience
+- **Environmental Storytelling**: Puzzle solutions reveal lore (murals, inscriptions, hologram logs, fragmented memories)
+- **Discovery Curve**: Early puzzles teach world rules, later puzzles reveal deeper truths about world/protagonist
+
+NARRATIVE TONE:
+- Thoughtful, contemplative, patient - rewards observation and deduction
+- Mysterious without being obtuse - breadcrumbs lead to "aha!" revelations
+- Discovery-focused - players piece together story through exploration, not cutscenes
+- Lore makes puzzles feel diegetic (puzzles exist IN the world for a reason, not gamey abstractions)
+
+INSPIRATION: The Witness (environmental philosophy), Portal (dark humor + escalating reveals), Return of the Obra Dinn (deduction-driven narrative), Outer Wilds (knowledge-based progression)`,
 
     survival: `Genre: Survival
-Expected lore elements: Catastrophe or harsh environment, desperate circumstances, isolation or small group dynamics, hostile world explanation.
-Tone: Tense, atmospheric, struggle against nature/disaster. Lore justifies why resources are scarce and threats constant.`,
+NARRATIVE ELEMENTS REQUIRED:
+- **Catastrophic Event**: Apocalypse (nuclear war, plague, alien invasion), natural disaster (volcanic winter, flood), hostile planet colonization
+- **Desperate Circumstances**: Resources depleted, infrastructure collapsed, safe zones rare, constant threats
+- **Isolation/Group Dynamics**: Lone survivor OR small group with interpersonal tensions, trust issues, rationing conflicts
+- **Hostile World**: Nature reclaiming civilization, mutated creatures, environmental hazards, other desperate survivors turned hostile
+- **Mystery/Hope**: Why did this happen? Is there a safe zone? Can we rebuild? Is rescue coming? Glimmers of hope drive exploration
+
+NARRATIVE TONE:
+- Tense, atmospheric, oppressive - every decision feels weighty
+- Struggle against nature/disaster, not heroic power fantasy
+- Lore justifies scarcity (why is food gone? why is water toxic? why can't we leave?)
+- Environmental storytelling (abandoned camps tell stories of those who didn't make it)
+- Balance hopelessness with player agency (situation is dire, but clever players can thrive)
+
+INSPIRATION: The Long Dark (man vs nature), The Last of Us (humanity in apocalypse), Subnautica (hostile alien ocean), Don't Starve (dark whimsy + permadeath)`,
 
     blank: '',
   };
