@@ -27,9 +27,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     },
   };
 
-  // Add timeout for long-running requests (like generation)
+  // Add timeout for long-running requests (like generation and refinement)
   // Note: TypeScript doesn't know about our custom timeout option, so we'll handle it manually
-  const customTimeout = (options as any).timeout || (endpoint.includes('/generate') ? 300000 : 30000); // 5 min for generate, 30s default
+  const isLongRunning = endpoint.includes('/generate') || endpoint.includes('/refinement');
+  const customTimeout = (options as any).timeout || (isLongRunning ? 300000 : 30000); // 5 min for AI operations, 30s default
   
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), customTimeout);
@@ -83,7 +84,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const projectsAPI = {
   list: () => request<{ projects: any[] }>('/api/projects'),
 
-  get: (id: string) => request<{ project: any; concepts: any[] }>(`/api/projects/${id}`),
+  get: (id: string) => request<{ project: any; versions: any[] }>(`/api/projects/${id}`),
 
   create: (data: { name: string; genre?: string }) =>
     request<{ project: any }>('/api/projects', {
@@ -100,6 +101,11 @@ export const projectsAPI = {
   delete: (id: string) =>
     request<{ message: string }>(`/api/projects/${id}`, {
       method: 'DELETE',
+    }),
+
+  merge: (id: string) =>
+    request<{ version: any; mergedCount: number; message: string }>(`/api/projects/${id}/merge`, {
+      method: 'POST',
     }),
 };
 

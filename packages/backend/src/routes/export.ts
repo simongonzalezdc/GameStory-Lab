@@ -32,19 +32,19 @@ router.post('/', async (req, res, next) => {
 
     const { conceptId, template } = validation.data;
 
-    // Get concept with project details
-    const concept = await prisma.concept.findUnique({
+    // Get version with project details
+    const version = await prisma.version.findUnique({
       where: { id: conceptId },
       include: {
         project: true,
       },
     });
 
-    if (!concept) {
+    if (!version) {
       return res.status(404).json({
         error: {
           code: 'NOT_FOUND',
-          message: `Concept ${conceptId} not found`,
+          message: `Version ${conceptId} not found`,
         },
       });
     }
@@ -53,7 +53,7 @@ router.post('/', async (req, res, next) => {
     let markdown: string;
     let filename: string;
 
-    const projectName = concept.project.name
+    const projectName = version.project.name
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9-]/g, '');
@@ -61,12 +61,12 @@ router.post('/', async (req, res, next) => {
     switch (template) {
       case 'gdd': {
         markdown = generateGDD(
-          concept.project.name,
-          concept.title || 'Untitled',
-          concept.mechanics as MechanicsData,
-          concept.lore as LoreData,
-          concept.project.genre || undefined,
-          (concept.metadata as any)?.consistencyScore
+          version.project.name,
+          version.title || 'Untitled',
+          version.mechanics as MechanicsData,
+          version.lore as LoreData,
+          version.project.genre || undefined,
+          (version.metadata as any)?.consistencyScore
         );
         filename = `${projectName}-gdd.md`;
         break;
@@ -74,11 +74,11 @@ router.post('/', async (req, res, next) => {
 
       case 'pitch': {
         markdown = generatePitch(
-          concept.project.name,
-          concept.title || 'Untitled',
-          concept.mechanics as MechanicsData,
-          concept.lore as LoreData,
-          concept.project.genre || undefined
+          version.project.name,
+          version.title || 'Untitled',
+          version.mechanics as MechanicsData,
+          version.lore as LoreData,
+          version.project.genre || undefined
         );
         filename = `${projectName}-pitch.md`;
         break;
@@ -86,11 +86,11 @@ router.post('/', async (req, res, next) => {
 
       case 'technical': {
         markdown = generateTechnical(
-          concept.project.name,
-          concept.title || 'Untitled',
-          concept.mechanics as MechanicsData,
-          concept.lore as LoreData,
-          concept.project.genre || undefined
+          version.project.name,
+          version.title || 'Untitled',
+          version.mechanics as MechanicsData,
+          version.lore as LoreData,
+          version.project.genre || undefined
         );
         filename = `${projectName}-technical.md`;
         break;

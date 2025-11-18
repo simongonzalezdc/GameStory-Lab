@@ -140,7 +140,7 @@ router.post('/:genre/create-project', async (req: Request, res: Response) => {
     // Import dynamically to avoid circular dependencies
     const { prisma } = await import('../lib/prisma.js');
 
-    // Create project and initial concept
+    // Create project and initial version
     const project = await prisma.project.create({
       data: {
         name: projectName,
@@ -148,7 +148,7 @@ router.post('/:genre/create-project', async (req: Request, res: Response) => {
       },
     });
 
-    const concept = await prisma.concept.create({
+    const version = await prisma.version.create({
       data: {
         projectId: project.id,
         version: 1,
@@ -164,7 +164,7 @@ router.post('/:genre/create-project', async (req: Request, res: Response) => {
 
     res.status(201).json({
       project,
-      concept,
+      version,
       message: `Project created from ${genre} template`,
     });
   } catch (error) {

@@ -20,7 +20,7 @@ router.get('/', async (_req, res, next) => {
       include: {
         _count: {
           select: {
-            concepts: true,
+            versions: true,
           },
         },
       },
@@ -34,7 +34,7 @@ router.get('/', async (_req, res, next) => {
         createdAt: p.createdAt.toISOString(),
         updatedAt: p.updatedAt.toISOString(),
         _count: {
-          concepts: p._count.concepts,
+          versions: p._count.versions,
         },
       })),
     });
@@ -78,7 +78,7 @@ router.post('/', async (req, res, next) => {
 
 /**
  * GET /api/projects/:id
- * Get a specific project with all concepts
+ * Get a specific project with all versions
  */
 router.get('/:id', async (req, res, next) => {
   try {
@@ -87,7 +87,7 @@ router.get('/:id', async (req, res, next) => {
     const project = await prisma.project.findUnique({
       where: { id },
       include: {
-        concepts: {
+        versions: {
           orderBy: { version: 'desc' },
         },
       },
@@ -103,7 +103,7 @@ router.get('/:id', async (req, res, next) => {
     }
 
     // Format response to match frontend expectations
-    const { concepts, ...projectData } = project;
+    const { versions, ...projectData } = project;
     res.json({
       project: {
         id: projectData.id,
@@ -112,14 +112,14 @@ router.get('/:id', async (req, res, next) => {
         createdAt: projectData.createdAt.toISOString(),
         updatedAt: projectData.updatedAt.toISOString(),
       },
-      concepts: concepts.map((c) => ({
-        id: c.id,
-        version: c.version,
-        title: c.title,
-        mechanics: c.mechanics,
-        lore: c.lore,
-        metadata: c.metadata,
-        createdAt: c.createdAt.toISOString(),
+      versions: versions.map((v) => ({
+        id: v.id,
+        version: v.version,
+        title: v.title,
+        mechanics: v.mechanics,
+        lore: v.lore,
+        metadata: v.metadata,
+        createdAt: v.createdAt.toISOString(),
       })),
     });
   } catch (error) {
@@ -191,5 +191,180 @@ router.delete('/:id', async (req, res, next) => {
     next(error);
   }
 });
+
+/**
+ * POST /api/projects/:id/merge
+ * Merge all versions of a project into a new version
+ */
+router.post('/:id/merge', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // Get project with all versions
+    const project = await prisma.project.findUnique({
+      where: { id },
+      include: {
+        versions: {
+          orderBy: { version: 'asc' }, // Oldest first for merge order
+        },
+      },
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        error: {
+          code: 'NOT_FOUND',
+          message: `Project ${id} not found`,
+        },
+      });
+    }
+
+    if (project.versions.length < 2) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_REQUEST',
+          message: 'Need at least 2 versions to merge',
+        },
+      });
+    }
+
+    // Merge mechanics and lore from all versions
+    const mergedMechanics = mergeMechanics(project.versions.map(v => v.mechanics as any));
+    const mergedLore = mergeLore(project.versions.map(v => v.lore as any));
+
+    // Get next version number
+    const latestVersion = project.versions[project.versions.length - 1];
+    const nextVersion = latestVersion.version + 1;
+
+    // Create merged version
+    const mergedVersion = await prisma.version.create({
+      data: {
+        projectId: id,
+        version: nextVersion,
+        title: latestVersion.title, // Use latest title
+        mechanics: mergedMechanics,
+        lore: mergedLore,
+        metadata: {
+          mergedFrom: project.versions.map(v => ({ id: v.id, version: v.version })),
+          mergedAt: new Date().toISOString(),
+          userEdited: false,
+        } as any,
+      },
+    });
+
+    res.status(201).json({
+      version: {
+        id: mergedVersion.id,
+        version: mergedVersion.version,
+        mechanics: mergedVersion.mechanics,
+        lore: mergedVersion.lore,
+        createdAt: mergedVersion.createdAt.toISOString(),
+      },
+      mergedCount: project.versions.length,
+      message: `Successfully merged ${project.versions.length} versions into version ${nextVersion}`,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Merge mechanics from multiple versions
+ * Strategy: Combine arrays (union), prefer latest for conflicts, deep merge objects
+ */
+function mergeMechanics(mechanicsArray: any[]): any {
+  if (mechanicsArray.length === 0) return {};
+  if (mechanicsArray.length === 1) return mechanicsArray[0];
+
+  const merged: any = {};
+
+  // Process each version's mechanics (oldest to newest)
+  for (const mechanics of mechanicsArray) {
+    if (!mechanics || typeof mechanics !== 'object') continue;
+
+    for (const [key, value] of Object.entries(mechanics)) {
+      if (value === null || value === undefined) continue;
+
+      if (Array.isArray(value)) {
+        // Merge arrays: combine unique values, prefer later versions
+        if (!merged[key] || !Array.isArray(merged[key])) {
+          merged[key] = [];
+        }
+        // Add new items that aren't already in merged array
+        const existing = new Set(merged[key].map((item: any) => JSON.stringify(item)));
+        for (const item of value) {
+          const itemStr = JSON.stringify(item);
+          if (!existing.has(itemStr)) {
+            merged[key].push(item);
+            existing.add(itemStr);
+          }
+        }
+      } else if (typeof value === 'object') {
+        // Deep merge objects
+        if (!merged[key] || typeof merged[key] !== 'object' || Array.isArray(merged[key])) {
+          merged[key] = {};
+        }
+        merged[key] = { ...merged[key], ...value };
+      } else {
+        // Primitive values: prefer latest (will be overwritten by later versions)
+        merged[key] = value;
+      }
+    }
+  }
+
+  return merged;
+}
+
+/**
+ * Merge lore from multiple versions
+ * Strategy: Similar to mechanics, but be careful with narrative coherence
+ */
+function mergeLore(loreArray: any[]): any {
+  if (loreArray.length === 0) return {};
+  if (loreArray.length === 1) return loreArray[0];
+
+  const merged: any = {};
+
+  // Process each version's lore (oldest to newest)
+  for (const lore of loreArray) {
+    if (!lore || typeof lore !== 'object') continue;
+
+    for (const [key, value] of Object.entries(lore)) {
+      if (value === null || value === undefined) continue;
+
+      if (key === 'setting' || key === 'protagonist' || key === 'conflict' || key === 'worldRules') {
+        // Deep merge nested objects
+        if (!merged[key] || typeof merged[key] !== 'object' || Array.isArray(merged[key])) {
+          merged[key] = {};
+        }
+        merged[key] = { ...merged[key], ...value };
+      } else if (Array.isArray(value)) {
+        // Merge arrays (themes, secondary conflicts, abilities, etc.)
+        if (!merged[key] || !Array.isArray(merged[key])) {
+          merged[key] = [];
+        }
+        const existing = new Set(merged[key].map((item: any) => String(item).toLowerCase()));
+        for (const item of value) {
+          const itemStr = String(item).toLowerCase();
+          if (!existing.has(itemStr)) {
+            merged[key].push(item);
+            existing.add(itemStr);
+          }
+        }
+      } else if (typeof value === 'object') {
+        // Deep merge other objects
+        if (!merged[key] || typeof merged[key] !== 'object' || Array.isArray(merged[key])) {
+          merged[key] = {};
+        }
+        merged[key] = { ...merged[key], ...value };
+      } else {
+        // Primitive values: prefer latest
+        merged[key] = value;
+      }
+    }
+  }
+
+  return merged;
+}
 
 export default router;

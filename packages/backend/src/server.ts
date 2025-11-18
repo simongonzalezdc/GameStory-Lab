@@ -34,8 +34,8 @@ export const prisma = new PrismaClient();
 // Initialize AI Orchestrator
 export const aiOrchestrator = new AIOrchestrator();
 
-// Rate limiting middleware
-const limiter = rateLimit({
+// Rate limiting middleware - more lenient for validation endpoint
+const generalLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute default
   max: parseInt(process.env.RATE_LIMIT_MAX || '20', 10), // 20 requests per window default
   message: {
@@ -46,6 +46,24 @@ const limiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
   legacyHeaders: false, // Disable `X-RateLimit-*` headers
+});
+
+// More lenient limiter for validation (allows more frequent validation checks)
+const validationLimiter = rateLimit({
+  windowMs: 60000, // 1 minute
+  max: 30, // 30 validation requests per minute (very lenient for auto-validation)
+  message: {
+    error: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many validation requests. Please wait a moment before validating again.',
+    },
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting in development for easier testing
+    return process.env.NODE_ENV === 'development' && req.headers['x-skip-rate-limit'] === 'true';
+  },
 });
 
 // Middleware
@@ -59,8 +77,11 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Apply rate limiting to all API routes (excluding health check)
-app.use('/api', limiter);
+// Apply rate limiting to API routes
+// IMPORTANT: Apply specific limiters BEFORE general ones (order matters!)
+// Health check is excluded (no limiter applied)
+app.use('/api/validate', validationLimiter); // More lenient for validation (10/min)
+app.use('/api', generalLimiter); // General rate limiting for other endpoints (20/min)
 
 // Request logging
 app.use((req, _res, next) => {
@@ -168,12 +189,15 @@ async function start() {
     }
 
     // Start listening
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       logger.info(`GameForge Studio API running on http://localhost:${PORT}`, {
         environment: process.env.NODE_ENV || 'development',
         port: PORT,
       });
     });
+    
+    // Set server timeout to 10 minutes for long-running AI requests (local LLMs can be slow)
+    server.timeout = 600000; // 10 minutes
   } catch (error) {
     logger.error('Failed to start server', { error });
     process.exit(1);

@@ -14,11 +14,11 @@ interface Project {
   createdAt: string;
   updatedAt: string;
   _count?: {
-    concepts: number;
+    versions: number;
   };
 }
 
-type SortMode = 'recent' | 'alphabetical' | 'concepts';
+type SortMode = 'recent' | 'alphabetical' | 'versions';
 
 const formatDistanceToNow = (date: string) => {
   const parsed = new Date(date).getTime();
@@ -113,16 +113,16 @@ export function ProjectsPage() {
   };
 
   const stats = useMemo(() => {
-    const totalConcepts = projects.reduce((sum, project) => sum + (project._count?.concepts ?? 0), 0);
+    const totalVersions = projects.reduce((sum, project) => sum + (project._count?.versions ?? 0), 0);
     const latestEdit = projects
       .map((project) => project.updatedAt)
       .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
 
     return {
-      totalConcepts,
+      totalVersions,
       projectCount: projects.length,
       lastTouched: latestEdit ? formatDistanceToNow(latestEdit) : '—',
-      averageConcepts: projects.length ? Math.round(totalConcepts / projects.length) : 0,
+      averageVersions: projects.length ? Math.round(totalVersions / projects.length) : 0,
     };
   }, [projects]);
 
@@ -138,9 +138,9 @@ export function ProjectsPage() {
     switch (sortMode) {
       case 'alphabetical':
         return filtered.sort((a, b) => a.name.localeCompare(b.name));
-      case 'concepts':
+      case 'versions':
         return filtered.sort(
-          (a, b) => (b._count?.concepts ?? 0) - (a._count?.concepts ?? 0)
+          (a, b) => (b._count?.versions ?? 0) - (a._count?.versions ?? 0)
         );
       default:
         return filtered.sort(
@@ -208,9 +208,9 @@ export function ProjectsPage() {
           </div>
           <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 p-6">
             <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-              Concepts
+              Versions
             </div>
-            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.totalConcepts}</div>
+            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.totalVersions}</div>
             <div className="text-sm text-slate-600 dark:text-slate-300">documented beats</div>
           </div>
           <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 p-6">
@@ -224,8 +224,8 @@ export function ProjectsPage() {
             <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
               Avg Depth
             </div>
-            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.averageConcepts}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-300">concepts per project</div>
+            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.averageVersions}</div>
+            <div className="text-sm text-slate-600 dark:text-slate-300">versions per project</div>
           </div>
         </div>
       </section>
@@ -286,9 +286,9 @@ export function ProjectsPage() {
               A → Z
             </button>
             <button
-              onClick={() => setSortMode('concepts')}
+              onClick={() => setSortMode('versions')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                sortMode === 'concepts'
+                sortMode === 'versions'
                   ? 'bg-slate-900 dark:bg-blue-600 text-white shadow-md'
                   : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
               }`}
@@ -348,8 +348,8 @@ export function ProjectsPage() {
           ) : (
             <div className="grid md:grid-cols-2 gap-6">
               {filteredProjects.map((project) => {
-                const concepts = project._count?.concepts ?? 0;
-                const conceptDepth = Math.min(100, Math.round((concepts / 8) * 100));
+                const versions = project._count?.versions ?? 0;
+                const versionDepth = Math.min(100, Math.round((versions / 8) * 100));
 
                 return (
                   <div
@@ -395,9 +395,9 @@ export function ProjectsPage() {
                       <div className="grid grid-cols-2 gap-4 mt-4">
                         <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-3">
                           <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-                            Concepts
+                            Versions
                           </div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{concepts}</div>
+                          <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{versions}</div>
                         </div>
                         <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-3">
                           <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
@@ -411,12 +411,12 @@ export function ProjectsPage() {
                       <div className="mt-4">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Exploration Depth</span>
-                          <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">{conceptDepth}%</span>
+                          <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">{versionDepth}%</span>
                         </div>
                         <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                           <div
                             className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500 rounded-full transition-all duration-500"
-                            style={{ width: `${conceptDepth}%` }}
+                            style={{ width: `${versionDepth}%` }}
                           />
                         </div>
                       </div>
@@ -461,7 +461,7 @@ export function ProjectsPage() {
                   <li key={activity.id} className="rounded-lg border border-slate-200 dark:border-slate-700 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                     <div className="font-semibold text-slate-900 dark:text-slate-100 mb-1">{activity.name}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">
-                      {formatDistanceToNow(activity.updatedAt)} · {activity._count?.concepts ?? 0} concepts
+                      {formatDistanceToNow(activity.updatedAt)} · {activity._count?.versions ?? 0} versions
                     </div>
                   </li>
                 ))}

@@ -173,22 +173,22 @@ router.post('/', async (req, res, next) => {
       });
     }
 
-    // Determine next version number based on existing concepts
-    const existingConcepts = await prisma.concept.findMany({
+    // Determine next version number based on existing versions
+    const existingVersions = await prisma.version.findMany({
       where: { projectId },
       select: { version: true },
       orderBy: { version: 'desc' },
       take: 1,
     });
 
-    const nextVersion = existingConcepts.length > 0 ? existingConcepts[0].version + 1 : 1;
+    const nextVersion = existingVersions.length > 0 ? existingVersions[0].version + 1 : 1;
 
-    // Create or update concept in database
-    // If we're generating lore and there's a recent mechanics-only concept, update it instead of creating new
-    let concept;
+    // Create or update version in database
+    // If we're generating lore and there's a recent mechanics-only version, update it instead of creating new
+    let version;
     if (taskType === 'lore') {
-      // Check if there's a recent concept with mechanics but no lore (or empty lore)
-      const recentConcept = await prisma.concept.findFirst({
+      // Check if there's a recent version with mechanics but no lore (or empty lore)
+      const recentVersion = await prisma.version.findFirst({
         where: { 
           projectId,
         },
@@ -196,18 +196,18 @@ router.post('/', async (req, res, next) => {
         take: 1,
       });
       
-      // If recent concept exists and has mechanics but empty/missing lore, update it
-      if (recentConcept && 
-          recentConcept.mechanics && 
-          Object.keys(recentConcept.mechanics as object).length > 0 &&
-          (!recentConcept.lore || Object.keys(recentConcept.lore as object).length === 0)) {
-        logger.info('Updating existing concept with lore', { conceptId: recentConcept.id });
-        concept = await prisma.concept.update({
-          where: { id: recentConcept.id },
+      // If recent version exists and has mechanics but empty/missing lore, update it
+      if (recentVersion && 
+          recentVersion.mechanics && 
+          Object.keys(recentVersion.mechanics as object).length > 0 &&
+          (!recentVersion.lore || Object.keys(recentVersion.lore as object).length === 0)) {
+        logger.info('Updating existing version with lore', { versionId: recentVersion.id });
+        version = await prisma.version.update({
+          where: { id: recentVersion.id },
           data: {
             lore: generatedContent,
             metadata: {
-              ...(recentConcept.metadata as object || {}),
+              ...(recentVersion.metadata as object || {}),
               aiModel: response.model,
               promptTokens: response.tokensUsed.prompt,
               completionTokens: response.tokensUsed.completion,
@@ -215,14 +215,14 @@ router.post('/', async (req, res, next) => {
             },
           },
         });
-        logger.info('Concept updated successfully', { 
-          conceptId: concept.id, 
-          hasLore: !!concept.lore && Object.keys(concept.lore as object).length > 0 
+        logger.info('Version updated successfully', { 
+          versionId: version.id, 
+          hasLore: !!version.lore && Object.keys(version.lore as object).length > 0 
         });
       } else {
-        // Create new concept with mechanics from context or empty
-        logger.info('Creating new concept with lore', { hasMechanics: !!context.existingContent?.mechanics });
-        concept = await prisma.concept.create({
+        // Create new version with mechanics from context or empty
+        logger.info('Creating new version with lore', { hasMechanics: !!context.existingContent?.mechanics });
+        version = await prisma.version.create({
           data: {
             projectId,
             version: nextVersion,
@@ -241,8 +241,8 @@ router.post('/', async (req, res, next) => {
         });
       }
     } else {
-      // Create new concept
-      concept = await prisma.concept.create({
+      // Create new version
+      version = await prisma.version.create({
         data: {
           projectId,
           version: nextVersion,
@@ -264,7 +264,7 @@ router.post('/', async (req, res, next) => {
     // Log generation to database
     await prisma.aiGeneration.create({
       data: {
-        conceptId: concept.id,
+        conceptId: version.id,
         taskType,
         modelUsed: response.model,
         prompt,
@@ -276,11 +276,11 @@ router.post('/', async (req, res, next) => {
     });
 
     res.json({
-      conceptId: concept.id,
+      versionId: version.id,
       content: {
-        mechanics: concept.mechanics as MechanicsData,
-        lore: concept.lore as LoreData,
-        title: concept.title,
+        mechanics: version.mechanics as MechanicsData,
+        lore: version.lore as LoreData,
+        title: version.title,
       },
       metadata: {
         model: response.model,

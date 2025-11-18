@@ -33,19 +33,19 @@ router.post('/', async (req, res, next) => {
 
     const { conceptId, mechanics, lore } = validation.data;
 
-    // Verify concept exists and get project genre
-    const concept = await prisma.concept.findUnique({
+    // Verify version exists and get project genre
+    const version = await prisma.version.findUnique({
       where: { id: conceptId },
       include: {
         project: true,
       },
     });
 
-    if (!concept) {
+    if (!version) {
       return res.status(404).json({
         error: {
           code: 'NOT_FOUND',
-          message: `Concept ${conceptId} not found`,
+          message: `Version ${conceptId} not found`,
         },
       });
     }
@@ -54,10 +54,10 @@ router.post('/', async (req, res, next) => {
     const result = await validationEngine.validate(
       mechanics as MechanicsData,
       lore as LoreData,
-      concept.project.genre || undefined
+      version.project.genre || undefined
     );
 
-    // Delete previous validation results for this concept
+    // Delete previous validation results for this version
     await prisma.validationResult.deleteMany({
       where: { conceptId },
     });
@@ -89,12 +89,12 @@ router.post('/', async (req, res, next) => {
       validationId = crypto.randomUUID();
     }
 
-    // Update concept metadata with consistency score
-    await prisma.concept.update({
+    // Update version metadata with consistency score
+    await prisma.version.update({
       where: { id: conceptId },
       data: {
         metadata: {
-          ...(concept.metadata as object),
+          ...(version.metadata as object),
           consistencyScore: result.overallScore,
           lastValidated: new Date().toISOString(),
         },
