@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 
 from app.core.config import settings
-from app.api import health, generate, assets, export
+from app.api import health, generate, assets, export, asset_packs
 from app.services.database_service import db_service
 
 # Configure logging
@@ -86,6 +86,7 @@ app.mount("/assets", StaticFiles(directory=settings.STORAGE_PATH), name="assets"
 app.include_router(health.router)
 app.include_router(generate.router)
 app.include_router(assets.router)
+app.include_router(asset_packs.router)
 app.include_router(export.router)
 
 

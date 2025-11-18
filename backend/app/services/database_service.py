@@ -76,6 +76,24 @@ class DatabaseService:
                 )
             """)
 
+            # Create asset_packs table
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS asset_packs (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL DEFAULT 'local-user',
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    tags TEXT DEFAULT '[]',
+                    asset_ids TEXT DEFAULT '[]',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            await db.execute("""
+                CREATE INDEX IF NOT EXISTS idx_packs_user_id
+                ON asset_packs(user_id)
+            """)
+
             await db.commit()
             logger.info(f"Database initialized at {self.db_path}")
 
@@ -387,6 +405,131 @@ class DatabaseService:
             asset['is_favorite'] = bool(asset['is_favorite'])
 
         return asset
+
+    # Asset Pack Methods
+
+    async def create_asset_pack(self, pack_data: dict) -> dict:
+        """Create a new asset pack."""
+        import uuid
+        async with aiosqlite.connect(self.db_path) as db:
+            pack_id = str(uuid.uuid4())
+            await db.execute("""
+                INSERT INTO asset_packs (
+                    id, user_id, name, description, tags, asset_ids
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                pack_id,
+                pack_data.get('user_id', 'local-user'),
+                pack_data['name'],
+                pack_data.get('description'),
+                str(pack_data.get('tags', [])),
+                str(pack_data.get('asset_ids', []))
+            ))
+            await db.commit()
+
+            # Fetch the created pack
+            cursor = await db.execute(
+                "SELECT * FROM asset_packs WHERE id = ?",
+                (pack_id,)
+            )
+            row = await cursor.fetchone()
+            return self._row_to_pack(row, cursor.description)
+
+    async def get_asset_packs(self, user_id: str = 'local-user') -> List[dict]:
+        """Get all asset packs for a user."""
+        async with aiosqlite.connect(self.db_path) as db:
+            cursor = await db.execute(
+                "SELECT * FROM asset_packs WHERE user_id = ? ORDER BY created_at DESC",
+                (user_id,)
+            )
+            rows = await cursor.fetchall()
+            return [self._row_to_pack(row, cursor.description) for row in rows]
+
+    async def get_asset_pack_by_id(self, pack_id: str, user_id: str = 'local-user') -> Optional[dict]:
+        """Get a single asset pack by ID."""
+        async with aiosqlite.connect(self.db_path) as db:
+            cursor = await db.execute(
+                "SELECT * FROM asset_packs WHERE id = ? AND user_id = ?",
+                (pack_id, user_id)
+            )
+            row = await cursor.fetchone()
+            if row:
+                return self._row_to_pack(row, cursor.description)
+            return None
+
+    async def update_asset_pack(self, pack_id: str, user_id: str, update_data: dict) -> Optional[dict]:
+        """Update asset pack metadata."""
+        async with aiosqlite.connect(self.db_path) as db:
+            update_fields = []
+            values = []
+
+            if 'name' in update_data:
+                update_fields.append("name = ?")
+                values.append(update_data['name'])
+
+            if 'description' in update_data:
+                update_fields.append("description = ?")
+                values.append(update_data['description'])
+
+            if 'tags' in update_data:
+                update_fields.append("tags = ?")
+                values.append(str(update_data['tags']))
+
+            if 'asset_ids' in update_data:
+                update_fields.append("asset_ids = ?")
+                values.append(str(update_data['asset_ids']))
+
+            if not update_fields:
+                return None
+
+            update_fields.append("updated_at = CURRENT_TIMESTAMP")
+            values.extend([pack_id, user_id])
+
+            query = f"""
+                UPDATE asset_packs
+                SET {', '.join(update_fields)}
+                WHERE id = ? AND user_id = ?
+            """
+
+            await db.execute(query, values)
+            await db.commit()
+
+            # Fetch updated pack
+            return await self.get_asset_pack_by_id(pack_id, user_id)
+
+    async def delete_asset_pack(self, pack_id: str, user_id: str) -> bool:
+        """Delete an asset pack."""
+        async with aiosqlite.connect(self.db_path) as db:
+            cursor = await db.execute(
+                "DELETE FROM asset_packs WHERE id = ? AND user_id = ?",
+                (pack_id, user_id)
+            )
+            await db.commit()
+            return cursor.rowcount > 0
+
+    def _row_to_pack(self, row: tuple, description: list) -> dict:
+        """Convert database row to asset pack dictionary."""
+        import json
+        columns = [col[0] for col in description]
+        pack = dict(zip(columns, row))
+
+        # Parse JSON fields
+        if 'tags' in pack and pack['tags']:
+            try:
+                pack['tags'] = json.loads(pack['tags'].replace("'", '"'))
+            except:
+                pack['tags'] = []
+
+        if 'asset_ids' in pack and pack['asset_ids']:
+            try:
+                pack['asset_ids'] = json.loads(pack['asset_ids'].replace("'", '"'))
+            except:
+                pack['asset_ids'] = []
+
+        # Add asset count
+        pack['asset_count'] = len(pack.get('asset_ids', []))
+
+        return pack
 
 
 # Global database instance
