@@ -5,6 +5,7 @@ import type { Asset } from '../types/asset';
 import { ChatInterface } from './ChatInterface';
 import { AssetVersionHistory } from './AssetVersionHistory';
 import { EnhancedExportModal, ExportSettings } from './EnhancedExportModal';
+import { SkeletonGrid } from './SkeletonLoader';
 
 interface AssetLibraryProps {
   refreshTrigger?: number;
@@ -219,8 +220,9 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="animate-spin text-purple-500" size={32} />
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Asset Library</h2>
+        <SkeletonGrid count={6} />
       </div>
     );
   }
