@@ -3,22 +3,42 @@ import { Gamepad2, Wand2, Upload } from 'lucide-react';
 import { GenerationForm } from './components/GenerationForm';
 import { ImageUpload } from './components/ImageUpload';
 import { AssetLibrary } from './components/AssetLibrary';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
+import { KeyboardShortcuts } from './components/KeyboardShortcuts';
 
 type Tab = 'text-to-sprite' | 'image-to-sprite';
 
-function App() {
+function AppContent() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [activeTab, setActiveTab] = useState<Tab>('text-to-sprite');
+  const { toggleTheme } = useTheme();
 
   const handleAssetGenerated = () => {
     // Trigger library refresh
     setRefreshTrigger((prev) => prev + 1);
   };
 
+  const handleGenerate = () => {
+    // Trigger the submit button for the active form
+    const submitBtn = document.getElementById('generate-submit-btn') as HTMLButtonElement;
+    submitBtn?.click();
+  };
+
+  const handleFocusPrompt = () => {
+    // Focus the prompt input
+    const promptInput = document.getElementById('prompt-input') as HTMLTextAreaElement;
+    promptInput?.focus();
+  };
+
+  const handleExport = () => {
+    // Open the first asset's export modal if available
+    const firstExportBtn = document.querySelector('[data-export-btn]') as HTMLButtonElement;
+    firstExportBtn?.click();
+  };
+
   return (
-    <ThemeProvider>
+    <>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors">
         {/* Header */}
         <header className="bg-white dark:bg-gray-800 shadow-sm transition-colors">
@@ -99,6 +119,22 @@ function App() {
           </div>
         </footer>
       </div>
+
+      {/* Keyboard Shortcuts */}
+      <KeyboardShortcuts
+        onGenerate={handleGenerate}
+        onExport={handleExport}
+        onToggleDarkMode={toggleTheme}
+        onFocusPrompt={handleFocusPrompt}
+      />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
     </ThemeProvider>
   );
 }

@@ -578,6 +578,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
             </div>
           </div>
           <textarea
+            id="prompt-input"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="e.g., pixel art fantasy sword with blue gems, 32x32, transparent background"
@@ -726,6 +727,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         {/* Submit Buttons */}
         <div className="flex gap-3">
           <button
+            id="generate-submit-btn"
             type="submit"
             disabled={loading}
             className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition"
