@@ -702,6 +702,12 @@ export function ConceptEditorPage() {
           >
             📄 Export
           </button>
+          <button
+            onClick={() => navigate(`/projects/${projectId}/architect`)}
+            className="px-4 py-2 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition font-medium"
+          >
+            🏗️ Project Architect
+          </button>
           <div className="relative group">
             <button
               disabled={refining}

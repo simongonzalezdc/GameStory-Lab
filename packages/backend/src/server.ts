@@ -123,6 +123,7 @@ app.get('/api', (_req, res) => {
       templates: '/api/templates',
       refinement: '/api/refinement',
       titles: '/api/titles',
+      architect: '/api/architect',
     },
   });
 });
@@ -135,6 +136,7 @@ import exportRouter from './routes/export.js';
 import templatesRouter from './routes/templates.js';
 import refinementRouter from './routes/refinement.js';
 import titlesRouter from './routes/titles.js';
+import architectRouter from './routes/architect.js';
 
 app.use('/api/projects', projectsRouter);
 app.use('/api/generate', generateRouter);
@@ -143,6 +145,7 @@ app.use('/api/export', exportRouter);
 app.use('/api/templates', templatesRouter);
 app.use('/api/refinement', refinementRouter);
 app.use('/api/titles', titlesRouter);
+app.use('/api/architect', architectRouter);
 
 // Error handling middleware
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
