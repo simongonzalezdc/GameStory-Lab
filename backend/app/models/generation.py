@@ -21,6 +21,17 @@ class GenerationRequest(BaseModel):
     dimensions: DimensionsModel = Field(default_factory=DimensionsModel)
 
 
+class BatchGenerationRequest(BaseModel):
+    """Request model for batch generation (multiple variations)."""
+    prompt: str = Field(..., min_length=10, max_length=2000, description="Base prompt for generation")
+    model: str = Field(..., pattern="^(openrouter|google|chatgpt|ollama)$", description="AI model to use")
+    ollama_model: Optional[str] = Field(None, description="Specific Ollama model name (required if model='ollama')")
+    count: int = Field(default=5, ge=2, le=10, description="Number of variations to generate")
+    style_tags: List[str] = Field(default_factory=list, max_length=10)
+    project_name: Optional[str] = Field(None, max_length=100)
+    dimensions: DimensionsModel = Field(default_factory=DimensionsModel)
+
+
 class RefineRequest(BaseModel):
     """Request model for refining existing assets."""
     asset_id: str = Field(..., description="ID of asset to refine")
@@ -36,6 +47,15 @@ class GenerationResponse(BaseModel):
     generation_id: Optional[str] = None
     generation_time_ms: Optional[int] = None
     error: Optional[str] = None
+
+
+class BatchGenerationResponse(BaseModel):
+    """Response model for batch generation requests."""
+    success: bool
+    assets: List[dict] = Field(default_factory=list)
+    total_count: int
+    generation_time_ms: int
+    errors: List[str] = Field(default_factory=list)
 
 
 class OllamaModelInfo(BaseModel):

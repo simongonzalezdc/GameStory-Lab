@@ -38,6 +38,19 @@ export const apiClient = {
     return response.data;
   },
 
+  // Batch generate assets
+  async batchGenerate(request: {
+    prompt: string;
+    model: string;
+    count: number;
+    dimensions?: { width: number; height: number };
+    style_tags?: string[];
+    project_name?: string | null;
+  }): Promise<{ success: boolean; assets: any[]; total_count: number; generation_time_ms: number; errors: string[] }> {
+    const response = await api.post('/api/generate/batch', request);
+    return response.data;
+  },
+
   // Convert image to sprite
   async convertImageToSprite(formData: FormData): Promise<GenerationResponse> {
     const response = await api.post<GenerationResponse>('/api/generate/convert', formData, {

@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, Zap } from 'lucide-react';
 import { apiClient } from '../services/api';
 import type { GenerationRequest } from '../types/generation';
+import type { Asset } from '../types/asset';
+import { BatchGenerationModal } from './BatchGenerationModal';
 
 interface GenerationFormProps {
   onGenerated?: () => void;
@@ -14,10 +16,18 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showBatchModal, setShowBatchModal] = useState(false);
 
   // Note: Ollama status check infrastructure kept for future text-based features
   // (prompt enhancement, chat assistance, etc.)
   // const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
+
+  const handleBatchComplete = (assets: Asset[]) => {
+    setSuccess(`✓ Generated ${assets.length} assets successfully!`);
+    onGenerated?.();
+    // Clear after 3 seconds
+    setTimeout(() => setSuccess(null), 3000);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,25 +141,46 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
           </div>
         )}
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="animate-spin" size={20} />
-              Generating...
-            </>
-          ) : (
-            <>
-              <Sparkles size={20} />
-              Generate Asset
-            </>
-          )}
-        </button>
+        {/* Submit Buttons */}
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin" size={20} />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles size={20} />
+                Generate Asset
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowBatchModal(true)}
+            disabled={loading || !prompt.trim()}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition"
+            title="Generate multiple variations"
+          >
+            <Zap size={20} />
+            Batch
+          </button>
+        </div>
       </form>
+
+      {/* Batch Generation Modal */}
+      {showBatchModal && (
+        <BatchGenerationModal
+          basePrompt={prompt}
+          onClose={() => setShowBatchModal(false)}
+          onComplete={handleBatchComplete}
+        />
+      )}
     </div>
   );
 }

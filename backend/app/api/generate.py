@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, status, File, UploadFile, Form
 from typing import Optional
 
 from app.core.config import settings
-from app.models.generation import GenerationRequest, GenerationResponse, RefineRequest
+from app.models.generation import GenerationRequest, GenerationResponse, RefineRequest, BatchGenerationRequest, BatchGenerationResponse
 from app.models.asset import AssetCreate
 from app.services.ai_service import AIService
 from app.services.image_service import ImageService
@@ -359,4 +359,135 @@ async def convert_image_to_sprite(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Conversion failed: {str(e)}"
+        )
+
+
+@router.post("/batch", response_model=BatchGenerationResponse)
+async def batch_generate_assets(request: BatchGenerationRequest):
+    """
+    Generate multiple variations from a single prompt.
+
+    This endpoint generates multiple assets from one prompt by adding slight
+    variations to each generation. Useful for creating asset packs or exploring
+    different interpretations.
+
+    Args:
+        request: Batch generation request with count (2-10)
+
+    Returns:
+        List of generated assets with total time
+
+    Raises:
+        400: Invalid request
+        503: AI service unavailable
+    """
+    start_time = time.time()
+    user_id = "local-user"
+
+    try:
+        # Validate Ollama-specific requirements
+        if request.model == "ollama" and not request.ollama_model:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="ollama_model is required when using Ollama"
+            )
+
+        # Initialize services
+        ai_service = AIService()
+        image_service = ImageService()
+
+        assets = []
+        errors = []
+
+        logger.info(f"Starting batch generation: {request.count} variations")
+
+        for i in range(request.count):
+            try:
+                # Add variation suffix to prompt
+                variation_prompts = [
+                    request.prompt,
+                    f"{request.prompt}, variation {i+1}",
+                    f"{request.prompt}, alternate style",
+                    f"{request.prompt}, different perspective",
+                    f"{request.prompt}, unique interpretation",
+                ]
+                current_prompt = variation_prompts[min(i, len(variation_prompts) - 1)]
+
+                # Create generation request for this variation
+                gen_request = GenerationRequest(
+                    prompt=current_prompt,
+                    model=request.model,
+                    ollama_model=request.ollama_model,
+                    dimensions=request.dimensions,
+                    style_tags=request.style_tags,
+                    project_name=request.project_name
+                )
+
+                # Generate image
+                logger.info(f"Generating variation {i+1}/{request.count}")
+                image_bytes, mime_type = await ai_service.generate_image(gen_request)
+
+                # Process image
+                image_bytes = image_service.ensure_transparent_background(image_bytes)
+                image_info = image_service.get_image_info(image_bytes)
+
+                # Upload to storage
+                file_name = f"batch_{int(time.time())}_{i+1}.png"
+                file_url = await storage_service.upload_asset(
+                    user_id=user_id,
+                    file_name=file_name,
+                    file_bytes=image_bytes,
+                    mime_type=mime_type
+                )
+
+                # Save metadata
+                asset_data = AssetCreate(
+                    file_name=file_name,
+                    file_size=image_info["size_bytes"],
+                    width=image_info["width"],
+                    height=image_info["height"],
+                    generation_prompt=current_prompt,
+                    generation_model=request.model if request.model != "ollama" else f"ollama:{request.ollama_model}",
+                    style_tags=request.style_tags,
+                    project_name=request.project_name
+                )
+
+                asset = await storage_service.save_asset_metadata(
+                    user_id=user_id,
+                    asset_data=asset_data,
+                    file_url=file_url
+                )
+
+                assets.append(asset.model_dump())
+                logger.info(f"Variation {i+1}/{request.count} complete")
+
+            except Exception as e:
+                error_msg = f"Variation {i+1} failed: {str(e)}"
+                logger.error(error_msg)
+                errors.append(error_msg)
+                # Continue with next variation
+
+        generation_time_ms = int((time.time() - start_time) * 1000)
+
+        logger.info(f"Batch generation complete: {len(assets)}/{request.count} successful in {generation_time_ms}ms")
+
+        return BatchGenerationResponse(
+            success=len(assets) > 0,
+            assets=assets,
+            total_count=len(assets),
+            generation_time_ms=generation_time_ms,
+            errors=errors
+        )
+
+    except ValueError as e:
+        logger.error(f"Validation error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Batch generation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Batch generation failed: {str(e)}"
         )
