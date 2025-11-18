@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Image as ImageIcon, Download, Trash2, Search, Filter, Star, StarOff, FolderOpen, Wand2, GitBranch, Grid3x3, Grid2x2, LayoutGrid } from 'lucide-react';
+import { Image as ImageIcon, Download, Trash2, Search, Filter, Star, StarOff, FolderOpen, Wand2, GitBranch, Grid3x3, Grid2x2, LayoutGrid, Tag } from 'lucide-react';
 import { apiClient } from '../services/api';
 import type { Asset } from '../types/asset';
 import { ChatInterface } from './ChatInterface';
 import { AssetVersionHistory } from './AssetVersionHistory';
 import { EnhancedExportModal, ExportSettings } from './EnhancedExportModal';
 import { SkeletonGrid } from './SkeletonLoader';
+import { BulkTaggingModal } from './BulkTaggingModal';
 
 interface AssetLibraryProps {
   refreshTrigger?: number;
@@ -37,6 +38,9 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
 
   // Enhanced Export Modal
   const [showExportModal, setShowExportModal] = useState(false);
+
+  // Bulk Tagging Modal
+  const [showBulkTaggingModal, setShowBulkTaggingModal] = useState(false);
 
   useEffect(() => {
     loadAssets();
@@ -314,13 +318,22 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
             Favorites{showFavoritesOnly && ` (${favorites.size})`}
           </button>
           {selectedAssets.size > 0 && (
-            <button
-              onClick={handleExportClick}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-            >
-              <Download size={16} />
-              Export ({selectedAssets.size})
-            </button>
+            <>
+              <button
+                onClick={() => setShowBulkTaggingModal(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              >
+                <Tag size={16} />
+                Tag ({selectedAssets.size})
+              </button>
+              <button
+                onClick={handleExportClick}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              >
+                <Download size={16} />
+                Export ({selectedAssets.size})
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -645,6 +658,18 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Bulk Tagging Modal */}
+      {showBulkTaggingModal && (
+        <BulkTaggingModal
+          selectedAssets={assets.filter((a) => selectedAssets.has(a.id))}
+          onClose={() => setShowBulkTaggingModal(false)}
+          onUpdate={() => {
+            loadAssets();
+            setShowBulkTaggingModal(false);
+          }}
+        />
       )}
 
       {/* Enhanced Export Modal */}

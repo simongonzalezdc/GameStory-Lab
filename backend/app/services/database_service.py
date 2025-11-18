@@ -164,6 +164,51 @@ class DatabaseService:
             row = await cursor.fetchone()
             return self._row_to_asset(row, cursor.description)
 
+    async def update_asset(self, asset_id: str, user_id: str, update_data: dict) -> Optional[dict]:
+        """Update asset metadata."""
+        async with aiosqlite.connect(self.db_path) as db:
+            # Build dynamic UPDATE query based on provided fields
+            update_fields = []
+            values = []
+
+            if 'style_tags' in update_data:
+                update_fields.append("style_tags = ?")
+                values.append(str(update_data['style_tags']))
+
+            if 'project_name' in update_data:
+                update_fields.append("project_name = ?")
+                values.append(update_data['project_name'])
+
+            if 'is_favorite' in update_data:
+                update_fields.append("is_favorite = ?")
+                values.append(int(update_data['is_favorite']))
+
+            if not update_fields:
+                # No fields to update
+                return None
+
+            update_fields.append("updated_at = CURRENT_TIMESTAMP")
+            values.extend([asset_id, user_id])
+
+            query = f"""
+                UPDATE assets
+                SET {', '.join(update_fields)}
+                WHERE id = ? AND user_id = ?
+            """
+
+            await db.execute(query, values)
+            await db.commit()
+
+            # Fetch updated asset
+            cursor = await db.execute(
+                "SELECT * FROM assets WHERE id = ? AND user_id = ?",
+                (asset_id, user_id)
+            )
+            row = await cursor.fetchone()
+            if row:
+                return self._row_to_asset(row, cursor.description)
+            return None
+
     async def get_assets(
         self,
         user_id: str = 'local-user',

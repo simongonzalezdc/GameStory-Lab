@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, status, Query
 from typing import Optional, List
 
-from app.models.asset import AssetsListResponse, AssetDeleteResponse, Asset, AssetCreate
+from app.models.asset import AssetsListResponse, AssetDeleteResponse, Asset, AssetCreate, AssetUpdate
 from app.services.local_storage_service import storage_service
 from app.services.database_service import db_service
 
@@ -108,6 +108,54 @@ async def delete_asset(asset_id: str):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete asset: {str(e)}"
+        )
+
+
+@router.patch("/{asset_id}", response_model=Asset)
+async def update_asset(asset_id: str, update_data: AssetUpdate):
+    """
+    Update asset metadata (tags, project, favorite status).
+
+    Args:
+        asset_id: ID of asset to update
+        update_data: Fields to update
+
+    Returns:
+        Updated asset
+
+    Raises:
+        404: Asset not found
+        500: Update failed
+    """
+    user_id = "local-user"
+
+    try:
+        # Convert Pydantic model to dict, excluding None values
+        update_dict = update_data.model_dump(exclude_none=True)
+
+        if not update_dict:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No fields provided for update"
+            )
+
+        updated_asset = await db_service.update_asset(user_id, asset_id, update_dict)
+
+        if not updated_asset:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Asset not found"
+            )
+
+        return Asset(**updated_asset)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update asset: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update asset: {str(e)}"
         )
 
 

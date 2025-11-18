@@ -49,6 +49,13 @@ class AssetResponse(BaseModel):
 Asset = AssetResponse
 
 
+class AssetUpdate(BaseModel):
+    """Model for updating existing asset metadata."""
+    style_tags: Optional[List[str]] = None
+    project_name: Optional[str] = None
+    is_favorite: Optional[bool] = None
+
+
 class AssetFilter(BaseModel):
     """Model for filtering assets."""
     project_name: Optional[str] = None

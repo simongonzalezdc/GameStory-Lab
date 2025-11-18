@@ -79,6 +79,16 @@ export const apiClient = {
     return response.data;
   },
 
+  // Update asset
+  async updateAsset(assetId: string, updateData: {
+    style_tags?: string[];
+    project_name?: string | null;
+    is_favorite?: boolean;
+  }): Promise<Asset> {
+    const response = await api.patch<Asset>(`/api/assets/${assetId}`, updateData);
+    return response.data;
+  },
+
   // Duplicate asset
   async duplicateAsset(assetId: string): Promise<Asset> {
     const response = await api.post<Asset>(`/api/assets/${assetId}/duplicate`);
