@@ -22,14 +22,13 @@ let isInitialized = false;
 export function initErrorReporting(): void {
   if (isInitialized) return;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sentryDsn = (import.meta as any).env?.VITE_SENTRY_DSN;
-  
+  const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+
   if (sentryDsn) {
     // Uncomment when Sentry is installed:
     // Sentry.init({
     //   dsn: sentryDsn,
-    //   environment: (import.meta as any).env?.MODE || 'development',
+    //   environment: import.meta.env.MODE || 'development',
     //   integrations: [
     //     Sentry.browserTracingIntegration(),
     //     Sentry.replayIntegration(),
@@ -65,17 +64,16 @@ export function reportError(error: AppError): void {
   // });
 
   // Log in production for now (will send to Sentry when configured)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const isProduction = (import.meta as any).env?.MODE === 'production';
-  
+  const isProduction = import.meta.env.MODE === 'production';
+
   if (isProduction || error.severity === 'critical' || error.severity === 'error') {
     console.error('[Error Reporting]', {
       id: error.id,
       severity: error.severity,
       message: error.message,
-      context: error.context,
       timestamp: error.timestamp,
       recoverable: error.recoverable,
+      details: error.details,
     });
   }
 }

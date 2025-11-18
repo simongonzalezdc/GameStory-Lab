@@ -40,7 +40,7 @@ export async function sendAIMessage(
     const response = await client.sendMessage({
       messages: messagesWithSystem,
       projectContext,
-      signal: _signal,
+      signal,
     });
 
     return response;

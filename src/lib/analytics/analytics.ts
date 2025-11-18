@@ -41,8 +41,7 @@ export function trackEvent(eventName: string, properties?: Record<string, unknow
   // }
 
   // For now, just log in development
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if ((import.meta as any).env?.MODE === 'development') {
+  if (import.meta.env.MODE === 'development') {
     console.log('[Analytics]', eventName, properties);
   }
 }
