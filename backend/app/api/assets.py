@@ -1,9 +1,11 @@
 """Asset management API endpoints."""
 import logging
+import shutil
+from pathlib import Path
 from fastapi import APIRouter, HTTPException, status, Query
 from typing import Optional, List
 
-from app.models.asset import AssetsListResponse, AssetDeleteResponse, Asset
+from app.models.asset import AssetsListResponse, AssetDeleteResponse, Asset, AssetCreate
 from app.services.local_storage_service import storage_service
 from app.services.database_service import db_service
 
@@ -149,4 +151,91 @@ async def get_asset_versions(asset_id: str):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch asset versions: {str(e)}"
+        )
+
+
+
+@router.post("/{asset_id}/duplicate", response_model=Asset)
+async def duplicate_asset(asset_id: str):
+    """
+    Duplicate an existing asset.
+
+    Creates a copy of the asset file and metadata. The duplicated asset
+    will have a new ID and timestamp but keep the same properties.
+
+    Args:
+        asset_id: ID of asset to duplicate
+
+    Returns:
+        The newly created asset duplicate
+
+    Raises:
+        404: Asset not found
+        500: Duplication failed
+    """
+    user_id = "local-user"
+
+    try:
+        # Get original asset
+        original_asset_dict = await db_service.get_asset(asset_id, user_id)
+        if not original_asset_dict:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Asset not found"
+            )
+
+        original_asset = Asset(**original_asset_dict)
+
+        # Get original file path
+        original_file_path = storage_service.get_file_path(original_asset.file_url)
+        if not Path(original_file_path).exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Asset file not found"
+            )
+
+        # Create new filename
+        import time
+        new_file_name = f"duplicate_{int(time.time())}_{original_asset.file_name}"
+
+        # Copy file
+        new_file_url = await storage_service.upload_asset(
+            user_id=user_id,
+            file_name=new_file_name,
+            file_bytes=Path(original_file_path).read_bytes(),
+            mime_type="image/png"
+        )
+
+        # Create asset metadata (copying from original)
+        asset_data = AssetCreate(
+            file_name=new_file_name,
+            file_size=original_asset.file_size,
+            width=original_asset.width,
+            height=original_asset.height,
+            generation_prompt=original_asset.generation_prompt,
+            generation_model=original_asset.generation_model,
+            style_tags=original_asset.style_tags,
+            project_name=original_asset.project_name,
+            parent_asset_id=None,  # Duplicate is not a version
+            version_number=1,  # Start fresh version chain
+            refinement_instruction=None
+        )
+
+        # Save duplicate
+        duplicate = await storage_service.save_asset_metadata(
+            user_id=user_id,
+            asset_data=asset_data,
+            file_url=new_file_url
+        )
+
+        logger.info(f"Asset {asset_id} duplicated as {duplicate.id}")
+        return duplicate
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to duplicate asset: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to duplicate asset: {str(e)}"
         )

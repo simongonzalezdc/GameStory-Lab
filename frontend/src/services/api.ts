@@ -79,6 +79,12 @@ export const apiClient = {
     return response.data;
   },
 
+  // Duplicate asset
+  async duplicateAsset(assetId: string): Promise<Asset> {
+    const response = await api.post<Asset>(`/api/assets/${assetId}/duplicate`);
+    return response.data;
+  },
+
   // Get asset version history
   async getAssetVersions(assetId: string): Promise<Asset[]> {
     const response = await api.get<Asset[]>(`/api/assets/${assetId}/versions`);

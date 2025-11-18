@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Image as ImageIcon, Download, Trash2, Loader2, Search, Filter, Star, StarOff, FolderOpen, Wand2, GitBranch } from 'lucide-react';
+import { Image as ImageIcon, Download, Trash2, Loader2, Search, Filter, Star, StarOff, FolderOpen, Wand2, GitBranch, Copy } from 'lucide-react';
 import { apiClient } from '../services/api';
 import type { Asset } from '../types/asset';
 import { ChatInterface } from './ChatInterface';
@@ -78,6 +78,16 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
       }
     } catch (err: any) {
       alert('Failed to delete asset: ' + err.message);
+    }
+  };
+
+  const handleDuplicate = async (assetId: string) => {
+    try {
+      const duplicate = await apiClient.duplicateAsset(assetId);
+      setAssets([duplicate, ...assets]);
+      alert('✓ Asset duplicated successfully!');
+    } catch (err: any) {
+      alert('Failed to duplicate asset: ' + err.message);
     }
   };
 
