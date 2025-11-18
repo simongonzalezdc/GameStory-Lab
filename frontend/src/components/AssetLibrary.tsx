@@ -4,6 +4,7 @@ import { apiClient } from '../services/api';
 import type { Asset } from '../types/asset';
 import { ChatInterface } from './ChatInterface';
 import { AssetVersionHistory } from './AssetVersionHistory';
+import { EnhancedExportModal, ExportSettings } from './EnhancedExportModal';
 
 interface AssetLibraryProps {
   refreshTrigger?: number;
@@ -25,6 +26,9 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
   // Phase 2: Refinement & Versioning
   const [refineAsset, setRefineAsset] = useState<Asset | null>(null);
   const [detailAsset, setDetailAsset] = useState<Asset | null>(null);
+
+  // Enhanced Export Modal
+  const [showExportModal, setShowExportModal] = useState(false);
 
   useEffect(() => {
     loadAssets();
@@ -94,28 +98,39 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
     setSelectedAssets(newSelection);
   };
 
-  const handleExport = async () => {
+  const handleExportClick = () => {
     if (selectedAssets.size === 0) {
       alert('Please select at least one asset to export');
       return;
     }
+    setShowExportModal(true);
+  };
 
+  const handleExport = async (settings: ExportSettings) => {
     try {
       const blob = await apiClient.exportAssets({
         asset_ids: Array.from(selectedAssets),
-        format: 'sprite-sheet-json',
-        target_engine: 'generic',
-        resolution_multiplier: 1,
+        format: settings.format,
+        target_engine: settings.targetEngine,
+        resolution_multiplier: settings.resolutionMultiplier,
+        settings: {
+          trimTransparency: settings.trimTransparency,
+          padding: settings.padding,
+          sheetSize: settings.sheetSize,
+        },
       });
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'game_assets_export.zip';
+      link.download = `game_assets_export_${Date.now()}.zip`;
       link.click();
       URL.revokeObjectURL(url);
+
+      // Clear selection after successful export
+      setSelectedAssets(new Set());
     } catch (err: any) {
-      alert('Export failed: ' + err.message);
+      throw err; // Let modal handle the error
     }
   };
 
@@ -236,7 +251,7 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
           </button>
           {selectedAssets.size > 0 && (
             <button
-              onClick={handleExport}
+              onClick={handleExportClick}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
             >
               <Download size={16} />
@@ -566,6 +581,15 @@ export function AssetLibrary({ refreshTrigger }: AssetLibraryProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Enhanced Export Modal */}
+      {showExportModal && (
+        <EnhancedExportModal
+          selectedAssets={assets.filter((a) => selectedAssets.has(a.id))}
+          onClose={() => setShowExportModal(false)}
+          onExport={handleExport}
+        />
       )}
     </div>
   );
