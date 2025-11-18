@@ -148,16 +148,35 @@ curl -fsSL https://ollama.com/install.sh | sh
 **Windows:**
 Download from https://ollama.com/download
 
-### Pull recommended models:
+### Pull recommended models (November 2025 - Mac M4 16GB Optimized):
 
 ```bash
-# Primary model (recommended)
-ollama pull llama3.3:70b
+# PRIMARY: MoE model - 30B quality with 3B memory! (MUST HAVE)
+ollama pull qwen3:30b-a3b
 
-# Alternative models
-ollama pull qwen2.5:32b
-ollama pull deepseek-r1:7b
+# HIGH QUALITY: Best reasoning (9.8T tokens training)
+ollama pull phi4:14b
+
+# CREATIVE: Best for narrative and lore generation
+ollama pull qwen3-coder:7b
+
+# STRUCTURED: Best for JSON and mechanics generation
+ollama pull qwen3:7b
+
+# REASONING: Advanced step-by-step reasoning
+ollama pull deepseek-r1:8b
+
+# LIGHTWEIGHT: Versatile, uses <8GB RAM
+ollama pull llama4:8b
 ```
+
+**Model Sizes & Performance (Mac M4 16GB):**
+- `qwen3:30b-a3b` - 8-12GB RAM, 20-30 tok/s (MoE magic!)
+- `phi4:14b` - 11-13GB RAM, 25-35 tok/s (highest quality)
+- `qwen3-coder:7b` - 6-8GB RAM, 35-45 tok/s (best creative)
+- `qwen3:7b` - 6-8GB RAM, 35-45 tok/s (best JSON)
+- `deepseek-r1:8b` - 7-9GB RAM, 30-40 tok/s (reasoning)
+- `llama4:8b` - <8GB RAM, 35-45 tok/s (lightweight)
 
 **Verify Ollama is running:**
 ```bash
@@ -257,10 +276,15 @@ You should see the GameForge Studio dashboard with system status.
 **Solutions:**
 1. Check if Ollama is running: `ollama list`
 2. Start Ollama: `ollama serve`
-3. Install model: `ollama pull llama3.3:70b`
+3. Install recommended model: `ollama pull qwen3:30b-a3b` (MoE - best for 16GB!)
 4. Verify `OLLAMA_BASE_URL` in `.env`
 
 **Note:** If Ollama is unavailable, the system will use OpenRouter/Google APIs (if configured).
+
+**Model Selection (November 2025):**
+- The system automatically selects the best available model
+- Priority: qwen3:30b-a3b > phi4:14b > qwen3-coder:7b > qwen3:7b
+- MoE models provide 30B quality with only 3B memory usage!
 
 ---
 

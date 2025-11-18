@@ -1,0 +1,107 @@
+{
+  "id": "horror",
+  "name": "Horror",
+  "description": "Atmospheric terror with resource scarcity, vulnerability, and psychological tension",
+  "mechanics": {
+    "coreLoop": "Explore threatening environment → Manage scarce resources → Solve puzzles under pressure → Evade or confront threats → Uncover disturbing story → Survive escalating horror",
+    "playerActions": [
+      "Navigate dark, oppressive environments with limited visibility",
+      "Manage flashlight battery and limited ammunition",
+      "Hide from unkillable or powerful enemies",
+      "Solve environmental puzzles to progress",
+      "Collect documents and audio logs revealing story",
+      "Choose fight or flight when confronted by threats",
+      "Manage inventory with limited space",
+      "Make life-or-death decisions under stress"
+    ],
+    "progressionSystems": {
+      "type": "linear",
+      "mechanics": [
+        "Story-based progression through chapters or areas",
+        "Unlock new tools or weapons (rarely powerful)",
+        "Safe rooms for saving and inventory management",
+        "Increase health capacity through rare items",
+        "Discover shortcuts and alternate paths",
+        "Mental sanity meter (in some variants)",
+        "Multiple endings based on choices or performance"
+      ]
+    },
+    "winConditions": [
+      "Survive until escape or resolution",
+      "Uncover the truth behind the horror",
+      "Defeat or banish the primary threat",
+      "Reach one of multiple endings"
+    ],
+    "failConditions": [
+      "Health depleted by enemies or hazards (game over)",
+      "Sanity breaks completely (in sanity-based systems)",
+      "Caught by unkillable pursuer",
+      "Reload from last save point or checkpoint"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Health",
+        "mechanics": "Very limited healing items, damage is impactful and scary",
+        "scarcity": "scarce"
+      },
+      {
+        "name": "Ammunition",
+        "mechanics": "Extremely limited bullets, must decide when to fight vs flee",
+        "scarcity": "scarce"
+      },
+      {
+        "name": "Light Source (Battery/Oil)",
+        "mechanics": "Darkness is dangerous, light is essential but limited",
+        "scarcity": "scarce"
+      },
+      {
+        "name": "Sanity/Mental State",
+        "mechanics": "Witnessing horror degrades sanity, causes hallucinations or debuffs",
+        "scarcity": "scarce"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Contemporary, historical gothic, or near-future dystopia",
+      "location": "Isolated locations: abandoned mansion, haunted asylum, derelict spaceship, foggy town",
+      "worldType": "Grounded reality corrupted by supernatural, psychological, or cosmic horror"
+    },
+    "protagonist": {
+      "background": "Ordinary person trapped in nightmare scenario, investigator, or survivor seeking answers",
+      "motivation": "Survive, find missing loved one, uncover conspiracy, escape the nightmare, seek redemption",
+      "abilities": [
+        "Resourcefulness and problem-solving under extreme stress",
+        "Basic self-defense (often inadequate against threats)",
+        "Determination to survive despite overwhelming odds",
+        "Ability to maintain sanity in the face of incomprehensible horror"
+      ]
+    },
+    "conflict": {
+      "primary": "Trapped in location with deadly supernatural/monstrous threat hunting the protagonist",
+      "secondary": [
+        "Psychological trauma and fear itself",
+        "Environmental hazards and traps",
+        "Disturbing revelations about the nature of reality",
+        "Other victims who may help or hinder",
+        "Cultists or human antagonists serving greater evil"
+      ]
+    },
+    "worldRules": {
+      "physics": "Realistic with violations that create unease (impossible geometry, altered physics)",
+      "magic": "Dark magic, cursed artifacts, or cosmic forces beyond human comprehension",
+      "technology": "Limited technology, often unreliable or corrupted by the horror"
+    },
+    "themes": [
+      "Fear of the unknown",
+      "Isolation and vulnerability",
+      "Loss of control and helplessness",
+      "Psychological trauma and madness",
+      "Cosmic insignificance",
+      "Survival at any cost"
+    ]
+  },
+  "tags": ["atmospheric", "suspense", "survival", "psychological", "single-player"],
+  "difficulty": "Challenging through resource scarcity and tension",
+  "targetAudience": "Players seeking intense psychological experiences and atmosphere"
+}

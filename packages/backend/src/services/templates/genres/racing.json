@@ -1,0 +1,108 @@
+{
+  "id": "racing",
+  "name": "Racing",
+  "description": "High-speed vehicular competition with realistic or arcade physics and vehicle customization",
+  "mechanics": {
+    "coreLoop": "Choose vehicle → Race against opponents → Master tracks and mechanics → Earn currency → Upgrade and customize vehicle → Unlock new races and vehicles",
+    "playerActions": [
+      "Accelerate, brake, and steer with precision",
+      "Drift around corners for speed boosts",
+      "Use nitrous oxide for temporary speed bursts",
+      "Draft behind opponents to reduce air resistance",
+      "Navigate shortcuts and optimal racing lines",
+      "Avoid or use traffic (in street racing variants)",
+      "Perform stunts and tricks (in arcade variants)",
+      "Customize vehicle handling, appearance, and performance"
+    ],
+    "progressionSystems": {
+      "type": "linear",
+      "mechanics": [
+        "Complete races to unlock new tracks and championships",
+        "Earn currency from race positions and challenges",
+        "Upgrade vehicle parts (engine, tires, suspension, etc.)",
+        "Unlock new vehicle classes (street → sport → supercar → hypercar)",
+        "Career mode progression through racing leagues",
+        "Reputation system unlocks special events",
+        "Customization unlocks (paint, decals, body kits)"
+      ]
+    },
+    "winConditions": [
+      "Finish race in 1st place (or top 3 for progression)",
+      "Complete championship series",
+      "Beat personal best lap times",
+      "Achieve 100% completion (all races, all gold medals)"
+    ],
+    "failConditions": [
+      "Finish too low in standings to progress",
+      "Total vehicle damage causing DNF (in realistic sims)",
+      "Fail time trial objectives",
+      "Generally can retry races without penalty"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Currency (Credits)",
+        "mechanics": "Earned from races, spent on vehicles and upgrades",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Nitrous/Boost",
+        "mechanics": "Limited turbo for overtaking, refills via drifting or pickups",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Vehicle Damage",
+        "mechanics": "Crashes damage car, affecting performance (in realistic sims)",
+        "scarcity": "scarce"
+      },
+      {
+        "name": "Reputation/License Points",
+        "mechanics": "Progress metric unlocking higher tier events",
+        "scarcity": "balanced"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Contemporary with high-performance vehicles",
+      "location": "Race tracks worldwide, city streets, mountain passes, off-road terrain",
+      "worldType": "Grounded in automotive culture, racing leagues, and street racing scenes"
+    },
+    "protagonist": {
+      "background": "Up-and-coming racer, street racing newcomer, or professional driver seeking championship",
+      "motivation": "Become racing champion, earn respect in street scene, win prize money, prove skills",
+      "abilities": [
+        "Expert driving skills and vehicle control",
+        "Split-second decision making at high speeds",
+        "Understanding of racing lines and vehicle dynamics",
+        "Fearlessness and competitive spirit"
+      ]
+    },
+    "conflict": {
+      "primary": "Rise through racing ranks to become champion, defeating rivals and overcoming challenges",
+      "secondary": [
+        "Rival racers with personal vendettas",
+        "Police pursuit (in illegal street racing)",
+        "Mechanical failures and accidents",
+        "Sponsorship pressure and expectations",
+        "Balancing aggression with consistency",
+        "Weather and environmental hazards"
+      ]
+    },
+    "worldRules": {
+      "physics": "Realistic vehicle physics (simulation) or arcade physics with enhanced control",
+      "magic": "No magic - pure driving skill and engineering",
+      "technology": "High-performance vehicles with modern or futuristic automotive technology"
+    },
+    "themes": [
+      "Speed and adrenaline",
+      "Competition and rivalry",
+      "Mastery through practice",
+      "Risk vs reward",
+      "Automotive passion and culture",
+      "Precision and focus"
+    ]
+  },
+  "tags": ["competitive", "fast-paced", "multiplayer", "vehicle-based", "skill-based"],
+  "difficulty": "Easy to learn, challenging to master",
+  "targetAudience": "Players seeking high-speed competition and vehicle customization"
+}

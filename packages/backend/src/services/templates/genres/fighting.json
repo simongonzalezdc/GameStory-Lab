@@ -1,0 +1,106 @@
+{
+  "id": "fighting",
+  "name": "Fighting",
+  "description": "One-on-one combat with precise inputs, combos, and competitive balance",
+  "mechanics": {
+    "coreLoop": "Choose fighter → Master moveset → Execute combos and special moves → Win rounds → Unlock characters and stages → Improve in competitive play",
+    "playerActions": [
+      "Execute basic attacks (light, medium, heavy punches/kicks)",
+      "Perform special moves with directional inputs + buttons",
+      "Chain attacks into combos for maximum damage",
+      "Block, parry, or dodge opponent attacks",
+      "Break throws and counter opponent's moves",
+      "Manage super meter for powerful ultimate attacks",
+      "Read opponent patterns and adapt strategy",
+      "Execute frame-perfect inputs for advanced techniques"
+    ],
+    "progressionSystems": {
+      "type": "branching",
+      "mechanics": [
+        "Unlock new fighters through story mode or currency",
+        "Unlock alternate costumes and color palettes",
+        "Online ranking system (Bronze → Silver → Gold → Platinum → Master)",
+        "Single-player arcade mode with increasing difficulty",
+        "Training mode to master combos and setups",
+        "Mission/challenge mode for specific objectives",
+        "Story mode with character-specific narratives"
+      ]
+    },
+    "winConditions": [
+      "Deplete opponent's health bar before yours",
+      "Win 2 out of 3 rounds (best of 3)",
+      "Ring out opponent (stage-specific)",
+      "Complete story mode with all characters"
+    ],
+    "failConditions": [
+      "Health depleted (lose round)",
+      "Lose majority of rounds (lose match)",
+      "Can immediately rematch or continue story",
+      "Rank down in competitive modes after losses"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Health Bar",
+        "mechanics": "Depletes from taking damage, does not regenerate during round",
+        "scarcity": "scarce"
+      },
+      {
+        "name": "Super/EX Meter",
+        "mechanics": "Builds from dealing/taking damage, spent on enhanced moves or supers",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "In-game Currency",
+        "mechanics": "Earned from matches, spent on unlockables",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Frame Advantage",
+        "mechanics": "Invisible resource - better positioning after moves creates offensive opportunities",
+        "scarcity": "scarce"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Contemporary or fantastical (depending on game universe)",
+      "location": "Global tournament stages, from dojos to cityscapes to otherworldly arenas",
+      "worldType": "Martial arts tournament setting with diverse character backgrounds"
+    },
+    "protagonist": {
+      "background": "Martial artist seeking to prove their fighting style, avenge past defeat, or win tournament",
+      "motivation": "Become world champion, master their art, seek revenge, protect loved ones, or gain ultimate power",
+      "abilities": [
+        "Master of unique fighting style (karate, kung fu, wrestling, supernatural powers)",
+        "Signature special moves and ultimate techniques",
+        "Exceptional reflexes and combat awareness",
+        "Ability to learn and adapt mid-fight"
+      ]
+    },
+    "conflict": {
+      "primary": "Global martial arts tournament where the world's strongest fighters compete for ultimate glory",
+      "secondary": [
+        "Personal rivalries between specific characters",
+        "Criminal organizations using tournament as cover",
+        "Supernatural forces seeking to corrupt or destroy",
+        "Generational conflicts (student vs master, old vs new style)",
+        "National pride and representing one's country/school"
+      ]
+    },
+    "worldRules": {
+      "physics": "Enhanced human abilities with anime/comic book physics for dramatic effects",
+      "magic": "Ki/chi energy allows superhuman feats and energy projectiles",
+      "technology": "Modern world with cyborgs and advanced fighters occasionally integrated"
+    },
+    "themes": [
+      "Martial arts mastery and discipline",
+      "Honor and respect among warriors",
+      "Rivalry and mutual growth",
+      "Revenge and redemption",
+      "Strength vs technique"
+    ]
+  },
+  "tags": ["competitive", "pvp", "skill-based", "1v1", "combo-heavy"],
+  "difficulty": "Very high skill ceiling with execution barriers",
+  "targetAudience": "Competitive players seeking deep mechanical mastery"
+}

@@ -31,13 +31,18 @@ export class OllamaClient implements IAIClient {
     try {
       // Convert messages to Ollama format
       let prompt = this.formatMessages(request.messages);
-      
+
       // For Qwen models, disable chain-of-thought/thinking mode
-      // Qwen has a thinking mode that outputs reasoning - we want to disable it
+      // Qwen 3 (released April 2025) has thinking mode that outputs reasoning tags
+      // Qwen 3 series: 600M, 1.5B, 3B, 7B, 14B, 32B + MoE variants (30B-A3B)
+      // Also handle DeepSeek R1 which has explicit reasoning mode
       const isQwenModel = request.model.toLowerCase().includes('qwen');
-      if (isQwenModel) {
-        // Add explicit instruction to skip thinking/reasoning
-        prompt = `You are a helpful assistant. Respond directly without showing your reasoning process or chain of thought. Output only the requested content.\n\n${prompt}`;
+      const isDeepSeekR1 = request.model.toLowerCase().includes('deepseek-r1');
+
+      if (isQwenModel || isDeepSeekR1) {
+        // Add explicit instruction to skip thinking/reasoning and output clean JSON
+        // DeepSeek R1 shows thinking process by default - we want final answer only
+        prompt = `You are a helpful assistant. CRITICAL: Respond directly with ONLY the requested JSON content. Do NOT show your reasoning process, chain of thought, <think> tags, thinking steps, or any explanatory text. Output must start with { and end with }. No markdown code fences.\n\n${prompt}`;
       }
 
       const response = await this.client.generate({
@@ -47,10 +52,10 @@ export class OllamaClient implements IAIClient {
           temperature: request.temperature ?? 0.7,
           num_predict: request.maxTokens ?? 2000,
           top_p: request.topP ?? 0.9,
-          // Disable thinking mode for Qwen (if supported by Ollama)
-          ...(isQwenModel && { 
-            // Some Qwen models support thinking_mode parameter
-            // We'll rely on prompt instructions if Ollama doesn't support this
+          // Additional options for better JSON output
+          ...((isQwenModel || isDeepSeekR1) && {
+            // Qwen 3 and DeepSeek R1 benefit from lower temperature for structured output
+            temperature: request.temperature ?? 0.6,
           }),
         },
         stream: false,

@@ -1,0 +1,102 @@
+{
+  "id": "action-adventure",
+  "name": "Action-Adventure",
+  "description": "Fast-paced combat combined with exploration, puzzles, and narrative progression",
+  "mechanics": {
+    "coreLoop": "Explore environment → Solve environmental puzzles → Engage in dynamic combat → Discover story elements → Unlock new abilities → Access new areas",
+    "playerActions": [
+      "Traverse diverse environments (climbing, swimming, swinging)",
+      "Engage in real-time melee and ranged combat",
+      "Solve environmental puzzles to progress",
+      "Collect items and upgrades",
+      "Interact with NPCs for quests and story",
+      "Use acquired tools/gadgets to access new areas",
+      "Perform stealth takedowns or direct confrontation",
+      "Quick-time events for cinematic moments"
+    ],
+    "progressionSystems": {
+      "type": "open",
+      "mechanics": [
+        "Unlock new abilities and tools through story progression",
+        "Upgrade weapons and equipment with collected resources",
+        "Increase health/stamina through collectibles",
+        "Skill points for combat and traversal abilities",
+        "New areas unlock via story milestones and abilities",
+        "Optional side content for additional upgrades"
+      ]
+    },
+    "winConditions": [
+      "Defeat the main antagonist",
+      "Complete the main story campaign",
+      "Reach and conquer the final location"
+    ],
+    "failConditions": [
+      "Player health depletes (respawn at checkpoint)",
+      "Fall from lethal heights (instant death)",
+      "Reload from last checkpoint or save point"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Health",
+        "mechanics": "Depletes from damage, restored with healing items or checkpoints",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Stamina",
+        "mechanics": "Used for sprinting, climbing, and special attacks; regenerates when idle",
+        "scarcity": "abundant"
+      },
+      {
+        "name": "Ammunition",
+        "mechanics": "Limited ammo for ranged weapons, found in environment or from enemies",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Upgrade Materials",
+        "mechanics": "Rare components for enhancing gear and abilities",
+        "scarcity": "scarce"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Contemporary or near-future",
+      "location": "Diverse locations from jungles and ancient ruins to modern cities",
+      "worldType": "Grounded reality with elements of the extraordinary"
+    },
+    "protagonist": {
+      "background": "Skilled adventurer, treasure hunter, or explorer with a personal connection to the quest",
+      "motivation": "Uncover ancient secrets, stop a global threat, or seek redemption for past actions",
+      "abilities": [
+        "Expert in hand-to-hand combat and firearms",
+        "Exceptional athletic ability (climbing, parkour)",
+        "Problem-solving and deduction skills",
+        "Resourcefulness in hostile environments"
+      ]
+    },
+    "conflict": {
+      "primary": "A powerful organization or individual seeks to exploit ancient artifacts or technology for world domination",
+      "secondary": [
+        "Personal vendetta against the antagonist",
+        "Moral dilemmas about the power being pursued",
+        "Rival explorers or mercenaries",
+        "Environmental hazards and traps"
+      ]
+    },
+    "worldRules": {
+      "physics": "Realistic physics with enhanced human capabilities (can survive larger falls, more resilient)",
+      "magic": "No traditional magic, but ancient artifacts or advanced technology may have extraordinary properties",
+      "technology": "Modern-day weapons, gadgets, and communication devices; ancient civilizations had advanced lost technology"
+    },
+    "themes": [
+      "Discovery and exploration",
+      "Human ambition and greed",
+      "Preservation vs exploitation",
+      "Survival against the odds",
+      "Legacy and history"
+    ]
+  },
+  "tags": ["action", "exploration", "cinematic", "combat", "puzzle-solving"],
+  "difficulty": "Moderate with scalable challenge",
+  "targetAudience": "Players seeking cinematic storytelling with engaging gameplay variety"
+}

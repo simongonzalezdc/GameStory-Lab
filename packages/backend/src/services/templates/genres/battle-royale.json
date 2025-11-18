@@ -1,0 +1,103 @@
+{
+  "id": "battle-royale",
+  "name": "Battle Royale",
+  "description": "Last-player-standing multiplayer shooter with scavenging, survival, and a shrinking play zone",
+  "mechanics": {
+    "coreLoop": "Drop into map → Scavenge weapons and gear → Survive encounters with other players → Stay within safe zone → Outlast all opponents → Win chicken dinner",
+    "playerActions": [
+      "Parachute/drop into starting location from aircraft",
+      "Loot buildings and supply drops for weapons, armor, and items",
+      "Engage in tactical gunfights with other players",
+      "Heal and revive teammates (in team modes)",
+      "Use vehicles for fast travel across large maps",
+      "Build cover or defensive structures (in some variants)",
+      "Monitor and stay within the shrinking safe zone",
+      "Use tactical equipment (grenades, smoke, scopes)"
+    ],
+    "progressionSystems": {
+      "type": "linear",
+      "mechanics": [
+        "Match-based progression (each match starts fresh)",
+        "Find increasingly powerful loot (common → rare → epic → legendary)",
+        "Armor upgrades during match (level 1, 2, 3)",
+        "Persistent player rank/tier system across matches",
+        "Battle pass with seasonal rewards",
+        "Cosmetic unlocks through achievements or purchase"
+      ]
+    },
+    "winConditions": [
+      "Be the last player (or squad) alive",
+      "Survive until all other players are eliminated",
+      "Rank #1 in the match"
+    ],
+    "failConditions": [
+      "Player health reaches zero (eliminated)",
+      "Entire squad is eliminated (in team modes)",
+      "Caught outside safe zone when it fully closes",
+      "Match ends with player not in top position"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Health",
+        "mechanics": "Depletes from damage, restored with med kits and bandages",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Shield/Armor",
+        "mechanics": "Absorbs damage before health, recharged with shield cells/batteries",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Ammunition",
+        "mechanics": "Multiple ammo types for different weapons, must be scavenged",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Equipment Slots",
+        "mechanics": "Limited inventory space for tactical items and healing",
+        "scarcity": "scarce"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Near-future or contemporary",
+      "location": "Large-scale island, archipelago, or urban warzone with diverse biomes",
+      "worldType": "Military simulation or dystopian competition setting"
+    },
+    "protagonist": {
+      "background": "Skilled mercenary, soldier, or competitor in a deadly tournament",
+      "motivation": "Survive, win glory, claim prize money, or complete a mission objective",
+      "abilities": [
+        "Expert marksmanship and weapon handling",
+        "Tactical awareness and positioning",
+        "Resource management under pressure",
+        "Adaptability to different combat scenarios"
+      ]
+    },
+    "conflict": {
+      "primary": "100 players fight to the death in an ever-shrinking arena until only one remains",
+      "secondary": [
+        "Teams competing for squad survival",
+        "Environmental hazards (storms, toxic zones, collapsing structures)",
+        "Supply drop competition",
+        "Third-party interference in fights"
+      ]
+    },
+    "worldRules": {
+      "physics": "Realistic ballistics and weapon handling with arcade elements for accessibility",
+      "magic": "No magic - pure tactical shooter with possible sci-fi technology",
+      "technology": "Modern/near-future weapons, tactical gear, drones, respawn beacons, advanced optics"
+    },
+    "themes": [
+      "Survival of the fittest",
+      "Competition and skill expression",
+      "Adaptation and improvisation",
+      "Risk vs reward decision-making",
+      "Team coordination (in squad modes)"
+    ]
+  },
+  "tags": ["multiplayer", "pvp", "shooter", "survival", "competitive"],
+  "difficulty": "High skill ceiling, punishing for beginners",
+  "targetAudience": "Competitive players seeking high-stakes PvP experiences"
+}

@@ -1,0 +1,97 @@
+{
+  "id": "adventure",
+  "name": "Adventure",
+  "description": "Narrative-driven experience focused on story, exploration, and puzzle-solving with minimal combat",
+  "mechanics": {
+    "coreLoop": "Explore narrative-rich environments → Interact with characters → Solve puzzles and uncover clues → Make meaningful story choices → Progress narrative → Experience consequences",
+    "playerActions": [
+      "Explore detailed environments and examine objects",
+      "Engage in dialogue with branching conversation trees",
+      "Collect and combine items to solve puzzles",
+      "Make story-altering decisions",
+      "Uncover hidden lore through documents and environmental storytelling",
+      "Navigate point-and-click or first-person exploration",
+      "Complete environmental puzzles (logic, inventory-based)",
+      "Discover multiple story paths and endings"
+    ],
+    "progressionSystems": {
+      "type": "linear",
+      "mechanics": [
+        "Story chapters unlock sequentially",
+        "Inventory expands with key items and tools",
+        "Relationship meters with NPCs affect dialogue options",
+        "Knowledge-based progression (learn information to unlock new areas)",
+        "Achievement-based unlocks for collectibles",
+        "Branching paths based on player choices"
+      ]
+    },
+    "winConditions": [
+      "Reach one of multiple story endings",
+      "Solve the central mystery",
+      "Complete character arcs based on choices made"
+    ],
+    "failConditions": [
+      "Generally no fail states - player can always progress",
+      "Some choices may lead to 'bad' endings",
+      "Puzzles can be retried infinitely"
+    ],
+    "resourceSystems": [
+      {
+        "name": "Inventory",
+        "mechanics": "Collect items used to solve puzzles or unlock dialogue options",
+        "scarcity": "balanced"
+      },
+      {
+        "name": "Knowledge/Clues",
+        "mechanics": "Information gathered through exploration, unlocks new dialogue and puzzle solutions",
+        "scarcity": "abundant"
+      },
+      {
+        "name": "Relationship Points",
+        "mechanics": "Choices affect NPC relationships, influencing story outcomes",
+        "scarcity": "balanced"
+      }
+    ]
+  },
+  "lore": {
+    "setting": {
+      "era": "Can range from historical to contemporary to fantastical",
+      "location": "Richly detailed, atmospheric locations with strong sense of place",
+      "worldType": "Grounded with emphasis on believable characters and emotional resonance"
+    },
+    "protagonist": {
+      "background": "Ordinary person thrust into extraordinary circumstances, or investigator seeking truth",
+      "motivation": "Solve a mystery, find a missing person, uncover a conspiracy, or make a life-changing decision",
+      "abilities": [
+        "Keen observational skills",
+        "Empathy and social intelligence",
+        "Problem-solving and lateral thinking",
+        "Persistence and determination"
+      ]
+    },
+    "conflict": {
+      "primary": "A central mystery, moral dilemma, or personal journey that drives the narrative forward",
+      "secondary": [
+        "Interpersonal conflicts with other characters",
+        "Internal struggle with past trauma or difficult choices",
+        "Environmental challenges and obstacles",
+        "Time pressure or competing interests"
+      ]
+    },
+    "worldRules": {
+      "physics": "Realistic and grounded in the chosen setting",
+      "magic": "If present, magic is subtle and integral to the world's mystery rather than a gameplay mechanic",
+      "technology": "Appropriate to the time period and setting, used for storytelling rather than combat"
+    },
+    "themes": [
+      "Mystery and discovery",
+      "Consequence of choice",
+      "Human connection and relationships",
+      "Memory and identity",
+      "Moral ambiguity"
+    ]
+  },
+  "tags": ["story-driven", "narrative", "puzzle", "choice-based", "atmospheric"],
+  "difficulty": "Low mechanical difficulty, high intellectual engagement",
+  "targetAudience": "Players who prioritize story and character development over action"
+}

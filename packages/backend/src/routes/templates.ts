@@ -107,6 +107,167 @@ router.post('/:genre/customize', (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/templates/blend
+ * Blend multiple genres into a hybrid template
+ *
+ * Body:
+ * {
+ *   "genres": [
+ *     { "genre": "rpg", "weight": 0.7 },
+ *     { "genre": "fps", "weight": 0.3 }
+ *   ]
+ * }
+ *
+ * Examples:
+ * - RPG (70%) + FPS (30%) = Action RPG
+ * - Platformer (50%) + Adventure (50%) = Metroidvania
+ * - Survival (60%) + Horror (40%) = Survival Horror
+ * - Roguelike (40%) + Action-Adventure (40%) + RPG (20%) = Roguelite Action RPG
+ */
+router.post('/blend', (req: Request, res: Response) => {
+  try {
+    const { genres } = req.body;
+
+    if (!genres || !Array.isArray(genres) || genres.length === 0) {
+      return res.status(400).json({
+        error: 'genres array is required with at least one genre',
+        example: {
+          genres: [
+            { genre: 'rpg', weight: 0.7 },
+            { genre: 'fps', weight: 0.3 },
+          ],
+        },
+      });
+    }
+
+    // Validate each genre config
+    for (const config of genres) {
+      if (!config.genre || typeof config.weight !== 'number') {
+        return res.status(400).json({
+          error: 'Each genre config must have "genre" (string) and "weight" (number)',
+          example: { genre: 'rpg', weight: 0.5 },
+        });
+      }
+    }
+
+    const blendedTemplate = templateService.blendGenres(genres);
+
+    if (!blendedTemplate) {
+      return res.status(400).json({ error: 'Failed to blend genres. Check that all genres are valid.' });
+    }
+
+    res.json({
+      blended: true,
+      template: blendedTemplate,
+      sourceGenres: genres,
+    });
+  } catch (error) {
+    logger.error('Failed to blend genres', { error, genres: req.body.genres });
+    res.status(500).json({ error: 'Failed to blend genres' });
+  }
+});
+
+/**
+ * POST /api/templates/blend-and-create
+ * Blend multiple genres and create a project from the result
+ *
+ * Body:
+ * {
+ *   "projectName": "My Hybrid Game",
+ *   "genres": [
+ *     { "genre": "rpg", "weight": 0.7 },
+ *     { "genre": "fps", "weight": 0.3 }
+ *   ]
+ * }
+ *
+ * Examples:
+ * - 70% RPG + 30% FPS = Action RPG project
+ * - 50% Platformer + 50% Adventure = Metroidvania project
+ * - 60% Survival + 40% Horror = Survival Horror project
+ */
+router.post('/blend-and-create', async (req: Request, res: Response) => {
+  try {
+    const { projectName, genres } = req.body;
+
+    if (!projectName) {
+      return res.status(400).json({ error: 'projectName is required' });
+    }
+
+    if (!genres || !Array.isArray(genres) || genres.length === 0) {
+      return res.status(400).json({
+        error: 'genres array is required with at least one genre',
+        example: {
+          projectName: 'My Hybrid Game',
+          genres: [
+            { genre: 'rpg', weight: 0.7 },
+            { genre: 'fps', weight: 0.3 },
+          ],
+        },
+      });
+    }
+
+    // Validate each genre config
+    for (const config of genres) {
+      if (!config.genre || typeof config.weight !== 'number') {
+        return res.status(400).json({
+          error: 'Each genre config must have "genre" (string) and "weight" (number)',
+          example: { genre: 'rpg', weight: 0.5 },
+        });
+      }
+    }
+
+    // Blend the genres
+    const blendedTemplate = templateService.blendGenres(genres);
+
+    if (!blendedTemplate) {
+      return res.status(400).json({ error: 'Failed to blend genres. Check that all genres are valid.' });
+    }
+
+    // Import dynamically to avoid circular dependencies
+    const { prisma } = await import('../lib/prisma.js');
+
+    // Determine primary genre (highest weight) for database storage
+    const sortedGenres = [...genres].sort((a, b) => b.weight - a.weight);
+    const primaryGenre = sortedGenres[0].genre as Genre;
+
+    // Create project and initial version
+    const project = await prisma.project.create({
+      data: {
+        name: projectName,
+        genre: primaryGenre,
+      },
+    });
+
+    const version = await prisma.version.create({
+      data: {
+        projectId: project.id,
+        version: 1,
+        mechanics: blendedTemplate.mechanics as any,
+        lore: blendedTemplate.lore as any,
+        metadata: {
+          startedWith: 'mechanics',
+          userEdited: false,
+          generatedFrom: `blended:${genres.map(g => `${g.genre}(${Math.round(g.weight * 100)}%)`).join('+')}`,
+          blendedGenres: genres,
+          blendedTemplateName: blendedTemplate.name,
+        } as any,
+      },
+    });
+
+    res.status(201).json({
+      project,
+      version,
+      blendedTemplate: blendedTemplate.name,
+      sourceGenres: genres,
+      message: `Project created from blended template: ${blendedTemplate.name}`,
+    });
+  } catch (error) {
+    logger.error('Failed to create project from blended template', { error, genres: req.body.genres });
+    res.status(500).json({ error: 'Failed to create project from blended template' });
+  }
+});
+
+/**
  * POST /api/templates/:genre/create-project
  * Create a new project from a template
  *

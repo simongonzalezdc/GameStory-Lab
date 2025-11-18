@@ -124,7 +124,23 @@ export type ValidationSeverity = 'error' | 'warning' | 'info';
 
 export type ModelPreference = 'auto' | 'openrouter' | 'ollama' | string;
 
-export type Genre = 'rpg' | 'fps' | 'strategy' | 'puzzle' | 'survival' | 'blank';
+export type Genre =
+  | 'rpg'
+  | 'fps'
+  | 'strategy'
+  | 'puzzle'
+  | 'survival'
+  | 'action-adventure'
+  | 'adventure'
+  | 'battle-royale'
+  | 'sports'
+  | 'fighting'
+  | 'platformer'
+  | 'horror'
+  | 'roguelike'
+  | 'simulation'
+  | 'racing'
+  | 'blank';
 
 export type ExportTemplate = 'gdd' | 'pitch' | 'technical';
 
