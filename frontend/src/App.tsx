@@ -6,6 +6,7 @@ import { AssetLibrary } from './components/AssetLibrary';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
 import { KeyboardShortcuts } from './components/KeyboardShortcuts';
+import { OllamaModelSelector } from './components/OllamaModelSelector';
 
 type Tab = 'text-to-sprite' | 'image-to-sprite';
 
@@ -90,17 +91,25 @@ function AppContent() {
             </button>
           </div>
 
-        {/* Generation Forms */}
-        <section>
-          {activeTab === 'text-to-sprite' ? (
-            <GenerationForm onGenerated={handleAssetGenerated} />
-          ) : (
-            <ImageUpload onConverted={handleAssetGenerated} />
-          )}
-        </section>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Generation Forms - Left Column (2/3 width on large screens) */}
+          <section className="lg:col-span-2">
+            {activeTab === 'text-to-sprite' ? (
+              <GenerationForm onGenerated={handleAssetGenerated} />
+            ) : (
+              <ImageUpload onConverted={handleAssetGenerated} />
+            )}
+          </section>
 
-        {/* Asset Library */}
-        <section>
+          {/* Settings Sidebar - Right Column (1/3 width on large screens) */}
+          <aside className="space-y-4">
+            <OllamaModelSelector />
+          </aside>
+        </div>
+
+        {/* Asset Library - Full Width */}
+        <section className="mt-8">
           <AssetLibrary refreshTrigger={refreshTrigger} />
         </section>
       </main>
