@@ -6,6 +6,7 @@ import type { Asset } from '../types/asset';
 import { BatchGenerationModal } from './BatchGenerationModal';
 import { ErrorMessage } from './ErrorMessage';
 import { PixelArtSettings, type PixelArtSettings as PixelArtSettingsType } from './PixelArtSettings';
+import { MultiAngleSettings, type MultiAngleSettings as MultiAngleSettingsType } from './MultiAngleSettings';
 
 interface GenerationFormProps {
   onGenerated?: () => void;
@@ -29,6 +30,15 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     pixelSize: 32,
   });
 
+  // Multi-Angle Generation
+  const [multiAngleEnabled, setMultiAngleEnabled] = useState(false);
+  const [multiAngleSettings, setMultiAngleSettings] = useState<MultiAngleSettingsType>({
+    enabled: false,
+    angleCount: 4,
+    includeAngles: ['front', 'back', 'left', 'right'],
+    generationType: 'batch',
+  });
+
   // Note: Ollama status check infrastructure kept for future text-based features
   // (prompt enhancement, chat assistance, etc.)
   // const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
@@ -47,40 +57,103 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     setSuccess(null);
 
     try {
-      // Enhance prompt with pixel art settings if enabled
-      let enhancedPrompt = prompt;
-      if (pixelArtEnabled) {
-        const paletteDescriptions: { [key: string]: string } = {
-          nes: 'classic 8-bit NES color palette',
-          gameboy: 'monochrome Game Boy green palette',
-          snes: 'vibrant SNES 16-bit palette',
-          c64: 'retro Commodore 64 palette',
-          cga: 'early CGA PC graphics palette',
-          pico8: 'fantasy console PICO-8 palette',
+      // Multi-angle generation mode
+      if (multiAngleEnabled && multiAngleSettings.includeAngles.length > 0) {
+        const angleDescriptions: { [key: string]: string } = {
+          front: 'viewed from the front, facing camera',
+          back: 'viewed from behind, back facing camera',
+          left: 'viewed from the left side, profile view',
+          right: 'viewed from the right side, profile view',
+          'front-left': 'viewed from the front-left diagonal angle',
+          'front-right': 'viewed from the front-right diagonal angle',
+          'back-left': 'viewed from the back-left diagonal angle',
+          'back-right': 'viewed from the back-right diagonal angle',
         };
 
-        const paletteDesc = paletteDescriptions[pixelArtSettings.palette] || 'retro pixel art palette';
-        enhancedPrompt = `${prompt}, pixel art style, ${paletteDesc}, ${pixelArtSettings.pixelSize}x${pixelArtSettings.pixelSize} resolution, sharp edges, no anti-aliasing, crisp pixels, retro gaming aesthetic`;
+        const generatedCount = multiAngleSettings.includeAngles.length;
+        let successCount = 0;
 
-        if (pixelArtSettings.ditherLevel > 0) {
-          enhancedPrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+        for (const angle of multiAngleSettings.includeAngles) {
+          let enhancedPrompt = `${prompt}, ${angleDescriptions[angle]}`;
+
+          // Apply pixel art settings if enabled
+          if (pixelArtEnabled) {
+            const paletteDescriptions: { [key: string]: string } = {
+              nes: 'classic 8-bit NES color palette',
+              gameboy: 'monochrome Game Boy green palette',
+              snes: 'vibrant SNES 16-bit palette',
+              c64: 'retro Commodore 64 palette',
+              cga: 'early CGA PC graphics palette',
+              pico8: 'fantasy console PICO-8 palette',
+            };
+
+            const paletteDesc = paletteDescriptions[pixelArtSettings.palette] || 'retro pixel art palette';
+            enhancedPrompt += `, pixel art style, ${paletteDesc}, ${pixelArtSettings.pixelSize}x${pixelArtSettings.pixelSize} resolution, sharp edges, no anti-aliasing, crisp pixels, retro gaming aesthetic`;
+
+            if (pixelArtSettings.ditherLevel > 0) {
+              enhancedPrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+            }
+          }
+
+          const request: GenerationRequest = {
+            prompt: enhancedPrompt,
+            model,
+            dimensions,
+          };
+
+          try {
+            const response = await apiClient.generateAsset(request);
+            if (response.success) {
+              successCount++;
+            }
+          } catch (angleErr) {
+            console.error(`Failed to generate ${angle} angle:`, angleErr);
+          }
         }
-      }
 
-      const request: GenerationRequest = {
-        prompt: enhancedPrompt,
-        model,
-        dimensions,
-      };
-
-      const response = await apiClient.generateAsset(request);
-
-      if (response.success) {
-        setSuccess(`Asset generated successfully in ${response.generation_time_ms}ms!`);
-        setPrompt('');
-        onGenerated?.();
+        if (successCount > 0) {
+          setSuccess(`✓ Generated ${successCount}/${generatedCount} multi-angle sprites successfully!`);
+          setPrompt('');
+          onGenerated?.();
+        } else {
+          setError('Failed to generate any multi-angle sprites');
+        }
       } else {
-        setError(response.error || 'Generation failed');
+        // Single asset generation
+        let enhancedPrompt = prompt;
+        if (pixelArtEnabled) {
+          const paletteDescriptions: { [key: string]: string } = {
+            nes: 'classic 8-bit NES color palette',
+            gameboy: 'monochrome Game Boy green palette',
+            snes: 'vibrant SNES 16-bit palette',
+            c64: 'retro Commodore 64 palette',
+            cga: 'early CGA PC graphics palette',
+            pico8: 'fantasy console PICO-8 palette',
+          };
+
+          const paletteDesc = paletteDescriptions[pixelArtSettings.palette] || 'retro pixel art palette';
+          enhancedPrompt = `${prompt}, pixel art style, ${paletteDesc}, ${pixelArtSettings.pixelSize}x${pixelArtSettings.pixelSize} resolution, sharp edges, no anti-aliasing, crisp pixels, retro gaming aesthetic`;
+
+          if (pixelArtSettings.ditherLevel > 0) {
+            enhancedPrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+          }
+        }
+
+        const request: GenerationRequest = {
+          prompt: enhancedPrompt,
+          model,
+          dimensions,
+        };
+
+        const response = await apiClient.generateAsset(request);
+
+        if (response.success) {
+          setSuccess(`Asset generated successfully in ${response.generation_time_ms}ms!`);
+          setPrompt('');
+          onGenerated?.();
+        } else {
+          setError(response.error || 'Generation failed');
+        }
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || 'Generation failed');
@@ -184,10 +257,21 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
           }}
         />
 
+        {/* Multi-Angle Settings */}
+        <MultiAngleSettings
+          enabled={multiAngleEnabled}
+          onToggle={(enabled) => {
+            setMultiAngleEnabled(enabled);
+          }}
+          onSettingsChange={(settings) => {
+            setMultiAngleSettings(settings);
+          }}
+        />
+
         {/* Error/Success Messages */}
         {error && <ErrorMessage error={error} onRetry={handleRetry} />}
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-3">
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 rounded-lg p-3">
             {success}
           </div>
         )}
