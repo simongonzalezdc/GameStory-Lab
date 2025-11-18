@@ -2,6 +2,7 @@
 import os
 import uuid
 import logging
+import aiofiles
 from pathlib import Path
 from typing import Optional, List
 
@@ -24,6 +25,35 @@ class LocalStorageService:
         """Ensure storage directory exists."""
         Path(self.storage_path).mkdir(parents=True, exist_ok=True)
         logger.info(f"Storage directory ensured at {self.storage_path}")
+
+    def _validate_path(self, file_url: str) -> Path:
+        """
+        Validate and sanitize file path to prevent directory traversal.
+
+        Args:
+            file_url: File URL like /assets/user-id/filename.png
+
+        Returns:
+            Validated absolute Path object
+
+        Raises:
+            ValueError: If path is invalid or outside storage directory
+        """
+        if not file_url.startswith("/assets/"):
+            raise ValueError("Invalid file URL - must start with /assets/")
+
+        # Remove /assets/ prefix
+        relative_path = file_url[len("/assets/"):]
+
+        # Build full path
+        storage_base = Path(self.storage_path).resolve()
+        full_path = (storage_base / relative_path).resolve()
+
+        # Ensure path is within storage directory (prevent directory traversal)
+        if not str(full_path).startswith(str(storage_base)):
+            raise ValueError("Path traversal detected - access denied")
+
+        return full_path
 
     async def upload_asset(
         self,
@@ -57,10 +87,10 @@ class LocalStorageService:
             user_dir = os.path.join(self.storage_path, user_id)
             Path(user_dir).mkdir(parents=True, exist_ok=True)
 
-            # Save file
+            # Save file asynchronously
             file_path = os.path.join(user_dir, filename)
-            with open(file_path, 'wb') as f:
-                f.write(file_bytes)
+            async with aiofiles.open(file_path, 'wb') as f:
+                await f.write(file_bytes)
 
             # Return relative URL (for serving via static files)
             relative_url = f"/assets/{user_id}/{filename}"
@@ -181,14 +211,17 @@ class LocalStorageService:
             if not asset:
                 raise Exception("Asset not found or access denied")
 
-            # Delete file from storage
+            # Delete file from storage with path validation
             file_url = asset["file_url"]
-            # Convert URL to file path: /assets/user-id/filename.png -> ./data/assets/user-id/filename.png
             if file_url.startswith("/assets/"):
-                file_path = file_url.replace("/assets/", self.storage_path + "/")
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-                    logger.info(f"Deleted file: {file_path}")
+                try:
+                    file_path = self._validate_path(file_url)
+                    if file_path.exists():
+                        file_path.unlink()
+                        logger.info(f"Deleted file: {file_path}")
+                except ValueError as e:
+                    logger.error(f"Path validation failed: {e}")
+                    raise Exception(f"Invalid file path: {str(e)}")
 
             # Delete from database
             success = await db_service.delete_asset(asset_id, user_id)
@@ -223,18 +256,21 @@ class LocalStorageService:
 
     def get_file_path(self, file_url: str) -> str:
         """
-        Convert file URL to absolute file path.
+        Convert file URL to absolute file path with validation.
 
         Args:
             file_url: File URL like /assets/user-id/filename.png
 
         Returns:
             Absolute file path
+
+        Raises:
+            ValueError: If path is invalid or outside storage directory
         """
         if file_url.startswith("/assets/"):
-            relative_path = file_url.replace("/assets/", "")
-            return os.path.join(self.storage_path, relative_path)
-        return file_url
+            validated_path = self._validate_path(file_url)
+            return str(validated_path)
+        raise ValueError("Invalid file URL")
 
 
 # Global storage service instance
