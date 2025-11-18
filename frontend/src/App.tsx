@@ -9,6 +9,7 @@ import { KeyboardShortcuts } from './components/KeyboardShortcuts';
 import { OllamaModelSelector } from './components/OllamaModelSelector';
 import { AssetStatistics } from './components/AssetStatistics';
 import { RecentProjects } from './components/RecentProjects';
+import { AssetPacksPanel } from './components/AssetPacksPanel';
 
 type Tab = 'text-to-sprite' | 'image-to-sprite';
 
@@ -112,6 +113,7 @@ function AppContent() {
               onSelectProject={setSelectedProject}
               currentProject={selectedProject}
             />
+            <AssetPacksPanel />
             <OllamaModelSelector />
           </aside>
         </div>
