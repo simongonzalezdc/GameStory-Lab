@@ -7,6 +7,7 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { ThemeToggle } from './components/ThemeToggle';
 import { KeyboardShortcuts } from './components/KeyboardShortcuts';
 import { OllamaModelSelector } from './components/OllamaModelSelector';
+import { AssetStatistics } from './components/AssetStatistics';
 
 type Tab = 'text-to-sprite' | 'image-to-sprite';
 
@@ -104,6 +105,7 @@ function AppContent() {
 
           {/* Settings Sidebar - Right Column (1/3 width on large screens) */}
           <aside className="space-y-4">
+            <AssetStatistics />
             <OllamaModelSelector />
           </aside>
         </div>

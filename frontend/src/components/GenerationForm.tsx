@@ -96,6 +96,25 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     setTimeout(() => setSuccess(null), 3000);
   };
 
+  const recordGenerationStat = (success: boolean, generationTime?: number) => {
+    const features: string[] = [];
+    if (pixelArtEnabled) features.push('pixelArt');
+    if (multiAngleEnabled) features.push('multiAngle');
+    if (colorVariationEnabled) features.push('colorVariation');
+    if (isometricEnabled) features.push('isometric');
+    if (tilesetEnabled) features.push('tileset');
+    if (animationEnabled) features.push('animation');
+
+    (window as any).recordGenerationStat?.({
+      timestamp: Date.now(),
+      model,
+      success,
+      dimensions,
+      generationTime,
+      features,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -181,10 +200,15 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         if (successCount > 0) {
           setSuccess(`✓ Generated ${successCount}/${generatedCount} multi-angle sprites successfully!`);
           (window as any).addPromptToHistory?.(prompt);
+          // Record stats for each successful generation
+          for (let i = 0; i < successCount; i++) {
+            recordGenerationStat(true);
+          }
           setPrompt('');
           onGenerated?.();
         } else {
           setError('Failed to generate any multi-angle sprites');
+          recordGenerationStat(false);
         }
       } else if (colorVariationEnabled && colorVariationSettings.colorSchemes.length > 0) {
         // Color variation generation mode
@@ -275,10 +299,14 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         if (successCount > 0) {
           setSuccess(`✓ Generated ${successCount}/${generatedCount} color variations successfully!`);
           (window as any).addPromptToHistory?.(prompt);
+          for (let i = 0; i < successCount; i++) {
+            recordGenerationStat(true);
+          }
           setPrompt('');
           onGenerated?.();
         } else {
           setError('Failed to generate any color variations');
+          recordGenerationStat(false);
         }
       } else if (tilesetEnabled && tilesetSettings.includePieces.length > 0) {
         // Tileset generation mode
@@ -373,10 +401,14 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         if (successCount > 0) {
           setSuccess(`✓ Generated ${successCount}/${generatedCount} tileset pieces successfully!`);
           (window as any).addPromptToHistory?.(prompt);
+          for (let i = 0; i < successCount; i++) {
+            recordGenerationStat(true);
+          }
           setPrompt('');
           onGenerated?.();
         } else {
           setError('Failed to generate any tileset pieces');
+          recordGenerationStat(false);
         }
       } else if (animationEnabled && animationSettings.frameCount > 0) {
         // Animation sequence generation mode
@@ -471,10 +503,14 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         if (successCount > 0) {
           setSuccess(`✓ Generated ${successCount}/${generatedCount} animation frames successfully!`);
           (window as any).addPromptToHistory?.(prompt);
+          for (let i = 0; i < successCount; i++) {
+            recordGenerationStat(true);
+          }
           setPrompt('');
           onGenerated?.();
         } else {
           setError('Failed to generate any animation frames');
+          recordGenerationStat(false);
         }
       } else {
         // Single asset generation
@@ -533,14 +569,17 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         if (response.success) {
           setSuccess(`Asset generated successfully in ${response.generation_time_ms}ms!`);
           (window as any).addPromptToHistory?.(prompt);
+          recordGenerationStat(true, response.generation_time_ms);
           setPrompt('');
           onGenerated?.();
         } else {
           setError(response.error || 'Generation failed');
+          recordGenerationStat(false);
         }
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || 'Generation failed');
+      recordGenerationStat(false);
     } finally {
       setLoading(false);
     }
