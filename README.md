@@ -15,14 +15,16 @@ GameForge Studio helps indie game developers create cohesive, professional game 
 ### ✅ Implemented & Working:
 - **🎮 Flexible Workflow**: Start with mechanics OR lore - AI adapts to your creative process
 - **🖥️ Full Web Interface**: Complete React UI with project management, concept editing, validation, and export
-- **🤖 AI Model Orchestration**: Automatically selects optimal AI models (DeepSeek, Qwen, Gemini, Ollama)
+- **🤖 AI Model Orchestration**: Automatically selects optimal AI models (DeepSeek, Qwen 3, Phi-4, Gemini, Ollama)
 - **✅ Comprehensive Validation**: 26 validation rules across 6 categories with real-time feedback
-- **🎯 Genre Templates**: 5 pre-built templates (RPG, FPS, Strategy, Puzzle, Survival) with visual browser
+- **🎯 Genre Templates**: 15 professionally crafted templates covering all major genres (Nov 2025)
+- **🎨 Genre Blending**: Mix and match genres with weighted blending to create hybrid templates (Metroidvania, Action RPG, etc.)
+- **✨ Blended Project Creation**: Create projects directly from genre hybrids with full mechanics/lore integration
 - **🔄 Iterative Refinement**: Full version tracking and change comparison with 4 refinement focuses
 - **📝 Professional Export**: Generate GDD, pitch decks, or technical specs in markdown
 - **🏷️ Title Generation**: Advanced title suggestions with SEO analysis and market fit scoring
 - **💰 Cost Optimization**: Intelligent fallback to local Ollama models to minimize API costs
-- **🔧 Full REST API**: Complete backend with 7 endpoint categories
+- **🔧 Full REST API**: Complete backend with 9 endpoint categories
 - **📊 Health Monitoring**: Real-time system status with AI provider tracking and cost monitoring
 
 ---
@@ -190,6 +192,35 @@ The database uses PostgreSQL with JSONB for flexible concept storage:
 
 ---
 
+## 🎨 Genre Blending System
+
+Create unique hybrid game concepts by intelligently blending multiple genres:
+
+### **Available Genres (15 Total)**
+- **Action-Adventure**, **Adventure**, **Battle Royale**, **Fighting**, **FPS**
+- **Horror**, **Platformer**, **Puzzle**, **Racing**, **Roguelike**
+- **RPG**, **Simulation**, **Sports**, **Strategy**, **Survival**
+
+### **How It Works**
+1. Select 2+ genres in **Mix Mode**
+2. Adjust weight sliders (e.g., 70% RPG + 30% FPS)
+3. Blend to preview hybrid mechanics and lore
+4. Create project directly from blended template
+
+### **Popular Blends**
+- **70% RPG + 30% FPS** → Action RPG (Borderlands-style)
+- **50% Platformer + 50% Adventure** → Metroidvania (Hollow Knight-style)
+- **60% Survival + 40% Horror** → Survival Horror (The Last of Us-style)
+- **40% Roguelike + 40% Action-Adventure + 20% RPG** → Roguelite Action RPG (Hades-style)
+
+### **Smart Merging**
+- Combines mechanics, progression systems, and resource management
+- Blends lore elements (setting, protagonist, conflicts, themes)
+- Intelligently weights primary genre characteristics
+- Stores blend metadata for future refinement
+
+---
+
 ## 🛠️ API Endpoints
 
 ### Projects
@@ -199,6 +230,16 @@ The database uses PostgreSQL with JSONB for flexible concept storage:
 - `GET /api/projects/:id` - Get project with concepts
 - `PATCH /api/projects/:id` - Update project
 - `DELETE /api/projects/:id` - Delete project
+
+### Templates
+
+- `GET /api/templates` - List all 15 genre templates
+- `GET /api/templates/:genre` - Get specific genre template
+- `GET /api/templates/:genre/stats` - Get template statistics
+- `POST /api/templates/:genre/customize` - Customize template with overrides
+- `POST /api/templates/:genre/create-project` - Create project from single genre
+- `POST /api/templates/blend` - Blend multiple genres (preview only)
+- `POST /api/templates/blend-and-create` - Blend genres and create project
 
 ### Generation
 
@@ -216,6 +257,17 @@ The database uses PostgreSQL with JSONB for flexible concept storage:
 
 - `POST /api/export` - Export concept to markdown
   - Templates: `gdd`, `pitch`, `technical`
+
+### Refinement
+
+- `POST /api/refinement` - Refine existing concept
+- `GET /api/refinement/history/:projectId` - Get version history
+- `POST /api/refinement/compare` - Compare two versions
+
+### Titles
+
+- `POST /api/titles/generate` - Generate title suggestions
+- `POST /api/titles/analyze` - Analyze title marketability
 
 ### System
 
@@ -382,9 +434,16 @@ See `.env.example` for all available configuration options.
 
 ### ✅ Phase 3: Genre Templates & Refinement (Completed - 100%)
 - [x] **Genre template system** ✅
-  - [x] 5 JSON template files (RPG, FPS, Strategy, Puzzle, Survival)
+  - [x] 15 JSON template files covering all major genres (Nov 2025)
   - [x] Template loading service
   - [x] Template customization API
+  - [x] Template browser UI with visual previews
+- [x] **Genre blending system** ✅
+  - [x] Weighted genre mixing algorithm
+  - [x] Smart mechanics and lore merging
+  - [x] Blend preview API endpoint
+  - [x] Blend-and-create API for direct project creation
+  - [x] Interactive Mix Mode UI with weight sliders
 - [x] Dedicated refinement service with version tracking
 - [x] Enhanced title generation service with SEO analysis
 
