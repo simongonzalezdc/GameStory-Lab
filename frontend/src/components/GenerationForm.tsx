@@ -11,6 +11,7 @@ import { ColorVariationSettings, type ColorVariationSettings as ColorVariationSe
 import { IsometricModeSettings, type IsometricModeSettings as IsometricModeSettingsType } from './IsometricModeSettings';
 import { TilesetSettings, type TilesetSettings as TilesetSettingsType } from './TilesetSettings';
 import { AnimationSettings, type AnimationSettings as AnimationSettingsType } from './AnimationSettings';
+import { BackgroundLayersSettings, type BackgroundLayersSettings as BackgroundLayersSettingsType } from './BackgroundLayersSettings';
 import { AssetTemplatesModal } from './AssetTemplatesModal';
 import { PromptHistory } from './PromptHistory';
 
@@ -85,6 +86,16 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     looping: true,
   });
 
+  // Background Layers
+  const [backgroundLayersEnabled, setBackgroundLayersEnabled] = useState(false);
+  const [backgroundLayersSettings, setBackgroundLayersSettings] = useState<BackgroundLayersSettingsType>({
+    enabled: false,
+    layerCount: 3,
+    layerTypes: ['background', 'midground', 'foreground'],
+    depthEffect: 'moderate',
+    generateAsSet: true,
+  });
+
   // Note: Ollama status check infrastructure kept for future text-based features
   // (prompt enhancement, chat assistance, etc.)
   // const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
@@ -104,6 +115,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
     if (isometricEnabled) features.push('isometric');
     if (tilesetEnabled) features.push('tileset');
     if (animationEnabled) features.push('animation');
+    if (backgroundLayersEnabled) features.push('backgroundLayers');
 
     (window as any).recordGenerationStat?.({
       timestamp: Date.now(),
@@ -512,6 +524,107 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
           setError('Failed to generate any animation frames');
           recordGenerationStat(false);
         }
+      } else if (backgroundLayersEnabled && backgroundLayersSettings.layerTypes.length > 0) {
+        // Background layers generation mode
+        const layerDescriptions: { [key: string]: string } = {
+          sky: 'distant sky layer, very blurred atmospheric perspective, faded colors, furthest depth',
+          'far-background': 'far background layer, heavily blurred, very faded colors, distant depth',
+          background: 'background layer, moderately blurred, slightly faded colors, back depth',
+          midground: 'midground layer, subtle blur, balanced colors, middle depth',
+          foreground: 'foreground layer, sharp focus, vibrant colors, closest depth, most detail',
+        };
+
+        const depthBlurMap = {
+          subtle: { sky: 10, 'far-background': 7, background: 5, midground: 2, foreground: 0 },
+          moderate: { sky: 20, 'far-background': 15, background: 10, midground: 5, foreground: 0 },
+          dramatic: { sky: 30, 'far-background': 25, background: 18, midground: 10, foreground: 0 },
+        };
+
+        const generatedCount = backgroundLayersSettings.layerTypes.length;
+        let successCount = 0;
+
+        for (let i = 0; i < backgroundLayersSettings.layerTypes.length; i++) {
+          const layerType = backgroundLayersSettings.layerTypes[i];
+          const blurLevel = depthBlurMap[backgroundLayersSettings.depthEffect][layerType];
+
+          let enhancedPrompt = `${prompt}, ${layerDescriptions[layerType]}`;
+
+          // Add blur effect based on depth
+          if (blurLevel > 0) {
+            enhancedPrompt += `, ${blurLevel}% blur for depth effect`;
+          }
+
+          // Add parallax-specific instructions
+          enhancedPrompt += ', seamless horizontal edges for parallax scrolling, game background layer';
+
+          // Apply pixel art settings if enabled
+          if (pixelArtEnabled) {
+            const paletteDescriptions: { [key: string]: string } = {
+              nes: 'classic 8-bit NES color palette',
+              gameboy: 'monochrome Game Boy green palette',
+              snes: 'vibrant SNES 16-bit palette',
+              c64: 'retro Commodore 64 palette',
+              cga: 'early CGA PC graphics palette',
+              pico8: 'fantasy console PICO-8 palette',
+            };
+
+            const paletteDesc = paletteDescriptions[pixelArtSettings.palette] || 'retro pixel art palette';
+            enhancedPrompt += `, pixel art style, ${paletteDesc}, sharp edges, no anti-aliasing, crisp pixels`;
+
+            if (pixelArtSettings.ditherLevel > 0) {
+              enhancedPrompt += `, ${pixelArtSettings.ditherLevel}% dithering for texture`;
+            }
+          }
+
+          // Apply isometric mode settings if enabled
+          if (isometricEnabled) {
+            const viewAngleDesc: { [key: string]: string } = {
+              classic: 'isometric projection 30° angle, 2:1 ratio',
+              dimetric: 'dimetric projection 26.565° angle',
+              cabinet: 'cabinet projection 45° angle',
+            };
+
+            const shadowDesc: { [key: string]: string } = {
+              soft: 'soft ambient occlusion shadows',
+              hard: 'hard cast shadows',
+              none: 'flat no-shadow lighting',
+            };
+
+            enhancedPrompt += `, ${viewAngleDesc[isometricSettings.viewAngle]}, ${shadowDesc[isometricSettings.shadowStyle]}`;
+
+            if (isometricSettings.gridAlignment) {
+              enhancedPrompt += `, grid-aligned tiles, ${isometricSettings.perspective} tile aspect ratio`;
+            }
+          }
+
+          const request: GenerationRequest = {
+            prompt: enhancedPrompt,
+            model,
+            dimensions,
+          };
+
+          try {
+            const response = await apiClient.generateAsset(request);
+            if (response.success) {
+              successCount++;
+            }
+          } catch (layerErr) {
+            console.error(`Failed to generate ${layerType} layer:`, layerErr);
+          }
+        }
+
+        if (successCount > 0) {
+          setSuccess(`✓ Generated ${successCount}/${generatedCount} background layers successfully!`);
+          (window as any).addPromptToHistory?.(prompt);
+          for (let i = 0; i < successCount; i++) {
+            recordGenerationStat(true);
+          }
+          setPrompt('');
+          onGenerated?.();
+        } else {
+          setError('Failed to generate any background layers');
+          recordGenerationStat(false);
+        }
       } else {
         // Single asset generation
         let enhancedPrompt = prompt;
@@ -752,6 +865,17 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
           }}
           onSettingsChange={(settings) => {
             setAnimationSettings(settings);
+          }}
+        />
+
+        {/* Background Layers Settings */}
+        <BackgroundLayersSettings
+          enabled={backgroundLayersEnabled}
+          onToggle={(enabled) => {
+            setBackgroundLayersEnabled(enabled);
+          }}
+          onSettingsChange={(settings) => {
+            setBackgroundLayersSettings(settings);
           }}
         />
 
