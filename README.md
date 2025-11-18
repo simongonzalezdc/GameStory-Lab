@@ -74,8 +74,11 @@ GameForge Studio helps indie game developers create cohesive, professional game 
    # macOS/Linux
    curl -fsSL https://ollama.com/install.sh | sh
 
-   # Pull recommended model
-   ollama pull llama3.3:70b
+   # Pull recommended models (November 2025 - optimized for Mac M4 16GB)
+   ollama pull qwen3:30b-a3b     # MoE: 30B quality, 3B memory! (BEST)
+   ollama pull phi4:14b          # High quality reasoning
+   ollama pull qwen3-coder:7b    # Creative writing
+   ollama pull qwen3:7b          # Structured output
    ```
 
 7. **Start development servers**
@@ -144,16 +147,27 @@ gameforge-studio/
    ```
 3. Used for fast consistency checking with 1M context
 
-### Ollama (Free Local Models)
+### Ollama (Free Local Models - November 2025 Updates)
 
 1. Install Ollama: https://ollama.com/download
-2. Pull models:
+2. Pull models (optimized for Mac M4 16GB):
    ```bash
-   ollama pull llama3.3:70b  # Primary model
-   ollama pull qwen2.5:32b   # Alternative
+   # PRIMARY (MoE - Best quality/memory ratio!)
+   ollama pull qwen3:30b-a3b     # 30B quality, 3B memory (8-12GB RAM)
+
+   # HIGH QUALITY
+   ollama pull phi4:14b          # Best reasoning (11-13GB RAM)
+
+   # SPECIALIZED
+   ollama pull qwen3-coder:7b    # Best creative/narrative (6-8GB RAM)
+   ollama pull qwen3:7b          # Best JSON/mechanics (6-8GB RAM)
+   ollama pull deepseek-r1:8b    # Advanced reasoning (7-9GB RAM)
+   ollama pull llama4:8b         # Lightweight, versatile (<8GB RAM)
    ```
-3. Ollama runs on `http://localhost:11434` by default
-4. **No API key required** - completely free and unlimited
+3. **Models Released:** Qwen 3 (April 2025), Phi-4 (Nov 2025), DeepSeek R1, Llama 4
+4. **MoE Breakthrough:** Qwen3-30B-A3B uses Mixture-of-Experts - 30B params, only 3B active!
+5. Ollama runs on `http://localhost:11434` by default
+6. **No API key required** - completely free and unlimited
 
 ---
 
@@ -313,8 +327,9 @@ ollama list
 # Start Ollama
 ollama serve
 
-# Ensure model is installed
-ollama pull llama3.3:70b
+# Install recommended models (November 2025)
+ollama pull qwen3:30b-a3b  # MoE: Best for 16GB Mac
+ollama pull phi4:14b       # High quality reasoning
 ```
 
 ### Frontend can't connect to backend
