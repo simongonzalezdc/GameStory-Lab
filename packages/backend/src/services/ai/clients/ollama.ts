@@ -76,43 +76,81 @@ export class OllamaClient implements IAIClient {
 
         response = await Promise.race([generatePromise, timeoutPromise]) as any;
       } catch (generateError: any) {
-        // If generation fails with "model not found", try loading it first via CLI
+        // If generation fails with "model not found", try direct HTTP API as fallback
         const errorMsg = generateError?.error?.error || generateError?.message || String(generateError);
         if (errorMsg.includes('not found') || errorMsg.includes('404')) {
-          logger.warn(`Model ${request.model} not found via API, attempting to load via CLI...`);
+          logger.warn(`Model ${request.model} not found via SDK, trying direct HTTP API...`);
           
-          // Try to load the model via CLI (forces Ollama to recognize it)
           try {
-            const { exec } = await import('child_process');
-            const { promisify } = await import('util');
-            const execAsync = promisify(exec);
-            
-            // Run the model via CLI to force load
-            await execAsync(`timeout 30 ollama run ${request.model} "test" || ollama run ${request.model} "test"`, {
-              timeout: 35000,
+            // Try direct HTTP API call (we know this works from curl tests)
+            const httpResponse = await fetch(`${this.baseUrl}/api/generate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model: request.model,
+                prompt,
+                stream: false,
+                options: {
+                  temperature: request.temperature ?? (isQwenModel || isDeepSeekR1 ? 0.6 : 0.7),
+                  num_predict: request.maxTokens ?? 2000,
+                  top_p: request.topP ?? 0.9,
+                },
+              }),
             });
             
-            // Wait a moment for API to update
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            if (!httpResponse.ok) {
+              const errorText = await httpResponse.text();
+              logger.error('Direct HTTP API also failed', { 
+                status: httpResponse.status, 
+                error: errorText,
+                model: request.model 
+              });
+              throw generateError;
+            }
             
-            // Try again
-            logger.info(`Retrying generation with ${request.model} after CLI load...`);
-            response = await this.client.generate({
-              model: request.model,
-              prompt,
-              options: {
-                temperature: request.temperature ?? 0.7,
-                num_predict: request.maxTokens ?? 2000,
-                top_p: request.topP ?? 0.9,
-                ...((isQwenModel || isDeepSeekR1) && {
-                  temperature: request.temperature ?? 0.6,
-                }),
-              },
-              stream: false,
-            });
-          } catch (loadError) {
-            // If loading fails, throw original error
-            throw generateError;
+            const httpData = await httpResponse.json();
+            logger.info('Direct HTTP API succeeded, using response');
+            response = httpData;
+          } catch (httpError) {
+            // If HTTP API also fails, try CLI load as last resort
+            logger.warn(`Direct HTTP API failed, attempting CLI load...`);
+            try {
+              const { exec } = await import('child_process');
+              const { promisify } = await import('util');
+              const execAsync = promisify(exec);
+              
+              // Run the model via CLI to force load
+              await execAsync(`ollama run ${request.model} "test"`, {
+                timeout: 35000,
+              });
+              
+              // Wait a moment for API to update
+              await new Promise(resolve => setTimeout(resolve, 3000));
+              
+              // Try SDK again after CLI load
+              logger.info(`Retrying SDK generation with ${request.model} after CLI load...`);
+              response = await this.client.generate({
+                model: request.model,
+                prompt,
+                options: {
+                  temperature: request.temperature ?? (isQwenModel || isDeepSeekR1 ? 0.6 : 0.7),
+                  num_predict: request.maxTokens ?? 2000,
+                  top_p: request.topP ?? 0.9,
+                  ...((isQwenModel || isDeepSeekR1) && {
+                    temperature: request.temperature ?? 0.6,
+                  }),
+                },
+                stream: false,
+              });
+            } catch (loadError) {
+              // If all methods fail, throw original error
+              logger.error('All fallback methods failed', { 
+                originalError: errorMsg,
+                httpError: httpError instanceof Error ? httpError.message : String(httpError),
+                loadError: loadError instanceof Error ? loadError.message : String(loadError),
+              });
+              throw generateError;
+            }
           }
         } else {
           throw generateError;

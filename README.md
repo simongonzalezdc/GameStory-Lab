@@ -27,6 +27,8 @@ GameForge Studio helps indie game developers create cohesive, professional game 
 - **🔧 Full REST API**: Complete backend with 10 endpoint categories
 - **📊 Health Monitoring**: Real-time system status with AI provider tracking and cost monitoring
 - **🏗️ AI Project Architect**: Complete documentation workflow with structured interviews and 4-6 generated documents
+- **💬 AI Assistant Panel**: Project-level chat assistant with proposal system for concept updates and architect document generation
+- **📦 Architect ZIP Export**: Download complete documentation packages as ZIP archives
 
 ---
 
@@ -261,6 +263,39 @@ After completing your game concept, the Project Architect guides you through a s
 - **AI-agent optimized**: Technical specs include exact file paths, build order, and implementation guidance
 - **Flexible**: Adapts questions based on your answers and project type
 - **Complete**: Covers all aspects from architecture to deployment
+- **ZIP Export**: Download all documentation as a single ZIP archive via `GET /api/architect/export/:projectId`
+
+---
+
+## 💬 AI Assistant Panel
+
+### **What It Does**
+
+The Assistant Panel provides project-level AI chat assistance with a proposal system. You can:
+- Chat with AI about your project concepts
+- Receive AI-generated proposals for concept improvements
+- Accept or reject proposals to update your concepts
+- Use the assistant in both concept editing and architect workflows
+
+### **How to Use**
+
+1. Open a project in the editor
+2. Click the **Assistant Panel** button (💬 icon)
+3. Start chatting with the AI about your project
+4. Review proposals when the AI suggests changes
+5. Accept proposals to create new concept versions
+
+### **Proposal Types**
+
+- **Concept Updates**: AI suggests improvements to mechanics or lore
+- **Architect Documents**: AI generates documentation based on your project
+
+### **Features**
+
+- **Session Persistence**: Messages and proposals persist across page reloads
+- **Context-Aware**: Assistant has access to your project's current concept and metadata
+- **Proposal System**: Review changes before applying them
+- **Version Tracking**: Accepted proposals create new concept versions automatically
 
 ---
 

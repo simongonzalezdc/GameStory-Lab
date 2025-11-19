@@ -3,7 +3,7 @@
  * Interactive tutorial for using GameStory Lab
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 type TutorialSection = 'basics' | 'create-project' | 'generate-concept' | 'validate' | 'refine' | 'export' | 'advanced';

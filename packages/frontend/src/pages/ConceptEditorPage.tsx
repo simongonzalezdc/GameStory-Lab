@@ -150,8 +150,8 @@ export function ConceptEditorPage() {
         lore: currentVersion.lore,
       });
       setValidationIssues(response.issues || []);
-      // API returns 'overallScore' as 0-1, convert to 0-100 for display
-      const rawScore = response.overallScore || response.consistencyScore || 0;
+      // API returns 'consistencyScore' as 0-1, convert to 0-100 for display
+      const rawScore = response.consistencyScore || 0;
       const displayScore = Math.round(rawScore * 100);
       console.log('[Validation] Score updated:', {
         versionId: currentVersion.id,
@@ -381,62 +381,7 @@ export function ConceptEditorPage() {
       }
     };
 
-    if (!currentVersion) {
-    return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-          <button
-            onClick={() => navigate('/projects')}
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-2 inline-flex items-center gap-1"
-          >
-            ← Back to Projects
-          </button>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{project.name}</h2>
-          {project.genre && (
-            <p className="text-slate-600 dark:text-slate-300 mt-1">Genre: {project.genre}</p>
-          )}
-          </div>
-        </div>
-
-        {/* Empty State */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-12 text-center">
-          <div className="text-6xl mb-4">🎮</div>
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">No Versions Yet</h3>
-          <p className="text-slate-600 dark:text-slate-300 mb-2 max-w-2xl mx-auto">
-            <strong>Versions</strong> are versioned game designs that combine <strong>mechanics</strong> (how the game plays) 
-            and <strong>lore</strong> (the story and world). Each version can be refined and validated for consistency.
-          </p>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto">
-            Start by generating your first version with AI, or create one from a template.
-          </p>
-          
-          <div className="flex flex-wrap justify-center gap-3">
-            <button
-              onClick={() => setShowGenerateModal(true)}
-              className="btn btn-primary"
-            >
-              <span>✨</span>
-              <span>Generate Version with AI</span>
-            </button>
-            <button
-              onClick={() => navigate('/templates')}
-              className="btn btn-secondary"
-            >
-              <span>🎨</span>
-              <span>Start from Template</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Generate Modal */}
-        {renderGenerateModal()}
-      </div>
-    );
-  }
-
-  // Render Generate Modal component (reusable)
+  // Render Generate Modal component (reusable) - defined before use
   const renderGenerateModal = () => (
     showGenerateModal && (
       <div 
@@ -595,10 +540,65 @@ export function ConceptEditorPage() {
     )
   );
 
+  if (!currentVersion) {
+    return (
+      <div className="flex flex-col min-h-0">
+        {/* Header */}
+        <div className="flex justify-between items-center flex-shrink-0 mb-6">
+          <div>
+            <button
+              onClick={() => navigate('/projects')}
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-2 inline-flex items-center gap-1"
+            >
+              ← Back to Projects
+            </button>
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{project.name}</h2>
+            {project.genre && (
+              <p className="text-slate-600 dark:text-slate-300 mt-1">Genre: {project.genre}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Empty State */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-12 text-center">
+          <div className="text-6xl mb-4">🎮</div>
+          <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">No Versions Yet</h3>
+          <p className="text-slate-600 dark:text-slate-300 mb-2 max-w-2xl mx-auto">
+            <strong>Versions</strong> are versioned game designs that combine <strong>mechanics</strong> (how the game plays) 
+            and <strong>lore</strong> (the story and world). Each version can be refined and validated for consistency.
+          </p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto">
+            Start by generating your first version with AI, or create one from a template.
+          </p>
+          
+          <div className="flex flex-wrap justify-center gap-3">
+            <button
+              onClick={() => setShowGenerateModal(true)}
+              className="btn btn-primary"
+            >
+              <span>✨</span>
+              <span>Generate Version with AI</span>
+            </button>
+            <button
+              onClick={() => navigate('/templates')}
+              className="btn btn-secondary"
+            >
+              <span>🎨</span>
+              <span>Start from Template</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Generate Modal */}
+        {renderGenerateModal()}
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col h-[calc(100vh-8rem)] max-h-[calc(100vh-8rem)]">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4 flex-shrink-0">
         <div>
           <button
             onClick={() => navigate('/projects')}
@@ -753,171 +753,173 @@ export function ConceptEditorPage() {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
-        <div className="space-y-8">
+      <div className="grid gap-6 lg:grid-cols-[2fr_1fr] flex-1 min-h-0 overflow-hidden">
+        <div className="flex flex-col space-y-4 min-h-0 overflow-hidden">
+          {/* Consistency Score */}
+          {consistencyScore !== null && (
+            <div className={`p-4 rounded-lg border flex-shrink-0 ${
+              consistencyScore >= 80 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' :
+              consistencyScore >= 60 ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' :
+              'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+            }`}>
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-gray-900 dark:text-gray-100">Consistency Score:</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">{consistencyScore}%</span>
+              </div>
+              <div className="mt-2 bg-white dark:bg-slate-700 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full transition-all ${
+                    consistencyScore >= 80 ? 'bg-green-600 dark:bg-green-500' :
+                    consistencyScore >= 60 ? 'bg-yellow-600 dark:bg-yellow-500' :
+                    'bg-red-600 dark:bg-red-500'
+                  }`}
+                  style={{ width: `${Math.min(100, Math.max(0, consistencyScore))}%` }}
+                />
+              </div>
+            </div>
+          )}
 
-      {/* Consistency Score */}
-      {consistencyScore !== null && (
-        <div className={`mb-6 p-4 rounded-lg border ${
-          consistencyScore >= 80 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' :
-          consistencyScore >= 60 ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' :
-          'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-        }`}>
-          <div className="flex justify-between items-center">
-            <span className="font-medium text-gray-900 dark:text-gray-100">Consistency Score:</span>
-            <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">{consistencyScore}%</span>
+          {/* Tabs */}
+          <div className="border-b border-gray-200 dark:border-gray-700 mb-4 flex-shrink-0">
+            <nav className="flex space-x-4">
+              {(['mechanics', 'lore', 'validation'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`pb-3 px-1 border-b-2 font-medium text-sm transition ${
+                    activeTab === tab
+                      ? 'border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'validation' && validationIssues.length > 0 && (
+                    <span className="ml-2 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs">
+                      {validationIssues.length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
           </div>
-          <div className="mt-2 bg-white dark:bg-slate-700 rounded-full h-2">
-            <div
-              className={`h-2 rounded-full transition-all ${
-                consistencyScore >= 80 ? 'bg-green-600 dark:bg-green-500' :
-                consistencyScore >= 60 ? 'bg-yellow-600 dark:bg-yellow-500' :
-                'bg-red-600 dark:bg-red-500'
-              }`}
-              style={{ width: `${Math.min(100, Math.max(0, consistencyScore))}%` }}
-            />
+
+          {/* Tab Content */}
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex-1 min-h-0 overflow-hidden flex flex-col">
+            {activeTab === 'mechanics' && (
+              <div className="flex flex-col h-full min-h-0">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 flex-shrink-0">Game Mechanics</h3>
+                <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 flex-1 min-h-0">
+                  {JSON.stringify(currentVersion.mechanics, null, 2)}
+                </pre>
+              </div>
+            )}
+
+            {activeTab === 'lore' && (
+              <div className="flex flex-col h-full min-h-0">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 flex-shrink-0">Game Lore</h3>
+                {!currentVersion.lore || Object.keys(currentVersion.lore).length === 0 ? (
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-8 text-center flex-shrink-0">
+                    <div className="text-4xl mb-2">📖</div>
+                    <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">No Lore Generated</h4>
+                    <p className="text-yellow-600 dark:text-yellow-300 mb-4">
+                      This version doesn't have any lore yet. Generate lore using the "Generate Version" button or refine the version.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setShowGenerateModal(true);
+                        setGenerateType('lore');
+                      }}
+                      className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition"
+                    >
+                      ✨ Generate Lore
+                    </button>
+                  </div>
+                ) : (
+                  <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 flex-1 min-h-0">
+                    {JSON.stringify(currentVersion.lore, null, 2)}
+                  </pre>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'validation' && (
+              <div className="flex flex-col h-full min-h-0">
+                <div className="flex justify-between items-center mb-4 flex-shrink-0">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Validation Results</h3>
+                  <button
+                    onClick={() => {
+                      // Reset validation flag to force re-validation
+                      lastValidatedVersionId.current = null;
+                      runValidation();
+                    }}
+                    disabled={validating}
+                    className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm disabled:opacity-50"
+                  >
+                    {validating ? 'Validating...' : '🔄 Re-validate'}
+                  </button>
+                </div>
+
+                {validationIssues.length === 0 ? (
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-8 text-center flex-shrink-0">
+                    <div className="text-4xl mb-2">✅</div>
+                    <h4 className="font-semibold text-green-800 dark:text-green-200 mb-1">All Clear!</h4>
+                    <p className="text-green-600 dark:text-green-300">No validation issues found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 overflow-y-auto flex-1 min-h-0">
+                    {validationIssues.map((issue, index) => (
+                      <div
+                        key={index}
+                        className={`p-4 rounded-lg border ${
+                          issue.severity === 'error'
+                            ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                            : issue.severity === 'warning'
+                            ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                            : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span
+                                className={`px-2 py-1 rounded text-xs font-medium ${
+                                  issue.severity === 'error'
+                                    ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                                    : issue.severity === 'warning'
+                                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
+                                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200'
+                                }`}
+                              >
+                                {issue.severity.toUpperCase()}
+                              </span>
+                              <span className="text-sm text-gray-600 dark:text-gray-300">{issue.category}</span>
+                            </div>
+                            <p className="text-gray-900 dark:text-gray-100">{issue.message}</p>
+                            {issue.field && (
+                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Field: {issue.field}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-        <nav className="flex space-x-4">
-          {(['mechanics', 'lore', 'validation'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-3 px-1 border-b-2 font-medium text-sm transition ${
-                activeTab === tab
-                  ? 'border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              {tab === 'validation' && validationIssues.length > 0 && (
-                <span className="ml-2 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs">
-                  {validationIssues.length}
-                </span>
-              )}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Tab Content */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        {activeTab === 'mechanics' && (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Game Mechanics</h3>
-            <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-x-auto text-sm text-gray-900 dark:text-gray-100">
-              {JSON.stringify(currentVersion.mechanics, null, 2)}
-            </pre>
-          </div>
-        )}
-
-        {activeTab === 'lore' && (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Game Lore</h3>
-            {!currentVersion.lore || Object.keys(currentVersion.lore).length === 0 ? (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-8 text-center">
-                <div className="text-4xl mb-2">📖</div>
-                <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">No Lore Generated</h4>
-                <p className="text-yellow-600 dark:text-yellow-300 mb-4">
-                  This version doesn't have any lore yet. Generate lore using the "Generate Version" button or refine the version.
-                </p>
-                <button
-                  onClick={() => {
-                    setShowGenerateModal(true);
-                    setGenerateType('lore');
-                  }}
-                  className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition"
-                >
-                  ✨ Generate Lore
-                </button>
-              </div>
-            ) : (
-              <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-x-auto text-sm text-gray-900 dark:text-gray-100">
-                {JSON.stringify(currentVersion.lore, null, 2)}
-              </pre>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'validation' && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Validation Results</h3>
-              <button
-                onClick={() => {
-                  // Reset validation flag to force re-validation
-                  lastValidatedVersionId.current = null;
-                  runValidation();
-                }}
-                disabled={validating}
-                className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm disabled:opacity-50"
-              >
-                {validating ? 'Validating...' : '🔄 Re-validate'}
-              </button>
-            </div>
-
-            {validationIssues.length === 0 ? (
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-8 text-center">
-                <div className="text-4xl mb-2">✅</div>
-                <h4 className="font-semibold text-green-800 dark:text-green-200 mb-1">All Clear!</h4>
-                <p className="text-green-600 dark:text-green-300">No validation issues found</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {validationIssues.map((issue, index) => (
-                  <div
-                    key={index}
-                    className={`p-4 rounded-lg border ${
-                      issue.severity === 'error'
-                        ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                        : issue.severity === 'warning'
-                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
-                        : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              issue.severity === 'error'
-                                ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
-                                : issue.severity === 'warning'
-                                ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
-                                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200'
-                            }`}
-                          >
-                            {issue.severity.toUpperCase()}
-                          </span>
-                          <span className="text-sm text-gray-600 dark:text-gray-300">{issue.category}</span>
-                        </div>
-                        <p className="text-gray-900 dark:text-gray-100">{issue.message}</p>
-                        {issue.field && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Field: {issue.field}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-        <div className="space-y-6">
+        <div className="flex flex-col space-y-4 min-h-0 overflow-hidden">
           {project?.id && (
-            <ProjectAssistantPanel
-              projectId={project.id}
-              type="concept"
-              initiallyOpen
-            />
+            <div className="flex-shrink-0">
+              <ProjectAssistantPanel
+                projectId={project.id}
+                type="concept"
+                initiallyOpen
+              />
+            </div>
           )}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 flex-shrink-0">
             <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 uppercase tracking-wide">
               Workflow Checklist
             </h4>

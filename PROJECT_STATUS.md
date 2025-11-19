@@ -222,6 +222,30 @@ All claims in README.md are now accurate:
 
 ---
 
+## ✅ Phase 5: Assistant & Architect - **100% COMPLETE**
+
+| Item | Status | Files | Notes |
+|------|--------|-------|-------|
+| Assistant Service | ✅ Complete | `services/assistant/assistant-service.ts` | Chat sessions, proposals, context building |
+| Assistant API Routes | ✅ Complete | `routes/assistant.ts` | 6 endpoints for chat and proposals |
+| Assistant UI Panel | ✅ Complete | `components/ProjectAssistantPanel.tsx` | React component with chat interface |
+| Architect Service | ✅ Complete | `services/architect/architect-service.ts` | Interview management, document generation |
+| Architect API Routes | ✅ Complete | `routes/architect.ts` | 10 endpoints including ZIP export |
+| Architect UI | ✅ Complete | `pages/ProjectArchitectPage.tsx` | Interview flow and document viewer |
+| ZIP Export | ✅ Complete | `routes/architect.ts` | AdmZip integration for documentation packages |
+| Database Schema | ✅ Complete | `prisma/schema.prisma` | ChatSession, ChatMessage, AssistantProposal tables |
+
+**What's Working:**
+- ✅ Project-level chat sessions with message persistence
+- ✅ AI-generated proposals for concept updates
+- ✅ Proposal acceptance/rejection workflow
+- ✅ Architect interview system (3 phases: quick-discovery, deep-dive, open-source)
+- ✅ Documentation generation (4-6 documents per project)
+- ✅ ZIP archive export for complete documentation packages
+- ✅ Assistant panel integrated into concept editor and architect pages
+
+---
+
 ## 🔧 API Endpoints - Actual Status
 
 | Endpoint | Implemented | Tested | Notes |
@@ -233,8 +257,15 @@ All claims in README.md are now accurate:
 | `POST /api/generate` | ✅ | ⚠️ | Works for mechanics/lore |
 | `POST /api/validate` | ✅ | ⚠️ | Works but limited rules |
 | `POST /api/export` | ✅ | ⚠️ | All templates working |
+| `POST /api/assistant/session` | ✅ | ✅ | Unit tests added |
+| `POST /api/assistant/session/:id/message` | ✅ | ✅ | Unit tests added |
+| `GET /api/assistant/session/:id/proposals` | ✅ | ✅ | Unit tests added |
+| `POST /api/assistant/proposals/:id/accept` | ✅ | ✅ | Unit tests added |
+| `POST /api/architect/start` | ✅ | ⚠️ | Works, needs E2E tests |
+| `POST /api/architect/generate` | ✅ | ⚠️ | Works, needs E2E tests |
+| `GET /api/architect/export/:projectId` | ✅ | ⚠️ | ZIP export working |
 
-**Testing Status:** Manual testing only, no automated test suite
+**Testing Status:** Unit tests for assistant service added, integration tests pending
 
 ---
 
@@ -248,16 +279,24 @@ All claims in README.md are now accurate:
    ✅ generate.ts (AI generation)
    ✅ validate.ts (consistency checking)
    ✅ export.ts (markdown export)
+   ✅ assistant.ts (chat sessions, proposals)
+   ✅ architect.ts (interview, documentation, ZIP export)
 ✅ src/services/ai/
    ✅ orchestrator.ts (model selection)
    ✅ clients/ (OpenRouter, Google, Ollama)
    ✅ prompts/ (mechanics, lore)
-⚠️ src/services/validation/
+✅ src/services/validation/
    ✅ engine.ts (framework)
-   ⚠️ rules/ (only 2/15 rules)
+   ✅ rules/ (26 rules across 6 categories)
 ✅ src/services/export/
    ✅ templates.ts (GDD, Pitch, Technical)
-✅ prisma/schema.prisma (5 tables)
+✅ src/services/assistant/
+   ✅ assistant-service.ts (chat, proposals, context)
+✅ src/services/architect/
+   ✅ architect-service.ts (interview orchestration)
+   ✅ interview-manager.ts (question flow)
+   ✅ document-generator.ts (AI document generation)
+✅ prisma/schema.prisma (8 tables: User, Project, Version, AiGeneration, ValidationResult, ChatSession, ChatMessage, AssistantProposal)
 ```
 
 ### Frontend (`packages/frontend/`):
@@ -272,6 +311,9 @@ All claims in README.md are now accurate:
    ✅ ConceptEditorPage.tsx (concept editor with validation)
    ✅ TemplateBrowserPage.tsx (template browser)
    ✅ HealthPage.tsx (system monitoring)
+   ✅ ProjectArchitectPage.tsx (architect interview and docs)
+✅ src/components/
+   ✅ ProjectAssistantPanel.tsx (chat assistant panel)
 ✅ src/services/
    ✅ api.ts (typed API client)
 ✅ vite-env.d.ts (TypeScript definitions)

@@ -17,6 +17,6 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"],
+  "include": ["src", "src/vitest.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

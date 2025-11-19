@@ -4,7 +4,7 @@
  * Memoized for performance optimization
  */
 
-import React, { useEffect, useState, useMemo, memo } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
@@ -51,7 +51,7 @@ function LayoutComponent({ children }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors flex flex-col">
       {/* Subtle background pattern */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-100 dark:bg-blue-900/20 rounded-full blur-3xl opacity-30 dark:opacity-20" />
@@ -137,7 +137,7 @@ function LayoutComponent({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-8 flex-1 flex flex-col min-h-0">
         {children}
       </main>
 

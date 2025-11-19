@@ -204,8 +204,8 @@ export class AIOrchestrator {
       const ollamaClient = this.clients.get('ollama');
       if (ollamaClient && (await ollamaClient.isAvailable())) {
         // Try to get an available model, fallback to default if listModels fails
-        // Default: Qwen3-30B-A3B (MoE) - 30B quality with only 3B activated!
-        let model = 'qwen3:30b-a3b';
+        // Default: qwen3:8b (widely available, good quality)
+        let model = 'qwen3:8b';
         try {
           const availableModels = await ollamaClient.listModels?.() || [];
           if (availableModels.length > 0) {
@@ -273,7 +273,7 @@ export class AIOrchestrator {
           const ollamaClient = this.clients.get('ollama');
           if (ollamaClient && (await ollamaClient.isAvailable())) {
             // For mechanics: Prefer models with strong structured JSON output
-            let model = 'qwen3:30b-a3b';
+            let model = 'qwen3:8b';
             try {
               const availableModels = await ollamaClient.listModels?.() || [];
               if (availableModels.length > 0) {
@@ -318,7 +318,7 @@ export class AIOrchestrator {
           const ollamaClient = this.clients.get('ollama');
           if (ollamaClient && (await ollamaClient.isAvailable())) {
             // For lore: Prefer creative writing models (coder variants + MoE excel at narrative)
-            let model = 'qwen3-coder:7b';
+            let model = 'qwen3:8b';
             try {
               const availableModels = await ollamaClient.listModels?.() || [];
               if (availableModels.length > 0) {
@@ -532,11 +532,11 @@ export class AIOrchestrator {
       case 'google':
         return 'gemini-2.0-flash-exp';
       case 'ollama':
-        // Qwen3-30B-A3B (MoE): Best quality/memory ratio (30B quality, 3B active, 8-12GB RAM, 20-30 tok/s)
-        // Falls back to Qwen3-7B if MoE not available
-        return 'qwen3:30b-a3b';
+        // Default to qwen3:8b (widely available, good quality)
+        // Falls back to qwen3:4b if 8b not available
+        return 'qwen3:8b';
       default:
-        return 'qwen3:30b-a3b';
+        return 'qwen3:8b';
     }
   }
 

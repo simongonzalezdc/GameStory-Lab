@@ -158,8 +158,7 @@ export const handlers = [
   }),
 
   // Generate content
-  http.post(`${API_BASE}/api/generate`, async ({ request }) => {
-    const body = (await request.json()) as any;
+  http.post(`${API_BASE}/api/generate`, async () => {
     return HttpResponse.json({
       conceptId: '660e8400-e29b-41d4-a716-446655440001',
       content: {
@@ -184,8 +183,7 @@ export const handlers = [
   }),
 
   // Validate concept
-  http.post(`${API_BASE}/api/validate`, async ({ request }) => {
-    const body = (await request.json()) as any;
+  http.post(`${API_BASE}/api/validate`, async () => {
     return HttpResponse.json({
       validationId: '770e8400-e29b-41d4-a716-446655440001',
       issues: [

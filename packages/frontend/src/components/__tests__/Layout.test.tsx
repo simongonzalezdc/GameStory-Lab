@@ -2,7 +2,7 @@
  * Tests for Layout component
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '../../test/utils';
 import { Layout } from '../Layout';
 import userEvent from '@testing-library/user-event';
@@ -21,10 +21,10 @@ describe('Layout', () => {
     );
 
     // Check for navigation items - some may appear multiple times so check they exist
-    expect(screen.getByText('Projects')).toBeInTheDocument();
-    expect(screen.getByText('Templates')).toBeInTheDocument();
-    expect(screen.getByText('Tutorial')).toBeInTheDocument();
-    expect(screen.getByText('Status')).toBeInTheDocument();
+    expect(screen.getByText('Projects')).toBeTruthy();
+    expect(screen.getByText('Templates')).toBeTruthy();
+    expect(screen.getByText('Tutorial')).toBeTruthy();
+    expect(screen.getByText('Status')).toBeTruthy();
   });
 
   it('should render children content', () => {
@@ -34,7 +34,7 @@ describe('Layout', () => {
       </Layout>
     );
 
-    expect(screen.getByText('Test Child Content')).toBeInTheDocument();
+    expect(screen.getByText('Test Child Content')).toBeTruthy();
   });
 
   it('should render logo with correct text', () => {
@@ -44,9 +44,9 @@ describe('Layout', () => {
       </Layout>
     );
 
-    expect(screen.getByText('GameStory Lab')).toBeInTheDocument();
-    expect(screen.getByText('Experience Design OS')).toBeInTheDocument();
-    expect(screen.getByText('Beta')).toBeInTheDocument();
+    expect(screen.getByText('GameStory Lab')).toBeTruthy();
+    expect(screen.getByText('Experience Design OS')).toBeTruthy();
+    expect(screen.getByText('Beta')).toBeTruthy();
   });
 
   it('should have theme toggle button', () => {
@@ -57,7 +57,7 @@ describe('Layout', () => {
     );
 
     const themeButton = screen.getByRole('button', { name: /switch to/i });
-    expect(themeButton).toBeInTheDocument();
+    expect(themeButton).toBeTruthy();
   });
 
   it('should toggle theme when theme button is clicked', async () => {
@@ -91,10 +91,10 @@ describe('Layout', () => {
       </Layout>
     );
 
-    expect(screen.getByText(/crafted with care/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /share feedback/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /read the tutorial/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /view on github/i })).toBeInTheDocument();
+    expect(screen.getByText(/crafted with care/i)).toBeTruthy();
+    expect(screen.getByRole('link', { name: /share feedback/i })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /read the tutorial/i })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /view on github/i })).toBeTruthy();
   });
 
   it('should have correct navigation structure', () => {
@@ -105,7 +105,7 @@ describe('Layout', () => {
     );
 
     const nav = screen.getByRole('navigation', { name: /main navigation/i });
-    expect(nav).toBeInTheDocument();
+    expect(nav).toBeTruthy();
   });
 
   it('should have accessible logo link', () => {
@@ -127,7 +127,7 @@ describe('Layout', () => {
     );
 
     const exploreButton = screen.getByRole('link', { name: /explore templates/i });
-    expect(exploreButton).toBeInTheDocument();
+    expect(exploreButton).toBeTruthy();
     expect(exploreButton).toHaveAttribute('href', '/templates');
   });
 });

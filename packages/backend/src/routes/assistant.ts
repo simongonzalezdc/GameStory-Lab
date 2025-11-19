@@ -5,12 +5,23 @@
 
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import { prisma, aiOrchestrator } from '../server.js';
 import { getAssistantService } from '../services/assistant/assistant-service.js';
 import { logger } from '../utils/logger.js';
+import type { AssistantService } from '../services/assistant/assistant-service.js';
 
 const router = Router();
-const assistantService = getAssistantService(prisma, aiOrchestrator);
+
+// Lazy initialization to avoid circular dependencies
+let assistantService: AssistantService | null = null;
+
+async function getService() {
+  if (!assistantService) {
+    // Lazy import to avoid circular dependency - use the singleton instances
+    const serverModule = await import('../server.js');
+    assistantService = getAssistantService(serverModule.prisma, serverModule.aiOrchestrator);
+  }
+  return assistantService;
+}
 
 router.post('/session', async (req: Request, res: Response) => {
   const { projectId, type } = req.body;
@@ -18,9 +29,10 @@ router.post('/session', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'projectId is required' });
   }
   try {
-    const session = await assistantService.getOrCreateSession(projectId, type || 'concept');
-    const messages = await assistantService.getMessages(session.id);
-    const proposals = await assistantService.listPendingProposals(session.id);
+    const service = await getService();
+    const session = await service.getOrCreateSession(projectId, type || 'concept');
+    const messages = await service.getMessages(session.id);
+    const proposals = await service.listPendingProposals(session.id);
     res.json({
       session,
       messages,
@@ -34,7 +46,8 @@ router.post('/session', async (req: Request, res: Response) => {
 
 router.get('/session/:sessionId/messages', async (req: Request, res: Response) => {
   try {
-    const messages = await assistantService.getMessages(req.params.sessionId);
+    const service = await getService();
+    const messages = await service.getMessages(req.params.sessionId);
     res.json({ messages });
   } catch (error) {
     logger.error('Failed to load assistant messages', { error, sessionId: req.params.sessionId });
@@ -44,7 +57,8 @@ router.get('/session/:sessionId/messages', async (req: Request, res: Response) =
 
 router.get('/session/:sessionId/proposals', async (req: Request, res: Response) => {
   try {
-    const proposals = await assistantService.listPendingProposals(req.params.sessionId);
+    const service = await getService();
+    const proposals = await service.listPendingProposals(req.params.sessionId);
     res.json({ proposals });
   } catch (error) {
     logger.error('Failed to load assistant proposals', { error, sessionId: req.params.sessionId });
@@ -58,7 +72,8 @@ router.post('/session/:sessionId/message', async (req: Request, res: Response) =
     return res.status(400).json({ error: 'content is required' });
   }
   try {
-    const response = await assistantService.sendMessage(req.params.sessionId, content);
+    const service = await getService();
+    const response = await service.sendMessage(req.params.sessionId, content);
     res.json(response);
   } catch (error: any) {
     logger.error('Assistant message failed', {
@@ -71,7 +86,8 @@ router.post('/session/:sessionId/message', async (req: Request, res: Response) =
 
 router.post('/proposals/:proposalId/accept', async (req: Request, res: Response) => {
   try {
-    const result = await assistantService.applyProposal(req.params.proposalId);
+    const service = await getService();
+    const result = await service.applyProposal(req.params.proposalId);
     res.json({ success: true, result });
   } catch (error) {
     logger.error('Failed to apply assistant proposal', { error, proposalId: req.params.proposalId });
@@ -81,7 +97,8 @@ router.post('/proposals/:proposalId/accept', async (req: Request, res: Response)
 
 router.post('/proposals/:proposalId/reject', async (req: Request, res: Response) => {
   try {
-    await assistantService.rejectProposal(req.params.proposalId);
+    const service = await getService();
+    await service.rejectProposal(req.params.proposalId);
     res.json({ success: true });
   } catch (error) {
     logger.error('Failed to reject assistant proposal', { error, proposalId: req.params.proposalId });

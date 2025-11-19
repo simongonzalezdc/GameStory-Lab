@@ -4,7 +4,6 @@
  */
 
 import express from 'express';
-import { prisma, aiOrchestrator } from '../server.js';
 import { GenerationRequestSchema } from '@gameforge/shared';
 import type { MechanicsData, LoreData, Genre } from '@gameforge/shared';
 import { getMechanicsPrompt } from '../services/ai/prompts/mechanics.js';
@@ -12,8 +11,23 @@ import { getLorePrompt } from '../services/ai/prompts/lore.js';
 import { getTitlePrompt } from '../services/ai/prompts/title.js';
 import { getRefinementPrompt } from '../services/ai/prompts/refinement.js';
 import { logger } from '../utils/logger.js';
+import type { PrismaClient } from '@prisma/client';
+import type { AIOrchestrator } from '../services/ai/orchestrator.js';
 
 const router = express.Router();
+
+// Lazy initialization to avoid circular dependencies
+let prisma: PrismaClient | null = null;
+let aiOrchestrator: AIOrchestrator | null = null;
+
+async function getDependencies() {
+  if (!prisma || !aiOrchestrator) {
+    const serverModule = await import('../server.js');
+    prisma = serverModule.prisma;
+    aiOrchestrator = serverModule.aiOrchestrator;
+  }
+  return { prisma, aiOrchestrator };
+}
 
 /**
  * POST /api/generate
@@ -21,6 +35,8 @@ const router = express.Router();
  */
 router.post('/', async (req, res, next) => {
   try {
+    const { prisma: prismaClient, aiOrchestrator: orchestrator } = await getDependencies();
+    
     const validation = GenerationRequestSchema.safeParse(req.body);
 
     if (!validation.success) {
@@ -36,7 +52,7 @@ router.post('/', async (req, res, next) => {
     const { projectId, taskType, context, modelPreference } = validation.data;
 
     // Verify project exists
-    const project = await prisma.project.findUnique({
+    const project = await prismaClient.project.findUnique({
       where: { id: projectId },
     });
 
@@ -106,7 +122,7 @@ router.post('/', async (req, res, next) => {
 
     // Generate using AI Orchestrator
     const startTime = Date.now();
-    const response = await aiOrchestrator.generate(
+    const response = await orchestrator.generate(
       taskType,
       [
         { role: 'system', content: systemMessage },
@@ -174,7 +190,7 @@ router.post('/', async (req, res, next) => {
     }
 
     // Determine next version number based on existing versions
-    const existingVersions = await prisma.version.findMany({
+    const existingVersions = await prismaClient.version.findMany({
       where: { projectId },
       select: { version: true },
       orderBy: { version: 'desc' },
@@ -188,7 +204,7 @@ router.post('/', async (req, res, next) => {
     let version;
     if (taskType === 'lore') {
       // Check if there's a recent version with mechanics but no lore (or empty lore)
-      const recentVersion = await prisma.version.findFirst({
+      const recentVersion = await prismaClient.version.findFirst({
         where: { 
           projectId,
         },
@@ -202,7 +218,7 @@ router.post('/', async (req, res, next) => {
           Object.keys(recentVersion.mechanics as object).length > 0 &&
           (!recentVersion.lore || Object.keys(recentVersion.lore as object).length === 0)) {
         logger.info('Updating existing version with lore', { versionId: recentVersion.id });
-        version = await prisma.version.update({
+        version = await prismaClient.version.update({
           where: { id: recentVersion.id },
           data: {
             lore: generatedContent,
@@ -225,7 +241,7 @@ router.post('/', async (req, res, next) => {
         const mechanicsData = (context.existingContent?.mechanics || {}) as any;
         const loreData = generatedContent as any;
         const titleValue = ('title' in generatedContent && (generatedContent as { title?: string }).title) ? (generatedContent as { title?: string }).title : null;
-        version = await prisma.version.create({
+        version = await prismaClient.version.create({
           data: {
             projectId,
             version: nextVersion,
@@ -253,7 +269,7 @@ router.post('/', async (req, res, next) => {
         ? (generatedContent as { title?: string }).title 
         : null;
       const startedWithValue = taskType === 'mechanics' ? 'mechanics' : undefined;
-      version = await prisma.version.create({
+      version = await prismaClient.version.create({
         data: {
           projectId,
           version: nextVersion,
@@ -273,7 +289,7 @@ router.post('/', async (req, res, next) => {
     }
 
     // Log generation to database
-    await prisma.aiGeneration.create({
+    await prismaClient.aiGeneration.create({
       data: {
         conceptId: version.id,
         taskType,
@@ -301,7 +317,12 @@ router.post('/', async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Generation request failed', { error, projectId: req.body.projectId });
+    logger.error('Generation request failed', { 
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      projectId: req.body.projectId,
+      taskType: req.body.taskType,
+    });
     next(error);
   }
 });

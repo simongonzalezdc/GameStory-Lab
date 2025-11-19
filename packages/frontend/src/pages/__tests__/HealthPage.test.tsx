@@ -2,7 +2,7 @@
  * Tests for HealthPage
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen, waitFor } from '../../test/utils';
 import { HealthPage } from '../HealthPage';
 import userEvent from '@testing-library/user-event';
