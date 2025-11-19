@@ -6,8 +6,8 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, waitFor } from '../../test/utils';
 import { HealthPage } from '../HealthPage';
 import userEvent from '@testing-library/user-event';
-// import { http, HttpResponse } from 'msw';
-// import { server } from '../../test/mocks/server';
+import { http, HttpResponse } from 'msw';
+import { server } from '../../test/mocks/server';
 
 describe('HealthPage', () => {
   it('should show loading state initially', () => {
