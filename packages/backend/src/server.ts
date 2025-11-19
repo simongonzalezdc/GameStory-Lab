@@ -225,14 +225,20 @@ async function start() {
       });
     }
 
-    // Initialize Ollama (ensure server is running and models are available)
-    try {
-      const { initializeOllama } = await import('./utils/ollama-setup.js');
-      await initializeOllama();
-    } catch (ollamaError) {
-      logger.warn('Ollama initialization failed - AI features may be limited', {
-        error: ollamaError instanceof Error ? ollamaError.message : String(ollamaError),
-      });
+    // Initialize Ollama only if GLM is not available (Ollama is fallback only)
+    const glmAvailable = process.env.GLM_API_KEY && process.env.GLM_API_KEY.length > 0;
+    if (!glmAvailable) {
+      logger.info('GLM not available, initializing Ollama as primary provider');
+      try {
+        const { initializeOllama } = await import('./utils/ollama-setup.js');
+        await initializeOllama();
+      } catch (ollamaError) {
+        logger.warn('Ollama initialization failed - AI features may be limited', {
+          error: ollamaError instanceof Error ? ollamaError.message : String(ollamaError),
+        });
+      }
+    } else {
+      logger.debug('Skipping Ollama setup - GLM is available as primary provider');
     }
 
     // Check AI providers

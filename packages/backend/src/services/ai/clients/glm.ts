@@ -12,6 +12,7 @@ import type {
   AICompletionResponse,
   AIClientError,
 } from './base.js';
+import { logger } from '../../../utils/logger.js';
 
 interface GLMMessage {
   role: 'system' | 'user' | 'assistant';
@@ -74,8 +75,10 @@ export class GLMClient implements IAIClient {
     const startTime = Date.now();
 
     try {
+      // Use glm-4-6 as the model name (user confirmed this is correct)
+      const modelName = request.model || 'glm-4-6';
       const glmRequest: GLMRequest = {
-        model: request.model || 'glm-4-6', // Default to GLM 4.6
+        model: modelName,
         messages: request.messages.map((msg) => ({
           role: msg.role,
           content: msg.content,
@@ -86,6 +89,14 @@ export class GLMClient implements IAIClient {
         stream: false,
       };
 
+      logger.debug('GLM API request', {
+        model: modelName,
+        messageCount: glmRequest.messages.length,
+        maxTokens: glmRequest.max_tokens,
+        baseUrl: this.baseUrl,
+        endpoint: '/chat/completions'
+      });
+
       const response = await this.client.post<GLMResponse>(
         '/chat/completions',
         glmRequest
@@ -95,8 +106,22 @@ export class GLMClient implements IAIClient {
       const durationMs = Date.now() - startTime;
 
       // Extract content and tokens
-      const content = data.choices[0]?.message?.content || '';
-      const usage = data.usage;
+      const content = data.choices?.[0]?.message?.content || '';
+      const usage = data.usage || { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+      
+      if (!content) {
+        logger.warn('GLM API returned empty content', {
+          responseData: JSON.stringify(data).substring(0, 500),
+          choicesLength: data.choices?.length || 0,
+          model: modelName
+        });
+        throw new Error('GLM API returned empty content');
+      }
+
+      logger.info(`GLM API request successful with model: ${modelName}`, {
+        durationMs,
+        tokensUsed: usage.total_tokens
+      });
 
       // Estimate cost (GLM 4.6 pricing - adjust based on actual pricing)
       // Using conservative estimates until we have exact pricing
@@ -119,15 +144,36 @@ export class GLMClient implements IAIClient {
       };
     } catch (error) {
       if (axios.isAxiosError(error)) {
+        const errorData = error.response?.data;
+        const errorMessage = errorData?.error?.message || 
+                           errorData?.message || 
+                           error.message || 
+                           'Unknown GLM API error';
+        const statusCode = error.response?.status;
+        
+        logger.error('GLM API request failed', {
+          statusCode,
+          errorMessage,
+          errorData: errorData ? JSON.stringify(errorData).substring(0, 500) : undefined,
+          url: error.config?.url,
+          method: error.config?.method
+        });
+        
         const aiError: AIClientError = {
           name: 'AIClientError',
-          message: `GLM generation failed: ${error.response?.data?.error?.message || error.message}`,
+          message: `GLM generation failed: ${errorMessage}`,
           provider: 'glm',
-          statusCode: error.response?.status,
+          statusCode,
           originalError: error,
         };
         throw aiError;
       }
+      
+      logger.error('GLM generation failed with non-Axios error', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
       throw {
         name: 'AIClientError',
         message: `GLM generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,

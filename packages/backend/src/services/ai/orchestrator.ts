@@ -76,10 +76,17 @@ export class AIOrchestrator {
       logger.warn('Google client initialization failed', { error });
     }
 
-    try {
-      this.clients.set('ollama', new OllamaClient({ baseUrl: config.ollamaBaseUrl }));
-    } catch (error) {
-      logger.warn('Ollama client initialization failed', { error });
+    // TEMPORARILY DISABLED: Ollama fallback disabled to test GLM only
+    // Initialize Ollama client only if GLM is not available
+    if (!this.clients.has('glm')) {
+      try {
+        this.clients.set('ollama', new OllamaClient({ baseUrl: config.ollamaBaseUrl }));
+        logger.info('Ollama client initialized (primary provider - GLM not available)');
+      } catch (error) {
+        logger.warn('Ollama client initialization failed', { error });
+      }
+    } else {
+      logger.debug('Ollama client disabled - GLM is primary provider (Ollama fallback temporarily disabled)');
     }
   }
 
@@ -92,14 +99,23 @@ export class AIOrchestrator {
     preference: ModelPreference = 'auto',
     options?: Partial<AICompletionRequest>
   ): Promise<AICompletionResponse> {
-    // Check cost limits
+    // Check cost limits - only force Ollama if GLM is not available
     const currentHourCost = this.getCurrentHourCost();
     if (currentHourCost >= this.costLimit) {
-      logger.warn('Cost limit reached, forcing Ollama', {
-        currentCost: currentHourCost,
-        limit: this.costLimit,
-      });
-      preference = 'ollama';
+      const glmClient = this.clients.get('glm');
+      if (glmClient && (await glmClient.isAvailable())) {
+        logger.warn('Cost limit reached, but GLM is available - continuing with GLM', {
+          currentCost: currentHourCost,
+          limit: this.costLimit,
+        });
+        // Keep preference as-is, GLM will be used
+      } else {
+        logger.warn('Cost limit reached, forcing Ollama (GLM not available)', {
+          currentCost: currentHourCost,
+          limit: this.costLimit,
+        });
+        preference = 'ollama';
+      }
     }
 
     // Select the best model for this task
@@ -132,8 +148,17 @@ export class AIOrchestrator {
     } catch (error) {
       logger.error('Generation failed, attempting fallback', {
         client: selection.client.name,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
+
+      // TEMPORARILY DISABLED: Ollama fallback disabled to test GLM only
+      // If GLM failed, throw error immediately (no fallback)
+      if (selection.client.type === 'glm') {
+        logger.error('GLM generation failed - Ollama fallback disabled', {
+          originalError: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+      }
 
       const defaultOllamaModels = [
         'qwen3:4b',
@@ -184,9 +209,12 @@ export class AIOrchestrator {
         });
       }
 
-      // Fallback to Ollama if available and we're not already using it
-      if (selection.client.type !== 'ollama' && this.clients.has('ollama')) {
-        logger.info('Falling back to Ollama');
+      // Fallback to Ollama only if we're not using GLM and Ollama is available
+      // (GLM fallback is handled above)
+      if (selection.client.type !== 'ollama' && 
+          selection.client.type !== 'glm' && 
+          this.clients.has('ollama')) {
+        logger.info('Falling back to Ollama (non-GLM provider failed)');
         const ollamaClient = this.clients.get('ollama')!;
         // Try known models in order
         for (const modelName of defaultOllamaModels) {
@@ -275,7 +303,7 @@ export class AIOrchestrator {
       if (glmClient && (await glmClient.isAvailable())) {
         return {
           client: glmClient,
-          model: 'glm-4-6',
+          model: 'glm-4-6', // GLM 4.6 model name
           rationale: 'GLM 4.6 (user preference)',
         };
       }
@@ -300,7 +328,7 @@ export class AIOrchestrator {
       if (glmClient && (await glmClient.isAvailable())) {
         return {
           client: glmClient,
-          model: 'glm-4-6',
+          model: 'glm-4-6', // GLM 4.6 model name
           rationale: `GLM 4.6 for ${taskType} (primary AI provider, excellent for all tasks)`,
         };
       }
@@ -428,6 +456,7 @@ export class AIOrchestrator {
         }
 
         case 'refinement': {
+          // GLM 4.6 is already checked above, fallback to Ollama if GLM not available
           // Ollama for unlimited iterations - refinement benefits from best available model
           const ollamaClient = this.clients.get('ollama');
           if (ollamaClient && (await ollamaClient.isAvailable())) {
@@ -580,7 +609,7 @@ export class AIOrchestrator {
   private getDefaultModel(client: IAIClient): string {
     switch (client.type) {
       case 'glm':
-        return 'glm-4-6';
+        return 'glm-4-6'; // GLM 4.6 model name
       case 'openrouter':
         return 'deepseek/deepseek-chat';
       case 'google':
@@ -590,7 +619,7 @@ export class AIOrchestrator {
         // Falls back to qwen3:4b if 8b not available
         return 'qwen3:8b';
       default:
-        return 'glm-4-6';
+        return 'glm-4-6'; // GLM 4.6 model name
     }
   }
 
