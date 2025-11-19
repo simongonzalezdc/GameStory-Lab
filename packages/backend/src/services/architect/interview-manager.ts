@@ -90,7 +90,9 @@ export class InterviewManager {
     const completionPercentage = getCompletionPercentage(answersMap);
 
     // Check if current phase is complete
-    const currentPhaseQuestions = getQuestionsByPhase(session.currentPhase);
+    const currentPhaseQuestions = session.currentPhase === 'complete' 
+      ? [] 
+      : getQuestionsByPhase(session.currentPhase as 'quick-discovery' | 'deep-dive' | 'open-source');
     const currentPhaseAnswered = currentPhaseQuestions.every(
       (q) => answersMap.has(q.id) || !q.required
     );

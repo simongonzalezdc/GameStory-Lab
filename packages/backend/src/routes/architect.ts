@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import AdmZip from 'adm-zip';
 import { architectService } from '../services/architect/architect-service.js';
-import { handleApiError } from '../utils/errors.js';
+import { handleApiError, createErrorResponse } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 
 const router = Router();
@@ -37,7 +37,8 @@ router.post('/start', async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    handleApiError(error, res);
+    const apiError = handleApiError(error);
+    res.status(apiError.statusCode).json(createErrorResponse(apiError));
   }
 });
 
@@ -67,7 +68,8 @@ router.post('/answer', async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    handleApiError(error, res);
+    const apiError = handleApiError(error);
+    res.status(apiError.statusCode).json(createErrorResponse(apiError));
   }
 });
 
@@ -86,7 +88,8 @@ router.get('/session/:sessionId', async (req: Request, res: Response) => {
       data: progress,
     });
   } catch (error) {
-    handleApiError(error, res);
+    const apiError = handleApiError(error);
+    res.status(apiError.statusCode).json(createErrorResponse(apiError));
   }
 });
 
@@ -106,7 +109,8 @@ router.get('/questions', async (_req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    handleApiError(error, res);
+    const apiError = handleApiError(error);
+    res.status(apiError.statusCode).json(createErrorResponse(apiError));
   }
 });
 
@@ -152,7 +156,8 @@ router.post('/generate', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    handleApiError(error, res);
+    const apiError = handleApiError(error);
+    res.status(apiError.statusCode).json(createErrorResponse(apiError));
   }
 });
 
@@ -180,7 +185,8 @@ router.get('/documentation/:projectId', async (req: Request, res: Response) => {
       data: documentation,
     });
   } catch (error) {
-    handleApiError(error, res);
+    const apiError = handleApiError(error);
+    res.status(apiError.statusCode).json(createErrorResponse(apiError));
   }
 });
 
@@ -208,7 +214,8 @@ router.get('/document/:projectId/:documentName', async (req: Request, res: Respo
     res.setHeader('Content-Disposition', `attachment; filename="${documentName}.md"`);
     res.send(document.content);
   } catch (error) {
-    handleApiError(error, res);
+    const apiError = handleApiError(error);
+    res.status(apiError.statusCode).json(createErrorResponse(apiError));
   }
 });
 
@@ -239,7 +246,8 @@ router.get('/export/:projectId', async (req: Request, res: Response) => {
     res.setHeader('Content-Disposition', `attachment; filename="${projectId}-documents.zip"`);
     res.send(zipBuffer);
   } catch (error) {
-    handleApiError(error, res);
+    const apiError = handleApiError(error);
+    res.status(apiError.statusCode).json(createErrorResponse(apiError));
   }
 });
 
@@ -247,7 +255,7 @@ router.get('/export/:projectId', async (req: Request, res: Response) => {
  * GET /api/architect/templates
  * Get list of available document templates
  */
-router.get('/templates', async (req: Request, res: Response) => {
+router.get('/templates', async (_req: Request, res: Response) => {
   try {
     const templates = architectService.getTemplateList();
 
@@ -259,7 +267,8 @@ router.get('/templates', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    handleApiError(error, res);
+    const apiError = handleApiError(error);
+    res.status(apiError.statusCode).json(createErrorResponse(apiError));
   }
 });
 
@@ -292,7 +301,8 @@ router.delete('/session/:sessionId', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    handleApiError(error, res);
+    const apiError = handleApiError(error);
+    res.status(apiError.statusCode).json(createErrorResponse(apiError));
   }
 });
 

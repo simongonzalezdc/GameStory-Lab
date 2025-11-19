@@ -106,13 +106,13 @@ export class AssistantService {
       take: 15,
     });
 
-    const aiMessages = [
+    const aiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
       {
         role: 'system' as const,
         content: this.buildSystemPrompt(session.type as SessionType, context),
       },
       ...previousMessages.map((msg) => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        role: (msg.role === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user',
         content: msg.content,
       })),
       {
@@ -364,7 +364,7 @@ export class AssistantService {
       mechanics: proposal?.mechanics,
       lore: proposal?.lore,
       architectDocuments: proposal?.architectDocuments,
-    };
+    } as any; // Cast to any for Prisma Json type compatibility
 
     const proposalType = proposal?.architectDocuments ? 'architect-document' : 'concept-update';
 
@@ -375,7 +375,7 @@ export class AssistantService {
         conceptId: latestVersion?.id,
         proposalType,
         payload,
-        changeLog,
+        changeLog: changeLog as any,
       },
     });
   }

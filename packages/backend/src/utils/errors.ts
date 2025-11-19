@@ -132,13 +132,28 @@ export function handleApiError(error: unknown): ApiError {
  * Create a standardized error response
  */
 export function createErrorResponse(error: ApiError, includeStack = false) {
-  return {
+  const response: {
+    error: {
+      code: string;
+      message: string;
+      details?: unknown;
+      stack?: string;
+    };
+  } = {
     error: {
       code: error.code,
       message: error.message,
-      ...(error.details && { details: error.details }),
-      ...(includeStack && process.env.NODE_ENV === 'development' && { stack: error.stack }),
     },
   };
+  
+  if (error.details) {
+    response.error.details = error.details;
+  }
+  
+  if (includeStack && process.env.NODE_ENV === 'development' && error.stack) {
+    response.error.stack = error.stack;
+  }
+  
+  return response;
 }
 

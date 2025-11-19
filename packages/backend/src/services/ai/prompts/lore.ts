@@ -86,7 +86,7 @@ function getGenreGuidance(genre?: Genre): string {
 Design lore that establishes a unique world with its own identity. Think Hollow Knight's cryptic fallen kingdom, Disco Elysium's political intrigue, or Kentucky Route Zero's magical realism. Focus on atmosphere, mystery, and a world that feels lived-in.`;
   }
 
-  const guidance: Record<Genre, string> = {
+  const guidance: Partial<Record<Genre, string>> = {
     rpg: `Genre: RPG (Role-Playing Game)
 NARRATIVE ELEMENTS REQUIRED:
 - **World History**: Ancient civilizations, fallen empires, wars that shaped current politics, myths/legends that hint at truth
@@ -170,6 +170,86 @@ NARRATIVE TONE:
 INSPIRATION: The Long Dark (man vs nature), The Last of Us (humanity in apocalypse), Subnautica (hostile alien ocean), Don't Starve (dark whimsy + permadeath)`,
 
     blank: '',
+    'action-adventure': `Genre: Action-Adventure
+NARRATIVE ELEMENTS REQUIRED:
+- **Exploration-Driven Story**: World opens up as player progresses, story revealed through exploration
+- **Protagonist Journey**: Character growth through adventure, discovery, and overcoming challenges
+- **Balanced Action/Narrative**: Combat and exploration serve the story, not just gameplay
+- **World-Building**: Rich environments that tell stories through design and atmosphere
+
+INSPIRATION: Zelda series, Uncharted, Tomb Raider, Assassin's Creed`,
+    adventure: `Genre: Adventure
+NARRATIVE ELEMENTS REQUIRED:
+- **Story-First Design**: Narrative drives gameplay, not the reverse
+- **Character Development**: Deep character arcs and relationships
+- **Mystery/Discovery**: Unraveling mysteries through exploration and dialogue
+- **Emotional Engagement**: Focus on emotional storytelling and player connection
+
+INSPIRATION: Life is Strange, Telltale Games, Firewatch, What Remains of Edith Finch`,
+    'battle-royale': `Genre: Battle Royale
+NARRATIVE ELEMENTS REQUIRED:
+- **Competitive Arena**: Lore explains why players compete in this format
+- **Survival Context**: Last-person-standing scenario with narrative justification
+- **World Setting**: Arena or battleground with history and purpose
+- **Character Motivation**: Why participants join and what they're fighting for
+
+INSPIRATION: Apex Legends, Fortnite, PUBG`,
+    sports: `Genre: Sports
+NARRATIVE ELEMENTS REQUIRED:
+- **Competitive Context**: League, tournament, or championship structure
+- **Team/Player Identity**: Character development through sports achievements
+- **Rivalries**: Established rivalries and relationships
+- **World Integration**: How sports fit into the larger world
+
+INSPIRATION: FIFA, NBA 2K, Rocket League`,
+    fighting: `Genre: Fighting
+NARRATIVE ELEMENTS REQUIRED:
+- **Tournament Structure**: Fighting tournament with stakes and history
+- **Character Roster**: Diverse fighters with unique backgrounds and motivations
+- **World Setting**: Arena or fighting world with its own culture
+- **Personal Stakes**: What each fighter is fighting for
+
+INSPIRATION: Street Fighter, Tekken, Mortal Kombat`,
+    platformer: `Genre: Platformer
+NARRATIVE ELEMENTS REQUIRED:
+- **Movement-Focused Story**: Narrative that emphasizes traversal and exploration
+- **World Design**: Levels that tell stories through design
+- **Character Journey**: Protagonist's journey through challenging environments
+- **Environmental Storytelling**: Story told through level design and atmosphere
+
+INSPIRATION: Super Mario, Celeste, Ori and the Blind Forest`,
+    horror: `Genre: Horror
+NARRATIVE ELEMENTS REQUIRED:
+- **Atmospheric Tension**: World designed to create fear and unease
+- **Threat Context**: What is the horror and why does it exist
+- **Survival Stakes**: What happens if the protagonist fails
+- **Psychological Elements**: Fear through atmosphere, not just jump scares
+
+INSPIRATION: Silent Hill, Amnesia, Outlast`,
+    roguelike: `Genre: Roguelike
+NARRATIVE ELEMENTS REQUIRED:
+- **Death/Loop Mechanic**: Lore explanation for permadeath and restart mechanics
+- **Procedural Narrative**: Story elements that work with randomized content
+- **Progression Through Failure**: How death leads to knowledge and growth
+- **World Structure**: Why the world resets or changes
+
+INSPIRATION: Hades, Dead Cells, The Binding of Isaac`,
+    simulation: `Genre: Simulation
+NARRATIVE ELEMENTS REQUIRED:
+- **System-Driven Story**: Narrative emerges from simulation systems
+- **World Context**: What is being simulated and why
+- **Player Agency**: How player choices affect the simulation
+- **Realistic Context**: Grounded in real-world or established world rules
+
+INSPIRATION: The Sims, Cities: Skylines, Stardew Valley`,
+    racing: `Genre: Racing
+NARRATIVE ELEMENTS REQUIRED:
+- **Racing Context**: League, tournament, or street racing scene
+- **Vehicle Culture**: World where vehicles and racing are central
+- **Competition Stakes**: What racers compete for
+- **Character Identity**: Racer background and motivation
+
+INSPIRATION: Forza, Gran Turismo, Need for Speed`,
   };
 
   return guidance[genre] || '';

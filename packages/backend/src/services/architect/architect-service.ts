@@ -6,8 +6,6 @@
 import { InterviewManager } from './interview-manager.js';
 import { DocumentGenerator } from './document-generator.js';
 import {
-  InterviewSession,
-  ProjectContext,
   DocumentationPackage,
   GeneratedDocument,
   DOCUMENT_TEMPLATES,

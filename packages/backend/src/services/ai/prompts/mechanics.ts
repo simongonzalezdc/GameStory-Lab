@@ -83,7 +83,7 @@ function getGenreGuidance(genre?: Genre): string {
 Create genre-defining mechanics that blend familiar elements in novel ways. Think Portal's portal gun, Braid's time manipulation, or Hades' boon system. Focus on a single core mechanic with deep possibilities.`;
   }
 
-  const guidance: Record<Genre, string> = {
+  const guidance: Partial<Record<Genre, string>> = {
     rpg: `Genre: RPG (Role-Playing Game)
 CORE MECHANICS REQUIRED:
 - Character Progression: Leveling system (XP thresholds), skill trees (branching choices), attribute allocation (STR/DEX/INT/etc.)

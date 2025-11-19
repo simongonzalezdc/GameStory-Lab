@@ -135,7 +135,7 @@ export class RefinementService {
         mechanics: refined.mechanics as any,
         lore: refined.lore as any,
         metadata: {
-          ...existingVersion.metadata,
+          ...(existingVersion.metadata as Record<string, unknown> || {}),
           aiModel: aiResponse.model,
           userEdited: false,
           refinedFrom: request.conceptId,
@@ -245,10 +245,10 @@ export class RefinementService {
         projectId,
         version: newVersionNum,
         title: targetVersionRecord.title,
-        mechanics: targetVersionRecord.mechanics,
-        lore: targetVersionRecord.lore,
+        mechanics: targetVersionRecord.mechanics as any,
+        lore: targetVersionRecord.lore as any,
         metadata: {
-          ...targetVersionRecord.metadata,
+          ...(targetVersionRecord.metadata as Record<string, unknown> || {}),
           rolledBackFrom: latestVersion?.id,
           rolledBackToVersion: targetVersion,
           userEdited: false,

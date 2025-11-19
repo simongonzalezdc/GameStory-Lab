@@ -65,7 +65,7 @@ router.post('/', async (req, res, next) => {
     // Store new validation results and get the first ID as validationId
     let validationId: string | null = null;
     if (result.issues.length > 0) {
-      const createdResults = await prisma.validationResult.createMany({
+      await prisma.validationResult.createMany({
         data: result.issues.map((issue) => ({
           conceptId,
           ruleName: issue.rule,

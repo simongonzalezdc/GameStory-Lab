@@ -310,7 +310,6 @@ export class TemplateService {
     }
 
     // Create blended template
-    const primaryTemplate = templates[0].template;
     const genreNames = sortedConfigs.map(c => {
       const template = this.getTemplate(c.genre);
       return template?.name || c.genre;
@@ -371,7 +370,6 @@ export class TemplateService {
     });
 
     // Blend progression systems (use primary with elements from others)
-    const primaryTemplate = templates[0].template;
     const progressionTypes = templates.map(t => t.template.mechanics.progressionSystems?.type);
     const hasOpen = progressionTypes.includes('open');
     const hasBranching = progressionTypes.includes('branching');

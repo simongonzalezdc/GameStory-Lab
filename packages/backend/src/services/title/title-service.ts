@@ -222,7 +222,7 @@ Return as JSON array:
    * Get genre-specific guidance for title generation
    */
   private getGenreGuidance(genre: Genre): string {
-    const guidance: Record<Genre, string> = {
+    const guidance: Partial<Record<Genre, string>> = {
       rpg: 'RPG titles often use: epic fantasy words, "Chronicles/Legend/Quest/Saga", character/location names',
       fps: 'FPS titles often use: military terms, action words, numbers (series), "Warfare/Combat/Strike/Ops"',
       strategy: 'Strategy titles often use: civilization/empire names, numbers, "War/Conquest/Empire/Total"',
@@ -316,7 +316,7 @@ Return as JSON array:
     const lower = title.toLowerCase();
 
     // Genre-specific keywords boost
-    const genreKeywords: Record<Genre, string[]> = {
+    const genreKeywords: Partial<Record<Genre, string[]>> = {
       rpg: ['quest', 'legend', 'chronicles', 'saga', 'tales', 'story', 'fantasy'],
       fps: ['warfare', 'combat', 'strike', 'ops', 'force', 'duty', 'battle'],
       strategy: ['empire', 'civilization', 'total', 'war', 'conquest', 'command'],

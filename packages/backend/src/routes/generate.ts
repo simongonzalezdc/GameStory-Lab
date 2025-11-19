@@ -222,13 +222,16 @@ router.post('/', async (req, res, next) => {
       } else {
         // Create new version with mechanics from context or empty
         logger.info('Creating new version with lore', { hasMechanics: !!context.existingContent?.mechanics });
+        const mechanicsData = (context.existingContent?.mechanics || {}) as any;
+        const loreData = generatedContent as any;
+        const titleValue = ('title' in generatedContent && (generatedContent as { title?: string }).title) ? (generatedContent as { title?: string }).title : null;
         version = await prisma.version.create({
           data: {
             projectId,
             version: nextVersion,
-            title: taskType === 'title' ? generatedContent.title : null,
-            mechanics: context.existingContent?.mechanics || {},
-            lore: generatedContent,
+            title: titleValue,
+            mechanics: mechanicsData,
+            lore: loreData,
             metadata: {
               aiModel: response.model,
               promptTokens: response.tokensUsed.prompt,
@@ -241,21 +244,29 @@ router.post('/', async (req, res, next) => {
         });
       }
     } else {
-      // Create new version
+      // Create new version (for mechanics, title, or refinement)
+      const mechanicsData = taskType === 'mechanics' 
+        ? (generatedContent as any)
+        : ((context.existingContent?.mechanics || {}) as any);
+      const loreData = (context.existingContent?.lore || {}) as any;
+      const titleValue = (taskType === 'title' && 'title' in generatedContent) 
+        ? (generatedContent as { title?: string }).title 
+        : null;
+      const startedWithValue = taskType === 'mechanics' ? 'mechanics' : undefined;
       version = await prisma.version.create({
         data: {
           projectId,
           version: nextVersion,
-          title: taskType === 'title' ? generatedContent.title : null,
-          mechanics: taskType === 'mechanics' ? generatedContent : (context.existingContent?.mechanics || {}),
-          lore: taskType === 'lore' ? generatedContent : (context.existingContent?.lore || {}),
+          title: titleValue,
+          mechanics: mechanicsData,
+          lore: loreData,
           metadata: {
             aiModel: response.model,
             promptTokens: response.tokensUsed.prompt,
             completionTokens: response.tokensUsed.completion,
             generationTime: Date.now() - startTime,
             userEdited: false,
-            startedWith: taskType === 'mechanics' ? 'mechanics' : taskType === 'lore' ? 'lore' : undefined,
+            startedWith: startedWithValue,
           },
         },
       });

@@ -63,7 +63,7 @@ async function startOllama(): Promise<boolean> {
     }
 
     // Start Ollama in background (non-blocking)
-    const ollamaProcess = exec('ollama serve', (error) => {
+    exec('ollama serve', (error) => {
       if (error) {
         logger.warn('Failed to start Ollama', { error: error.message });
       }
@@ -97,7 +97,7 @@ async function isModelAvailable(modelName: string): Promise<boolean> {
     });
     
     if (listResponse.ok) {
-      const data = await listResponse.json();
+      const data = await listResponse.json() as { models?: Array<{ name?: string } | string> };
       const models = data.models || [];
       const modelNames = models.map((m: any) => m.name || m);
       
