@@ -3,27 +3,40 @@
  * Express API server with AI orchestration and validation
  */
 
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import compression from 'compression';
-import rateLimit from 'express-rate-limit';
+// Load environment variables FIRST, before any other imports that might use them
 import { config } from 'dotenv';
-import { PrismaClient } from '@prisma/client';
-import { AIOrchestrator } from './services/ai/orchestrator.js';
-import { handleApiError, createErrorResponse } from './utils/errors.js';
-import { logger } from './utils/logger.js';
-
-// Load environment variables from root directory
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const rootEnvPath = resolve(__dirname, '../../.env');
+// Go up from src/ to backend/ to packages/ to root
+const rootEnvPath = resolve(__dirname, '../../../.env');
 
-config({ path: rootEnvPath });
+// Load .env file synchronously before any other code runs
+const envResult = config({ path: rootEnvPath });
+if (envResult.error) {
+  console.warn('Failed to load .env file:', envResult.error);
+}
+
+// Now import other modules (they will have access to process.env)
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
+import { PrismaClient } from '@prisma/client';
+import { AIOrchestrator } from './services/ai/orchestrator.js';
+import { handleApiError, createErrorResponse } from './utils/errors.js';
+import { logger } from './utils/logger.js';
+
+// Log environment variable status
+logger.debug('Environment variables loaded', { 
+  loadedKeys: Object.keys(envResult.parsed || {}).length,
+  hasGLMKey: !!process.env.GLM_API_KEY,
+  glmKeyPreview: process.env.GLM_API_KEY ? process.env.GLM_API_KEY.substring(0, 15) + '...' : 'NOT SET'
+});
 
 // Initialize Express app
 const app = express();
@@ -113,13 +126,25 @@ app.get('/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     const aiStatus = await aiOrchestrator.getStatus();
-
-    res.json({
+    
+    logger.debug('Health check - AI status', {
+      clientCount: aiStatus.clients.length,
+      clients: aiStatus.clients.map(c => ({ name: c.name, type: c.type, available: c.available }))
+    });
+    
+    // Log the actual response being sent
+    const response = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       database: 'connected',
       ai: aiStatus,
+    };
+    logger.debug('Health check response', { 
+      aiClientsCount: response.ai.clients.length,
+      aiClientNames: response.ai.clients.map(c => c.name)
     });
+
+    res.json(response);
   } catch (error) {
     res.status(503).json({
       status: 'unhealthy',

@@ -1,0 +1,168 @@
+/**
+ * GLM (Zhipu AI) Client
+ * Direct API access for GLM 4.6 (International Coding Plan)
+ * Uses OpenAI-compatible API format
+ */
+
+import axios, { AxiosInstance } from 'axios';
+import type {
+  IAIClient,
+  AIClientConfig,
+  AICompletionRequest,
+  AICompletionResponse,
+  AIClientError,
+} from './base.js';
+
+interface GLMMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+interface GLMRequest {
+  model: string;
+  messages: GLMMessage[];
+  temperature?: number;
+  max_tokens?: number;
+  top_p?: number;
+  stream?: boolean;
+}
+
+interface GLMResponse {
+  id: string;
+  model: string;
+  choices: Array<{
+    message: {
+      role: string;
+      content: string;
+    };
+    finish_reason: string;
+  }>;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
+export class GLMClient implements IAIClient {
+  readonly name = 'GLM (Zhipu AI)';
+  readonly type = 'glm' as const;
+
+  private client: AxiosInstance;
+  private apiKey: string;
+  private baseUrl: string;
+
+  constructor(config: AIClientConfig = {}) {
+    this.apiKey = config.apiKey || process.env.GLM_API_KEY || '';
+    this.baseUrl = config.baseUrl || process.env.GLM_API_BASE_URL || 'https://api.z.ai/api/paas/v4';
+
+    if (!this.apiKey) {
+      throw new Error('GLM API key is required');
+    }
+
+    this.client = axios.create({
+      baseURL: this.baseUrl,
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: config.timeout || 300000, // 5 minutes timeout for long generations
+    });
+  }
+
+  async complete(request: AICompletionRequest): Promise<AICompletionResponse> {
+    const startTime = Date.now();
+
+    try {
+      const glmRequest: GLMRequest = {
+        model: request.model || 'glm-4-6', // Default to GLM 4.6
+        messages: request.messages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+        temperature: request.temperature ?? 0.7,
+        max_tokens: request.maxTokens ?? 2000,
+        top_p: request.topP ?? 0.9,
+        stream: false,
+      };
+
+      const response = await this.client.post<GLMResponse>(
+        '/chat/completions',
+        glmRequest
+      );
+
+      const data = response.data;
+      const durationMs = Date.now() - startTime;
+
+      // Extract content and tokens
+      const content = data.choices[0]?.message?.content || '';
+      const usage = data.usage;
+
+      // Estimate cost (GLM 4.6 pricing - adjust based on actual pricing)
+      // Using conservative estimates until we have exact pricing
+      const costUsd = this.estimateCost(usage.prompt_tokens, usage.completion_tokens);
+
+      return {
+        content,
+        model: data.model,
+        tokensUsed: {
+          prompt: usage.prompt_tokens,
+          completion: usage.completion_tokens,
+          total: usage.total_tokens,
+        },
+        finishReason: data.choices[0]?.finish_reason === 'stop' ? 'stop' : 'error',
+        metadata: {
+          provider: 'glm',
+          costUsd,
+          durationMs,
+        },
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const aiError: AIClientError = {
+          name: 'AIClientError',
+          message: `GLM generation failed: ${error.response?.data?.error?.message || error.message}`,
+          provider: 'glm',
+          statusCode: error.response?.status,
+          originalError: error,
+        };
+        throw aiError;
+      }
+      throw {
+        name: 'AIClientError',
+        message: `GLM generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        provider: 'glm',
+        originalError: error,
+      };
+    }
+  }
+
+  async isAvailable(): Promise<boolean> {
+    // If API key is set, consider it available
+    // The actual API call will handle errors if the key is invalid
+    return !!this.apiKey && this.apiKey.length > 0;
+  }
+
+  async listModels(): Promise<string[]> {
+    // GLM 4.6 is the primary model for international coding plan
+    return ['glm-4-6', 'glm-4', 'glm-3-turbo'];
+  }
+
+  /**
+   * Estimate cost based on token usage
+   * Adjust pricing based on actual GLM 4.6 international coding plan pricing
+   */
+  private estimateCost(promptTokens: number, completionTokens: number): number {
+    // GLM 4.6 pricing estimates (adjust based on actual pricing from Zhipu AI)
+    // Using conservative estimates - update with actual pricing when available
+    const costPer1MPrompt = 0.10; // $0.10 per 1M prompt tokens (estimate)
+    const costPer1MCompletion = 0.10; // $0.10 per 1M completion tokens (estimate)
+
+    const cost =
+      (promptTokens / 1_000_000) * costPer1MPrompt +
+      (completionTokens / 1_000_000) * costPer1MCompletion;
+
+    return cost;
+  }
+}
+

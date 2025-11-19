@@ -76,13 +76,20 @@ export class OllamaClient implements IAIClient {
 
         response = await Promise.race([generatePromise, timeoutPromise]) as any;
       } catch (generateError: any) {
-        // If generation fails with "model not found", try direct HTTP API as fallback
+        // If generation fails, try direct HTTP API as fallback
+        // This handles cases where SDK has issues but HTTP API works
         const errorMsg = generateError?.error?.error || generateError?.message || String(generateError);
-        if (errorMsg.includes('not found') || errorMsg.includes('404')) {
-          logger.warn(`Model ${request.model} not found via SDK, trying direct HTTP API...`);
+        const errorLower = errorMsg.toLowerCase();
+        if (errorLower.includes('not found') || errorLower.includes('404') || 
+            errorLower.includes('model') || errorLower.includes('failed')) {
+          logger.warn(`Ollama SDK generation failed, trying direct HTTP API...`, {
+            error: errorMsg,
+            model: request.model
+          });
           
           try {
             // Try direct HTTP API call (we know this works from curl tests)
+            // Use same timeout as main generation (5 minutes) - Ollama can be slow
             const httpResponse = await fetch(`${this.baseUrl}/api/generate`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -96,16 +103,69 @@ export class OllamaClient implements IAIClient {
                   top_p: request.topP ?? 0.9,
                 },
               }),
+              signal: AbortSignal.timeout(300000), // 5 minutes timeout
             });
             
             if (!httpResponse.ok) {
               const errorText = await httpResponse.text();
-              logger.error('Direct HTTP API also failed', { 
-                status: httpResponse.status, 
-                error: errorText,
-                model: request.model 
-              });
-              throw generateError;
+              const errorData = await httpResponse.json().catch(() => ({ error: errorText }));
+              
+              // If model not found, try to pull it or use alternative model names
+              if (httpResponse.status === 404 || errorText.toLowerCase().includes('not found')) {
+                logger.warn(`Model ${request.model} not found via HTTP API, attempting to pull...`);
+                try {
+                  const { exec } = await import('child_process');
+                  const { promisify } = await import('util');
+                  const execAsync = promisify(exec);
+                  
+                  // Try to pull the model (idempotent - fast if already exists)
+                  await execAsync(`ollama pull ${request.model}`, {
+                    timeout: 60000, // 1 minute timeout for pull
+                  });
+                  
+                  // Wait for Ollama to register the model
+                  await new Promise(resolve => setTimeout(resolve, 2000));
+                  
+                  // Retry HTTP API after pull
+                  logger.info(`Retrying HTTP API after pull for ${request.model}...`);
+                  const retryResponse = await fetch(`${this.baseUrl}/api/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      model: request.model,
+                      prompt,
+                      stream: false,
+                      options: {
+                        temperature: request.temperature ?? (isQwenModel || isDeepSeekR1 ? 0.6 : 0.7),
+                        num_predict: request.maxTokens ?? 2000,
+                        top_p: request.topP ?? 0.9,
+                      },
+                    }),
+                    signal: AbortSignal.timeout(300000),
+                  });
+                  
+                  if (retryResponse.ok) {
+                    const retryData = await retryResponse.json();
+                    logger.info('HTTP API succeeded after pull');
+                    response = retryData;
+                  } else {
+                    throw generateError;
+                  }
+                } catch (pullError) {
+                  logger.error('Failed to pull model or retry failed', {
+                    pullError: pullError instanceof Error ? pullError.message : String(pullError),
+                    model: request.model
+                  });
+                  throw generateError;
+                }
+              } else {
+                logger.error('Direct HTTP API also failed', { 
+                  status: httpResponse.status, 
+                  error: errorText,
+                  model: request.model 
+                });
+                throw generateError;
+              }
             }
             
             const httpData = await httpResponse.json();

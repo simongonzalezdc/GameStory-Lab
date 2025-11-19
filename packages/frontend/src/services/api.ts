@@ -27,10 +27,18 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     },
   };
 
-  // Add timeout for long-running requests (like generation and refinement)
+  // Add timeout for long-running requests (like generation, refinement, and assistant)
   // Note: TypeScript doesn't know about our custom timeout option, so we'll handle it manually
-  const isLongRunning = endpoint.includes('/generate') || endpoint.includes('/refinement');
-  const customTimeout = (options as any).timeout || (isLongRunning ? 300000 : 30000); // 5 min for AI operations, 30s default
+  const isLongRunning = endpoint.includes('/generate') || 
+                        endpoint.includes('/refinement') || 
+                        endpoint.includes('/assistant') ||
+                        endpoint.includes('/architect');
+  let customTimeout = (options as any).timeout || (isLongRunning ? 300000 : 30000); // 5 min for AI operations, 30s default
+  
+  // Ensure we always use the longer timeout for assistant endpoints
+  if (endpoint.includes('/assistant') && customTimeout < 300000) {
+    customTimeout = 300000;
+  }
   
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), customTimeout);

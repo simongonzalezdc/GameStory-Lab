@@ -128,7 +128,7 @@ export class AssistantService {
     const aiResponse = await this.aiOrchestrator.generate(
       'assistant',
       aiMessages,
-      'ollama',
+      'auto', // Will use GLM 4.6 if available, otherwise falls back to Ollama
       { maxTokens: 3000 }
     );
 

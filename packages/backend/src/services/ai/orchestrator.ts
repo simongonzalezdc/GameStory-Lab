@@ -11,12 +11,14 @@ import type { TaskType, ModelPreference } from '@gameforge/shared';
 import { OpenRouterClient } from './clients/openrouter.js';
 import { GoogleClient } from './clients/google.js';
 import { OllamaClient } from './clients/ollama.js';
+import { GLMClient } from './clients/glm.js';
 import type { IAIClient, AICompletionRequest, AICompletionResponse } from './clients/base.js';
 import { logger } from '../../utils/logger.js';
 
 export interface OrchestratorConfig {
   openrouterApiKey?: string;
   googleApiKey?: string;
+  glmApiKey?: string;
   ollamaBaseUrl?: string;
   costLimitPerHourUsd?: number;
 }
@@ -35,7 +37,29 @@ export class AIOrchestrator {
   constructor(config: OrchestratorConfig = {}) {
     this.costLimit = config.costLimitPerHourUsd || 5.0;
 
-    // Initialize available clients
+    // Initialize GLM client first (primary provider)
+    try {
+      const glmApiKey = config.glmApiKey || process.env.GLM_API_KEY;
+      logger.debug('Checking GLM API key', {
+        hasConfigKey: !!config.glmApiKey,
+        hasEnvKey: !!process.env.GLM_API_KEY,
+        envKeyLength: process.env.GLM_API_KEY?.length || 0,
+        finalKey: glmApiKey ? glmApiKey.substring(0, 15) + '...' : 'NOT SET'
+      });
+      if (glmApiKey) {
+        this.clients.set('glm', new GLMClient({ apiKey: glmApiKey }));
+        logger.info('GLM client initialized (primary AI provider)');
+      } else {
+        logger.debug('GLM API key not found, skipping GLM client initialization');
+      }
+    } catch (error) {
+      logger.warn('GLM client initialization failed', { 
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+    }
+
+    // Initialize other clients as fallbacks
     try {
       if (config.openrouterApiKey || process.env.OPENROUTER_API_KEY) {
         this.clients.set('openrouter', new OpenRouterClient({ apiKey: config.openrouterApiKey }));
@@ -181,11 +205,13 @@ export class AIOrchestrator {
       // If all fallbacks failed, throw original error with helpful message
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (errorMessage.includes('model') && errorMessage.includes('not found')) {
-        throw new Error(
-          `Ollama model not found. Available models: ${defaultOllamaModels.join(', ')}. ` +
-          `Please ensure Ollama is running and models are installed. ` +
-          `Try: ollama pull qwen3:8b`
-        );
+        // Provide more helpful error message with troubleshooting steps
+        const helpfulMessage = 
+          `Ollama model not accessible. Tried models: ${defaultOllamaModels.join(', ')}. ` +
+          `The models may exist locally but not be accessible via the Ollama API. ` +
+          `Try: ollama pull qwen3:8b (to re-register the model) or restart Ollama. ` +
+          `If using Google Gemini, add GEMINI_API_KEY to your .env file for more reliable access.`;
+        throw new Error(helpfulMessage);
       }
       throw error;
     }
@@ -244,6 +270,17 @@ export class AIOrchestrator {
       }
     }
 
+    if (preference === 'glm') {
+      const glmClient = this.clients.get('glm');
+      if (glmClient && (await glmClient.isAvailable())) {
+        return {
+          client: glmClient,
+          model: 'glm-4-6',
+          rationale: 'GLM 4.6 (user preference)',
+        };
+      }
+    }
+
     if (preference === 'openrouter') {
       const openrouterClient = this.clients.get('openrouter');
       if (openrouterClient && (await openrouterClient.isAvailable())) {
@@ -258,6 +295,16 @@ export class AIOrchestrator {
 
     // Auto selection based on task type (optimal model per task)
     if (preference === 'auto') {
+      // Prioritize GLM 4.6 for all tasks if available
+      const glmClient = this.clients.get('glm');
+      if (glmClient && (await glmClient.isAvailable())) {
+        return {
+          client: glmClient,
+          model: 'glm-4-6',
+          rationale: `GLM 4.6 for ${taskType} (primary AI provider, excellent for all tasks)`,
+        };
+      }
+
       switch (taskType) {
         case 'mechanics': {
           // DeepSeek V3 - excellent structured output
@@ -305,6 +352,7 @@ export class AIOrchestrator {
         }
 
         case 'lore': {
+          // GLM 4.6 is already checked above, fallback to OpenRouter
           // Qwen 3 72B via OpenRouter - 128K context for deep creative narratives
           const openrouterClient = this.clients.get('openrouter');
           if (openrouterClient && (await openrouterClient.isAvailable())) {
@@ -352,6 +400,7 @@ export class AIOrchestrator {
         }
 
         case 'consistency': {
+          // GLM 4.6 is already checked above, fallback to Gemini
           // Gemini 2.5 Flash - 1M context, fast reasoning
           const googleClient = this.clients.get('google');
           if (googleClient && (await googleClient.isAvailable())) {
@@ -365,6 +414,7 @@ export class AIOrchestrator {
         }
 
         case 'title': {
+          // GLM 4.6 is already checked above, fallback to OpenRouter
           // Use cheaper models for title generation
           const openrouterClient = this.clients.get('openrouter');
           if (openrouterClient && (await openrouterClient.isAvailable())) {
@@ -448,7 +498,7 @@ export class AIOrchestrator {
         }
 
         case 'assistant': {
-          // Assistants must run on Ollama Qwen models per requirements
+          // GLM 4.6 is already checked above, fallback to Ollama Qwen models
           const ollamaClient = this.clients.get('ollama');
           if (ollamaClient && (await ollamaClient.isAvailable())) {
             const qwenPreferred = [
@@ -480,9 +530,11 @@ export class AIOrchestrator {
       }
     }
 
-    // Fallback chain: try clients in order of preference
-    for (const [_name, client] of this.clients.entries()) {
-      if (await client.isAvailable()) {
+    // Fallback chain: try clients in order of preference (GLM first)
+    const clientOrder = ['glm', 'openrouter', 'google', 'ollama'];
+    for (const clientName of clientOrder) {
+      const client = this.clients.get(clientName);
+      if (client && (await client.isAvailable())) {
         let model = this.getDefaultModel(client);
         // For Ollama, try to get an available model optimized for Mac M4 16GB
         if (client.type === 'ollama' && client.listModels) {
@@ -527,6 +579,8 @@ export class AIOrchestrator {
    */
   private getDefaultModel(client: IAIClient): string {
     switch (client.type) {
+      case 'glm':
+        return 'glm-4-6';
       case 'openrouter':
         return 'deepseek/deepseek-chat';
       case 'google':
@@ -536,7 +590,7 @@ export class AIOrchestrator {
         // Falls back to qwen3:4b if 8b not available
         return 'qwen3:8b';
       default:
-        return 'qwen3:8b';
+        return 'glm-4-6';
     }
   }
 
@@ -591,12 +645,34 @@ export class AIOrchestrator {
     currentHourCost: number;
     costLimit: number;
   }> {
+    const clientEntries = Array.from(this.clients.entries());
+    logger.debug('getStatus called', { 
+      totalClients: clientEntries.length,
+      clientNames: clientEntries.map(([name]) => name)
+    });
+    
     const clientStatus = await Promise.all(
-      Array.from(this.clients.entries()).map(async ([_name, client]) => ({
-        name: client.name,
-        type: client.type,
-        available: await client.isAvailable(),
-      }))
+      clientEntries.map(async ([name, client]) => {
+        try {
+          const available = await client.isAvailable();
+          logger.debug('Client status check', { name, type: client.type, available });
+          return {
+            name: client.name,
+            type: client.type,
+            available,
+          };
+        } catch (error) {
+          logger.warn('Error checking client availability', { 
+            name, 
+            error: error instanceof Error ? error.message : String(error) 
+          });
+          return {
+            name: client.name,
+            type: client.type,
+            available: false,
+          };
+        }
+      })
     );
 
     return {
