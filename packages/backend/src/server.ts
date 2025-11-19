@@ -198,6 +198,16 @@ async function start() {
       });
     }
 
+    // Initialize Ollama (ensure server is running and models are available)
+    try {
+      const { initializeOllama } = await import('./utils/ollama-setup.js');
+      await initializeOllama();
+    } catch (ollamaError) {
+      logger.warn('Ollama initialization failed - AI features may be limited', {
+        error: ollamaError instanceof Error ? ollamaError.message : String(ollamaError),
+      });
+    }
+
     // Check AI providers
     try {
       const aiStatus = await aiOrchestrator.getStatus();

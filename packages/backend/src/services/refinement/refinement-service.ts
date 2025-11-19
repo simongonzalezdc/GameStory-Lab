@@ -61,13 +61,15 @@ export class RefinementService {
     );
 
     // 3. Call AI to refine
+    // Use higher token limit for refinement (refined concepts can be large)
     const aiResponse = await this.aiOrchestrator.generate(
       'refinement',
       [
         { role: 'system', content: this.getRefinementSystemMessage(request.focus) },
         { role: 'user', content: refinementPrompt },
       ],
-      'auto'
+      'auto',
+      { maxTokens: 8000 } // Increased from default 2000 to handle full refined concepts
     );
 
     // Parse AI response

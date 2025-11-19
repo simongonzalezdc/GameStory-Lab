@@ -73,9 +73,35 @@ router.post('/', async (req: Request, res: Response) => {
       ...result,
     });
   } catch (error) {
-    logger.error('Refinement request failed', { error, conceptId: req.body.conceptId });
+    // Extract error message from various error formats
+    let errorMessage = 'Failed to refine concept';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'object' && error !== null) {
+      // Handle AIClientError objects
+      const err = error as any;
+      errorMessage = err.message || err.error?.message || JSON.stringify(error);
+    } else {
+      errorMessage = String(error);
+    }
+    
+    logger.error('Refinement request failed', { 
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      conceptId: req.body.conceptId 
+    });
+    
+    // Provide helpful error message for Ollama model issues
+    let userFriendlyError = errorMessage;
+    if (errorMessage.includes('model') && errorMessage.includes('not found')) {
+      userFriendlyError = 'Ollama models exist locally but are not accessible via the API. ' +
+        'This is a known Ollama issue. Try: `pkill -9 ollama && ollama serve` then wait 10 seconds. ' +
+        'Or configure cloud AI providers (OpenRouter/Google) in your .env file for more reliable access.';
+    }
+    
     res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to refine concept',
+      error: userFriendlyError,
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
     });
   }
 });

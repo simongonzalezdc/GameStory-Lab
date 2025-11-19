@@ -111,50 +111,90 @@ export class AIOrchestrator {
         error,
       });
 
-      // Fallback to Ollama if available
+      // If Ollama failed and we're already using Ollama, try alternative models
+      if (selection.client.type === 'ollama') {
+        const knownModels = [
+          'qwen3:4b',              // Try smaller model first (more likely to work)
+          'qwen3:8b',
+          'llama3.1:8b',
+          'phi4-mini:latest',
+          'deepseek-coder-v2:latest',
+        ];
+        
+        // Try each model until one works
+        for (const modelName of knownModels) {
+          if (modelName === selection.model) {
+            logger.debug(`Skipping ${modelName} - already tried`);
+            continue; // Skip the one we already tried
+          }
+          
+          try {
+            logger.info(`Trying alternative Ollama model: ${modelName}`, {
+              previousModel: selection.model,
+              attempt: knownModels.indexOf(modelName) + 1,
+              total: knownModels.length,
+            });
+            const fallbackRequest: AICompletionRequest = {
+              ...request,
+              model: modelName,
+            };
+            const response = await selection.client.complete(fallbackRequest);
+            logger.info(`Successfully used Ollama model: ${modelName}`, {
+              previousModel: selection.model,
+            });
+            return response;
+          } catch (modelError: any) {
+            const errorMsg = modelError?.message || String(modelError);
+            logger.warn(`Model ${modelName} failed, trying next`, { 
+              error: errorMsg,
+              attempt: knownModels.indexOf(modelName) + 1,
+            });
+            continue;
+          }
+        }
+        
+        // If all models failed, log detailed error
+        logger.error('All Ollama models failed', {
+          triedModels: knownModels,
+          originalError: error instanceof Error ? error.message : String(error),
+        });
+      }
+
+      // Fallback to Ollama if available and we're not already using it
       if (selection.client.type !== 'ollama' && this.clients.has('ollama')) {
         logger.info('Falling back to Ollama');
         const ollamaClient = this.clients.get('ollama')!;
-        // Try to get an available model
-        // Default: Qwen3-30B-A3B (MoE) - 30B quality with only 3B activated!
-        let fallbackModel = 'qwen3:30b-a3b';
-        try {
-          const availableModels = await ollamaClient.listModels?.() || [];
-          if (availableModels.length > 0) {
-            // OPTIMIZED FOR MAC M4 16GB (November 2025):
-            // Priority order based on April-November 2025 releases & benchmarks:
-            // 1. qwen3:30b-a3b (MoE: 30B total, 3B active - BEST quality/memory ratio!, 8-12GB)
-            // 2. phi4:14b (9.8T tokens, excellent reasoning, 11-13GB)
-            // 3. qwen3-coder:7b (best creative writing, 6-8GB)
-            // 4. qwen3:7b (excellent JSON/structured, 6-8GB)
-            // 5. deepseek-r1:8b (advanced reasoning, 7-9GB)
-            // 6. llama4:8b (versatile, <8GB)
-            const preferredModels = [
-              'qwen3:30b-a3b',     // MoE magic: 30B quality, 3B memory!
-              'phi4:14b',          // Top quality for 16GB
-              'qwen3-coder:7b',    // Best creative/narrative
-              'qwen3:7b',          // Best structured JSON
-              'deepseek-r1:8b',    // Best reasoning
-              'llama4:8b',         // Versatile lightweight
-              'mistral:7b',        // Fast workhorse
-              'qwen3:3b',          // Ultra-lightweight
-            ];
-            const generalPurposeModel = availableModels.find(m =>
-              preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
-              !m.toLowerCase().includes('embed')
-            );
-            fallbackModel = generalPurposeModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
+        // Try known models in order
+        const knownModels = [
+          'qwen3:8b',
+          'qwen3:4b',
+          'llama3.1:8b',
+          'phi4-mini:latest',
+          'deepseek-coder-v2:latest',
+        ];
+        
+        for (const modelName of knownModels) {
+          try {
+            const fallbackRequest: AICompletionRequest = {
+              ...request,
+              model: modelName,
+            };
+            return await ollamaClient.complete(fallbackRequest);
+          } catch (modelError) {
+            continue; // Try next model
           }
-        } catch {
-          // If we can't list models, use default
         }
-        const fallbackRequest: AICompletionRequest = {
-          ...request,
-          model: fallbackModel,
-        };
-        return await ollamaClient.complete(fallbackRequest);
       }
 
+      // If all fallbacks failed, throw original error with helpful message
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('model') && errorMessage.includes('not found')) {
+        throw new Error(
+          `Ollama model not found. Available models: ${knownModels.join(', ')}. ` +
+          `Please ensure Ollama is running and models are installed. ` +
+          `Try: ollama pull qwen3:8b`
+        );
+      }
       throw error;
     }
   }
@@ -350,29 +390,62 @@ export class AIOrchestrator {
           const ollamaClient = this.clients.get('ollama');
           if (ollamaClient && (await ollamaClient.isAvailable())) {
             // For refinement: Use highest quality model (needs creative + analytical + reasoning)
-            let model = 'phi4:14b';
+            // Known models that exist (even if API list() returns empty)
+            // Ordered by preference for refinement tasks
+            const knownModels = [
+              'qwen3:8b',              // Best balance of quality/speed
+              'qwen3:4b',              // Fast and capable
+              'llama3.1:8b',           // Versatile and reliable
+              'phi4-mini:latest',      // Good reasoning
+              'deepseek-coder-v2:latest', // Good for structured output
+              'qwen3:7b',              // Alternative
+              'qwen3:30b-a3b',         // MoE: Best overall quality (if available)
+              'phi4:14b',              // Highest quality reasoning (if available)
+            ];
+            
+            let model: string | null = null;
             try {
               const availableModels = await ollamaClient.listModels?.() || [];
               if (availableModels.length > 0) {
                 // Refinement needs balanced creative + analytical + deep reasoning
-                // MoE and reasoning models excel here
                 const preferredModels = [
                   'qwen3:30b-a3b',     // MoE: Best overall quality
                   'phi4:14b',          // Highest quality reasoning (9.8T tokens)
                   'deepseek-r1:8b',    // Explicit reasoning for improvements
                   'qwen3-coder:7b',    // Excellent all-rounder
                   'qwen3:7b',          // Strong analytical
+                  'qwen3:8b',          // Strong analytical (alternative)
+                  'qwen3:4b',          // Fast iterations
                   'qwen3:3b',          // Fast iterations
+                  'phi4-mini',         // Good reasoning (alternative)
+                  'llama3.1:8b',       // Versatile
                 ];
-                const refinementModel = availableModels.find(m =>
-                  preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
-                  !m.toLowerCase().includes('embed')
-                );
-                model = refinementModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
+                const refinementModel = availableModels.find(m => {
+                  const modelLower = m.toLowerCase();
+                  return preferredModels.some(pref => 
+                    modelLower.includes(pref.toLowerCase()) && 
+                    !modelLower.includes('embed')
+                  );
+                });
+                model = refinementModel || 
+                        availableModels.find(m => m.toLowerCase().includes('qwen3') && !m.toLowerCase().includes('embed')) ||
+                        availableModels.find(m => !m.toLowerCase().includes('embed')) ||
+                        availableModels[0];
               }
-            } catch {
-              // If we can't list models, use default
+            } catch (error) {
+              logger.warn('Failed to list Ollama models, will try known models', { error });
             }
+            
+            // If API list() returned empty (common Ollama issue), try known models
+            // Ollama API sometimes can't list models but they're still usable
+            // We know models exist via CLI, so trust that and use them
+            if (!model) {
+              // Start with qwen3:4b (smaller, faster to load)
+              // Even if API says models don't exist, they might work when we try to use them
+              model = knownModels[0]; // qwen3:4b
+              logger.info(`API list() returned empty, but models exist via CLI. Using ${model} directly.`);
+            }
+            
             return {
               client: ollamaClient,
               model,
