@@ -2,7 +2,7 @@
  * MSW Server setup for testing
  */
 
-import { setupServer } from 'msw/node';
+import { setupServer } from 'msw/browser';
 import { beforeAll, afterEach, afterAll } from 'vitest';
 import { handlers } from './handlers';
 

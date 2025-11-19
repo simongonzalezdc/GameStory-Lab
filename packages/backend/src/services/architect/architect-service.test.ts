@@ -7,7 +7,7 @@ import { ArchitectService } from './architect-service.js';
 
 // Mock the dependencies - vitest v4 compatible syntax
 vi.mock('./interview-manager.js', () => {
-  const MockInterviewManager = vi.fn(function(this: any) {
+  const MockInterviewManager = vi.fn(function() {
     this.createSession = vi.fn().mockReturnValue({
       id: 'test-session-123',
       projectId: 'project-123',
@@ -49,7 +49,7 @@ vi.mock('./interview-manager.js', () => {
 });
 
 vi.mock('./document-generator.js', () => {
-  const MockDocumentGenerator = vi.fn(function(this: any) {
+  const MockDocumentGenerator = vi.fn(function() {
     this.generateDocumentation = vi.fn().mockResolvedValue({
       projectId: 'project-123',
       sessionId: 'test-session-123',

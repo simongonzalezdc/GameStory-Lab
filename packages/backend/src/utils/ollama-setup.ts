@@ -132,7 +132,7 @@ async function isModelAvailable(modelName: string): Promise<boolean> {
       // If generate test fails, assume model doesn't exist
       return false;
     }
-  } catch (error: any) {
+  } catch {
     // Connection errors mean we can't check, assume not available
     return false;
   }

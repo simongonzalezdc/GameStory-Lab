@@ -313,13 +313,20 @@ export interface APIError {
 }
 
 export class AppError extends Error {
+  readonly code: string;
+  readonly _statusCode: number;
+  readonly _details?: unknown;
+
   constructor(
-    public code: string,
+    code: string,
     message: string,
-    public statusCode: number = 500,
-    public details?: unknown
+    _statusCode: number = 500,
+    _details?: unknown
   ) {
     super(message);
     this.name = 'AppError';
+    this.code = code;
+    this._statusCode = _statusCode;
+    this._details = _details;
   }
 }

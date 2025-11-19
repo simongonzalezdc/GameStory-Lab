@@ -28,7 +28,7 @@ export interface TitleGenerationRequest {
 }
 
 export class TitleService {
-  constructor(private aiOrchestrator: AIOrchestrator) {}
+  constructor(private _aiOrchestrator: AIOrchestrator) {}
 
   /**
    * Generate title suggestions with advanced analysis

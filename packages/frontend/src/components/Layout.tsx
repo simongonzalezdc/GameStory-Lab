@@ -29,12 +29,15 @@ function LayoutComponent({ children }: LayoutProps) {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const shouldBeDark = stored === 'dark' || (!stored && prefersDark);
 
-    setIsDark(shouldBeDark);
+    // Apply theme to DOM immediately
     if (shouldBeDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    // Set state after DOM update to avoid cascading renders
+    setIsDark(shouldBeDark);
   }, []);
 
   const toggleTheme = () => {

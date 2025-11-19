@@ -9,7 +9,7 @@ import type { Genre } from '@gameforge/shared';
 vi.mock('node:fs', () => ({
   default: {
     readFileSync: vi.fn((filePath: string) => {
-      const genre = filePath.match(/\/([^\/]+)\.json$/)?.[1];
+      const genre = filePath.match(/\/([^/]+)\.json$/)?.[1];
       return JSON.stringify({
         id: genre,
         name: `${genre} Template`,
@@ -23,7 +23,7 @@ vi.mock('node:fs', () => ({
     }),
   },
   readFileSync: vi.fn((filePath: string) => {
-    const genre = filePath.match(/\/([^\/]+)\.json$/)?.[1];
+    const genre = filePath.match(/\/([^/]+)\.json$/)?.[1];
     return JSON.stringify({
       id: genre,
       name: `${genre} Template`,

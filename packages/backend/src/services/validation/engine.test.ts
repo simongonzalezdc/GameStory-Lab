@@ -60,9 +60,9 @@ describe('ValidationEngine', () => {
     const result = await engine.validate(mechanics, lore, 'rpg');
 
     // Should detect technology-level mismatch
-    const hasIssue = result.issues.some(
+    expect(result.issues.some(
       (issue) => issue.rule === 'technology-level-match' || issue.rule === 'combat-system-consistency'
-    );
+    )).toBe(true);
 
     // Note: This test may pass or fail depending on rule implementation
     // The important thing is that validation runs without errors

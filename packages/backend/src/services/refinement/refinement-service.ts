@@ -714,7 +714,7 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
             const candidateJson = cleanedContent.substring(jsonStartPos, jsonEndPos);
             try {
               // Try to fix and parse
-              let fixed = candidateJson
+              const fixed = candidateJson
                 .replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3')
                 .replace(/,(\s*[}\]])/g, '$1');
               const testParsed = JSON.parse(fixed);
