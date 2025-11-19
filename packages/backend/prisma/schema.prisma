@@ -29,8 +29,10 @@ model Project {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  user     User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  versions Version[]
+  user                User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions            Version[]
+  chatSessions        ChatSession[]
+  assistantProposals  AssistantProposal[]
 
   @@index([userId])
   @@index([userId, updatedAt])
@@ -48,9 +50,10 @@ model Version {
   metadata  Json     @default("{}") @db.JsonB
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  project            Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  aiGenerations      AiGeneration[]
-  validationResults  ValidationResult[]
+  project             Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  aiGenerations       AiGeneration[]
+  validationResults   ValidationResult[]
+  assistantProposals  AssistantProposal[]
 
   @@index([projectId])
   @@index([projectId, createdAt])
@@ -100,4 +103,58 @@ model ValidationResult {
   @@index([conceptId, severity])
   @@index([dismissed, severity])
   @@map("validation_results")
+}
+
+model ChatSession {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId  String   @map("project_id") @db.Uuid
+  type       String   @db.VarChar(50)
+  targetId   String?  @map("target_id") @db.Uuid
+  metadata   Json     @default("{}") @db.JsonB
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  messages  ChatMessage[]
+  proposals AssistantProposal[]
+
+  @@index([projectId])
+  @@index([projectId, type])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId  String   @map("session_id") @db.Uuid
+  role       String   @db.VarChar(20)
+  content    String   @db.Text
+  metadata   Json     @default("{}") @db.JsonB
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("chat_messages")
+}
+
+model AssistantProposal {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId   String   @map("session_id") @db.Uuid
+  projectId   String   @map("project_id") @db.Uuid
+  conceptId   String?  @map("concept_id") @db.Uuid
+  proposalType String  @map("proposal_type") @db.VarChar(50)
+  status      String   @db.VarChar(20) @default("pending")
+  payload     Json     @db.JsonB
+  changeLog   Json     @default("{}") @map("change_log") @db.JsonB
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  resolvedAt  DateTime? @map("resolved_at") @db.Timestamptz
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  project Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  concept Version?    @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([projectId])
+  @@index([projectId, status])
+  @@map("assistant_proposals")
 }

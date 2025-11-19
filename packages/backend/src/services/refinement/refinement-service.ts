@@ -51,13 +51,52 @@ export class RefinementService {
       throw new Error(`Version not found: ${request.conceptId}`);
     }
 
-    // 2. Generate refinement prompt based on focus
+    // 2. If improving consistency, fetch validation results to know what to fix
+    let validationIssues: Array<{
+      rule: string;
+      severity: string;
+      message: string;
+      suggestion: string | null;
+      confidence: number;
+    }> = [];
+
+    if (request.focus === 'improve-consistency') {
+      const validationResults = await this.prisma.validationResult.findMany({
+        where: {
+          conceptId: request.conceptId,
+          dismissed: false, // Only include non-dismissed issues
+        },
+        orderBy: [
+          { severity: 'desc' }, // Errors first, then warnings, then info
+          { confidence: 'desc' }, // Higher confidence first
+        ],
+      });
+
+      validationIssues = validationResults.map((result) => ({
+        rule: result.ruleName,
+        severity: result.severity,
+        message: result.message,
+        suggestion: result.suggestion,
+        confidence: Number(result.confidence),
+      }));
+
+      logger.info('Fetched validation issues for consistency refinement', {
+        conceptId: request.conceptId,
+        issueCount: validationIssues.length,
+        errors: validationIssues.filter((i) => i.severity === 'error').length,
+        warnings: validationIssues.filter((i) => i.severity === 'warning').length,
+        info: validationIssues.filter((i) => i.severity === 'info').length,
+      });
+    }
+
+    // 3. Generate refinement prompt based on focus
     const refinementPrompt = this.buildRefinementPrompt(
       existingVersion.mechanics as MechanicsData,
       existingVersion.lore as LoreData,
       request.focus,
       request.specificInstructions,
-      request.preserveFields
+      request.preserveFields,
+      validationIssues
     );
 
     // 3. Call AI to refine
@@ -72,8 +111,12 @@ export class RefinementService {
       { maxTokens: 8000 } // Increased from default 2000 to handle full refined concepts
     );
 
-    // Parse AI response
-    const refined = this.parseRefinementResponse(aiResponse.content);
+    // Parse AI response - pass existing mechanics/lore for fallback reconstruction
+    const refined = this.parseRefinementResponse(
+      aiResponse.content,
+      existingVersion.mechanics as MechanicsData,
+      existingVersion.lore as LoreData
+    );
 
     // 4. Track changes
     const changes = this.detectChanges(
@@ -229,7 +272,14 @@ export class RefinementService {
     lore: LoreData,
     focus: RefinementFocus,
     specificInstructions?: string,
-    preserveFields?: string[]
+    preserveFields?: string[],
+    validationIssues?: Array<{
+      rule: string;
+      severity: string;
+      message: string;
+      suggestion: string | null;
+      confidence: number;
+    }>
   ): string {
     let focusInstruction = '';
 
@@ -241,9 +291,75 @@ export class RefinementService {
         focusInstruction = 'Expand and enrich the narrative and worldbuilding. Add character depth, backstory, and thematic elements.';
         break;
       case 'improve-consistency':
-        focusInstruction = `CRITICALLY IMPORTANT: Improve consistency and alignment between mechanics and lore. Your goal is to fix inconsistencies and improve the validation score.
+        if (validationIssues && validationIssues.length > 0) {
+          // Build detailed list of specific issues to fix
+          const errors = validationIssues.filter((i) => i.severity === 'error');
+          const warnings = validationIssues.filter((i) => i.severity === 'warning');
+          const info = validationIssues.filter((i) => i.severity === 'info');
 
-SPECIFIC CONSISTENCY REQUIREMENTS:
+          let issuesList = '';
+
+          if (errors.length > 0) {
+            issuesList += '\n\nCRITICAL ERRORS (must fix - these are blocking consistency):\n';
+            errors.forEach((issue, idx) => {
+              issuesList += `${idx + 1}. [${issue.rule}] ${issue.message}\n`;
+              if (issue.suggestion) {
+                issuesList += `   Suggestion: ${issue.suggestion}\n`;
+              }
+            });
+          }
+
+          if (warnings.length > 0) {
+            issuesList += '\n\nWARNINGS (should fix - these reduce consistency score):\n';
+            warnings.forEach((issue, idx) => {
+              issuesList += `${idx + 1}. [${issue.rule}] ${issue.message}\n`;
+              if (issue.suggestion) {
+                issuesList += `   Suggestion: ${issue.suggestion}\n`;
+              }
+            });
+          }
+
+          if (info.length > 0) {
+            issuesList += '\n\nINFO (consider fixing - minor improvements):\n';
+            info.forEach((issue, idx) => {
+              issuesList += `${idx + 1}. [${issue.rule}] ${issue.message}\n`;
+              if (issue.suggestion) {
+                issuesList += `   Suggestion: ${issue.suggestion}\n`;
+              }
+            });
+          }
+
+          focusInstruction = `CRITICALLY IMPORTANT: Fix the specific validation issues listed below. These are the exact inconsistencies detected by the validation system.
+
+${issuesList}
+
+CRITICAL CONSTRAINTS:
+- Fix ONLY the issues listed above - do not change anything else
+- Preserve all mechanics and lore that are NOT mentioned in the issues above
+- When fixing, make MINIMAL changes - add missing elements or adjust specific fields, don't rewrite entire sections
+- Do NOT introduce new inconsistencies while fixing these
+- Follow the suggestions provided for each issue when available
+- The goal is to resolve these specific validation issues and improve the consistency score
+
+⚠️ CRITICAL: Some issues require MECHANICS changes, not just lore changes:
+- "technology-level-match" errors: You MUST modify mechanics to match lore's tech level, OR update lore to support mechanics' tech level
+- "resource-logic" warnings: You MUST add explanations to lore.worldRules OR modify mechanics to remove unexplained resources
+- "win-conditions-narratively-sound" warnings: You MUST ensure mechanics.winConditions align with lore.conflict.primary
+
+MANDATORY OUTPUT FORMAT - THIS IS CRITICAL:
+You MUST return a JSON object with EXACTLY two top-level fields: "mechanics" and "lore".
+- The "mechanics" field must contain the FULL mechanics object (even if unchanged, you MUST include it)
+- The "lore" field must contain the FULL lore object (even if unchanged, you MUST include it)
+- Do NOT return just lore fields directly like {themes: ..., setting: ...} - they must be wrapped in {mechanics: {...}, lore: {...}}
+- Output ONLY valid JSON starting with { and ending with }, no markdown code blocks, no explanations, no reasoning
+- Example format: {"mechanics": {...all mechanics fields...}, "lore": {...all lore fields...}}`;
+        } else {
+          // Fallback if no validation issues found
+          focusInstruction = `CRITICALLY IMPORTANT: Improve consistency and alignment between mechanics and lore. Your goal is to fix inconsistencies and improve the validation score.
+
+CRITICAL CONSTRAINT: Only fix actual inconsistencies. DO NOT change things that are already consistent. Preserve all working alignments. Only modify what is genuinely misaligned.
+
+SPECIFIC CONSISTENCY REQUIREMENTS (fix ONLY these if they are broken):
 1. Player Actions Alignment: Ensure every player action (from mechanics.playerActions) is justified by character abilities (from lore.protagonist.abilities). If actions don't match abilities, either add matching abilities to lore OR modify actions to match existing abilities.
 
 2. Win Conditions Narrative Soundness: Ensure win conditions (from mechanics.winConditions) make narrative sense given the conflict (from lore.conflict.primary). The win conditions should directly address or resolve the primary conflict.
@@ -264,7 +380,14 @@ SPECIFIC CONSISTENCY REQUIREMENTS:
 
 10. Theme Consistency: If lore.themes exist, ensure mechanics reinforce these themes (e.g., if theme is "survival", mechanics should include survival challenges).
 
-ACTIVELY FIX INCONSISTENCIES: Don't just preserve what exists - actively identify and fix misalignments. Add missing lore elements to justify mechanics, or modify mechanics to match existing lore. The goal is a higher consistency score.`;
+STRATEGY:
+- First, identify what is ALREADY consistent and PRESERVE it exactly as-is
+- Only fix things that are genuinely misaligned
+- When fixing, make MINIMAL changes - add missing elements rather than rewriting entire sections
+- Do NOT introduce new inconsistencies while fixing old ones
+- If something is borderline but not clearly broken, leave it alone
+- The goal is to improve the validation score, not to rewrite everything`;
+        }
         break;
       case 'enhance-genre-fit':
         focusInstruction = 'Refine the concept to better match genre conventions and player expectations.';
@@ -283,11 +406,19 @@ ACTIVELY FIX INCONSISTENCIES: Don't just preserve what exists - actively identif
 
     prompt += `Current Mechanics:\n${JSON.stringify(mechanics, null, 2)}\n\n`;
     prompt += `Current Lore:\n${JSON.stringify(lore, null, 2)}\n\n`;
-    prompt += `Provide refined versions of both mechanics and lore as JSON.\n`;
-    prompt += `CRITICAL: You MUST return a JSON object with exactly these two fields: "mechanics" and "lore".\n`;
-    prompt += `The JSON structure must be:\n`;
-    prompt += `{\n  "mechanics": { ...your refined mechanics object... },\n  "lore": { ...your refined lore object... }\n}\n\n`;
-    prompt += `Output ONLY valid JSON, no markdown formatting, no explanations, no reasoning, no chain of thought. Just the JSON object starting with { and ending with }.`;
+    prompt += `\n=== CRITICAL OUTPUT REQUIREMENT ===\n`;
+    prompt += `You MUST respond with ONLY a valid JSON object. No markdown, no explanations, no text before or after.\n`;
+    prompt += `\nThe JSON MUST have this exact structure:\n`;
+    prompt += `{\n  "mechanics": { ...all mechanics fields from above, with your refinements... },\n  "lore": { ...all lore fields from above, with your refinements... }\n}\n\n`;
+    prompt += `RULES:\n`;
+    prompt += `- Start your response with { (opening brace)\n`;
+    prompt += `- End your response with } (closing brace)\n`;
+    prompt += `- Include ALL mechanics fields (even if unchanged)\n`;
+    prompt += `- Include ALL lore fields (even if unchanged)\n`;
+    prompt += `- Do NOT use markdown code blocks (no \`\`\`json)\n`;
+    prompt += `- Do NOT add any text before or after the JSON\n`;
+    prompt += `- Do NOT explain what you changed\n`;
+    prompt += `\nYour response must be ONLY this JSON object, nothing else.`;
 
     return prompt;
   }
@@ -303,8 +434,15 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
 
   /**
    * Parse AI refinement response
+   * @param content - The AI response content
+   * @param fallbackMechanics - Existing mechanics to use if model doesn't return mechanics
+   * @param fallbackLore - Existing lore to use if model doesn't return lore
    */
-  private parseRefinementResponse(content: string): { mechanics: MechanicsData; lore: LoreData } {
+  private parseRefinementResponse(
+    content: string,
+    fallbackMechanics?: MechanicsData,
+    fallbackLore?: LoreData
+  ): { mechanics: MechanicsData; lore: LoreData } {
     try {
       // Clean the response (remove markdown code blocks if present)
       let cleanedContent = content.trim();
@@ -318,16 +456,118 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
         .replace(/First, let me[\s\S]*?(?=\{)/gi, '') // Remove "First, let me..." prefixes
         .trim();
       
-      // Remove markdown code blocks
-      if (cleanedContent.startsWith('```json')) {
-        cleanedContent = cleanedContent.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-      } else if (cleanedContent.startsWith('```')) {
-        cleanedContent = cleanedContent.replace(/```\n?/g, '');
+      // Try to extract JSON from markdown code blocks first
+      // Handle both ```json and ``` formats
+      // Find code block markers and extract the JSON between them
+      let extractedJson: string | null = null;
+      
+      // Look for markdown code blocks
+      const codeBlockStart = content.indexOf('```');
+      if (codeBlockStart !== -1) {
+        const afterStart = content.substring(codeBlockStart + 3);
+        // Skip "json" if present
+        const jsonStart = afterStart.match(/^(?:json)?\s*(\{)/);
+        if (jsonStart) {
+          const jsonStartIndex = codeBlockStart + 3 + (jsonStart[0].length - 1);
+          // Find the matching closing ```
+          const codeBlockEnd = content.indexOf('```', jsonStartIndex);
+          if (codeBlockEnd !== -1) {
+            // Extract JSON between the braces, tracking depth
+            let jsonContent = '';
+            let depth = 0;
+            let inString = false;
+            let escapeNext = false;
+            
+            for (let i = jsonStartIndex; i < codeBlockEnd; i++) {
+              const char = content[i];
+              
+              if (escapeNext) {
+                jsonContent += char;
+                escapeNext = false;
+                continue;
+              }
+              
+              if (char === '\\') {
+                jsonContent += char;
+                escapeNext = true;
+                continue;
+              }
+              
+              if (char === '"' && !escapeNext) {
+                jsonContent += char;
+                inString = !inString;
+                continue;
+              }
+              
+              jsonContent += char;
+              
+              if (!inString) {
+                if (char === '{') depth++;
+                if (char === '}') {
+                  depth--;
+                  if (depth === 0) {
+                    // Found complete JSON object
+                    extractedJson = jsonContent;
+                    break;
+                  }
+                }
+              }
+            }
+            
+            if (extractedJson) {
+              logger.info('Extracted JSON from markdown code block', { 
+                length: extractedJson.length,
+                hasMechanics: extractedJson.includes('"mechanics"'),
+                hasLore: extractedJson.includes('"lore"')
+              });
+            }
+          }
+        }
       }
       
-      // Try to extract JSON if wrapped in text
-      // Find the first complete JSON object by tracking bracket depth
-      let jsonStart = cleanedContent.indexOf('{');
+      // If we found JSON in a code block, use it
+      if (extractedJson) {
+        cleanedContent = extractedJson.trim();
+      } else {
+        // Remove markdown code blocks (handle both ```json and ```)
+        cleanedContent = cleanedContent.replace(/```json\n?/gi, '').replace(/```\n?/g, '');
+        
+        // Look for JSON object that contains both "mechanics" and "lore" keys
+        // This handles cases where the model returns markdown with JSON embedded
+        const mechanicsLoreJson = cleanedContent.match(/\{[^{]*"mechanics"[\s\S]*"lore"[\s\S]*\}/);
+        if (mechanicsLoreJson) {
+          cleanedContent = mechanicsLoreJson[0];
+          logger.info('Extracted JSON object containing mechanics and lore from markdown');
+        } else {
+          // Remove common explanatory prefixes that models sometimes add
+          // Look for patterns like "Based on your request..." or "Here is..." before JSON
+          cleanedContent = cleanedContent.replace(/^[^{]*?(?=\{[^{]*"mechanics"|"lore")/i, '');
+        }
+      }
+      
+      // Try multiple strategies to find the correct JSON object
+      // Strategy 1: Look for the top-level object containing both "mechanics" and "lore"
+      let jsonStart = -1;
+      let jsonEnd = -1;
+      
+      // First, try to find an object that contains both "mechanics" and "lore" keys
+      const mechanicsIndex = cleanedContent.indexOf('"mechanics"');
+      const loreIndex = cleanedContent.indexOf('"lore"');
+      
+      if (mechanicsIndex !== -1 && loreIndex !== -1) {
+        // Find the opening brace before the first of these keys
+        const firstKeyIndex = Math.min(mechanicsIndex, loreIndex);
+        jsonStart = cleanedContent.lastIndexOf('{', firstKeyIndex);
+        
+        if (jsonStart === -1) {
+          // If no brace before, look for the first brace in the content
+          jsonStart = cleanedContent.indexOf('{');
+        }
+      } else {
+        // Fallback: just find the first brace
+        jsonStart = cleanedContent.indexOf('{');
+      }
+      
       if (jsonStart === -1) {
         logger.error('No JSON found in refinement response', { content: content.substring(0, 500) });
         throw new Error('No JSON found in response');
@@ -335,7 +575,7 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
       
       // Track bracket depth to find the matching closing brace
       let depth = 0;
-      let jsonEnd = jsonStart;
+      jsonEnd = jsonStart;
       let inString = false;
       let escapeNext = false;
       
@@ -377,8 +617,143 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
       
       cleanedContent = cleanedContent.substring(jsonStart, jsonEnd);
       
+      // Clean up common JSON formatting issues before parsing
+      // First, ensure we only have the JSON object (remove any trailing text)
+      // Find the last closing brace that matches the first opening brace
+      const firstBrace = cleanedContent.indexOf('{');
+      const lastBrace = cleanedContent.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        // Extract only the JSON portion
+        cleanedContent = cleanedContent.substring(firstBrace, lastBrace + 1);
+      }
+      
+      // Fix single quotes to double quotes for property names (but be careful with apostrophes in strings)
+      // Only replace single quotes around property names, not in string values
+      cleanedContent = cleanedContent.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
+      // Fix trailing commas
+      cleanedContent = cleanedContent.replace(/,(\s*[}\]])/g, '$1');
+      // Remove comments (JSON doesn't support comments)
+      cleanedContent = cleanedContent.replace(/\/\/.*$/gm, '');
+      cleanedContent = cleanedContent.replace(/\/\*[\s\S]*?\*\//g, '');
+      // Remove any text after the closing brace
+      const closingBraceIndex = cleanedContent.lastIndexOf('}');
+      if (closingBraceIndex !== -1) {
+        cleanedContent = cleanedContent.substring(0, closingBraceIndex + 1);
+      }
+      
       // Parse JSON
-      const parsed = JSON.parse(cleanedContent);
+      let parsed: any;
+      try {
+        parsed = JSON.parse(cleanedContent);
+      } catch (parseError) {
+        // If parsing fails, try to fix common issues and retry
+        logger.warn('Initial JSON parse failed, attempting to fix and retry', {
+          error: parseError instanceof Error ? parseError.message : String(parseError),
+          contentPreview: cleanedContent.substring(0, 500),
+          errorPosition: parseError instanceof SyntaxError ? (parseError as any).position : undefined
+        });
+        
+        // Try to fix the specific error position if available
+        if (parseError instanceof SyntaxError) {
+          const errorMsg = parseError.message;
+          const positionMatch = errorMsg.match(/position (\d+)/);
+          if (positionMatch) {
+            const errorPos = parseInt(positionMatch[1], 10);
+            const beforeError = cleanedContent.substring(0, errorPos);
+            const atError = cleanedContent.substring(errorPos, Math.min(errorPos + 50, cleanedContent.length));
+            logger.debug('JSON error context', {
+              beforeError: beforeError.substring(Math.max(0, beforeError.length - 100)),
+              atError,
+              errorMessage: errorMsg
+            });
+          }
+        }
+        
+        // Try to find and extract a valid JSON object by tracking braces properly
+        // The regex approach doesn't work well for nested objects, so use brace tracking
+        let bestJson: string | null = null;
+        let jsonStartPos = cleanedContent.indexOf('{');
+        
+        while (jsonStartPos !== -1) {
+          let depth = 0;
+          let jsonEndPos = jsonStartPos;
+          let inString = false;
+          let escapeNext = false;
+          
+          for (let i = jsonStartPos; i < cleanedContent.length; i++) {
+            const char = cleanedContent[i];
+            
+            if (escapeNext) {
+              escapeNext = false;
+              continue;
+            }
+            
+            if (char === '\\') {
+              escapeNext = true;
+              continue;
+            }
+            
+            if (char === '"' && !escapeNext) {
+              inString = !inString;
+              continue;
+            }
+            
+            if (!inString) {
+              if (char === '{') depth++;
+              if (char === '}') {
+                depth--;
+                if (depth === 0) {
+                  jsonEndPos = i + 1;
+                  break;
+                }
+              }
+            }
+          }
+          
+          if (depth === 0 && jsonEndPos > jsonStartPos) {
+            const candidateJson = cleanedContent.substring(jsonStartPos, jsonEndPos);
+            try {
+              // Try to fix and parse
+              let fixed = candidateJson
+                .replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3')
+                .replace(/,(\s*[}\]])/g, '$1');
+              const testParsed = JSON.parse(fixed);
+              if (testParsed.mechanics && testParsed.lore) {
+                bestJson = fixed;
+                parsed = testParsed;
+                logger.info('Found valid JSON with both mechanics and lore using brace tracking');
+                break;
+              } else if (!bestJson) {
+                // Keep as fallback
+                bestJson = fixed;
+                parsed = testParsed;
+              }
+            } catch {
+              // Try next JSON object
+            }
+          }
+          
+          // Find next potential JSON start
+          jsonStartPos = cleanedContent.indexOf('{', jsonStartPos + 1);
+        }
+        
+        // If we found a JSON object but it doesn't have mechanics/lore, try to reconstruct
+        if (parsed && (!parsed.mechanics || !parsed.lore)) {
+          logger.warn('Found JSON but missing mechanics or lore, will use reconstruction logic');
+        }
+        
+        if (!parsed) {
+          // Log the problematic content for debugging
+          logger.error('Failed to parse JSON after all attempts', {
+            originalError: parseError instanceof Error ? parseError.message : String(parseError),
+            contentLength: cleanedContent.length,
+            contentPreview: cleanedContent.substring(0, 1000),
+            firstBrace: cleanedContent.indexOf('{'),
+            lastBrace: cleanedContent.lastIndexOf('}')
+          });
+          throw parseError;
+        }
+      }
       
       // Validate that we got meaningful content
       if (!parsed || (typeof parsed === 'object' && Object.keys(parsed).length === 0)) {
@@ -400,14 +775,68 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
         loreKeys: parsed.lore && typeof parsed.lore === 'object' ? Object.keys(parsed.lore) : null,
       });
       
-      // Ensure we have mechanics and lore
-      // Handle cases where they might be empty objects (which is valid)
+      // Handle case where model returns only lore fields directly (not wrapped in "lore" key)
+      // Sometimes models return {themes: ..., setting: ..., conflict: ...} instead of {mechanics: ..., lore: {...}}
       if (parsed.mechanics === undefined || parsed.mechanics === null) {
-        logger.error('Missing mechanics in refinement response', { 
-          keys: Object.keys(parsed),
-          parsedPreview: JSON.stringify(parsed).substring(0, 500)
-        });
-        throw new Error('Response missing required mechanics field');
+        // Check if the parsed object contains lore fields directly (themes, setting, conflict, protagonist, etc.)
+        const loreFieldNames = ['themes', 'setting', 'conflict', 'protagonist', 'worldRules', 'progression', 'narrative'];
+        const hasLoreFields = loreFieldNames.some(field => parsed[field] !== undefined);
+        
+        if (hasLoreFields && !parsed.mechanics) {
+          // Model returned lore fields directly, not wrapped in {mechanics: ..., lore: ...}
+          // Reconstruct the proper structure using fallback mechanics and wrapping lore fields
+          logger.warn('Model returned lore fields directly without mechanics wrapper - reconstructing response', { 
+            keys: Object.keys(parsed),
+            hasLoreFields,
+            usingFallbackMechanics: !!fallbackMechanics
+          });
+          
+          // Use existing mechanics as fallback (model didn't provide new ones)
+          const mechanics = fallbackMechanics || {};
+          
+          // Wrap the lore fields into a proper lore object
+          const lore: LoreData = {
+            themes: parsed.themes,
+            setting: parsed.setting,
+            conflict: parsed.conflict,
+            protagonist: parsed.protagonist || parsed.protagon, // Handle typo in model response
+            worldRules: parsed.worldRules,
+            progression: parsed.progression,
+            narrative: parsed.narrative,
+            // Preserve any other lore fields from fallback that weren't in the response
+            ...(fallbackLore && typeof fallbackLore === 'object' ? fallbackLore : {}),
+          };
+          
+          // Remove undefined fields
+          Object.keys(lore).forEach(key => {
+            if (lore[key as keyof LoreData] === undefined) {
+              delete lore[key as keyof LoreData];
+            }
+          });
+          
+          logger.info('Successfully reconstructed response from malformed model output', {
+            mechanicsKeys: Object.keys(mechanics),
+            loreKeys: Object.keys(lore)
+          });
+          
+          return {
+            mechanics: mechanics as MechanicsData,
+            lore: lore as LoreData,
+          };
+        } else {
+          // No lore fields found either - this is a real error
+          if (!fallbackMechanics) {
+            throw new Error('Response missing required mechanics field');
+          }
+          // Use fallback mechanics and lore
+          logger.warn('Model response missing mechanics, using fallback', {
+            keys: Object.keys(parsed)
+          });
+          return {
+            mechanics: fallbackMechanics,
+            lore: (parsed.lore || fallbackLore || {}) as LoreData,
+          };
+        }
       }
       
       if (parsed.lore === undefined || parsed.lore === null) {
@@ -510,3 +939,4 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
     return `${added} fields added, ${modified} fields modified, ${removed} fields removed`;
   }
 }
+

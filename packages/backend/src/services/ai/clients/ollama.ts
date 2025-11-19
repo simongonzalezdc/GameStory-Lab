@@ -137,33 +137,108 @@ export class OllamaClient implements IAIClient {
       // Qwen3 models have thinking mode that separates reasoning from final answer
       let content = response.response;
       
-      if (!content || content.trim().length === 0) {
+      // Check if response is empty or doesn't contain proper JSON structure
+      const hasProperStructure = content && (
+        (content.includes('"mechanics"') && content.includes('"lore"')) ||
+        content.match(/\{[^{]*"mechanics"[\s\S]*"lore"[\s\S]*\}/)
+      );
+      
+      if (!content || content.trim().length === 0 || !hasProperStructure) {
         if (response.thinking && response.thinking.trim().length > 0) {
           // Qwen3 sometimes puts the actual answer in thinking field
           // Try to extract JSON from thinking field
-          logger.warn('Ollama response is empty, attempting to extract from thinking field', {
+          logger.warn('Ollama response empty or missing proper structure, attempting to extract from thinking field', {
             model: request.model,
+            responseLength: content?.length || 0,
+            hasProperStructure: !!hasProperStructure,
             thinkingLength: response.thinking.length,
           });
           
-          // Look for JSON in the thinking field (usually at the end)
+          // Look for JSON in the thinking field that has both mechanics and lore
           const thinkingText = response.thinking;
-          const jsonMatch = thinkingText.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            content = jsonMatch[0];
-            logger.info('Extracted JSON from thinking field', {
-              extractedLength: content.length,
-            });
-          } else {
-            // If no JSON found, use the last part of thinking (might be the answer)
-            // Split by common delimiters and take the last meaningful part
-            const parts = thinkingText.split(/\n\n|\.\s+/);
-            const lastPart = parts[parts.length - 1] || thinkingText;
-            if (lastPart.trim().startsWith('{')) {
-              content = lastPart.trim();
+          
+          // First, try to find JSON with proper structure (mechanics and lore)
+          // Use a more careful approach: find the opening brace, then track depth to find the matching closing brace
+          const mechanicsIndex = thinkingText.indexOf('"mechanics"');
+          const loreIndex = thinkingText.indexOf('"lore"');
+          
+          if (mechanicsIndex !== -1 && loreIndex !== -1) {
+            // Find the opening brace before the first key
+            const firstKeyIndex = Math.min(mechanicsIndex, loreIndex);
+            let jsonStart = thinkingText.lastIndexOf('{', firstKeyIndex);
+            
+            if (jsonStart === -1) {
+              jsonStart = thinkingText.indexOf('{');
+            }
+            
+            if (jsonStart !== -1) {
+              // Track brace depth to find the complete JSON object
+              let depth = 0;
+              let jsonEnd = jsonStart;
+              let inString = false;
+              let escapeNext = false;
+              
+              for (let i = jsonStart; i < thinkingText.length; i++) {
+                const char = thinkingText[i];
+                
+                if (escapeNext) {
+                  escapeNext = false;
+                  continue;
+                }
+                
+                if (char === '\\') {
+                  escapeNext = true;
+                  continue;
+                }
+                
+                if (char === '"' && !escapeNext) {
+                  inString = !inString;
+                  continue;
+                }
+                
+                if (!inString) {
+                  if (char === '{') depth++;
+                  if (char === '}') {
+                    depth--;
+                    if (depth === 0) {
+                      jsonEnd = i + 1;
+                      break;
+                    }
+                  }
+                }
+              }
+              
+              if (depth === 0 && jsonEnd > jsonStart) {
+                content = thinkingText.substring(jsonStart, jsonEnd);
+                logger.info('Extracted properly structured JSON from thinking field', {
+                  extractedLength: content.length,
+                  hasMechanics: content.includes('"mechanics"'),
+                  hasLore: content.includes('"lore"')
+                });
+              }
+            }
+          }
+          
+          // If we didn't find proper structure, try fallback approaches
+          if (!content || (!content.includes('"mechanics"') && !content.includes('"lore"'))) {
+            // Look for any JSON object
+            const jsonMatch = thinkingText.match(/\{[\s\S]{100,}\}/);
+            if (jsonMatch) {
+              content = jsonMatch[0];
+              logger.info('Extracted JSON from thinking field (may need reconstruction)', {
+                extractedLength: content.length,
+              });
             } else {
-              // Fallback: use entire thinking as content (might contain the answer)
-              content = thinkingText;
+              // If no JSON found, use the last part of thinking (might be the answer)
+              // Split by common delimiters and take the last meaningful part
+              const parts = thinkingText.split(/\n\n|\.\s+/);
+              const lastPart = parts[parts.length - 1] || thinkingText;
+              if (lastPart.trim().startsWith('{')) {
+                content = lastPart.trim();
+              } else {
+                // Fallback: use entire thinking as content (might contain the answer)
+                content = thinkingText;
+              }
             }
           }
         }

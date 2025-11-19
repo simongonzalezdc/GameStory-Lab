@@ -4,6 +4,7 @@
  */
 
 import { Router, Request, Response } from 'express';
+import AdmZip from 'adm-zip';
 import { architectService } from '../services/architect/architect-service.js';
 import { handleApiError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
@@ -29,7 +30,7 @@ router.post('/start', async (req: Request, res: Response) => {
 
     const result = architectService.startInterview(projectId);
 
-    logger.info('Started architect interview', { projectId, sessionId: result.sessionId });
+    logger.info({ message: 'Started architect interview', projectId, sessionId: result.sessionId });
 
     res.json({
       success: true,
@@ -59,7 +60,7 @@ router.post('/answer', async (req: Request, res: Response) => {
 
     const result = architectService.submitAnswer(sessionId, questionId, answer);
 
-    logger.debug('Submitted interview answer', { sessionId, questionId });
+    logger.debug({ message: 'Submitted interview answer', sessionId, questionId });
 
     res.json({
       success: true,
@@ -93,7 +94,7 @@ router.get('/session/:sessionId', async (req: Request, res: Response) => {
  * GET /api/architect/questions
  * Get all available interview questions
  */
-router.get('/questions', async (req: Request, res: Response) => {
+router.get('/questions', async (_req: Request, res: Response) => {
   try {
     const questions = architectService.getAllQuestions();
 
@@ -126,11 +127,12 @@ router.post('/generate', async (req: Request, res: Response) => {
       });
     }
 
-    logger.info('Generating project documentation', { projectId, sessionId });
+    logger.info({ message: 'Generating project documentation', projectId, sessionId });
 
     const documentation = await architectService.generateDocumentation(projectId, sessionId);
 
-    logger.info('Documentation generated successfully', {
+    logger.info({
+      message: 'Documentation generated successfully',
       projectId,
       documentCount: documentation.documents.length,
     });
@@ -211,6 +213,37 @@ router.get('/document/:projectId/:documentName', async (req: Request, res: Respo
 });
 
 /**
+ * GET /api/architect/export/:projectId
+ * Download all documentation as a zip archive
+ */
+router.get('/export/:projectId', async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    const documentation = architectService.getDocumentation(projectId);
+    if (!documentation) {
+      return res.status(404).json({
+        error: {
+          code: 'NOT_FOUND',
+          message: 'No documentation available to export',
+        },
+      });
+    }
+
+    const zip = new AdmZip();
+    documentation.documents.forEach((doc) => {
+      zip.addFile(`${doc.templateName}.md`, Buffer.from(doc.content, 'utf-8'));
+    });
+
+    const zipBuffer = zip.toBuffer();
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${projectId}-documents.zip"`);
+    res.send(zipBuffer);
+  } catch (error) {
+    handleApiError(error, res);
+  }
+});
+
+/**
  * GET /api/architect/templates
  * Get list of available document templates
  */
@@ -249,7 +282,7 @@ router.delete('/session/:sessionId', async (req: Request, res: Response) => {
       });
     }
 
-    logger.info('Deleted architect session', { sessionId });
+    logger.info({ message: 'Deleted architect session', sessionId });
 
     res.json({
       success: true,

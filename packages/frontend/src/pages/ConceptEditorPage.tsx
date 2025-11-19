@@ -6,6 +6,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { projectsAPI, validationAPI, exportAPI, refinementAPI, generateAPI } from '../services/api';
+import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
 
 interface Project {
   id: string;
@@ -151,7 +152,17 @@ export function ConceptEditorPage() {
       setValidationIssues(response.issues || []);
       // API returns 'overallScore' as 0-1, convert to 0-100 for display
       const rawScore = response.overallScore || response.consistencyScore || 0;
-      setConsistencyScore(Math.round(rawScore * 100));
+      const displayScore = Math.round(rawScore * 100);
+      console.log('[Validation] Score updated:', {
+        versionId: currentVersion.id,
+        versionNumber: currentVersion.version,
+        rawScore,
+        displayScore,
+        issueCount: response.issues?.length || 0,
+        errors: response.issues?.filter(i => i.severity === 'error').length || 0,
+        warnings: response.issues?.filter(i => i.severity === 'warning').length || 0,
+      });
+      setConsistencyScore(displayScore);
       // Mark this version as validated
       lastValidatedVersionId.current = currentVersion.id;
     } catch (err) {
@@ -224,7 +235,8 @@ export function ConceptEditorPage() {
       lastValidatedVersionId.current = null;
       
       // The useEffect will automatically trigger validation when currentVersion.id changes
-      // Since we reset lastValidatedVersionId, it will use the faster 500ms debounce delay
+      // We've already reset lastValidatedVersionId.current = null, so it will validate
+      // No need to manually trigger - let the useEffect handle it to avoid double validation
       
       alert('Version refined successfully! A new version has been created. Validating consistency...');
     } catch (err) {
@@ -584,7 +596,7 @@ export function ConceptEditorPage() {
   );
 
   return (
-    <div>
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -708,42 +720,41 @@ export function ConceptEditorPage() {
           >
             🏗️ Project Architect
           </button>
-          <div className="relative group">
+          <div className="flex flex-wrap gap-2">
             <button
+              onClick={() => handleRefine('deepen-mechanics')}
               disabled={refining}
-              className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium disabled:opacity-50"
+              className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition disabled:opacity-50"
             >
-              ✨ Refine
+              ⚙️ Deepen Mechanics
             </button>
-            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-10">
-              <button
-                onClick={() => handleRefine('deepen-mechanics')}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-sm text-gray-900 dark:text-gray-100"
-              >
-                Deepen Mechanics
-              </button>
-              <button
-                onClick={() => handleRefine('enrich-lore')}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-sm text-gray-900 dark:text-gray-100"
-              >
-                Enrich Lore
-              </button>
-              <button
-                onClick={() => handleRefine('improve-consistency')}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-sm text-gray-900 dark:text-gray-100"
-              >
-                Improve Consistency
-              </button>
-              <button
-                onClick={() => handleRefine('enhance-genre-fit')}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-sm text-gray-900 dark:text-gray-100"
-              >
-                Enhance Genre Fit
-              </button>
-            </div>
+            <button
+              onClick={() => handleRefine('enrich-lore')}
+              disabled={refining}
+              className="px-4 py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition disabled:opacity-50"
+            >
+              📖 Enrich Lore
+            </button>
+            <button
+              onClick={() => handleRefine('improve-consistency')}
+              disabled={refining}
+              className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-200 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition disabled:opacity-50"
+            >
+              ♻️ Improve Consistency
+            </button>
+            <button
+              onClick={() => handleRefine('enhance-genre-fit')}
+              disabled={refining}
+              className="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/50 transition disabled:opacity-50"
+            >
+              🎯 Enhance Genre Fit
+            </button>
           </div>
         </div>
       </div>
+
+      <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
+        <div className="space-y-8">
 
       {/* Consistency Score */}
       {consistencyScore !== null && (
@@ -896,6 +907,28 @@ export function ConceptEditorPage() {
             )}
           </div>
         )}
+      </div>
+
+        <div className="space-y-6">
+          {project?.id && (
+            <ProjectAssistantPanel
+              projectId={project.id}
+              type="concept"
+              initiallyOpen
+            />
+          )}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5">
+            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 uppercase tracking-wide">
+              Workflow Checklist
+            </h4>
+            <ol className="text-sm text-slate-600 dark:text-slate-300 space-y-1 list-decimal list-inside">
+              <li>Kick off or continue the Project Assistant chat.</li>
+              <li>Accept suggested mechanics or lore updates to create versions.</li>
+              <li>Resolve validation issues with the always-visible refine buttons.</li>
+              <li>Graduate to Project Architect for full documentation.</li>
+            </ol>
+          </div>
+        </div>
       </div>
 
       {/* Generate Modal - also available when concept exists */}

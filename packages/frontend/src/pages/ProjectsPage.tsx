@@ -201,6 +201,33 @@ export function ProjectsPage() {
           </div>
         </div>
 
+        <div className="grid gap-4 mt-10 md:grid-cols-2">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-5">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Chat with the Project Assistant</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+              Describe your vision in freeform conversation. Once the project is created, open the concept editor to see the live chat panel and accept its mechanics/lore proposals.
+            </p>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="btn btn-primary w-full"
+            >
+              Start Assistant Workflow
+            </button>
+          </div>
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-5">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Kick off with Templates</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+              Prefer a head start? Blend genres or customize any template, then switch to the assistant for rapid refinement.
+            </p>
+            <Link
+              to="/templates"
+              className="btn btn-secondary w-full text-center"
+            >
+              Browse Templates → Assistant
+            </Link>
+          </div>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
           <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 p-6">

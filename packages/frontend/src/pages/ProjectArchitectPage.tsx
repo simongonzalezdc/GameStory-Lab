@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
 
 interface Question {
   id: string;
@@ -189,8 +190,30 @@ export function ProjectArchitectPage() {
     }
   };
 
+  const downloadAllDocuments = async () => {
+    if (!projectId) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/architect/export/${projectId}`);
+      if (!response.ok) {
+        throw new Error('Failed to export documentation');
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${projectId}-documents.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to download archive');
+    }
+  };
+
   return (
-    <div className="project-architect-page" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+    <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
+      <div className="project-architect-page" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
       <div style={{ marginBottom: '2rem' }}>
         <button
           onClick={() => navigate(`/projects/${projectId}`)}
@@ -428,6 +451,22 @@ export function ProjectArchitectPage() {
                 </div>
               ))}
             </div>
+            <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+              <button
+                onClick={downloadAllDocuments}
+                style={{
+                  backgroundColor: '#0f172a',
+                  color: 'white',
+                  padding: '0.5rem 1.5rem',
+                  borderRadius: '0.375rem',
+                  border: 'none',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Download All (.zip)
+              </button>
+            </div>
           </div>
 
           <div style={{ marginTop: '2rem', textAlign: 'center' }}>
@@ -449,5 +488,11 @@ export function ProjectArchitectPage() {
         </div>
       )}
     </div>
+    <div>
+      {projectId && (
+        <ProjectAssistantPanel projectId={projectId} type="architect" initiallyOpen={false} />
+      )}
+    </div>
+  </div>
   );
 }

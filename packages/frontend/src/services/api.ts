@@ -234,4 +234,35 @@ export const healthAPI = {
   check: () => request<any>('/health'),
 };
 
+// Assistant API
+export const assistantAPI = {
+  startSession: (data: { projectId: string; type?: 'concept' | 'architect' }) =>
+    request<{ session: any; messages: any[]; proposals: any[] }>('/api/assistant/session', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  sendMessage: (sessionId: string, content: string) =>
+    request<{ message: any; proposal?: any }>(`/api/assistant/session/${sessionId}/message`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    }),
+
+  getMessages: (sessionId: string) =>
+    request<{ messages: any[] }>(`/api/assistant/session/${sessionId}/messages`),
+
+  getProposals: (sessionId: string) =>
+    request<{ proposals: any[] }>(`/api/assistant/session/${sessionId}/proposals`),
+
+  acceptProposal: (proposalId: string) =>
+    request<{ success: boolean; result?: any }>(`/api/assistant/proposals/${proposalId}/accept`, {
+      method: 'POST',
+    }),
+
+  rejectProposal: (proposalId: string) =>
+    request<{ success: boolean }>(`/api/assistant/proposals/${proposalId}/reject`, {
+      method: 'POST',
+    }),
+};
+
 export { APIError };

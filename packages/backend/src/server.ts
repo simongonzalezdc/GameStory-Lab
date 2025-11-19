@@ -156,6 +156,7 @@ import templatesRouter from './routes/templates.js';
 import refinementRouter from './routes/refinement.js';
 import titlesRouter from './routes/titles.js';
 import architectRouter from './routes/architect.js';
+import assistantRouter from './routes/assistant.js';
 
 app.use('/api/projects', projectsRouter);
 app.use('/api/generate', generateRouter);
@@ -165,6 +166,7 @@ app.use('/api/templates', templatesRouter);
 app.use('/api/refinement', refinementRouter);
 app.use('/api/titles', titlesRouter);
 app.use('/api/architect', architectRouter);
+app.use('/api/assistant', assistantRouter);
 
 // Error handling middleware
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

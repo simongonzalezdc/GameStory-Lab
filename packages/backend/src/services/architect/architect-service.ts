@@ -110,6 +110,39 @@ export class ArchitectService {
   }
 
   /**
+   * Apply updates suggested by assistants to existing documentation
+   */
+  applyAssistantUpdates(
+    projectId: string,
+    updates: Array<{ name: string; content: string }>
+  ): DocumentationPackage | null {
+    const pkg = this.documentationPackages.get(projectId);
+    if (!pkg) {
+      return null;
+    }
+
+    const updatedDocuments = pkg.documents.map((doc) => {
+      const update = updates.find((u) => u.name === doc.templateName || u.name === doc.templateName.replace('.md', ''));
+      if (update) {
+        return {
+          ...doc,
+          content: update.content,
+          generatedAt: new Date(),
+        };
+      }
+      return doc;
+    });
+
+    const updatedPackage: DocumentationPackage = {
+      ...pkg,
+      documents: updatedDocuments,
+      generatedAt: new Date(),
+    };
+    this.documentationPackages.set(projectId, updatedPackage);
+    return updatedPackage;
+  }
+
+  /**
    * Get all document templates info
    */
   getTemplateList() {

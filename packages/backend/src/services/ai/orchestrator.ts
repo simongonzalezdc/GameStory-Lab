@@ -111,18 +111,18 @@ export class AIOrchestrator {
         error,
       });
 
+      const defaultOllamaModels = [
+        'qwen3:4b',
+        'qwen3:8b',
+        'llama3.1:8b',
+        'phi4-mini:latest',
+        'deepseek-coder-v2:latest',
+      ];
+
       // If Ollama failed and we're already using Ollama, try alternative models
       if (selection.client.type === 'ollama') {
-        const knownModels = [
-          'qwen3:4b',              // Try smaller model first (more likely to work)
-          'qwen3:8b',
-          'llama3.1:8b',
-          'phi4-mini:latest',
-          'deepseek-coder-v2:latest',
-        ];
-        
         // Try each model until one works
-        for (const modelName of knownModels) {
+        for (const modelName of defaultOllamaModels) {
           if (modelName === selection.model) {
             logger.debug(`Skipping ${modelName} - already tried`);
             continue; // Skip the one we already tried
@@ -131,8 +131,8 @@ export class AIOrchestrator {
           try {
             logger.info(`Trying alternative Ollama model: ${modelName}`, {
               previousModel: selection.model,
-              attempt: knownModels.indexOf(modelName) + 1,
-              total: knownModels.length,
+              attempt: defaultOllamaModels.indexOf(modelName) + 1,
+              total: defaultOllamaModels.length,
             });
             const fallbackRequest: AICompletionRequest = {
               ...request,
@@ -147,7 +147,7 @@ export class AIOrchestrator {
             const errorMsg = modelError?.message || String(modelError);
             logger.warn(`Model ${modelName} failed, trying next`, { 
               error: errorMsg,
-              attempt: knownModels.indexOf(modelName) + 1,
+              attempt: defaultOllamaModels.indexOf(modelName) + 1,
             });
             continue;
           }
@@ -155,7 +155,7 @@ export class AIOrchestrator {
         
         // If all models failed, log detailed error
         logger.error('All Ollama models failed', {
-          triedModels: knownModels,
+          triedModels: defaultOllamaModels,
           originalError: error instanceof Error ? error.message : String(error),
         });
       }
@@ -165,15 +165,7 @@ export class AIOrchestrator {
         logger.info('Falling back to Ollama');
         const ollamaClient = this.clients.get('ollama')!;
         // Try known models in order
-        const knownModels = [
-          'qwen3:8b',
-          'qwen3:4b',
-          'llama3.1:8b',
-          'phi4-mini:latest',
-          'deepseek-coder-v2:latest',
-        ];
-        
-        for (const modelName of knownModels) {
+        for (const modelName of defaultOllamaModels) {
           try {
             const fallbackRequest: AICompletionRequest = {
               ...request,
@@ -190,7 +182,7 @@ export class AIOrchestrator {
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (errorMessage.includes('model') && errorMessage.includes('not found')) {
         throw new Error(
-          `Ollama model not found. Available models: ${knownModels.join(', ')}. ` +
+          `Ollama model not found. Available models: ${defaultOllamaModels.join(', ')}. ` +
           `Please ensure Ollama is running and models are installed. ` +
           `Try: ollama pull qwen3:8b`
         );
@@ -450,6 +442,37 @@ export class AIOrchestrator {
               client: ollamaClient,
               model,
               rationale: `Ollama ${model} for refinement (local, unlimited iterations, Mac M4 16GB optimized)`,
+            };
+          }
+          break;
+        }
+
+        case 'assistant': {
+          // Assistants must run on Ollama Qwen models per requirements
+          const ollamaClient = this.clients.get('ollama');
+          if (ollamaClient && (await ollamaClient.isAvailable())) {
+            const qwenPreferred = [
+              'qwen3:30b-a3b',
+              'qwen3:8b',
+              'qwen3:7b',
+              'qwen3:4b',
+            ];
+            let model = 'qwen3:8b';
+            try {
+              const availableModels = await ollamaClient.listModels?.() || [];
+              const qwenModel = availableModels.find((m) =>
+                qwenPreferred.some((pref) => m.toLowerCase().includes(pref.toLowerCase()))
+              );
+              if (qwenModel) {
+                model = qwenModel;
+              }
+            } catch {
+              // fallback to default
+            }
+            return {
+              client: ollamaClient,
+              model,
+              rationale: `Ollama ${model} for assistant conversations (Qwen 3 requirement)`,
             };
           }
           break;

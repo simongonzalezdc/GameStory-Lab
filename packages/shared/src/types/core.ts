@@ -118,7 +118,13 @@ export interface ConceptMetadata {
 // Enums and Literal Types
 // ============================================================================
 
-export type TaskType = 'mechanics' | 'lore' | 'title' | 'refinement' | 'consistency';
+export type TaskType =
+  | 'mechanics'
+  | 'lore'
+  | 'title'
+  | 'refinement'
+  | 'consistency'
+  | 'assistant';
 
 export type ValidationSeverity = 'error' | 'warning' | 'info';
 
