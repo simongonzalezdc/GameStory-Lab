@@ -150,14 +150,18 @@ export function ConceptEditorPage() {
         lore: currentVersion.lore,
       });
       setValidationIssues(response.issues || []);
-      // API returns 'consistencyScore' as 0-1, convert to 0-100 for display
-      const rawScore = response.consistencyScore || 0;
+      
+      // Handle both possible response formats: consistencyScore or overallScore
+      const rawScore = response.consistencyScore || (response as any).overallScore || 0;
       const displayScore = Math.round(rawScore * 100);
+      
       console.log('[Validation] Score updated:', {
         versionId: currentVersion.id,
         versionNumber: currentVersion.version,
         rawScore,
         displayScore,
+        hasConsistencyScore: !!response.consistencyScore,
+        hasOverallScore: !!(response as any).overallScore,
         issueCount: response.issues?.length || 0,
         errors: response.issues?.filter(i => i.severity === 'error').length || 0,
         warnings: response.issues?.filter(i => i.severity === 'warning').length || 0,
@@ -597,163 +601,208 @@ export function ConceptEditorPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] max-h-[calc(100vh-8rem)]">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4 flex-shrink-0">
-        <div>
-          <button
-            onClick={() => navigate('/projects')}
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-2"
-          >
-            ← Back to Projects
-          </button>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{project.name}</h2>
-          <div className="flex items-center gap-4 mt-1">
-            {versions.length > 1 && (
-              <select
-                value={currentVersion?.id || ''}
-                onChange={(e) => {
-                  const selected = versions.find(v => v.id === e.target.value);
-                  if (selected) {
-                    setCurrentVersion(selected);
-                  }
-                }}
-                className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {versions.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    Version {v.version} {v.version === versions[0].version ? '(Latest)' : ''}
-                    {v.mechanics && Object.keys(v.mechanics).length > 0 && v.lore && Object.keys(v.lore).length > 0 
-                      ? ' ✓ Complete' 
-                      : v.mechanics && Object.keys(v.mechanics).length > 0 
-                        ? ' (Mechanics only)' 
-                        : v.lore && Object.keys(v.lore).length > 0 
-                          ? ' (Lore only)' 
-                          : ' (Empty)'}
-                  </option>
-                ))}
-              </select>
-            )}
-            <p className="text-gray-600 dark:text-gray-300">
-              {versions.length === 1 
-                ? `Version ${currentVersion.version}` 
-                : `Version ${currentVersion.version} of ${versions.length} total`}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          {versions.length >= 2 && (
+      {/* Sticky Header Bar */}
+      <div className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0">
+        <div className="flex justify-between items-center py-4">
+          <div>
             <button
-              onClick={handleMergeVersions}
-              disabled={merging || loading}
-              className="px-4 py-2 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition font-medium disabled:opacity-50 flex items-center gap-2"
-              title={`Merge all ${versions.length} versions into one`}
+              onClick={() => navigate('/projects')}
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-2"
             >
-              {merging ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Merging...</span>
-                </>
-              ) : (
-                <>
-                  <span>🔀</span>
-                  <span>Merge All Versions</span>
-                </>
-              )}
+              ← Back to Projects
             </button>
-          )}
-          {versions.length > 1 && (
-            <div className="relative group">
-              <button
-                className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition font-medium flex items-center gap-2"
-              >
-                <span>📋</span>
-                <span>Versions ({versions.length})</span>
-              </button>
-              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-20 max-h-96 overflow-y-auto">
-                <div className="p-2">
-                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-2 py-1 mb-1">
-                    All Versions
-                  </div>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{project.name}</h2>
+            <div className="flex items-center gap-4 mt-1">
+              {versions.length > 1 && (
+                <select
+                  value={currentVersion?.id || ''}
+                  onChange={(e) => {
+                    const selected = versions.find(v => v.id === e.target.value);
+                    if (selected) {
+                      setCurrentVersion(selected);
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
                   {versions.map((v) => (
-                    <button
-                      key={v.id}
-                      onClick={() => setCurrentVersion(v)}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
-                        currentVersion?.id === v.id
-                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100'
-                          : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Version {v.version}</span>
-                        {v.version === versions[0].version && (
-                          <span className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded">
-                            Latest
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        {v.mechanics && Object.keys(v.mechanics).length > 0 && v.lore && Object.keys(v.lore).length > 0 
-                          ? '✓ Complete' 
-                          : v.mechanics && Object.keys(v.mechanics).length > 0 
-                            ? 'Mechanics only' 
-                            : v.lore && Object.keys(v.lore).length > 0 
-                              ? 'Lore only' 
-                              : 'Empty'}
-                      </div>
-                    </button>
+                    <option key={v.id} value={v.id}>
+                      Version {v.version} {v.version === versions[0].version ? '(Latest)' : ''}
+                      {v.mechanics && Object.keys(v.mechanics).length > 0 && v.lore && Object.keys(v.lore).length > 0 
+                        ? ' ✓ Complete' 
+                        : v.mechanics && Object.keys(v.mechanics).length > 0 
+                          ? ' (Mechanics only)' 
+                          : v.lore && Object.keys(v.lore).length > 0 
+                            ? ' (Lore only)' 
+                            : ' (Empty)'}
+                    </option>
                   ))}
+                </select>
+              )}
+              <p className="text-gray-600 dark:text-gray-300">
+                {versions.length === 1 
+                  ? `Version ${currentVersion.version}` 
+                  : `Version ${currentVersion.version} of ${versions.length} total`}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {versions.length >= 2 && (
+              <button
+                onClick={handleMergeVersions}
+                disabled={merging || loading}
+                className="px-4 py-2 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition font-medium disabled:opacity-50 flex items-center gap-2"
+                title={`Merge all ${versions.length} versions into one`}
+              >
+                {merging ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Merging...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🔀</span>
+                    <span>Merge All Versions</span>
+                  </>
+                )}
+              </button>
+            )}
+            {versions.length > 1 && (
+              <div className="relative group">
+                <button
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition font-medium flex items-center gap-2"
+                >
+                  <span>📋</span>
+                  <span>Versions ({versions.length})</span>
+                </button>
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-20 max-h-96 overflow-y-auto">
+                  <div className="p-2">
+                    <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-2 py-1 mb-1">
+                      All Versions
+                    </div>
+                    {versions.map((v) => (
+                      <button
+                        key={v.id}
+                        onClick={() => setCurrentVersion(v)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                          currentVersion?.id === v.id
+                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100'
+                            : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">Version {v.version}</span>
+                          {v.version === versions[0].version && (
+                            <span className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded">
+                              Latest
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          {v.mechanics && Object.keys(v.mechanics).length > 0 && v.lore && Object.keys(v.lore).length > 0 
+                            ? '✓ Complete' 
+                            : v.mechanics && Object.keys(v.mechanics).length > 0 
+                              ? 'Mechanics only' 
+                              : v.lore && Object.keys(v.lore).length > 0 
+                                ? 'Lore only' 
+                                : 'Empty'}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
+            )}
+            <button
+              onClick={() => handleExport('gdd')}
+              disabled={exporting}
+              className="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50"
+            >
+              📄 Export
+            </button>
+            <button
+              onClick={() => navigate(`/projects/${projectId}/architect`)}
+              className="px-4 py-2 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition font-medium"
+            >
+              🏗️ Project Architect
+            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => handleRefine('deepen-mechanics')}
+                disabled={refining}
+                className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition disabled:opacity-50"
+              >
+                ⚙️ Deepen Mechanics
+              </button>
+              <button
+                onClick={() => handleRefine('enrich-lore')}
+                disabled={refining}
+                className="px-4 py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition disabled:opacity-50"
+              >
+                📖 Enrich Lore
+              </button>
+              <button
+                onClick={() => handleRefine('improve-consistency')}
+                disabled={refining}
+                className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-200 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition disabled:opacity-50"
+              >
+                ♻️ Improve Consistency
+              </button>
+              <button
+                onClick={() => handleRefine('enhance-genre-fit')}
+                disabled={refining}
+                className="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/50 transition disabled:opacity-50"
+              >
+                🎯 Enhance Genre Fit
+              </button>
             </div>
-          )}
-          <button
-            onClick={() => handleExport('gdd')}
-            disabled={exporting}
-            className="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50"
-          >
-            📄 Export
-          </button>
-          <button
-            onClick={() => navigate(`/projects/${projectId}/architect`)}
-            className="px-4 py-2 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition font-medium"
-          >
-            🏗️ Project Architect
-          </button>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => handleRefine('deepen-mechanics')}
-              disabled={refining}
-              className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition disabled:opacity-50"
-            >
-              ⚙️ Deepen Mechanics
-            </button>
-            <button
-              onClick={() => handleRefine('enrich-lore')}
-              disabled={refining}
-              className="px-4 py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition disabled:opacity-50"
-            >
-              📖 Enrich Lore
-            </button>
-            <button
-              onClick={() => handleRefine('improve-consistency')}
-              disabled={refining}
-              className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-200 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition disabled:opacity-50"
-            >
-              ♻️ Improve Consistency
-            </button>
-            <button
-              onClick={() => handleRefine('enhance-genre-fit')}
-              disabled={refining}
-              className="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/50 transition disabled:opacity-50"
-            >
-              🎯 Enhance Genre Fit
-            </button>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr] flex-1 min-h-0 overflow-hidden">
+      {/* Split Layout: 60% Assistant, 40% Validation/Results */}
+      <div className="grid gap-6 lg:grid-cols-[3fr_2fr] flex-1 min-h-0 overflow-hidden">
+        {/* Floating Revalidate Button - always visible */}
+        <div className="lg:hidden fixed bottom-4 right-4 z-40">
+          <button
+            onClick={() => {
+              // Reset validation flag to force re-validation
+              lastValidatedVersionId.current = null;
+              runValidation();
+            }}
+            disabled={validating}
+            className="px-4 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+          >
+            {validating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Validating...</span>
+              </>
+            ) : (
+              <>
+                <span>🔄</span>
+                <span>Re-validate</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Left Column: Assistant (60%) */}
+        <div className="flex flex-col min-h-0 overflow-hidden">
+          {project?.id && (
+            <ProjectAssistantPanel
+              projectId={project.id}
+              type="concept"
+              onProposalAccepted={async () => {
+                // Reload project to show the new version created from proposal acceptance
+                await loadProject();
+                // Reset validation tracking to force re-validation of new version
+                lastValidatedVersionId.current = null;
+              }}
+            />
+          )}
+        </div>
+
+        {/* Right Column: Validation/Results (40%) */}
         <div className="flex flex-col space-y-4 min-h-0 overflow-hidden">
           {/* Consistency Score */}
           {consistencyScore !== null && (
@@ -853,9 +902,19 @@ export function ConceptEditorPage() {
                       runValidation();
                     }}
                     disabled={validating}
-                    className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm disabled:opacity-50"
+                    className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm font-medium disabled:opacity-50 flex items-center gap-2 shadow-sm"
                   >
-                    {validating ? 'Validating...' : '🔄 Re-validate'}
+                    {validating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Validating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🔄</span>
+                        <span>Re-validate</span>
+                      </>
+                    )}
                   </button>
                 </div>
 
@@ -909,27 +968,17 @@ export function ConceptEditorPage() {
           </div>
         </div>
 
-        <div className="flex flex-col space-y-4 min-h-0 overflow-hidden">
-          {project?.id && (
-            <div className="flex-shrink-0">
-              <ProjectAssistantPanel
-                projectId={project.id}
-                type="concept"
-                initiallyOpen
-              />
-            </div>
-          )}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 flex-shrink-0">
-            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 uppercase tracking-wide">
-              Workflow Checklist
-            </h4>
-            <ol className="text-sm text-slate-600 dark:text-slate-300 space-y-1 list-decimal list-inside">
-              <li>Kick off or continue the Project Assistant chat.</li>
-              <li>Accept suggested mechanics or lore updates to create versions.</li>
-              <li>Resolve validation issues with the always-visible refine buttons.</li>
-              <li>Graduate to Project Architect for full documentation.</li>
-            </ol>
-          </div>
+        {/* Workflow Checklist */}
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 flex-shrink-0">
+          <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 uppercase tracking-wide">
+            Workflow Checklist
+          </h4>
+          <ol className="text-sm text-slate-600 dark:text-slate-300 space-y-1 list-decimal list-inside">
+            <li>Kick off or continue the Project Assistant chat.</li>
+            <li>Accept suggested mechanics or lore updates to create versions.</li>
+            <li>Resolve validation issues with the always-visible refine buttons.</li>
+            <li>Graduate to Project Architect for full documentation.</li>
+          </ol>
         </div>
       </div>
 

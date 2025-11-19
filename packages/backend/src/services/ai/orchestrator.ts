@@ -303,7 +303,7 @@ export class AIOrchestrator {
       if (glmClient && (await glmClient.isAvailable())) {
         return {
           client: glmClient,
-          model: 'glm-4-6', // GLM 4.6 model name
+          model: 'glm-4.6', // GLM 4.6 model name
           rationale: 'GLM 4.6 (user preference)',
         };
       }
@@ -328,7 +328,7 @@ export class AIOrchestrator {
       if (glmClient && (await glmClient.isAvailable())) {
         return {
           client: glmClient,
-          model: 'glm-4-6', // GLM 4.6 model name
+          model: 'glm-4.6', // GLM 4.6 model name
           rationale: `GLM 4.6 for ${taskType} (primary AI provider, excellent for all tasks)`,
         };
       }
@@ -609,7 +609,7 @@ export class AIOrchestrator {
   private getDefaultModel(client: IAIClient): string {
     switch (client.type) {
       case 'glm':
-        return 'glm-4-6'; // GLM 4.6 model name
+        return 'glm-4.6'; // GLM 4.6 model name
       case 'openrouter':
         return 'deepseek/deepseek-chat';
       case 'google':
@@ -619,7 +619,7 @@ export class AIOrchestrator {
         // Falls back to qwen3:4b if 8b not available
         return 'qwen3:8b';
       default:
-        return 'glm-4-6'; // GLM 4.6 model name
+        return 'glm-4.6'; // GLM 4.6 model name
     }
   }
 

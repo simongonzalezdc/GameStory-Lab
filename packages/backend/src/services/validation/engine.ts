@@ -320,6 +320,11 @@ export class ValidationEngine {
    * Calculate overall consistency score (0-1)
    */
   private calculateOverallScore(issues: ValidationIssue[], rules: ValidationRule[]): number {
+    console.log('[VALIDATION DEBUG] Calculating score:', {
+      totalIssues: issues.length,
+      rulesCount: rules.length
+    });
+
     // Start with perfect score
     let score = 1.0;
 
@@ -327,6 +332,14 @@ export class ValidationEngine {
     for (const issue of issues) {
       const rule = rules.find((r) => r.name === issue.rule);
       const weight = rule?.weight || 1.0;
+
+      console.log('[VALIDATION DEBUG] Processing issue:', {
+        rule: issue.rule,
+        severity: issue.severity,
+        confidence: issue.confidence,
+        weight,
+        currentScore: score
+      });
 
       if (issue.severity === 'error') {
         score -= 0.10 * weight * issue.confidence;
@@ -338,7 +351,13 @@ export class ValidationEngine {
     }
 
     // Clamp to 0-1 range
-    return Math.max(0, Math.min(1, score));
+    const finalScore = Math.max(0, Math.min(1, score));
+    console.log('[VALIDATION DEBUG] Final score calculated:', {
+      finalScore,
+      finalScorePercent: Math.round(finalScore * 100)
+    });
+
+    return finalScore;
   }
 
   /**

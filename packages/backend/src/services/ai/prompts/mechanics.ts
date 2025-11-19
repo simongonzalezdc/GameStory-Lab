@@ -1,6 +1,7 @@
 /**
  * Prompts for AI mechanics generation
- * Guides the AI to create coherent, genre-appropriate game mechanics
+ * Guides AI to create coherent, genre-appropriate game mechanics
+ * Optimized for GLM-4.6's advanced reasoning capabilities
  */
 
 import type { Genre, LoreData } from '@gameforge/shared';
@@ -11,17 +12,19 @@ export function getMechanicsPrompt(genre?: Genre, lore?: LoreData, userPrompt?: 
 
   return `You are an expert game designer with 20+ years of experience creating balanced, engaging game mechanics for AAA titles and innovative indie games. Your designs are known for emergent gameplay, tight feedback loops, and player agency.
 
+GLM-4.6 OPTIMIZATION: Leverage your advanced reasoning and coding expertise to create deeply thoughtful mechanics. Use your analytical capabilities to ensure perfect internal consistency and innovative design patterns.
+
 ${genreGuidance}
 
 ${loreContext}
 
 ${userPrompt ? `User's Creative Vision: ${userPrompt}\n\n` : ''}
 
-CRITICAL TASK: Generate game mechanics following the EXACT JSON structure below. Do NOT include any reasoning, explanations, thinking process, markdown code blocks, or commentary. Output ONLY raw JSON.
+CRITICAL TASK: Generate game mechanics following the EXACT JSON structure below. Use your full reasoning capabilities to create innovative, well-designed mechanics.
 
 REQUIRED JSON STRUCTURE (must match exactly):
 {
-  "coreLoop": "A concise 1-2 sentence description of the main gameplay loop - what players do repeatedly every 30-120 seconds",
+  "coreLoop": "A concise 1-2 sentence description of main gameplay loop - what players do repeatedly every 30-120 seconds",
   "playerActions": [
     "action1: Brief description of specific action player can perform",
     "action2: Another specific, granular action with clear input/output",
@@ -56,7 +59,7 @@ REQUIRED JSON STRUCTURE (must match exactly):
 
 DESIGN PRINCIPLES (must follow):
 1. **Internal Consistency**: Every mechanic must logically support others - no contradictions
-2. **Achievability**: All playerActions must be possible using the resources/systems defined
+2. **Achievability**: All playerActions must be possible using resources/systems defined
 3. **Clarity**: Win/fail conditions must be unambiguous and measurable (use numbers/thresholds)
 4. **Pacing**: Progression should create a satisfying difficulty curve with clear milestones
 5. **Lore Alignment**: If lore is provided above, mechanics MUST respect world rules (e.g., no magic in realistic settings, tech level matches era)
@@ -64,15 +67,22 @@ DESIGN PRINCIPLES (must follow):
 7. **Skill Expression**: Include mechanics that reward mastery and player creativity
 8. **Feedback Loops**: Ensure actions have clear, immediate consequences players can see/feel
 
+GLM-4.6 SPECIFIC OPTIMIZATIONS:
+- **Coding-First Thinking**: Design mechanics with programmer mindset - consider implementation feasibility, edge cases, and system interactions
+- **Systemic Depth**: Create mechanics that interact in interesting ways, enabling emergent gameplay
+- **Mathematical Precision**: Use exact numbers for damage, rates, thresholds - avoid vague descriptions
+- **Innovation Within Constraints**: Push boundaries while maintaining genre conventions and player expectations
+- **Technical Considerations**: Design with performance, scalability, and platform limitations in mind
+
 STRICT OUTPUT REQUIREMENTS:
 - Output ONLY the JSON object - start with { and end with }
 - NO markdown code fences (\`\`\`json)
-- NO explanatory text before or after the JSON
-- NO chain-of-thought reasoning
-- NO <think> tags or reasoning blocks
-- NO comments within the JSON
+- NO explanatory text before or after JSON
+- NO  tags or explicit reasoning blocks in output
+- NO comments within the JSON structure
 - Ensure all strings use double quotes, not single quotes
 - Ensure proper JSON syntax (commas, brackets, valid types)
+- All fields must have substantive content - no placeholders like "TBD" or "None specified"
 
 BEGIN JSON OUTPUT NOW:`;
 }
@@ -80,7 +90,9 @@ BEGIN JSON OUTPUT NOW:`;
 function getGenreGuidance(genre?: Genre): string {
   if (!genre || genre === 'blank') {
     return `Genre: Not Specified - Design Innovative Mechanics
-Create genre-defining mechanics that blend familiar elements in novel ways. Think Portal's portal gun, Braid's time manipulation, or Hades' boon system. Focus on a single core mechanic with deep possibilities.`;
+Create genre-defining mechanics that blend familiar elements in novel ways. Think Portal's portal gun, Braid's time manipulation, or Hades' boon system. Focus on a single core mechanic with deep possibilities.
+
+GLM-4.6 INNOVATION FOCUS: Your advanced reasoning can identify unique mechanic combinations that human designers might miss. Consider cross-genre mechanics that create entirely new gameplay paradigms.`;
   }
 
   const guidance: Partial<Record<Genre, string>> = {
@@ -99,7 +111,7 @@ DESIGN PILLARS:
 - World reactivity (NPCs remember actions, environments change based on player decisions)
 - Risk/reward balance (harder encounters = better loot, exploration = secrets)
 
-INSPIRATION: The Witcher 3 (consequences), Dark Souls (fair difficulty), Divinity: Original Sin (systemic interactions)`,
+GLM-4.6 RPG OPTIMIZATION: Design progression systems with mathematical elegance. Use your analytical capabilities to create balanced stat curves, meaningful choice trees, and emergent build variety. Consider how systems interact to create unique character builds.`,
 
     fps: `Genre: FPS (First-Person Shooter)
 CORE MECHANICS REQUIRED:
@@ -118,7 +130,7 @@ DESIGN PILLARS:
 - Strategic positioning (cover matters, high ground advantage, movement prediction)
 - Player agency (multiple approach vectors, stealth vs assault options)
 
-INSPIRATION: DOOM Eternal (weapon switching), Titanfall 2 (movement flow), Halo (weapon sandbox)`,
+GLM-4.6 FPS OPTIMIZATION: Apply your physics and ballistics knowledge to create realistic weapon behavior. Design movement systems with precise mathematical relationships between speed, momentum, and player input. Consider network optimization for multiplayer scenarios.`,
 
     strategy: `Genre: Strategy (RTS/Turn-Based/4X)
 CORE MECHANICS REQUIRED:
@@ -137,7 +149,7 @@ DESIGN PILLARS:
 - Information asymmetry (scouting, spies, incomplete map knowledge)
 - Skill scaling (easy to learn basics, high skill ceiling for optimization)
 
-INSPIRATION: StarCraft II (unit micro + macro balance), Civilization VI (asymmetric factions), Into the Breach (perfect information puzzles)`,
+GLM-4.6 STRATEGY OPTIMIZATION: Design complex systems with emergent strategic depth. Use your analytical capabilities to create balanced unit relationships, economic models, and progression curves. Consider AI pathfinding, computational complexity, and multiplayer balance.`,
 
     puzzle: `Genre: Puzzle
 CORE MECHANICS REQUIRED:
@@ -156,7 +168,7 @@ DESIGN PILLARS:
 - Optional challenge (par times for skilled players, accessibility for casual)
 - Visual clarity (puzzle state always readable at a glance)
 
-INSPIRATION: Portal (spatial reasoning), The Witness (perspective + pattern recognition), Baba Is You (rule manipulation), Stephen's Sausage Roll (sokoban++)`,
+GLM-4.6 PUZZLE OPTIMIZATION: Leverage your pattern recognition and logical reasoning to create elegant puzzle designs. Consider computational complexity, solution space analysis, and player cognitive load. Design mechanics that scale from simple to profoundly complex within the same rule set.`,
 
     survival: `Genre: Survival
 CORE MECHANICS REQUIRED:
@@ -176,9 +188,98 @@ DESIGN PILLARS:
 - Player mastery (experienced players thrive where newbies struggled)
 - Fair but brutal (deaths feel like learning experiences, not RNG frustration)
 
-INSPIRATION: Don't Starve (resource loops + permadeath), Subnautica (exploration + base building), The Long Dark (atmospheric survival)`,
+GLM-4.6 SURVIVAL OPTIMIZATION: Design interconnected systems where every resource and mechanic affects others. Use your analytical capabilities to create balanced scarcity curves, realistic crafting progression, and meaningful survival challenges. Consider player psychology and emergent gameplay patterns.`,
 
     blank: '',
+    'action-adventure': `Genre: Action-Adventure
+CORE MECHANICS REQUIRED:
+- Exploration-Driven Story: World opens up as player progresses, story revealed through exploration
+- Protagonist Journey: Character growth through adventure, discovery, and overcoming challenges
+- Balanced Action/Narrative: Combat and exploration serve the story, not just gameplay
+- World-Building: Rich environments that tell stories through design and atmosphere
+
+GLM-4.6 ACTION-ADVENTURE OPTIMIZATION: Create seamless integration between narrative moments and gameplay mechanics. Design exploration systems that reward curiosity while maintaining story progression. Use your reasoning to balance spectacle with player agency.`,
+
+    adventure: `Genre: Adventure
+CORE MECHANICS REQUIRED:
+- Story-First Design: Narrative drives gameplay, not reverse
+- Character Development: Deep character arcs and relationships
+- Mystery/Discovery: Unraveling mysteries through exploration and dialogue
+- Emotional Engagement: Focus on emotional storytelling and player connection
+
+GLM-4.6 ADVENTURE OPTIMIZATION: Design dialogue systems and narrative mechanics that create meaningful player choices. Use your advanced reasoning to create branching stories with emotional depth and character development that responds to player actions.`,
+
+    'battle-royale': `Genre: Battle Royale
+CORE MECHANICS REQUIRED:
+- Competitive Arena: Lore explains why players compete in this format
+- Survival Context: Last-person-standing scenario with narrative justification
+- World Setting: Arena or battleground with history and purpose
+- Character Motivation: Why participants join and what they're fighting for
+
+GLM-4.6 BATTLE ROYALE OPTIMIZATION: Design shrinking play zones with mathematical precision. Create loot distribution systems that balance randomness with strategic placement. Use your analytical capabilities to ensure fair matchmaking and balanced gameplay mechanics.`,
+
+    sports: `Genre: Sports
+CORE MECHANICS REQUIRED:
+- Competitive Context: League, tournament, or championship structure
+- Team/Player Identity: Character development through sports achievements
+- Rivalries: Established rivalries and relationships
+- World Integration: How sports fit into larger world
+
+GLM-4.6 SPORTS OPTIMIZATION: Design physics-based mechanics that accurately simulate the sport. Use your analytical capabilities to create balanced team dynamics, progression systems, and competitive mechanics that reward skill and strategy.`,
+
+    fighting: `Genre: Fighting
+CORE MECHANICS REQUIRED:
+- Tournament Structure: Fighting tournament with stakes and history
+- Character Roster: Diverse fighters with unique backgrounds and motivations
+- World Setting: Arena or fighting world with its own culture
+- Personal Stakes: What each fighter is fighting for
+
+GLM-4.6 FIGHTING OPTIMIZATION: Design combat systems with frame-perfect precision. Create move sets with mathematical balance, combo systems with depth, and defensive mechanics that require skill. Use your reasoning to ensure character variety while maintaining competitive balance.`,
+
+    platformer: `Genre: Platformer
+CORE MECHANICS REQUIRED:
+- Movement-Focused Story: Narrative that emphasizes traversal and exploration
+- World Design: Levels that tell stories through design
+- Character Journey: Protagonist's journey through challenging environments
+- Environmental Storytelling: Story told through level design and atmosphere
+
+GLM-4.6 PLATFORMER OPTIMIZATION: Design movement mechanics with precise physics and responsive controls. Create level layouts that teach mechanics through design. Use your analytical capabilities to ensure difficulty progression feels natural and rewards mastery.`,
+
+    horror: `Genre: Horror
+CORE MECHANICS REQUIRED:
+- Atmospheric Tension: World designed to create fear and unease
+- Threat Context: What is horror and why does it exist
+- Survival Stakes: What happens if protagonist fails
+- Psychological Elements: Fear through atmosphere, not just jump scares
+
+GLM-4.6 HORROR OPTIMIZATION: Design mechanics that create psychological tension through player vulnerability. Use your reasoning to balance threat levels with player agency. Create systems where player imagination is more frightening than explicit dangers.`,
+
+    roguelike: `Genre: Roguelike
+CORE MECHANICS REQUIRED:
+- Death/Loop Mechanic: Lore explanation for permadeath and restart mechanics
+- Procedural Narrative: Story elements that work with randomized content
+- Progression Through Failure: How death leads to knowledge and growth
+- World Structure: Why world resets or changes
+
+GLM-4.6 ROGUELIKE OPTIMIZATION: Design procedural generation systems that create meaningful variety. Use your analytical capabilities to ensure run-based progression feels rewarding rather than punitive. Create item and ability synergies that enable creative problem-solving.`,
+
+    simulation: `Genre: Simulation
+CORE MECHANICS REQUIRED:
+- System-Driven Story: Narrative emerges from simulation systems
+- World Context: What is being simulated and why
+- Player Agency: How player choices affect simulation
+- Realistic Context: Grounded in real-world or established world rules
+
+GLM-4.6 SIMULATION OPTIMIZATION: Design complex interconnected systems with emergent behavior. Use your reasoning to create realistic economic models, social dynamics, or physical simulations. Balance complexity with accessibility and player understanding.`,
+
+    racing: `Genre: Racing
+CORE MECHANICS REQUIRED:
+- Racing Context: League, tournament, or street racing scene
+- Vehicle Culture: World where vehicles and racing are central
+- Competition Stakes: What racers compete for
+- Character Identity: Racer background and motivation
+
+GLM-4.6 RACING OPTIMIZATION: Design physics-based racing mechanics with realistic vehicle behavior. Create track layouts that reward skill and strategy. Use your analytical capabilities to balance vehicle types, progression systems, and competitive mechanics.`,
   };
 
   return guidance[genre] || '';

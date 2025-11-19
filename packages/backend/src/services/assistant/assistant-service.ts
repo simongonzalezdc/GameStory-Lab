@@ -37,6 +37,7 @@ interface AssistantContext {
 interface AssistantModelResponse {
   reply: string;
   proposal?: {
+    explanation?: string;
     targetVersionId?: string;
     mechanics?: MechanicsData;
     lore?: LoreData;
@@ -294,20 +295,23 @@ export class AssistantService {
     const baseInstructions = [
       'You are the GameForge Studio project assistant.',
       'All replies must be JSON with the schema:',
-      '{ "reply": "string", "proposal": { "targetVersionId": "optional", "mechanics": {}, "lore": {}, "architectDocuments": [{ "name": "", "content": "" }] } }',
+      '{ "reply": "string", "proposal": { "explanation": "string", "targetVersionId": "optional", "mechanics": {}, "lore": {}, "architectDocuments": [{ "name": "", "content": "" }] } }',
       'If you suggest mechanics or lore changes, include the full updated objects.',
       'Do not modify game data directly—only propose changes.',
+      'Always include a clear explanation in the proposal.explanation field describing what improvements will be made and why they benefit the game.',
     ];
 
     if (type === 'architect') {
       baseInstructions.push(
         'You are currently assisting with the Project Architect phase.',
-        'You may propose document edits by including architectDocuments array.'
+        'You may propose document edits by including architectDocuments array.',
+        'Explain how document changes improve project clarity and development readiness.'
       );
     } else {
       baseInstructions.push(
         'Focus on improving mechanics and lore alignment.',
-        'Reference validation issues if available.'
+        'Reference validation issues if available.',
+        'Explain how proposed changes enhance gameplay consistency, player experience, or narrative coherence.'
       );
     }
 
@@ -316,6 +320,13 @@ export class AssistantService {
       baseInstructions.push(
         `Latest mechanics JSON: ${JSON.stringify(context.latestVersion.mechanics)}`,
         `Latest lore JSON: ${JSON.stringify(context.latestVersion.lore)}`
+      );
+    }
+
+    if (context.validationIssues.length > 0) {
+      baseInstructions.push(
+        `Current validation issues: ${JSON.stringify(context.validationIssues)}`,
+        'Address these issues in your proposals and explain how your changes resolve them.'
       );
     }
 
@@ -364,6 +375,7 @@ export class AssistantService {
       mechanics: proposal?.mechanics,
       lore: proposal?.lore,
       architectDocuments: proposal?.architectDocuments,
+      explanation: proposal?.explanation || 'Improves game design with enhanced mechanics and lore.',
     } as any; // Cast to any for Prisma Json type compatibility
 
     const proposalType = proposal?.architectDocuments ? 'architect-document' : 'concept-update';

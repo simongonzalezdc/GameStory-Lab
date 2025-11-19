@@ -51,21 +51,48 @@ router.post('/', async (req, res, next) => {
     }
 
     // Run validation engine
+    console.log('[VALIDATION DEBUG] Starting validation for concept:', {
+      conceptId,
+      version: version.version,
+      hasMechanics: !!mechanics && Object.keys(mechanics).length > 0,
+      hasLore: !!lore && Object.keys(lore).length > 0,
+      mechanicsKeys: mechanics ? Object.keys(mechanics) : [],
+      loreKeys: lore ? Object.keys(lore) : [],
+      genre: version.project.genre
+    });
+    
     const result = await validationEngine.validate(
       mechanics as MechanicsData,
       lore as LoreData,
       version.project.genre || undefined
     );
+    
+    console.log('[VALIDATION DEBUG] Validation engine result:', {
+      issuesCount: result.issues.length,
+      overallScore: result.overallScore,
+      issues: result.issues.map(i => ({
+        rule: i.rule,
+        severity: i.severity,
+        confidence: i.confidence,
+        message: i.message
+      }))
+    });
 
     // Delete previous validation results for this version
     await prisma.validationResult.deleteMany({
       where: { conceptId },
     });
 
+    console.log('[VALIDATION DEBUG] Storing validation results:', {
+      conceptId,
+      issuesCount: result.issues.length,
+      overallScore: result.overallScore
+    });
+
     // Store new validation results and get the first ID as validationId
     let validationId: string | null = null;
     if (result.issues.length > 0) {
-      await prisma.validationResult.createMany({
+      const createdResults = await prisma.validationResult.createMany({
         data: result.issues.map((issue) => ({
           conceptId,
           ruleName: issue.rule,
@@ -77,6 +104,11 @@ router.post('/', async (req, res, next) => {
         })),
       });
       
+      console.log('[VALIDATION DEBUG] Created validation results:', {
+        count: createdResults.count,
+        conceptId
+      });
+      
       // Get the first validation result ID for the response
       const firstResult = await prisma.validationResult.findFirst({
         where: { conceptId },
@@ -84,9 +116,15 @@ router.post('/', async (req, res, next) => {
         orderBy: { createdAt: 'desc' },
       });
       validationId = firstResult?.id || null;
+      
+      console.log('[VALIDATION DEBUG] Retrieved validation result ID:', {
+        validationId,
+        hasId: !!validationId
+      });
     } else {
       // Generate a UUID for the response even if no issues
       validationId = crypto.randomUUID();
+      console.log('[VALIDATION DEBUG] No issues to store, generated UUID:', validationId);
     }
 
     // Update version metadata with consistency score
@@ -101,10 +139,19 @@ router.post('/', async (req, res, next) => {
       },
     });
 
+    const responseScore = result.overallScore;
+    console.log('[VALIDATION DEBUG] Sending response:', {
+      validationId,
+      issuesCount: result.issues.length,
+      overallScore: responseScore,
+      overallScorePercent: Math.round(responseScore * 100)
+    });
+
     res.json({
       validationId,
       issues: result.issues,
-      overallScore: result.overallScore,
+      overallScore: responseScore,
+      consistencyScore: responseScore, // Add this field for frontend compatibility
     });
   } catch (error) {
     logger.error('Validation request failed', { error, conceptId: req.body.conceptId });

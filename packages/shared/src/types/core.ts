@@ -128,7 +128,7 @@ export type TaskType =
 
 export type ValidationSeverity = 'error' | 'warning' | 'info';
 
-export type ModelPreference = 'auto' | 'openrouter' | 'ollama' | string;
+export type ModelPreference = 'auto' | 'openrouter' | 'ollama' | 'glm' | string;
 
 export type Genre =
   | 'rpg'

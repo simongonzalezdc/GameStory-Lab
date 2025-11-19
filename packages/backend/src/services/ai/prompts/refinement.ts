@@ -1,6 +1,7 @@
 /**
  * Refinement Generation Prompts
  * Prompts for refining and improving game concepts
+ * Optimized for GLM-4.6's advanced reasoning capabilities
  */
 
 import type { MechanicsData, LoreData } from '@gameforge/shared';
@@ -15,6 +16,8 @@ export function getRefinementPrompt(
 ): string {
   return `You are an expert game design consultant who specializes in iterative refinement and polish. You have a keen eye for ludonarrative harmony, internal consistency, player experience optimization, and elevating good concepts into great ones.
 
+GLM-4.6 OPTIMIZATION: Leverage your advanced reasoning and analytical capabilities to provide deeply insightful refinements. Use your coding expertise to identify systemic improvements and your narrative sense to enhance storytelling depth.
+
 REFINEMENT FOCUS: ${focus || 'General quality improvement and coherence'}
 
 CURRENT MECHANICS:
@@ -23,9 +26,9 @@ ${mechanics ? JSON.stringify(mechanics, null, 2) : 'No mechanics provided'}
 CURRENT LORE:
 ${lore ? JSON.stringify(lore, null, 2) : 'No lore provided'}
 
-CRITICAL TASK: Analyze the above concept and provide refined, improved versions of BOTH mechanics AND lore. Your refinements should address:
+CRITICAL TASK: Analyze the above concept and provide refined, improved versions of BOTH mechanics AND lore. Use your full reasoning capabilities to create meaningful enhancements.
 
-**KEY REFINEMENT GOALS:**
+KEY REFINEMENT GOALS:
 1. **Ludonarrative Harmony**: Ensure mechanics and lore support each other perfectly - no disconnects between what players do and why they do it
 2. **Internal Consistency**: Eliminate contradictions within mechanics, within lore, and between the two
 3. **Depth Over Breadth**: Strengthen core concepts rather than adding new features - make existing elements richer
@@ -97,7 +100,15 @@ REQUIRED JSON STRUCTURE (must match exactly):
   ]
 }
 
-REFINEMENT STRATEGIES:
+GLM-4.6 REFINEMENT STRATEGIES:
+- **Systems Thinking**: Analyze how mechanics interact as complex systems, not isolated features
+- **Player Psychology**: Consider how changes affect player experience, learning curves, and emotional engagement
+- **Narrative Integration**: Ensure story elements enhance rather than restrict gameplay
+- **Mathematical Balance**: Use precise numbers for progression, difficulty, and resource economics
+- **Emergent Gameplay**: Design refinements that create new player strategies and possibilities
+- **Technical Feasibility**: Consider implementation complexity and performance implications
+
+REFINEMENT APPROACH:
 - **Fix Contradictions**: If mechanics mention fire magic but lore has no magic, either add magic to lore or change mechanics
 - **Deepen Connections**: If protagonist is a "soldier", specify WHAT KIND (special forces, drafted civilian, war veteran, etc.)
 - **Add Specificity**: Replace "the player explores" with "the player explores via grappling hook traversal and environmental puzzle-solving"
@@ -110,13 +121,11 @@ STRICT OUTPUT REQUIREMENTS:
 - Output ONLY the JSON object - start with { and end with }
 - NO markdown code fences (\`\`\`json)
 - NO explanatory text before or after the JSON
-- NO chain-of-thought reasoning
-- NO <think> tags or reasoning blocks
-- NO comments within the JSON
+- NO explicit reasoning blocks or  tags in output
+- NO comments within the JSON structure
 - Ensure all strings use double quotes, not single quotes
 - Ensure proper JSON syntax (commas, brackets, valid types)
 - improvements array should have 5-10 specific, actionable items
 
 BEGIN JSON OUTPUT NOW:`;
 }
-

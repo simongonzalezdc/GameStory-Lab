@@ -41,6 +41,7 @@ export default [
         confirm: 'readonly',
         crypto: 'readonly',
         HTMLDivElement: 'readonly',
+        HTMLTextAreaElement: 'readonly',
         NodeJS: 'readonly',
         React: 'readonly',
         RequestInit: 'readonly',

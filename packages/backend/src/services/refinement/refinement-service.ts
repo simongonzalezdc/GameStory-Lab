@@ -61,6 +61,10 @@ export class RefinementService {
     }> = [];
 
     if (request.focus === 'improve-consistency') {
+      console.log('[REFINEMENT DEBUG] Fetching validation issues for improve-consistency', {
+        conceptId: request.conceptId
+      });
+      
       const validationResults = await this.prisma.validationResult.findMany({
         where: {
           conceptId: request.conceptId,
@@ -72,6 +76,16 @@ export class RefinementService {
         ],
       });
 
+      console.log('[REFINEMENT DEBUG] Raw validation results from DB:', {
+        count: validationResults.length,
+        results: validationResults.map(r => ({
+          ruleName: r.ruleName,
+          severity: r.severity,
+          confidence: Number(r.confidence),
+          message: r.message?.substring(0, 100) + '...'
+        }))
+      });
+
       validationIssues = validationResults.map((result) => ({
         rule: result.ruleName,
         severity: result.severity,
@@ -79,6 +93,20 @@ export class RefinementService {
         suggestion: result.suggestion,
         confidence: Number(result.confidence),
       }));
+
+      console.log('[REFINEMENT DEBUG] Processed validation issues for refinement:', {
+        conceptId: request.conceptId,
+        issueCount: validationIssues.length,
+        errors: validationIssues.filter((i) => i.severity === 'error').length,
+        warnings: validationIssues.filter((i) => i.severity === 'warning').length,
+        info: validationIssues.filter((i) => i.severity === 'info').length,
+        issues: validationIssues.map(i => ({
+          rule: i.rule,
+          severity: i.severity,
+          confidence: i.confidence,
+          message: i.message.substring(0, 100) + '...'
+        }))
+      });
 
       logger.info('Fetched validation issues for consistency refinement', {
         conceptId: request.conceptId,
@@ -112,11 +140,24 @@ export class RefinementService {
     );
 
     // Parse AI response - pass existing mechanics/lore for fallback reconstruction
+    console.log('[REFINEMENT DEBUG] AI response received:', {
+      contentLength: aiResponse.content.length,
+      contentPreview: aiResponse.content.substring(0, 500) + '...',
+      model: aiResponse.model
+    });
+    
     const refined = this.parseRefinementResponse(
       aiResponse.content,
       existingVersion.mechanics as MechanicsData,
       existingVersion.lore as LoreData
     );
+    
+    console.log('[REFINEMENT DEBUG] Parsed refinement response:', {
+      hasMechanics: !!refined.mechanics,
+      hasLore: !!refined.lore,
+      mechanicsKeys: refined.mechanics ? Object.keys(refined.mechanics) : [],
+      loreKeys: refined.lore ? Object.keys(refined.lore) : []
+    });
 
     // 4. Track changes
     const changes = this.detectChanges(
@@ -156,6 +197,15 @@ export class RefinementService {
         costUsd: aiResponse.metadata?.costUsd,
         durationMs: aiResponse.metadata?.durationMs,
       },
+    });
+
+    console.log('[REFINEMENT DEBUG] Refinement completed successfully', {
+      conceptId: request.conceptId,
+      newVersionId: newVersion.id,
+      newVersion: newVersion.version,
+      previousVersion: existingVersion.version,
+      changesCount: changes.length,
+      focus: request.focus
     });
 
     return {
