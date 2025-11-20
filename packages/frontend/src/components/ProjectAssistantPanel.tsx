@@ -14,6 +14,7 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   createdAt?: string;
+  debug?: any;
 }
 
 interface AssistantProposal {
@@ -135,16 +136,17 @@ export function ProjectAssistantPanel({
     
     try {
       console.log('[Assistant] Sending message:', { sessionId: session.id, message: userMessage });
-      const response = await assistantAPI.sendMessage(session.id, userMessage);
+      const response: any = await assistantAPI.sendMessage(session.id, userMessage);
       console.log('[Assistant] Received response:', response);
       
       // Log debug info if available
-      if (response.debug) {
-        console.log('[Assistant] Debug Info:', response.debug);
-        console.log('[Assistant] AI Response Preview:', response.debug.aiResponsePreview);
-        console.log('[Assistant] Parsed Proposal Preview:', response.debug.parsedProposalPreview);
-        console.log('[Assistant] Has Proposal:', response.debug.hasProposal);
-        console.log('[Assistant] Proposal Keys:', response.debug.proposalKeys);
+      if ((response as any).debug) {
+        const dbg = (response as any).debug;
+        console.log('[Assistant] Debug Info:', dbg);
+        console.log('[Assistant] AI Response Preview:', dbg.aiResponsePreview);
+        console.log('[Assistant] Parsed Proposal Preview:', dbg.parsedProposalPreview);
+        console.log('[Assistant] Has Proposal:', dbg.hasProposal);
+        console.log('[Assistant] Proposal Keys:', dbg.proposalKeys);
       }
       
       setMessages((prev) => [
@@ -235,30 +237,30 @@ For each category, provide specific, actionable suggestions. Help me understand 
       });
       
       let response;
-      try {
-        response = await assistantAPI.acceptProposal(proposalId);
-      } catch (err: any) {
-        // Handle API errors (400, 500, etc.)
-        console.error('[Assistant] Proposal acceptance failed:', err);
-        const errorMessage = err?.error || err?.message || 'Failed to apply proposal';
-        const errorDetails = err?.details || '';
+     try {
+       response = await assistantAPI.acceptProposal(proposalId) as any;
+     } catch (err: any) {
+       // Handle API errors (400, 500, etc.)
+       console.error('[Assistant] Proposal acceptance failed:', err);
+        const errorMessage = err?.error || err?.message || (err as any)?.response?.data || 'Failed to apply proposal';
+        const errorDetails = err?.details || (err as any)?.response?.data?.details || '';
         setError(`${errorMessage}${errorDetails ? `\n\nDetails: ${errorDetails}` : ''}`);
         // Don't remove proposal from list if it failed
         return;
-      }
+     }
       
       console.log('[Assistant] Proposal accepted, response:', response);
       
       // The API returns {success: true, result: {newVersion: {...} | documentation: {...}}}
       // OR {error: "...", details: "..."} if validation failed
-      if (response.error) {
+      if ((response as any).error) {
         console.error('[Assistant] Proposal acceptance returned error:', response);
-        setError(response.error + (response.details ? `\n\n${response.details}` : ''));
+        setError((response as any).error + ((response as any).details ? `\n\n${(response as any).details}` : ''));
         // Don't remove proposal from list if it failed
         return;
       }
       
-      const actualResult = response.result;
+      const actualResult = (response as any).result;
       
       console.log('[Assistant] Checking result structure:', {
         fullResponse: response,
@@ -311,7 +313,8 @@ For each category, provide specific, actionable suggestions. Help me understand 
       await assistantAPI.rejectProposal(proposalId);
       setProposals((prev) => prev.filter((p) => p.id !== proposalId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reject proposal');
+      const msg = err instanceof Error ? err.message : (err as any)?.response?.data || 'Failed to reject proposal';
+      setError(msg);
     }
   };
 

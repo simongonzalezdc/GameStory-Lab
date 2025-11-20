@@ -5,21 +5,24 @@
   --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
   --font-display: "Space Grotesk", "Plus Jakarta Sans", system-ui, sans-serif;
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-300: #a5b4fc;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-800: #312e81;
-  --color-brand-900: #1e1b4b;
-  --color-mint-400: #2dd4bf;
-  --color-mint-500: #14b8a6;
-  --color-ink-900: #0b1222;
-  --color-ink-800: #0f172a;
-  --color-ink-700: #1f2a44;
+  /* Jewel brand scale derived from sapphire primary */
+  --color-brand-50: #e7ebf6;
+  --color-brand-100: #cbd4ec;
+  --color-brand-200: #9facda;
+  --color-brand-300: #7085c4;
+  --color-brand-400: #566eb7;
+  --color-brand-500: #3f5da8; /* sapphire core */
+  --color-brand-600: #354f91;
+  --color-brand-700: #2b4176;
+  --color-brand-800: #22345d;
+  --color-brand-900: #1b2a4b;
+  /* Secondary turquoise accent */
+  --color-mint-400: #4ac0ba;
+  --color-mint-500: #3e9d98;
+  /* Neutral ink (unused with jewel palette but kept for fallback) */
+  --color-ink-900: #120e0d;
+  --color-ink-800: #181414;
+  --color-ink-700: #221c1c;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
@@ -27,7 +30,7 @@
   --shadow-xs: 0 6px 18px -8px rgba(15, 23, 42, 0.25);
   --shadow-sm: 0 10px 30px -16px rgba(15, 23, 42, 0.35);
   --shadow-md: 0 18px 44px -24px rgba(15, 23, 42, 0.45);
-  --shadow-glow: 0 0 0 1px rgba(99, 102, 241, 0.2), 0 12px 40px -18px rgba(99, 102, 241, 0.6);
+  --shadow-glow: 0 0 0 1px rgba(63, 93, 168, 0.2), 0 12px 40px -18px rgba(62, 157, 152, 0.45);
 }
 
 @layer base {
@@ -38,59 +41,71 @@
   }
 
   :root {
-    --color-bg-primary: #070c19;
-    --color-bg-secondary: #0b1224;
-    --color-bg-tertiary: #0f172a;
-    --color-text-primary: #f6f9ff;
-    --color-text-secondary: #d8e3ff;
-    --color-text-tertiary: #a7b4d6;
-    --color-border: #1b2640;
-    --color-accent: #818cf8;
-    --color-accent-hover: #a5b4fc;
-    --color-success: #34d399;
-    --color-error: #f87171;
-    --color-warning: #fbbf24;
+    /* Jewel Engine theme (dark-first) */
+    --color-bg-primary: #120E0D;
+    --color-bg-secondary: #181414;
+    --color-bg-tertiary: #221C1C;
+    --color-surface: #181414;
+    --color-surface-elevated: #221C1C;
+    --color-surface-card: #221C1C;
+    --color-surface-strong: #312725;
+    --color-surface-muted: #181414;
+
+    --color-text-primary: #F9FAFB;
+    --color-text-secondary: #C4C0C8;
+    --color-text-tertiary: #8B8491;
+    --color-text-muted: #8B8491;
+
+    --color-border: #3B2F2B;
+    --color-border-subtle: #3B2F2B;
+    --color-border-strong: #4C3A33;
+
+    --color-accent: #3F5DA8; /* sapphire */
+    --color-accent-hover: #4A6BC0;
+
+    --color-success: #6E9558;  /* emerald */
+    --color-warning: #D89E32;  /* topaz */
+    --color-error: #B24452;    /* garnet */
+    --color-danger: #B24452;
+    --color-info: #3E9D98;     /* turquoise */
     
-    --color-surface: #0b1224;
-    --color-surface-elevated: #101931;
-    --color-surface-card: #0e172c;
-    --color-surface-strong: #0e1a34;
-    --color-surface-muted: #0d152b;
-    --color-text-muted: #b8c4de;
-    --color-border-subtle: #1b2640;
-    --color-danger: #f87171;
-    
-    --color-assistant-bg: #0b1224;
-    --color-assistant-border-glow: rgba(129, 140, 248, 0.35);
-    --color-divider-glow: rgba(20, 184, 166, 0.3);
+    --color-assistant-bg: #181414;
+    --color-assistant-border-glow: rgba(62, 157, 152, 0.35);
+    --color-divider-glow: rgba(63, 93, 168, 0.35);
   }
 
   .dark {
-    --color-bg-primary: #070c19;
-    --color-bg-secondary: #0b1224;
-    --color-bg-tertiary: #0f172a;
-    --color-text-primary: #f6f9ff;
-    --color-text-secondary: #d8e3ff;
-    --color-text-tertiary: #a7b4d6;
-    --color-border: #1b2640;
-    --color-accent: #818cf8;
-    --color-accent-hover: #a5b4fc;
-    --color-success: #34d399;
-    --color-error: #f87171;
-    --color-warning: #fbbf24;
+    /* Same palette for dark mode (this app is dark-first) */
+    --color-bg-primary: #120E0D;
+    --color-bg-secondary: #181414;
+    --color-bg-tertiary: #221C1C;
+    --color-surface: #181414;
+    --color-surface-elevated: #221C1C;
+    --color-surface-card: #221C1C;
+    --color-surface-strong: #312725;
+    --color-surface-muted: #181414;
+
+    --color-text-primary: #F9FAFB;
+    --color-text-secondary: #C4C0C8;
+    --color-text-tertiary: #8B8491;
+    --color-text-muted: #8B8491;
+
+    --color-border: #3B2F2B;
+    --color-border-subtle: #3B2F2B;
+    --color-border-strong: #4C3A33;
+
+    --color-accent: #3F5DA8;
+    --color-accent-hover: #4A6BC0;
+
+    --color-success: #6E9558;
+    --color-error: #B24452;
+    --color-warning: #D89E32;
+    --color-danger: #B24452;
+    --color-info: #3E9D98;
     
-    --color-surface: #0b1224;
-    --color-surface-elevated: #101931;
-    --color-surface-card: #0e172c;
-    --color-surface-strong: #0e1a34;
-    --color-surface-muted: #0d152b;
-    --color-text-muted: #b8c4de;
-    --color-border-subtle: #1b2640;
-    --color-danger: #f87171;
-    
-    --color-assistant-bg: #0b1224;
-    --color-assistant-border-glow: rgba(129, 140, 248, 0.35);
-    --color-divider-glow: rgba(20, 184, 166, 0.3);
+    --color-assistant-bg: #181414;
+    --color-assistant-border-glow: rgba(62, 157, 152, 0.35);
+    --color-divider-glow: rgba(63, 93, 168, 0.35);
   }
 
   html {

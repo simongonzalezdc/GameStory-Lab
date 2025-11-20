@@ -3,13 +3,18 @@
  * Displays game lore and story in a readable, formatted way
  */
 
-import type { LoreData } from '@gameforge/shared';
-
 interface LoreViewerProps {
-  lore: LoreData;
+  lore: any;
 }
 
 export function LoreViewer({ lore }: LoreViewerProps) {
+  const renderValue = (value: unknown): string => {
+    if (typeof value === 'string' || typeof value === 'number') return String(value);
+    if (Array.isArray(value)) return value.map((v) => String(v)).join(', ');
+    if (value && typeof value === 'object') return JSON.stringify(value);
+    return '—';
+  };
+
   if (!lore || Object.keys(lore).length === 0) {
     return (
       <div className="text-center py-12 text-slate-500 dark:text-slate-400">
@@ -78,7 +83,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
               <div>
                 <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Abilities</h4>
                 <ul className="space-y-2">
-                  {lore.protagonist.abilities.map((ability, index) => (
+                  {lore.protagonist.abilities.map((ability: any, index: number) => (
                     <li
                       key={index}
                       className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
@@ -113,7 +118,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
             <div>
               <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Secondary Conflicts</h4>
               <ul className="space-y-2">
-                {lore.conflict.secondary.map((conflict, index) => (
+                {lore.conflict.secondary.map((conflict: any, index: number) => (
                   <li
                     key={index}
                     className="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800"
@@ -172,7 +177,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
             <span>Themes</span>
           </h3>
           <div className="flex flex-wrap gap-2">
-            {lore.themes.map((theme, index) => (
+            {lore.themes.map((theme: any, index: number) => (
               <span
                 key={index}
                 className="px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-300 rounded-full font-medium border border-purple-200 dark:border-purple-800"
@@ -198,7 +203,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
                   {key.replace(/([A-Z])/g, ' $1').trim()}
                 </h4>
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                  {typeof value === 'string' ? value : String(value)}
+                  {renderValue(value)}
                 </p>
               </div>
             ))}
@@ -221,7 +226,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
               >
                 <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">{resourceName}</h4>
                 <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
-                  {typeof description === 'string' ? description : String(description)}
+                  {renderValue(description)}
                 </p>
               </div>
             ))}
@@ -245,7 +250,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
                     <ul className="space-y-1">
                       {description.map((item, idx) => (
                         <li key={idx} className="text-slate-700 dark:text-slate-300">
-                          • {typeof item === 'string' ? item : String(item)}
+                          • {renderValue(item)}
                         </li>
                       ))}
                     </ul>
@@ -499,4 +504,3 @@ export function LoreViewer({ lore }: LoreViewerProps) {
     </div>
   );
 }
-

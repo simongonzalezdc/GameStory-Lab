@@ -1,0 +1,77 @@
+
+/* Jewel Engine Theme Tokens
+ * Sapphire primary + Turquoise secondary
+ * Warm desaturated jewel tones + warm brown neutrals
+ */
+
+:root {
+  /* Warm brown neutrals (desaturated except bg-body) */
+  --bg-body: #120E0D;
+  --bg-elevated: #181414;
+  --bg-panel: #221C1C;
+  --bg-panel-alt: #312725;
+  --border-subtle: #3B2F2B;
+  --border-strong: #4C3A33;
+
+  /* Text */
+  --text-primary: #F9FAFB;
+  --text-secondary: #C4C0C8;
+  --text-muted: #8B8491;
+  --text-inverse: #120E0D;
+
+  /* Brand (Sapphire core + Turquoise secondary) */
+  --brand-primary: #3F5DA8;      /* sapphire (primary) */
+  --brand-primary-hover: #4A6BC0;
+  --brand-primary-soft: #263356;
+  --brand-secondary: #3E9D98;    /* turquoise secondary */
+  --brand-secondary-soft: #1E4C49;
+
+  /* Jewel tones (desaturated set) */
+  --jewel-amethyst: #8554B3;
+  --jewel-amethyst-soft: #352448;
+
+  --jewel-sapphire: #3F5DA8;
+  --jewel-sapphire-soft: #263356;
+
+  --jewel-emerald: #6E9558;
+  --jewel-emerald-soft: #2F4935;
+
+  --jewel-topaz: #D89E32;
+  --jewel-topaz-soft: #523822;
+
+  --jewel-garnet: #B24452;
+  --jewel-garnet-soft: #522231;
+
+  --jewel-fireopal: #D26A3A;
+  --jewel-fireopal-soft: #5A3324;
+
+  --jewel-turquoise: #3E9D98;
+  --jewel-turquoise-soft: #1E4C49;
+
+  /* Semantic mapped into jewel family */
+  --success: var(--jewel-emerald);
+  --warning: var(--jewel-topaz);
+  --danger: var(--jewel-garnet);
+  --info: var(--jewel-turquoise);
+}
+
+/* Example utility mappings (optional, your dev can adapt these)
+.button-primary {
+  background: var(--brand-primary);
+  color: var(--text-primary);
+}
+
+.button-primary:hover {
+  background: var(--brand-primary-hover);
+}
+
+.badge-success {
+  background: color-mix(in srgb, var(--success) 24%, black);
+  color: var(--text-primary);
+}
+
+.bg-app {
+  background: var(--bg-body);
+  color: var(--text-primary);
+}
+*/

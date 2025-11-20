@@ -18,26 +18,6 @@ const IconProjects = () => (
   </svg>
 );
 
-const IconTemplates = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-    <path d="M5 8h14M5 12h14M5 16h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    <rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" />
-  </svg>
-);
-
-const IconBook = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-    <path d="M6.5 5.5H17a1.5 1.5 0 011.5 1.5v10.5a.5.5 0 01-.8.4l-1.7-1.3a2 2 0 00-1.2-.4H7a1.5 1.5 0 01-1.5-1.5V7A1.5 1.5 0 016.5 5.5Z" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M9 9h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
-
-const IconPulse = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-    <path d="M4 13h3.5l2-6 3 12 2.5-7H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
 const IconSettings = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
     <path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="currentColor" strokeWidth="1.5" />
@@ -257,6 +237,7 @@ function LayoutComponent({ children }: LayoutProps) {
               <Link
                 to="/templates"
                 className="hidden sm:inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-brand-600 to-mint-500 px-4 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+                style={{ boxShadow: '0 10px 30px -12px rgba(63, 93, 168, 0.55)' }}
               >
                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-white/20">★</span>
                 <span>Explore Templates</span>

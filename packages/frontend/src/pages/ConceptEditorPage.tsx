@@ -1145,18 +1145,6 @@ export function ConceptEditorPage() {
           </div>
         </div>
 
-        {/* Workflow Checklist */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 flex-shrink-0">
-            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 uppercase tracking-wide">
-              Workflow Checklist
-            </h4>
-            <ol className="text-sm text-slate-600 dark:text-slate-300 space-y-1 list-decimal list-inside">
-              <li>Kick off or continue the Project Assistant chat.</li>
-              <li>Accept suggested mechanics or lore updates to create versions.</li>
-              <li>Resolve validation issues with the always-visible refine buttons.</li>
-              <li>Graduate to Project Architect for full documentation.</li>
-            </ol>
-        </div>
       </div>
 
       {/* Generate Modal - also available when concept exists */}
