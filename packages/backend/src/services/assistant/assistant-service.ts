@@ -7,6 +7,7 @@ import type { Prisma, PrismaClient } from '@prisma/client';
 import type { MechanicsData, LoreData } from '@gameforge/shared';
 import { AIOrchestrator } from '../ai/orchestrator.js';
 import { architectService } from '../architect/architect-service.js';
+import { INTERVIEW_QUESTIONS, getNextQuestion } from '../architect/interview-questions.js';
 import { logger } from '../../utils/logger.js';
 
 type SessionType = 'concept' | 'architect';
@@ -31,6 +32,18 @@ interface AssistantContext {
   architect?: {
     interviewComplete?: boolean;
     documents?: Array<{ name: string; snippet: string }>;
+    interviewProgress?: {
+      completionPercentage: number;
+      currentPhase: string;
+      currentQuestion: {
+        id: string;
+        question: string;
+        helpText?: string;
+        options?: string[];
+      } | null;
+      answeredCount: number;
+      totalQuestions: number;
+    };
   };
 }
 
@@ -46,6 +59,9 @@ interface AssistantModelResponse {
 }
 
 export class AssistantService {
+  // Track interview sessions per assistant session
+  private interviewSessions: Map<string, string> = new Map(); // assistantSessionId -> interviewSessionId
+
   constructor(
     private prisma: PrismaClient,
     private aiOrchestrator: AIOrchestrator
@@ -87,6 +103,7 @@ export class AssistantService {
   }
 
   async sendMessage(sessionId: string, content: string) {
+    try {
     const session = await this.getSession(sessionId);
     if (!session) {
       throw new Error('Session not found');
@@ -100,7 +117,10 @@ export class AssistantService {
       },
     });
 
-    const context = await this.buildContext(session);
+      // For architect sessions, handle interview flow
+      // Note: We'll handle this after getting the AI response so we can extract answers better
+
+      const context = await this.buildContext({ ...session, id: sessionId });
     const previousMessages = await this.prisma.chatMessage.findMany({
       where: { sessionId },
       orderBy: { createdAt: 'asc' },
@@ -121,10 +141,17 @@ export class AssistantService {
         content: JSON.stringify({
           userMessage: content,
           context,
-          instructions: 'Respond using the required JSON schema. If the user asks for a plan, implementation, or anything to approve, you MUST include a proposal with complete mechanics and lore objects.',
+            instructions: 'Respond using the required JSON schema. If the user asks for a plan, implementation, or anything to approve, you MUST include a proposal with complete mechanics and lore objects.',
         }),
       },
     ];
+
+      logger.debug('Sending message to AI orchestrator', {
+        sessionId,
+        messageLength: content.length,
+        contextHasVersion: !!context.latestVersion,
+        messageCount: aiMessages.length,
+      });
 
     const aiResponse = await this.aiOrchestrator.generate(
       'assistant',
@@ -132,6 +159,12 @@ export class AssistantService {
       'auto', // Will use GLM 4.6 if available, otherwise falls back to Ollama
       { maxTokens: 3000 }
     );
+
+      logger.debug('AI response received', {
+        sessionId,
+        model: aiResponse.model,
+        contentLength: aiResponse.content.length,
+      });
 
     const parsed = this.parseAssistantResponse(aiResponse.content);
     const assistantMessage = await this.prisma.chatMessage.create({
@@ -145,6 +178,11 @@ export class AssistantService {
       },
     });
 
+      // For architect sessions, handle interview flow after getting response
+      if (session.type === 'architect') {
+        await this.handleArchitectInterview(sessionId, session.projectId, content);
+      }
+
     let createdProposal: Awaited<ReturnType<typeof this.prisma.assistantProposal.create>> | null = null;
     if (parsed.proposal && (parsed.proposal.mechanics || parsed.proposal.lore || parsed.proposal.architectDocuments)) {
       createdProposal = await this.createProposal(session, parsed.proposal);
@@ -154,6 +192,14 @@ export class AssistantService {
       message: assistantMessage,
       proposal: createdProposal,
     };
+    } catch (error) {
+      logger.error('Error in sendMessage', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        sessionId,
+      });
+      throw error;
+    }
   }
 
   async applyProposal(proposalId: string) {
@@ -272,10 +318,16 @@ export class AssistantService {
     });
   }
 
-  private async buildContext(session: { projectId: string; type: string }): Promise<AssistantContext> {
+  private async buildContext(session: { id: string; projectId: string; type: string }): Promise<AssistantContext> {
+    try {
     const project = await this.prisma.project.findUnique({
       where: { id: session.projectId },
     });
+      
+      if (!project) {
+        logger.warn('Project not found when building context', { projectId: session.projectId });
+      }
+
     const latestVersion = await this.getLatestVersion(session.projectId);
     const validationIssues = latestVersion
       ? await this.prisma.validationResult.findMany({
@@ -290,16 +342,53 @@ export class AssistantService {
 
     let architectData: AssistantContext['architect'] = undefined;
     if (session.type === 'architect') {
+        try {
       const documentation = architectService.getDocumentation(session.projectId);
+          const interviewSessionId = this.interviewSessions.get(session.id);
+          let interviewProgress = null;
+          let currentQuestion = null;
+          
+          if (interviewSessionId) {
+            try {
+              interviewProgress = architectService.getSessionProgress(interviewSessionId);
+              const answersMap = new Map<string, string | string[]>();
+              interviewProgress.session.answers.forEach((a) => answersMap.set(a.questionId, a.answer));
+              currentQuestion = getNextQuestion(answersMap);
+            } catch (err) {
+              logger.warn('Error getting interview progress', {
+                error: err instanceof Error ? err.message : String(err),
+                interviewSessionId,
+              });
+            }
+          }
+
       architectData = {
         interviewComplete: !!documentation,
         documents: documentation
           ? documentation.documents.map((doc) => ({
-              name: doc.templateName,
-              snippet: doc.content.substring(0, 400),
+                  name: doc.templateName || 'Untitled Document',
+                  snippet: doc.content ? doc.content.substring(0, 400) : '',
             }))
           : undefined,
-      };
+            interviewProgress: interviewProgress ? {
+              completionPercentage: interviewProgress.completionPercentage,
+              currentPhase: interviewProgress.currentPhase,
+              currentQuestion: currentQuestion ? {
+                id: currentQuestion.id,
+                question: currentQuestion.question,
+                helpText: currentQuestion.helpText,
+                options: currentQuestion.options,
+              } : null,
+              answeredCount: interviewProgress.session.answers.length,
+              totalQuestions: INTERVIEW_QUESTIONS.length,
+            } : undefined,
+          };
+        } catch (err) {
+          logger.warn('Error getting architect documentation', {
+            error: err instanceof Error ? err.message : String(err),
+            projectId: session.projectId,
+          });
+        }
     }
 
     return {
@@ -312,8 +401,8 @@ export class AssistantService {
         ? {
             id: latestVersion.id,
             version: latestVersion.version,
-            mechanics: latestVersion.mechanics as MechanicsData,
-            lore: latestVersion.lore as LoreData,
+              mechanics: (latestVersion.mechanics || {}) as MechanicsData,
+              lore: (latestVersion.lore || {}) as LoreData,
           }
         : undefined,
       validationIssues: validationIssues.map((issue) => ({
@@ -323,6 +412,15 @@ export class AssistantService {
       })),
       architect: architectData,
     };
+    } catch (error) {
+      logger.error('Error building context', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        projectId: session.projectId,
+        sessionType: session.type,
+      });
+      throw error;
+    }
   }
 
   private buildSystemPrompt(type: SessionType, context: AssistantContext) {
@@ -336,11 +434,91 @@ export class AssistantService {
     ];
 
     if (type === 'architect') {
+      const interviewInfo = context.architect?.interviewProgress;
+      if (interviewInfo && !context.architect?.interviewComplete) {
+        // Interview in progress - guide user through questions
       baseInstructions.push(
-        'You are currently assisting with the Project Architect phase.',
+          'You are guiding the user through a structured interview to collect all necessary information for generating comprehensive project documentation.',
+          '',
+          `Interview Progress: ${interviewInfo.completionPercentage}% complete (${interviewInfo.answeredCount}/${interviewInfo.totalQuestions} questions answered)`,
+          `Current Phase: ${interviewInfo.currentPhase}`,
+          '',
+          'YOUR PRIMARY ROLE: Guide the user through the interview questions conversationally.',
+          '',
+          interviewInfo.currentQuestion
+            ? `CURRENT QUESTION TO ASK: "${interviewInfo.currentQuestion.question}"${interviewInfo.currentQuestion.helpText ? `\nHelp text: ${interviewInfo.currentQuestion.helpText}` : ''}${interviewInfo.currentQuestion.options ? `\nOptions: ${interviewInfo.currentQuestion.options.join(', ')}` : ''}`
+            : 'No more questions - interview is complete!',
+          '',
+          'CRITICAL INSTRUCTIONS FOR INTERVIEW FLOW:',
+          '1. ALWAYS ask the current question in your reply - do not wait for the user to ask',
+          '2. If this is the first message in the conversation, IMMEDIATELY ask the first question - do not just greet them',
+          '3. When the user provides an answer, acknowledge it briefly (e.g., "Got it!" or "Perfect!")',
+          '4. Then IMMEDIATELY ask the next question - do not wait, do not ask if they\'re ready',
+          '5. Ask questions conversationally and naturally - make it feel like a friendly chat, not a form',
+          '6. If the user asks questions, answer them briefly, then return to asking the current interview question',
+          '7. Keep the conversation flowing - always end your message with the next question',
+          '8. Extract answers from user messages automatically - they may phrase things conversationally',
+          '9. Never say "let me know when you\'re ready" - just ask the question',
+          '',
+          'WHEN INTERVIEW IS COMPLETE:',
+          '1. Congratulate the user on completing the interview',
+          '2. Offer to generate all documentation documents',
+          '3. Create a proposal with architectDocuments containing all required documents',
+          '',
+          'REQUIRED DOCUMENTS TO GENERATE (when interview complete):',
+          '1. Executive Summary (executive-summary.md)',
+          '2. Technical Specification (technical-specification.md)',
+          '3. Product Requirements (product-requirements.md)',
+          '4. Roadmap (roadmap.md)',
+          '5. Monetization Audit (monetization-audit.md) - if open source',
+          '6. Launch Checklist (launch-checklist.md) - if open source',
+          '',
+          'Keep the conversation natural and friendly. Guide them through all questions to ensure complete documentation can be generated.'
+        );
+      } else if (context.architect?.interviewComplete) {
+        // Interview complete - can help with documents
+        baseInstructions.push(
+          'The interview is complete and documentation has been generated.',
+          'You can help the user:',
+          '- Review and update existing documents',
+          '- Answer questions about the documentation',
+          '- Generate additional documents if needed',
+          '',
+          'When creating document proposals, include the full content in architectDocuments array.',
         'You may propose document edits by including architectDocuments array.',
         'Explain how document changes improve project clarity and development readiness.'
       );
+      } else {
+        // No interview started yet - but we may have pre-filled some answers
+        const hasPrefilled = (context.architect?.interviewProgress?.answeredCount ?? 0) > 0;
+        
+        if (hasPrefilled) {
+          const answeredCount = context.architect?.interviewProgress?.answeredCount ?? 0;
+          baseInstructions.push(
+            'I\'ve automatically filled in some answers from your existing project data (mechanics, lore, etc.).',
+            `You've already answered ${answeredCount} questions automatically.`,
+            'Now I\'ll guide you through the remaining questions to complete the interview.',
+            '',
+            'Ask the next unanswered question conversationally.',
+            'Be friendly and acknowledge that some information was already gathered from their project.',
+            '',
+            'You may propose document edits by including architectDocuments array.',
+            'Explain how document changes improve project clarity and development readiness.'
+          );
+        } else {
+          baseInstructions.push(
+            'Welcome the user and explain that you will guide them through a structured interview.',
+            'The interview will collect all necessary information to generate comprehensive project documentation.',
+            'I\'ll try to extract answers from existing project data first, then ask only the remaining questions.',
+            'Start by asking the first unanswered question.',
+            '',
+            'Be friendly and conversational. Guide them through all questions systematically.',
+            '',
+            'You may propose document edits by including architectDocuments array.',
+            'Explain how document changes improve project clarity and development readiness.'
+          );
+        }
+      }
     } else {
       baseInstructions.push(
         'Focus on improving mechanics and lore alignment.',
@@ -383,6 +561,269 @@ export class AssistantService {
     }
 
     return baseInstructions.join('\n');
+  }
+
+  /**
+   * Pre-fill interview answers from existing project data
+   */
+  private async prefillInterviewFromProjectData(projectId: string, interviewSessionId: string) {
+    try {
+      // Get project data
+      const project = await this.prisma.project.findUnique({
+        where: { id: projectId },
+      });
+      const latestVersion = await this.getLatestVersion(projectId);
+      
+      if (!project && !latestVersion) {
+        return; // No data to extract
+      }
+
+      const mechanics = latestVersion?.mechanics as MechanicsData | undefined;
+      const lore = latestVersion?.lore as LoreData | undefined;
+      const prefillAnswers: Array<{ questionId: string; answer: string | string[] }> = [];
+
+      // q1-project-name: From project name
+      if (project?.name) {
+        prefillAnswers.push({ questionId: 'q1-project-name', answer: project.name });
+      }
+
+      // q1-project-description: Synthesize from mechanics and lore
+      if (mechanics?.coreLoop || lore?.setting) {
+        const descriptionParts: string[] = [];
+        if (lore?.setting?.worldType) {
+          descriptionParts.push(lore.setting.worldType);
+        }
+        if (lore?.setting?.location) {
+          descriptionParts.push(`set in ${lore.setting.location}`);
+        }
+        if (mechanics?.coreLoop) {
+          descriptionParts.push(`featuring ${mechanics.coreLoop.toLowerCase()}`);
+        }
+        if (descriptionParts.length > 0) {
+          prefillAnswers.push({
+            questionId: 'q1-project-description',
+            answer: descriptionParts.join(', '),
+          });
+        }
+      }
+
+      // q1-problem-solved: From conflict or themes
+      if (lore?.conflict?.primary) {
+        prefillAnswers.push({
+          questionId: 'q1-problem-solved',
+          answer: `Players experience ${lore.conflict.primary.toLowerCase()}`,
+        });
+      } else if (lore?.themes && lore.themes.length > 0) {
+        prefillAnswers.push({
+          questionId: 'q1-problem-solved',
+          answer: `Explores themes of ${lore.themes.join(', ')}`,
+        });
+      }
+
+      // q1-key-features: From player actions and protagonist abilities
+      const features: string[] = [];
+      if (mechanics?.playerActions && mechanics.playerActions.length > 0) {
+        features.push(...mechanics.playerActions.slice(0, 5).map(action => {
+          // Extract action name (before colon if present)
+          return action.split(':')[0].trim();
+        }));
+      }
+      if (lore?.protagonist?.abilities && lore.protagonist.abilities.length > 0 && features.length < 5) {
+        const abilityFeatures = lore.protagonist.abilities
+          .slice(0, 5 - features.length)
+          .map(ability => ability.split(':')[0].trim());
+        features.push(...abilityFeatures);
+      }
+      if (features.length > 0) {
+        prefillAnswers.push({
+          questionId: 'q1-key-features',
+          answer: features.join(', '),
+        });
+      }
+
+      // q2-primary-workflow: From coreLoop
+      if (mechanics?.coreLoop) {
+        prefillAnswers.push({
+          questionId: 'q2-primary-workflow',
+          answer: mechanics.coreLoop,
+        });
+      }
+
+      // q2-data-model: From resource systems and progression
+      const dataModelParts: string[] = [];
+      if (mechanics?.resourceSystems && mechanics.resourceSystems.length > 0) {
+        const resources = mechanics.resourceSystems.map(r => r.name || 'Unknown resource').join(', ');
+        dataModelParts.push(`Resource tracking: ${resources}`);
+      }
+      if (mechanics?.progressionSystems) {
+        const prog = mechanics.progressionSystems;
+        if (prog && typeof prog === 'object' && 'mechanics' in prog && Array.isArray(prog.mechanics)) {
+          dataModelParts.push(`Progression data: ${prog.mechanics.join(', ')}`);
+        }
+      }
+      if (dataModelParts.length > 0) {
+        prefillAnswers.push({
+          questionId: 'q2-data-model',
+          answer: dataModelParts.join('; '),
+        });
+      }
+
+      // Submit all pre-filled answers
+      for (const { questionId, answer } of prefillAnswers) {
+        try {
+          architectService.submitAnswer(interviewSessionId, questionId, answer);
+          logger.debug('Pre-filled interview answer', { questionId, projectId });
+        } catch (err) {
+          logger.warn('Failed to pre-fill answer', {
+            questionId,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+
+      if (prefillAnswers.length > 0) {
+        logger.info('Pre-filled interview from project data', {
+          projectId,
+          interviewSessionId,
+          answersCount: prefillAnswers.length,
+          questions: prefillAnswers.map(a => a.questionId),
+        });
+      }
+    } catch (err) {
+      logger.error('Error pre-filling interview', {
+        error: err instanceof Error ? err.message : String(err),
+        projectId,
+        interviewSessionId,
+      });
+    }
+  }
+
+  /**
+   * Handle architect interview flow - extract answers and track progress
+   */
+  private async handleArchitectInterview(assistantSessionId: string, projectId: string, userMessage: string) {
+    try {
+      // Get or create interview session
+      let interviewSessionId = this.interviewSessions.get(assistantSessionId);
+      if (!interviewSessionId) {
+        const interviewSession = architectService.startInterview(projectId);
+        interviewSessionId = interviewSession.sessionId;
+        this.interviewSessions.set(assistantSessionId, interviewSessionId);
+        
+        // Pre-fill answers from existing project data
+        await this.prefillInterviewFromProjectData(projectId, interviewSessionId);
+        
+        logger.info('Created new interview session for architect assistant', {
+          assistantSessionId,
+          interviewSessionId,
+          projectId,
+        });
+      }
+
+      // Get current interview progress
+      const progress = architectService.getSessionProgress(interviewSessionId);
+      const answersMap = new Map<string, string | string[]>();
+      progress.session.answers.forEach((a) => answersMap.set(a.questionId, a.answer));
+      const currentQuestion = getNextQuestion(answersMap);
+
+      if (!currentQuestion) {
+        // Interview complete - try to generate documentation
+        if (!architectService.getDocumentation(projectId)) {
+          try {
+            await architectService.generateDocumentation(projectId, interviewSessionId);
+            logger.info('Generated documentation after interview completion', { projectId, interviewSessionId });
+          } catch (err) {
+            logger.error('Failed to generate documentation', {
+              error: err instanceof Error ? err.message : String(err),
+              projectId,
+              interviewSessionId,
+            });
+          }
+        }
+        return;
+      }
+
+      // Try to extract answer from user message
+      // Look for patterns that might indicate an answer to the current question
+      const answerPatterns = this.extractAnswerFromMessage(userMessage, currentQuestion);
+      if (answerPatterns) {
+        try {
+          const result = architectService.submitAnswer(interviewSessionId, currentQuestion.id, answerPatterns);
+          logger.info('Submitted interview answer', {
+            questionId: currentQuestion.id,
+            interviewSessionId,
+            hasNextQuestion: !!result.nextQuestion,
+            completionPercentage: result.completionPercentage,
+          });
+
+          // If interview is complete, generate documentation
+          if (result.interviewComplete) {
+            try {
+              await architectService.generateDocumentation(projectId, interviewSessionId);
+              logger.info('Generated documentation after interview completion', { projectId, interviewSessionId });
+            } catch (err) {
+              logger.error('Failed to generate documentation', {
+                error: err instanceof Error ? err.message : String(err),
+                projectId,
+                interviewSessionId,
+              });
+            }
+          }
+        } catch (err) {
+          logger.warn('Failed to submit interview answer', {
+            error: err instanceof Error ? err.message : String(err),
+            questionId: currentQuestion.id,
+            interviewSessionId,
+          });
+        }
+      }
+    } catch (err) {
+      logger.error('Error handling architect interview', {
+        error: err instanceof Error ? err.message : String(err),
+        assistantSessionId,
+        projectId,
+      });
+    }
+  }
+
+  /**
+   * Extract answer from user message for the current question
+   */
+  private extractAnswerFromMessage(message: string, question: { id: string; question: string; options?: string[] }): string | string[] | null {
+    const lowerMessage = message.toLowerCase().trim();
+    
+    // If question has options, try to match them
+    if (question.options && question.options.length > 0) {
+      for (const option of question.options) {
+        if (lowerMessage.includes(option.toLowerCase()) || 
+            lowerMessage === option.toLowerCase() ||
+            lowerMessage.startsWith(option.toLowerCase().substring(0, 3))) {
+          return option;
+        }
+      }
+    }
+
+    // For questions asking for lists (comma-separated)
+    if (question.id.includes('features') || question.id.includes('integrations')) {
+      // Return as-is, will be parsed later
+      return message.trim();
+    }
+
+    // For yes/no questions
+    if (lowerMessage === 'yes' || lowerMessage === 'y' || lowerMessage.startsWith('yes')) {
+      return 'Yes';
+    }
+    if (lowerMessage === 'no' || lowerMessage === 'n' || lowerMessage.startsWith('no')) {
+      return 'No';
+    }
+
+    // For most questions, return the message as the answer
+    // The AI will have asked the question, so the user's response is likely the answer
+    if (message.length > 2 && message.length < 500) {
+      return message.trim();
+    }
+
+    return null; // Couldn't extract a clear answer
   }
 
   private parseAssistantResponse(content: string): AssistantModelResponse {

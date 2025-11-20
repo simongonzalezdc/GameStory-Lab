@@ -612,72 +612,72 @@ export function ConceptEditorPage() {
         <div className="flex items-center justify-between gap-4 py-2.5">
           {/* Left: Project Info & Navigation */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
-            <button
-              onClick={() => navigate('/projects')}
+          <button
+            onClick={() => navigate('/projects')}
               className="flex-shrink-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
               title="Back to Projects"
-            >
+          >
               ←
-            </button>
+          </button>
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">{project.name}</h2>
               {versions.length > 1 ? (
-                <select
-                  value={currentVersion?.id || ''}
-                  onChange={(e) => {
-                    const selected = versions.find(v => v.id === e.target.value);
-                    if (selected) {
-                      setCurrentVersion(selected);
-                    }
-                  }}
+              <select
+                value={currentVersion?.id || ''}
+                onChange={(e) => {
+                  const selected = versions.find(v => v.id === e.target.value);
+                  if (selected) {
+                    setCurrentVersion(selected);
+                  }
+                }}
                   className="px-2.5 py-1 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-xs text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
-                >
-                  {versions.map((v) => (
-                    <option key={v.id} value={v.id}>
+              >
+                {versions.map((v) => (
+                  <option key={v.id} value={v.id}>
                       v{v.version} {v.version === versions[0].version ? '(Latest)' : ''}
-                    </option>
-                  ))}
-                </select>
+                  </option>
+                ))}
+              </select>
               ) : (
                 <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">v{currentVersion.version}</span>
-              )}
-              {versions.length > 1 && (
+          )}
+          {versions.length > 1 && (
                 <div className="relative group flex-shrink-0">
-                  <button
+              <button
                     className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition"
                     title={`${versions.length} versions`}
-                  >
+              >
                     📋 {versions.length}
-                  </button>
+              </button>
                   <div className="absolute left-0 mt-2 w-72 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-20 max-h-96 overflow-y-auto">
-                    <div className="p-2">
-                      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-2 py-1 mb-1">
-                        All Versions
-                      </div>
-                      {versions.map((v) => (
-                        <button
-                          key={v.id}
-                          onClick={() => setCurrentVersion(v)}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
-                            currentVersion?.id === v.id
-                              ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100'
-                              : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">Version {v.version}</span>
-                            {v.version === versions[0].version && (
-                              <span className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded">
-                                Latest
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+                <div className="p-2">
+                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-2 py-1 mb-1">
+                    All Versions
                   </div>
+                  {versions.map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() => setCurrentVersion(v)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                        currentVersion?.id === v.id
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100'
+                          : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Version {v.version}</span>
+                        {v.version === versions[0].version && (
+                          <span className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded">
+                            Latest
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              )}
+              </div>
+            </div>
+          )}
             </div>
           </div>
 
@@ -732,21 +732,21 @@ export function ConceptEditorPage() {
                   )}
                 </button>
               )}
-              <button
-                onClick={() => handleExport('gdd')}
-                disabled={exporting}
+          <button
+            onClick={() => handleExport('gdd')}
+            disabled={exporting}
                 className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition text-xs font-medium disabled:opacity-50"
                 title="Export as GDD"
-              >
+          >
                 📄
-              </button>
-              <button
-                onClick={() => navigate(`/projects/${projectId}/architect`)}
+          </button>
+          <button
+            onClick={() => navigate(`/projects/${projectId}/architect`)}
                 className="px-2.5 py-1.5 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition text-xs font-medium"
                 title="Open Project Architect"
-              >
+            >
                 🏗️
-              </button>
+            </button>
             </div>
           </div>
         </div>
@@ -845,8 +845,8 @@ export function ConceptEditorPage() {
                 <div className="flex-1">
                   {showRawJsonMechanics ? (
                     <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 h-full">
-                      {JSON.stringify(currentVersion.mechanics, null, 2)}
-                    </pre>
+                  {JSON.stringify(currentVersion.mechanics, null, 2)}
+                </pre>
                   ) : (
                     <MechanicsViewer mechanics={currentVersion.mechanics} />
                   )}
@@ -887,8 +887,8 @@ export function ConceptEditorPage() {
                     <div className="flex-1">
                       {showRawJsonLore ? (
                         <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 h-full">
-                          {JSON.stringify(currentVersion.lore, null, 2)}
-                        </pre>
+                    {JSON.stringify(currentVersion.lore, null, 2)}
+                  </pre>
                       ) : (
                         <LoreViewer lore={currentVersion.lore} />
                       )}
@@ -908,7 +908,7 @@ export function ConceptEditorPage() {
                       lastValidatedVersionId.current = null;
                       // Ensure we're validating the current version
                       if (currentVersion) {
-                        runValidation();
+                      runValidation();
                       } else {
                         // If no current version, reload project first
                         await loadProject();
@@ -987,16 +987,16 @@ export function ConceptEditorPage() {
         </div>
 
         {/* Workflow Checklist */}
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 flex-shrink-0">
-          <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 uppercase tracking-wide">
-            Workflow Checklist
-          </h4>
-          <ol className="text-sm text-slate-600 dark:text-slate-300 space-y-1 list-decimal list-inside">
-            <li>Kick off or continue the Project Assistant chat.</li>
-            <li>Accept suggested mechanics or lore updates to create versions.</li>
-            <li>Resolve validation issues with the always-visible refine buttons.</li>
-            <li>Graduate to Project Architect for full documentation.</li>
-          </ol>
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 flex-shrink-0">
+            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 uppercase tracking-wide">
+              Workflow Checklist
+            </h4>
+            <ol className="text-sm text-slate-600 dark:text-slate-300 space-y-1 list-decimal list-inside">
+              <li>Kick off or continue the Project Assistant chat.</li>
+              <li>Accept suggested mechanics or lore updates to create versions.</li>
+              <li>Resolve validation issues with the always-visible refine buttons.</li>
+              <li>Graduate to Project Architect for full documentation.</li>
+            </ol>
         </div>
       </div>
 

@@ -1,29 +1,11 @@
 /**
  * AI Project Architect Page
- * Guides users through interview and generates comprehensive documentation
+ * Chat-only interface for generating comprehensive project documentation
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
-
-interface Question {
-  id: string;
-  phase: string;
-  category: string;
-  question: string;
-  helpText?: string;
-  options?: string[];
-  required: boolean;
-}
-
-interface InterviewProgress {
-  sessionId: string;
-  currentPhase: string;
-  completionPercentage: number;
-  phaseComplete: boolean;
-  interviewComplete: boolean;
-}
 
 interface GeneratedDocsData {
   projectId: string;
@@ -43,139 +25,64 @@ export function ProjectArchitectPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  const [currentAnswer, setCurrentAnswer] = useState<string>('');
-  const [progress, setProgress] = useState<InterviewProgress | null>(null);
   const [documentationGenerated, setDocumentationGenerated] = useState(false);
   const [generatedDocs, setGeneratedDocs] = useState<GeneratedDocsData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{ name: string; content: string } | null>(null);
 
-  // Start interview session
-  const startInterview = async () => {
+  // Check if documentation exists and load it
+  const checkDocumentation = async () => {
+    if (!projectId) return;
     try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch(`${API_BASE_URL}/api/architect/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId }),
-      });
-
+      const response = await fetch(`${API_BASE_URL}/api/architect/documentation/${projectId}`);
+      if (response.ok) {
       const data = await response.json();
-
-      if (data.success) {
-        setSessionId(data.data.sessionId);
-        setCurrentQuestion(data.data.firstQuestion);
-        setProgress({
-          sessionId: data.data.sessionId,
-          currentPhase: data.data.currentPhase,
-          completionPercentage: 0,
-          phaseComplete: false,
-          interviewComplete: false,
-        });
-      } else {
-        setError('Failed to start interview');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Submit answer
-  const submitAnswer = async () => {
-    if (!sessionId || !currentQuestion || !currentAnswer.trim()) {
-      setError('Please provide an answer');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch(`${API_BASE_URL}/api/architect/answer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId,
-          questionId: currentQuestion.id,
-          answer: currentAnswer,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        const result = data.data;
-
-        setProgress({
-          sessionId: result.sessionId,
-          currentPhase: result.currentPhase || progress?.currentPhase || 'quick-discovery',
-          completionPercentage: result.completionPercentage,
-          phaseComplete: result.phaseComplete,
-          interviewComplete: result.interviewComplete,
-        });
-
-        if (result.interviewComplete) {
-          // Interview complete, ready to generate docs
-          setCurrentQuestion(null);
-          setCurrentAnswer('');
-        } else if (result.nextQuestion) {
-          setCurrentQuestion(result.nextQuestion);
-          setCurrentAnswer('');
+        if (data.success && data.data) {
+          const docs = data.data;
+          setGeneratedDocs({
+            projectId: docs.projectId,
+            sessionId: docs.sessionId,
+            documentCount: docs.documents.length,
+            documents: docs.documents.map((doc: any) => ({
+              name: doc.templateName || doc.name,
+              generatedAt: doc.generatedAt || new Date().toISOString(),
+              size: doc.size || doc.content?.length || 0,
+            })),
+            generatedAt: docs.generatedAt || new Date().toISOString(),
+          });
+          setDocumentationGenerated(true);
         }
-      } else {
-        setError('Failed to submit answer');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
+      // Documentation doesn't exist yet, that's fine
+      console.log('No documentation found yet');
     }
   };
 
-  // Generate documentation
-  const generateDocumentation = async () => {
-    if (!sessionId) return;
+  // Check for existing documentation on mount
+  useEffect(() => {
+    checkDocumentation();
+  }, [projectId]);
 
+  // Preview a document
+  const previewDocument = async (documentName: string) => {
+    if (!projectId) return;
     try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch(`${API_BASE_URL}/api/architect/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId, sessionId }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setDocumentationGenerated(true);
-        setGeneratedDocs(data.data);
-      } else {
-        setError('Failed to generate documentation');
+      const response = await fetch(`${API_BASE_URL}/api/architect/document/${projectId}/${documentName}`);
+      if (!response.ok) {
+        throw new Error('Failed to load document');
       }
+      const content = await response.text();
+      setPreviewDoc({ name: documentName, content });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
+      console.error('Failed to load document:', err);
     }
   };
 
   // Download a document
   const downloadDocument = async (documentName: string) => {
     if (!projectId) return;
-
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/architect/document/${projectId}/${documentName}`
-      );
-
+      const response = await fetch(`${API_BASE_URL}/api/architect/document/${projectId}/${documentName}`);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -186,7 +93,7 @@ export function ProjectArchitectPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to download document');
+      console.error('Failed to download document:', err);
     }
   };
 
@@ -207,292 +114,156 @@ export function ProjectArchitectPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to download archive');
+      console.error('Failed to download archive:', err);
     }
   };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
-      <div className="project-architect-page" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      <div style={{ marginBottom: '2rem' }}>
+    <div className="flex flex-col h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
+      {/* Compact Header */}
+      <div className="flex-shrink-0 px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
         <button
           onClick={() => navigate(`/projects/${projectId}`)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#3b82f6',
-            cursor: 'pointer',
-            padding: '0.5rem 0',
-          }}
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition text-sm font-medium"
         >
           ← Back to Project
         </button>
-      </div>
-
-      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+            <div className="h-4 w-px bg-slate-300 dark:bg-slate-600" />
+            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">
         🏗️ AI Project Architect
       </h1>
-      <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-        Transform your game concept into complete, AI-agent-ready project documentation
-      </p>
+        </div>
+          {documentationGenerated && generatedDocs && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                {generatedDocs.documentCount} documents ready
+              </span>
+            </div>
+          )}
+            </div>
+          </div>
 
-      {error && (
+      {/* Main Content - Chat Only */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {projectId && (
+          <ProjectAssistantPanel 
+            projectId={projectId} 
+            type="architect" 
+            onProposalAccepted={async () => {
+              // Reload documentation after proposal is accepted
+              await checkDocumentation();
+                }}
+              />
+            )}
+          </div>
+
+      {/* Document Preview Modal */}
+      {previewDoc && (
         <div
-          style={{
-            background: '#fee2e2',
-            border: '1px solid #ef4444',
-            borderRadius: '0.5rem',
-            padding: '1rem',
-            marginBottom: '1rem',
-            color: '#dc2626',
-          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
+          onClick={() => setPreviewDoc(null)}
         >
-          {error}
-        </div>
-      )}
-
-      {!sessionId && !documentationGenerated && (
-        <div style={{ textAlign: 'center', padding: '3rem 0' }}>
-          <p style={{ fontSize: '1.125rem', marginBottom: '2rem' }}>
-            Ready to create comprehensive documentation for your game?
-          </p>
-          <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-            This will guide you through a 10-25 question interview and generate 4-6 professional documents.
-          </p>
-          <button
-            onClick={startInterview}
-            disabled={loading}
-            style={{
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              padding: '0.75rem 2rem',
-              borderRadius: '0.5rem',
-              border: 'none',
-              fontSize: '1rem',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.5 : 1,
-            }}
-          >
-            {loading ? 'Starting...' : 'Start Interview'}
-          </button>
-        </div>
-      )}
-
-      {sessionId && progress && !progress.interviewComplete && currentQuestion && (
-        <div>
-          <div style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                Phase: {progress.currentPhase.replace(/-/g, ' ').toUpperCase()}
-              </span>
-              <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                {progress.completionPercentage}% complete
-              </span>
-            </div>
-            <div style={{ height: '0.5rem', backgroundColor: '#e5e7eb', borderRadius: '0.25rem', overflow: 'hidden' }}>
-              <div
-                style={{
-                  height: '100%',
-                  backgroundColor: '#3b82f6',
-                  width: `${progress.completionPercentage}%`,
-                  transition: 'width 0.3s ease',
-                }}
-              />
-            </div>
-          </div>
-
           <div
-            style={{
-              border: '1px solid #e5e7eb',
-              borderRadius: '0.5rem',
-              padding: '1.5rem',
-              marginBottom: '1rem',
-            }}
+            className="bg-white dark:bg-slate-800 rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
-              {currentQuestion.category.replace(/-/g, ' ').toUpperCase()}
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between flex-shrink-0">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                {previewDoc.name.replace(/-/g, ' ').replace('.md', '')}
+              </h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => downloadDocument(previewDoc.name)}
+                  className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm font-medium"
+                >
+                  📥 Download
+                </button>
+                <button
+                  onClick={() => setPreviewDoc(null)}
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition text-sm font-medium"
+                >
+                  ✕ Close
+          </button>
+              </div>
             </div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>
-              {currentQuestion.question}
-            </h3>
-            {currentQuestion.helpText && (
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1rem' }}>
-                💡 {currentQuestion.helpText}
-              </p>
-            )}
-
-            {currentQuestion.options && currentQuestion.options.length > 0 ? (
-              <select
-                value={currentAnswer}
-                onChange={(e) => setCurrentAnswer(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '1rem',
-                }}
-              >
-                <option value="">-- Select an option --</option>
-                {currentQuestion.options.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <textarea
-                value={currentAnswer}
-                onChange={(e) => setCurrentAnswer(e.target.value)}
-                placeholder="Type your answer here..."
-                rows={4}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '1rem',
-                  fontFamily: 'inherit',
-                }}
-              />
-            )}
+            {/* Content */}
+            <div className="flex-1 overflow-auto p-6 bg-slate-50 dark:bg-slate-900">
+              <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-900 dark:text-slate-100 m-0">
+                {previewDoc.content}
+              </pre>
+            </div>
           </div>
-
-          <button
-            onClick={submitAnswer}
-            disabled={loading || !currentAnswer.trim()}
-            style={{
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              padding: '0.75rem 2rem',
-              borderRadius: '0.5rem',
-              border: 'none',
-              fontSize: '1rem',
-              cursor: loading || !currentAnswer.trim() ? 'not-allowed' : 'pointer',
-              opacity: loading || !currentAnswer.trim() ? 0.5 : 1,
-            }}
-          >
-            {loading ? 'Submitting...' : 'Next'}
-          </button>
         </div>
       )}
 
-      {sessionId && progress?.interviewComplete && !documentationGenerated && (
-        <div style={{ textAlign: 'center', padding: '3rem 0' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Interview Complete!</h2>
-          <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-            You've answered all the questions. Ready to generate your documentation?
-          </p>
-          <button
-            onClick={generateDocumentation}
-            disabled={loading}
-            style={{
-              backgroundColor: '#10b981',
-              color: 'white',
-              padding: '0.75rem 2rem',
-              borderRadius: '0.5rem',
-              border: 'none',
-              fontSize: '1rem',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.5 : 1,
-            }}
+      {/* Documentation List Modal - Show when docs are generated */}
+      {documentationGenerated && generatedDocs && !previewDoc && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={() => setDocumentationGenerated(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 rounded-lg w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            {loading ? 'Generating...' : 'Generate Documentation'}
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                📄 Generated Documents ({generatedDocs.documentCount})
+              </h2>
+          <button
+                onClick={() => setDocumentationGenerated(false)}
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              >
+                ✕
           </button>
         </div>
-      )}
-
-      {documentationGenerated && generatedDocs && (
-        <div>
-          <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '1rem' }}>✅</div>
-          <h2 style={{ fontSize: '1.5rem', textAlign: 'center', marginBottom: '1rem' }}>
-            Documentation Generated!
-          </h2>
-          <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '2rem' }}>
-            Generated {generatedDocs.documentCount} documents for your project
-          </p>
-
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1.5rem' }}>
-            <h3 style={{ fontSize: '1.125rem', marginBottom: '1rem' }}>📄 Available Documents</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-3">
               {generatedDocs.documents.map((doc: any) => (
                 <div
                   key={doc.name}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '1rem',
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '0.375rem',
-                  }}
+                    className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600"
                 >
                   <div>
-                    <div style={{ fontWeight: '500' }}>{doc.name.replace(/-/g, ' ')}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                      <div className="font-medium text-slate-900 dark:text-slate-100">
+                        {doc.name.replace(/-/g, ' ').replace('.md', '')}
+                      </div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">
                       {(doc.size / 1024).toFixed(1)} KB
                     </div>
                   </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => previewDocument(doc.name)}
+                        className="px-3 py-2 bg-emerald-600 dark:bg-emerald-500 text-white rounded-lg hover:bg-emerald-700 dark:hover:bg-emerald-600 transition text-sm font-medium"
+                      >
+                        👁️ Preview
+                      </button>
                   <button
                     onClick={() => downloadDocument(doc.name)}
-                    style={{
-                      backgroundColor: '#3b82f6',
-                      color: 'white',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '0.375rem',
-                      border: 'none',
-                      fontSize: '0.875rem',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Download
+                        className="px-3 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm font-medium"
+                      >
+                        📥 Download
                   </button>
+                    </div>
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+              <div className="mt-6 text-center">
               <button
                 onClick={downloadAllDocuments}
-                style={{
-                  backgroundColor: '#0f172a',
-                  color: 'white',
-                  padding: '0.5rem 1.5rem',
-                  borderRadius: '0.375rem',
-                  border: 'none',
-                  fontSize: '0.9rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Download All (.zip)
+                  className="px-6 py-3 bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition font-medium"
+                >
+                  📦 Download All (.zip)
               </button>
             </div>
           </div>
-
-          <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-            <button
-              onClick={() => navigate(`/projects/${projectId}`)}
-              style={{
-                backgroundColor: '#6b7280',
-                color: 'white',
-                padding: '0.75rem 2rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                fontSize: '1rem',
-                cursor: 'pointer',
-              }}
-            >
-              Back to Project
-            </button>
           </div>
         </div>
       )}
-    </div>
-    <div>
-      {projectId && (
-        <ProjectAssistantPanel projectId={projectId} type="architect" initiallyOpen={false} />
-      )}
-    </div>
   </div>
   );
 }

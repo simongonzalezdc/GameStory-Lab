@@ -69,8 +69,33 @@ export function ProjectAssistantPanel({
           }))
         );
         setProposals(data.proposals as AssistantProposal[]);
+        // Auto-show proposals if they exist
         if (data.proposals && data.proposals.length > 0) {
           setShowProposals(true);
+        }
+        
+        // For architect type, automatically send a greeting to trigger the interview
+        if (type === 'architect' && data.messages.length === 0 && data.session?.id) {
+          // Wait a moment for the session to be fully initialized, then send greeting
+          setTimeout(async () => {
+            try {
+              const response = await assistantAPI.sendMessage(data.session.id, 'Hi! I\'m ready to create documentation for my game.');
+              setMessages((prev) => [
+                ...prev,
+                {
+                  ...response.message,
+                  createdAt: response.message.createdAt || new Date().toISOString(),
+                }
+              ]);
+              if (response.proposal) {
+                setProposals((prev) => [response.proposal as AssistantProposal, ...prev]);
+                setShowProposals(true);
+              }
+            } catch (err) {
+              console.error('[Assistant] Failed to send auto-greeting:', err);
+              // Don't show error to user - just log it
+            }
+          }, 1500);
         }
       })
       .catch((err) => {
@@ -124,7 +149,7 @@ export function ProjectAssistantPanel({
       if (response.proposal) {
         console.log('[Assistant] Received proposal:', response.proposal);
         setProposals((prev) => [response.proposal as AssistantProposal, ...prev]);
-        setShowProposals(true);
+        setShowProposals(true); // Auto-show when new proposal arrives
       }
     } catch (err) {
       console.error('[Assistant] Error sending message:', err);
@@ -213,11 +238,11 @@ For each category, provide specific, actionable suggestions. Help me understand 
   }, [type]);
 
   return (
-    <div className="flex flex-col h-full min-h-0 overflow-hidden relative">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden relative cq-panel">
       {/* Full-height Assistant Card */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900/20 rounded-2xl border border-slate-200 dark:border-slate-700 assistant-card-glow assistant-transition">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-gradient-to-br from-surface via-surface-card to-brand-50/50 dark:from-surface dark:via-surface-elevated dark:to-brand-900/10 rounded-2xl border border-border-subtle assistant-card-glow assistant-transition shadow-lg">
         {/* Rich Header */}
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 divider-glow bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm flex-shrink-0">
+        <div className="px-6 py-4 border-b border-border-subtle divider-glow bg-white/70 dark:bg-surface/80 backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
@@ -243,15 +268,18 @@ For each category, provide specific, actionable suggestions. Help me understand 
               {proposals.length > 0 && (
                 <button
                   onClick={() => setShowProposals(!showProposals)}
-                  className="relative px-3 py-1.5 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-xs font-medium flex items-center gap-1.5"
+                  className={`relative px-3 py-1.5 rounded-lg transition text-xs font-medium flex items-center gap-1.5 ${
+                    showProposals
+                      ? 'bg-blue-700 dark:bg-blue-600 text-white'
+                      : 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 animate-pulse'
+                  }`}
+                  title={`${proposals.length} proposal${proposals.length > 1 ? 's' : ''} ready for review`}
                 >
                   <span>💡</span>
                   <span>Proposals</span>
-                  {proposals.length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
-                      {proposals.length}
-                    </span>
-                  )}
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold shadow-lg">
+                    {proposals.length}
+                  </span>
                 </button>
               )}
             </div>
@@ -259,7 +287,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex min-h-0 overflow-hidden">
+        <div className="flex-1 flex min-h-0 overflow-hidden cq-stack">
           {/* Chat Area */}
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* Messages */}
@@ -295,8 +323,8 @@ For each category, provide specific, actionable suggestions. Help me understand 
                       <div
                         className={`rounded-2xl px-4 py-3 text-sm shadow-sm ${
                           msg.role === 'assistant'
-                            ? 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100'
-                            : 'bg-blue-600 dark:bg-blue-500 text-white'
+                            ? 'bg-surface-card dark:bg-surface-elevated border border-border-subtle text-slate-900 dark:text-slate-100'
+                            : 'bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md'
                         }`}
                       >
                         <div className="whitespace-pre-wrap break-words">{msg.content}</div>
@@ -314,20 +342,20 @@ For each category, provide specific, actionable suggestions. Help me understand 
               )}
               {loading && (
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-brand-600 to-mint-500 flex items-center justify-center text-xs font-bold text-white">
                     AI
                   </div>
-                  <div className="flex items-center gap-1 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full typing-dot" />
-                    <div className="w-2 h-2 bg-blue-500 rounded-full typing-dot" />
-                    <div className="w-2 h-2 bg-blue-500 rounded-full typing-dot" />
+                  <div className="flex items-center gap-1 px-4 py-3 bg-surface-card dark:bg-surface-elevated border border-border-subtle rounded-2xl">
+                    <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
+                    <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
+                    <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
                   </div>
                 </div>
               )}
             </div>
 
             {/* Composer - Always Visible */}
-            <div className="border-t border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow-lg flex-shrink-0">
+            <div className="border-t border-border-subtle bg-white/80 dark:bg-surface/85 backdrop-blur-md shadow-lg flex-shrink-0">
               {error && (
                 <div className="px-6 pt-3">
                   <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 flex items-start justify-between gap-2">
@@ -353,13 +381,13 @@ For each category, provide specific, actionable suggestions. Help me understand 
                   {/* Quick Chat Actions */}
                   <button
                     onClick={() => handleQuickAction('summarize')}
-                    className="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                    className="px-3 py-1 text-xs bg-surface-muted dark:bg-surface-strong text-slate-700 dark:text-slate-200 rounded-full hover:border hover:border-brand-300 transition"
                   >
                     📋 Summarize & Check Consistency
                   </button>
                   <button
                     onClick={() => handleQuickAction('suggest-tweaks')}
-                    className="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                    className="px-3 py-1 text-xs bg-surface-muted dark:bg-surface-strong text-slate-700 dark:text-slate-200 rounded-full hover:border hover:border-brand-300 transition"
                   >
                     ✨ Suggest Tweaks
                   </button>
@@ -370,28 +398,28 @@ For each category, provide specific, actionable suggestions. Help me understand 
                       <button
                         onClick={() => onRefine('deepen-mechanics')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition disabled:opacity-50"
+                        className="px-3 py-1 text-xs bg-brand-50 dark:bg-brand-900/25 text-brand-700 dark:text-brand-200 rounded-full hover:bg-brand-100/80 dark:hover:bg-brand-900/40 transition disabled:opacity-50 border border-brand-100/60 dark:border-brand-800/70"
                       >
                         ⚙️ Deepen Mechanics
                       </button>
                       <button
                         onClick={() => onRefine('enrich-lore')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/50 transition disabled:opacity-50"
+                        className="px-3 py-1 text-xs bg-mint-500/15 dark:bg-mint-500/20 text-mint-600 dark:text-mint-300 rounded-full hover:bg-mint-500/25 dark:hover:bg-mint-500/30 transition disabled:opacity-50 border border-mint-500/40"
                       >
                         📖 Enrich Lore
                       </button>
                       <button
                         onClick={() => onRefine('improve-consistency')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-200 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition disabled:opacity-50"
+                        className="px-3 py-1 text-xs bg-surface-muted dark:bg-surface-strong text-emerald-700 dark:text-emerald-200 rounded-full hover:border hover:border-emerald-400 transition disabled:opacity-50"
                       >
                         ♻️ Improve Consistency
                       </button>
                       <button
                         onClick={() => onRefine('enhance-genre-fit')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/50 transition disabled:opacity-50"
+                        className="px-3 py-1 text-xs bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/50 transition disabled:opacity-50 border border-amber-200/70 dark:border-amber-800/70"
                       >
                         🎯 Enhance Genre Fit
                       </button>
@@ -438,8 +466,8 @@ For each category, provide specific, actionable suggestions. Help me understand 
 
           {/* Proposals Side Rail */}
           {showProposals && proposals.length > 0 && (
-            <div className="w-80 border-l border-slate-200 dark:border-slate-700 divider-glow bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm flex flex-col min-h-0 overflow-hidden flex-shrink-0 panel-slide-in">
-              <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between flex-shrink-0">
+            <div className="w-80 border-l border-border-subtle divider-glow bg-surface-muted dark:bg-surface-strong backdrop-blur-sm flex flex-col min-h-0 overflow-hidden flex-shrink-0 panel-slide-in">
+              <div className="px-4 py-3 border-b border-border-subtle flex items-center justify-between flex-shrink-0">
                 <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                   Proposals ({proposals.length})
                 </h4>
@@ -454,14 +482,14 @@ For each category, provide specific, actionable suggestions. Help me understand 
                 {proposals.map((proposal, index) => (
                   <div
                     key={proposal.id}
-                    className={`bg-white dark:bg-slate-800 border rounded-xl p-4 text-sm shadow-sm ${
+                    className={`bg-surface-card dark:bg-surface-elevated border rounded-xl p-4 text-sm shadow-sm ${
                       index === 0
-                        ? 'border-blue-500 dark:border-blue-400 shadow-blue-500/20'
-                        : 'border-slate-200 dark:border-slate-600'
+                        ? 'border-brand-400 shadow-brand-500/20'
+                        : 'border-border-subtle'
                     }`}
                   >
                     {index === 0 && (
-                      <div className="mb-3 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg text-xs font-semibold text-center">
+                      <div className="mb-3 px-3 py-1.5 bg-gradient-to-r from-brand-600 to-mint-500 text-white rounded-lg text-xs font-semibold text-center">
                         ⭐ Most Recent Proposal
                       </div>
                     )}
@@ -471,7 +499,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     
                     <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
                       <p className="text-xs font-semibold text-blue-800 dark:text-blue-200 mb-1">What this will improve:</p>
-                      <div className="text-xs text-blue-700 dark:text-blue-300">
+                      <div className="text-xs text-blue-700 dark:text-blue-300 whitespace-pre-wrap">
                         {proposal.payload?.explanation || (
                           proposal.proposalType === 'architect-document'
                             ? 'Updates project documentation with better structure and content.'
@@ -479,6 +507,42 @@ For each category, provide specific, actionable suggestions. Help me understand 
                         )}
                       </div>
                     </div>
+
+                    {/* Show preview of architect documents if present */}
+                    {proposal.proposalType === 'architect-document' && proposal.payload?.architectDocuments && (
+                      <div className="mb-3 p-2 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 dark:border-purple-800">
+                        <p className="text-xs font-semibold text-purple-800 dark:text-purple-200 mb-1">Documents to create/update:</p>
+                        <ul className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
+                          {proposal.payload.architectDocuments.map((doc: any, idx: number) => (
+                            <li key={idx} className="flex items-start gap-1">
+                              <span>📄</span>
+                              <span className="font-medium">{doc.name || `Document ${idx + 1}`}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Show preview of mechanics/lore changes if present */}
+                    {proposal.proposalType === 'concept-update' && (
+                      <div className="mb-3 p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded border border-emerald-200 dark:border-emerald-800">
+                        <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-200 mb-1">Will update:</p>
+                        <div className="text-xs text-emerald-700 dark:text-emerald-300 space-y-1">
+                          {proposal.payload?.mechanics && (
+                            <div className="flex items-center gap-1">
+                              <span>⚙️</span>
+                              <span>Mechanics</span>
+                            </div>
+                          )}
+                          {proposal.payload?.lore && (
+                            <div className="flex items-center gap-1">
+                              <span>📖</span>
+                              <span>Lore</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {proposal.changeLog?.length > 0 && (
                       <div className="mb-3 space-y-1">

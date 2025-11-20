@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GameStory Lab icon">
+  <defs>
+    <linearGradient id="g" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="52" height="52" rx="14" fill="#0b1222" />
+  <rect x="10" y="10" width="44" height="44" rx="12" fill="url(#g)" />
+  <path d="M20 34c0-7 5.5-12 12-12s12 5 12 12-5.5 12-12 12c-3.5 0-6.6-1.5-8.8-4h6.3a6 6 0 0 0 0-12H18.8A12 12 0 0 1 20 34Z" fill="#0b1222"/>
+</svg>

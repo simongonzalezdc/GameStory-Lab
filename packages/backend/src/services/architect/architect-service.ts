@@ -109,16 +109,35 @@ export class ArchitectService {
 
   /**
    * Apply updates suggested by assistants to existing documentation
+   * If no documentation exists, creates a new package with the provided documents
    */
   applyAssistantUpdates(
     projectId: string,
     updates: Array<{ name: string; content: string }>
   ): DocumentationPackage | null {
-    const pkg = this.documentationPackages.get(projectId);
+    let pkg = this.documentationPackages.get(projectId);
+    
+    // If no package exists, create a new one with the assistant's documents
     if (!pkg) {
-      return null;
+      const newDocuments: GeneratedDocument[] = updates.map((update) => ({
+        templateName: update.name.endsWith('.md') ? update.name : `${update.name}.md`,
+        content: update.content,
+        generatedAt: new Date(),
+      }));
+
+      const newPackage: DocumentationPackage = {
+        projectId,
+        sessionId: `assistant-${Date.now()}`, // Generate a session ID for assistant-created docs
+        documents: newDocuments,
+        context: {} as any, // Empty context for assistant-created docs
+        generatedAt: new Date(),
+      };
+      
+      this.documentationPackages.set(projectId, newPackage);
+      return newPackage;
     }
 
+    // Update existing documents
     const updatedDocuments = pkg.documents.map((doc) => {
       const update = updates.find((u) => u.name === doc.templateName || u.name === doc.templateName.replace('.md', ''));
       if (update) {
@@ -129,6 +148,19 @@ export class ArchitectService {
         };
       }
       return doc;
+    });
+
+    // Add any new documents that don't exist yet
+    const existingNames = new Set(pkg.documents.map(d => d.templateName));
+    updates.forEach((update) => {
+      const docName = update.name.endsWith('.md') ? update.name : `${update.name}.md`;
+      if (!existingNames.has(docName)) {
+        updatedDocuments.push({
+          templateName: docName,
+          content: update.content,
+          generatedAt: new Date(),
+        });
+      }
     });
 
     const updatedPackage: DocumentationPackage = {

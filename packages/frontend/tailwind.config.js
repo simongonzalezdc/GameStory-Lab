@@ -15,6 +15,22 @@ export default {
         'text-muted': 'var(--color-text-muted)',
         'border-subtle': 'var(--color-border-subtle)',
         danger: 'var(--color-danger)',
+        brand: {
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
+          400: '#818cf8',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
+          800: '#312e81',
+          900: '#1e1b4b',
+        },
+        mint: {
+          400: '#2dd4bf',
+          500: '#14b8a6',
+        },
         // Legacy color tokens
         primary: {
           50: '#eff6ff',

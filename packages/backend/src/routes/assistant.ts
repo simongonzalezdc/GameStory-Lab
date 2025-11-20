@@ -76,11 +76,22 @@ router.post('/session/:sessionId/message', async (req: Request, res: Response) =
     const response = await service.sendMessage(req.params.sessionId, content);
     res.json(response);
   } catch (error: any) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
     logger.error('Assistant message failed', {
-      error: error?.message || error,
+      error: errorMessage,
+      stack: errorStack,
       sessionId: req.params.sessionId,
+      errorType: error?.constructor?.name,
     });
-    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to send message' });
+    
+    console.error('[Assistant Route] Full error:', error);
+    
+    res.status(500).json({ 
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? errorStack : undefined,
+    });
   }
 });
 

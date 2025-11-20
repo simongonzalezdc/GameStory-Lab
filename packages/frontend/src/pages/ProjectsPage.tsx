@@ -174,89 +174,99 @@ export function ProjectsPage() {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <section className="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm p-8 lg:p-12">
-        <div className="max-w-4xl">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
-            Project Control Room
-          </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 leading-relaxed max-w-2xl">
-            Curate player-centered concepts with confidence. See the health of every experiment at a glance, 
-            revive stalled ideas, and open the right workspace only when the next decision is crystal clear.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="btn btn-primary"
-            >
-              <span className="text-lg">+</span>
-              <span>Create New Project</span>
-            </button>
-            <Link
-              to="/templates"
-              className="btn btn-secondary"
-            >
-              <span>🎨</span>
-              <span>Browse Templates</span>
-            </Link>
+      <section className="hero-pane shadow-lg p-8 lg:p-12 space-y-10" style={{ background: 'linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-strong) 100%)', border: '1px solid var(--color-border-subtle)' }}>
+        <div className="grid lg:grid-cols-[1.3fr_1fr] gap-8 relative z-10">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-100 rounded-full border border-brand-100/60 dark:border-brand-800/70 w-max">
+              <span className="h-2 w-2 rounded-full bg-mint-500 animate-pulse" />
+              Experience Design OS
+            </div>
+            <div className="space-y-4">
+              <h1 className="text-4xl md:text-5xl font-[700] text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+                Command center for player-first concepts
+              </h1>
+              <p className="text-lg leading-7 text-slate-700 dark:text-slate-300 max-w-2xl text-balance">
+                Curate, validate, and revive experiments with a clear signal on narrative and mechanics. Move from spark to shippable beats with decisive next steps.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="btn btn-primary shadow-lg hover:shadow-xl"
+              >
+                <span className="text-lg">+</span>
+                <span>Create Project</span>
+              </button>
+              <Link
+                to="/templates"
+                className="btn btn-secondary"
+              >
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-surface-muted text-brand-700">🎨</span>
+                <span>Browse Templates</span>
+              </Link>
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/70 dark:bg-slate-900 border border-border-subtle">
+                  ⚡
+                </span>
+                <span>Live validation on save</span>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="grid gap-4 mt-10 md:grid-cols-2">
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-5">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Chat with the Project Assistant</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-              Describe your vision in freeform conversation. Once the project is created, open the concept editor to see the live chat panel and accept its mechanics/lore proposals.
-            </p>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="btn btn-primary w-full"
-            >
-              Start Assistant Workflow
-            </button>
-          </div>
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-5">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Kick off with Templates</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-              Prefer a head start? Blend genres or customize any template, then switch to the assistant for rapid refinement.
-            </p>
-            <Link
-              to="/templates"
-              className="btn btn-secondary w-full text-center"
-            >
-              Browse Templates → Assistant
-            </Link>
+          <div className="glass-card p-6 lg:p-7 space-y-4 border border-border-subtle">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="eyebrow mb-1">AI Assistant</p>
+                <p className="text-slate-900 dark:text-slate-100 font-semibold">Ready for your next build</p>
+              </div>
+              <span className="icon-badge text-sm font-semibold">AI</span>
+            </div>
+            <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-muted dark:bg-surface-strong border border-border-subtle">
+                <span className="pill bg-white dark:bg-surface-elevated border border-border-subtle text-brand-700 dark:text-brand-200">New</span>
+                <div>
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">Proposal rail</p>
+                  <p>Capture playable beats, documentation, and consistency fixes in one review rail.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-muted dark:bg-surface-strong border border-border-subtle">
+                <span className="pill bg-mint-500/15 border border-mint-500/50 text-mint-500">Fast</span>
+                <div>
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">Adaptive templates</p>
+                  <p>Blend genres, lock tone, and export to your preferred document format.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="btn btn-primary w-full"
+              >
+                Start with the Assistant
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 p-6">
-            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-              Projects
-            </div>
-            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.projectCount}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-300">active initiatives</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="stat-card p-6">
+            <div className="eyebrow mb-2">Projects</div>
+            <div className="text-4xl font-bold text-slate-900 dark:text-white">{stats.projectCount}</div>
+            <p className="text-sm text-slate-600 dark:text-slate-300">active initiatives</p>
           </div>
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 p-6">
-            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-              Versions
-            </div>
-            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.totalVersions}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-300">documented beats</div>
+          <div className="stat-card p-6">
+            <div className="eyebrow mb-2">Versions</div>
+            <div className="text-4xl font-bold text-slate-900 dark:text-white">{stats.totalVersions}</div>
+            <p className="text-sm text-slate-600 dark:text-slate-300">documented beats</p>
           </div>
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 p-6">
-            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-              Last Touch
-            </div>
-            <div className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.lastTouched}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-300">across the lab</div>
+          <div className="stat-card p-6">
+            <div className="eyebrow mb-2">Last Touch</div>
+            <div className="text-2xl font-semibold text-slate-900 dark:text-white">{stats.lastTouched}</div>
+            <p className="text-sm text-slate-600 dark:text-slate-300">across the lab</p>
           </div>
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 p-6">
-            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-              Avg Depth
-            </div>
-            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">{stats.averageVersions}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-300">versions per project</div>
+          <div className="stat-card p-6">
+            <div className="eyebrow mb-2">Avg Depth</div>
+            <div className="text-4xl font-bold text-slate-900 dark:text-white">{stats.averageVersions}</div>
+            <p className="text-sm text-slate-600 dark:text-slate-300">versions per project</p>
           </div>
         </div>
       </section>
@@ -275,12 +285,12 @@ export function ProjectsPage() {
       )}
 
       {/* Search and Filters */}
-      <section className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+      <section className="surface-panel p-6 lg:p-7 shadow-md">
         <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
           {/* Search */}
           <div className="flex-1 relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-              <svg className="w-5 h-5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -289,7 +299,7 @@ export function ProjectsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by title, theme, or genre..."
-              className="w-full pl-12 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-colors"
+              className="w-full pl-12 pr-4 py-3 rounded-lg border border-border-subtle bg-white dark:bg-surface-elevated text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-colors"
             />
           </div>
 
@@ -300,8 +310,8 @@ export function ProjectsPage() {
               onClick={() => setSortMode('recent')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 sortMode === 'recent'
-                  ? 'bg-slate-900 dark:bg-blue-600 text-white shadow-md'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                  ? 'bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md'
+                  : 'bg-surface-muted dark:bg-surface-strong text-slate-700 dark:text-slate-200 border border-border-subtle hover:border-brand-300'
               }`}
             >
               Most Recent
@@ -310,8 +320,8 @@ export function ProjectsPage() {
               onClick={() => setSortMode('alphabetical')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 sortMode === 'alphabetical'
-                  ? 'bg-slate-900 dark:bg-blue-600 text-white shadow-md'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                  ? 'bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md'
+                  : 'bg-surface-muted dark:bg-surface-strong text-slate-700 dark:text-slate-200 border border-border-subtle hover:border-brand-300'
               }`}
             >
               A → Z
@@ -320,8 +330,8 @@ export function ProjectsPage() {
               onClick={() => setSortMode('versions')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 sortMode === 'versions'
-                  ? 'bg-slate-900 dark:bg-blue-600 text-white shadow-md'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                  ? 'bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md'
+                  : 'bg-surface-muted dark:bg-surface-strong text-slate-700 dark:text-slate-200 border border-border-subtle hover:border-brand-300'
               }`}
             >
               Depth
@@ -385,15 +395,15 @@ export function ProjectsPage() {
                 return (
                   <div
                     key={project.id}
-                    className="group rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+                    className="group glass-card border border-border-subtle shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden"
                   >
                     {/* Card Header */}
-                    <div className="p-6 border-b border-slate-100 dark:border-slate-700">
+                    <div className="p-6 border-b border-border-subtle bg-surface-card dark:bg-surface-elevated">
                       <div className="flex items-start justify-between gap-4 mb-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             {project.genre && (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-brand-50 dark:bg-brand-900/25 text-brand-700 dark:text-brand-200 border border-brand-100 dark:border-brand-800">
                                 {project.genre}
                               </span>
                             )}
@@ -424,13 +434,13 @@ export function ProjectsPage() {
 
                       {/* Stats */}
                       <div className="grid grid-cols-2 gap-4 mt-4">
-                        <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-3">
+                        <div className="rounded-lg bg-surface-muted dark:bg-surface-strong p-3 border border-border-subtle">
                           <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                             Versions
                           </div>
                           <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{versions}</div>
                         </div>
-                        <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-3">
+                        <div className="rounded-lg bg-surface-muted dark:bg-surface-strong p-3 border border-border-subtle">
                           <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                             Created
                           </div>
@@ -444,9 +454,9 @@ export function ProjectsPage() {
                           <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Exploration Depth</span>
                           <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">{versionDepth}%</span>
                         </div>
-                        <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                        <div className="h-2 rounded-full bg-surface-muted dark:bg-surface-strong overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500 rounded-full transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-brand-500 to-mint-500 dark:from-brand-400 dark:to-mint-500 rounded-full transition-all duration-500"
                             style={{ width: `${versionDepth}%` }}
                           />
                         </div>
@@ -454,18 +464,12 @@ export function ProjectsPage() {
                     </div>
 
                     {/* Card Actions */}
-                    <div className="p-6 bg-slate-50 dark:bg-slate-700/30 flex gap-3">
+                    <div className="p-6 bg-surface-muted dark:bg-surface-strong flex gap-3 border-t border-border-subtle">
                       <Link
                         to={`/projects/${project.id}`}
                         className="flex-1 btn btn-primary text-center"
                       >
                         Open Project
-                      </Link>
-                      <Link
-                        to="/templates"
-                        className="btn btn-secondary"
-                      >
-                        Inspire
                       </Link>
                     </div>
                   </div>
@@ -478,7 +482,7 @@ export function ProjectsPage() {
         {/* Sidebar */}
         <aside className="space-y-6">
           {/* Recent Activity */}
-          <div className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+          <div className="surface-panel shadow-md p-6">
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Recent Activity</h2>
             {recentActivity.length === 0 ? (
               <div className="text-center py-8">
@@ -489,7 +493,7 @@ export function ProjectsPage() {
             ) : (
               <ol className="space-y-3">
                 {recentActivity.map((activity) => (
-                  <li key={activity.id} className="rounded-lg border border-slate-200 dark:border-slate-700 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                  <li key={activity.id} className="rounded-lg border border-border-subtle p-4 hover:bg-surface-muted dark:hover:bg-surface-strong transition-colors">
                     <div className="font-semibold text-slate-900 dark:text-slate-100 mb-1">{activity.name}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400">
                       {formatDistanceToNow(activity.updatedAt)} · {activity._count?.versions ?? 0} versions
@@ -501,7 +505,7 @@ export function ProjectsPage() {
           </div>
 
           {/* Studio Principles */}
-          <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200 dark:border-emerald-800 shadow-sm p-6">
+          <div className="rounded-xl bg-gradient-to-br from-mint-500/10 via-brand-500/5 to-brand-500/10 dark:from-mint-500/15 dark:to-brand-500/15 border border-mint-500/30 shadow-sm p-6">
             <h2 className="text-lg font-bold text-emerald-900 dark:text-emerald-200 mb-4">Studio Principles</h2>
             <ul className="space-y-3 text-sm text-emerald-800 dark:text-emerald-200">
               <li className="flex items-start gap-2">
