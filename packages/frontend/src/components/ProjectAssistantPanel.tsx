@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { assistantAPI } from '../services/api';
 
 interface ProjectAssistantPanelProps {
@@ -42,6 +42,156 @@ export function ProjectAssistantPanel({
   refining = false,
   onProposalAccepted,
 }: ProjectAssistantPanelProps) {
+  const userBubbleStyle = useMemo(
+    () => ({
+      background: [
+        'radial-gradient(120% 140% at 22% 18%, rgba(255,255,255,0.09), rgba(255,255,255,0) 52%)',
+        'radial-gradient(140% 160% at 82% 12%, rgba(255,255,255,0.07), rgba(255,255,255,0) 55%)',
+        'linear-gradient(145deg, #163634 0%, #2b5e58 55%, #3E9D98 100%)',
+      ].join(', '),
+      border: '1px solid rgba(62, 157, 152, 0.82)',
+      boxShadow:
+        '0 16px 38px -18px rgba(31, 78, 74, 0.7), 0 0 0 1px rgba(62, 157, 152, 0.3)',
+    }),
+    []
+  );
+
+  const assistantBubbleStyle = useMemo(
+    () => ({
+      background: [
+        'radial-gradient(120% 140% at 18% 18%, rgba(255,255,255,0.07), rgba(255,255,255,0) 52%)',
+        'radial-gradient(140% 160% at 82% 16%, rgba(255,255,255,0.05), rgba(255,255,255,0) 55%)',
+        'linear-gradient(155deg, #241b0b 0%, #3b2a12 50%, #d89e32 100%)',
+      ].join(', '),
+      border: '1px solid rgba(216, 158, 50, 0.65)', // topaz line
+      boxShadow:
+        '0 16px 36px -18px rgba(58, 40, 21, 0.7), 0 0 0 1px rgba(216, 158, 50, 0.28)',
+    }),
+    []
+  );
+
+  const parseSegments = (content: string) => {
+    const segments: Array<{ type: 'code' | 'text'; lang?: string; content: string }> = [];
+    const codeRegex = /```(\w+)?\n([\s\S]*?)```/gm;
+    let lastIndex = 0;
+    let match;
+    while ((match = codeRegex.exec(content)) !== null) {
+      if (match.index > lastIndex) {
+        segments.push({ type: 'text', content: content.slice(lastIndex, match.index) });
+      }
+      segments.push({ type: 'code', lang: match[1] || undefined, content: match[2] });
+      lastIndex = codeRegex.lastIndex;
+    }
+    if (lastIndex < content.length) {
+      segments.push({ type: 'text', content: content.slice(lastIndex) });
+    }
+    return segments;
+  };
+
+  const renderInline = (text: string, keyPrefix: string) => {
+    const parts: React.ReactNode[] = [];
+    const regex = /(\[([^\]]+)\]\(([^)]+)\))|(`([^`]+)`)|(\*\*([^*]+)\*\*)|(_([^_]+)_)/g;
+    let lastIndex = 0;
+    let match;
+    let idx = 0;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(<span key={`${keyPrefix}-${idx++}`}>{text.slice(lastIndex, match.index)}</span>);
+      }
+      if (match[2] && match[3]) {
+        parts.push(
+          <a key={`${keyPrefix}-${idx++}`} href={match[3]} target="_blank" rel="noreferrer" className="text-brand-200 underline">
+            {match[2]}
+          </a>
+        );
+      } else if (match[5]) {
+        parts.push(
+          <code key={`${keyPrefix}-${idx++}`} className="bg-surface-strong px-1 py-0.5 rounded text-xs border border-border-subtle">
+            {match[5]}
+          </code>
+        );
+      } else if (match[7]) {
+        parts.push(
+          <strong key={`${keyPrefix}-${idx++}`} className="text-slate-50">
+            {match[7]}
+          </strong>
+        );
+      } else if (match[9]) {
+        parts.push(
+          <em key={`${keyPrefix}-${idx++}`} className="text-slate-200">
+            {match[9]}
+          </em>
+        );
+      }
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < text.length) {
+      parts.push(<span key={`${keyPrefix}-${idx++}`}>{text.slice(lastIndex)}</span>);
+    }
+    return parts;
+  };
+
+  const renderTextSegment = (text: string, keyPrefix: string) => {
+    const trimmed = text.trim();
+    const calloutMatch = trimmed.match(/^(INFO|WARNING|WARN|ERROR)\:?\s*(.*)$/i);
+    if (calloutMatch) {
+      const level = calloutMatch[1].toLowerCase();
+      const body = calloutMatch[2] || '';
+      const bg =
+        level.startsWith('err') ? 'bg-red-900/25 border-red-700 text-red-100' :
+        level.startsWith('warn') ? 'bg-amber-900/25 border-amber-700 text-amber-100' :
+        'bg-blue-900/20 border-blue-700 text-blue-100';
+      return (
+        <div key={`${keyPrefix}-callout`} className={`rounded-lg border px-3 py-2 text-sm ${bg}`}>
+          <div className="font-semibold mb-1 uppercase tracking-wide text-xs">{calloutMatch[1]}</div>
+          <div className="leading-relaxed">{renderInline(body, `${keyPrefix}-c`)}</div>
+        </div>
+      );
+    }
+
+    const lines = text.split('\n');
+    const nodes: React.ReactNode[] = [];
+    let bulletBuffer: string[] = [];
+
+    const flushBullets = () => {
+      if (bulletBuffer.length) {
+        nodes.push(
+          <ul key={`${keyPrefix}-ul-${nodes.length}`} className="list-disc list-inside space-y-1 text-slate-200">
+            {bulletBuffer.map((item, idx) => (
+              <li key={`${keyPrefix}-li-${idx}`}>{renderInline(item.trim(), `${keyPrefix}-li-${idx}`)}</li>
+            ))}
+          </ul>
+        );
+        bulletBuffer = [];
+      }
+    };
+
+    lines.forEach((line, idx) => {
+      if (/^\s*[-*]\s+/.test(line)) {
+        bulletBuffer.push(line.replace(/^\s*[-*]\s+/, ''));
+      } else if (line.trim() === '') {
+        flushBullets();
+      } else {
+        flushBullets();
+        nodes.push(
+          <p key={`${keyPrefix}-p-${idx}`} className="text-slate-200 leading-relaxed">
+            {renderInline(line, `${keyPrefix}-p-${idx}`)}
+          </p>
+        );
+      }
+    });
+    flushBullets();
+
+    if (!nodes.length) {
+      return (
+        <p key={`${keyPrefix}-plain`} className="text-slate-200 leading-relaxed">
+          {renderInline(text, `${keyPrefix}-plain`)}
+        </p>
+      );
+    }
+    return nodes;
+  };
+
   const [session, setSession] = useState<any | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [proposals, setProposals] = useState<AssistantProposal[]>([]);
@@ -50,6 +200,7 @@ export function ProjectAssistantPanel({
   const [error, setError] = useState<string | null>(null);
   const [showProposals, setShowProposals] = useState(false);
   const [quickMode, setQuickMode] = useState<'standard' | 'concise' | 'detailed'>('standard');
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
   const listRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -405,15 +556,65 @@ For each category, provide specific, actionable suggestions. Help me understand 
                       {getInitials(msg.role)}
                     </div>
                     {/* Message Bubble */}
-                    <div className={`flex-1 max-w-[75%] ${msg.role === 'user' ? 'flex flex-col items-end' : ''}`}>
+                    <div className={`flex-1 max-w-[70%] md:max-w-[65%] ${msg.role === 'user' ? 'flex flex-col items-end' : ''}`}>
                       <div
-                        className={`rounded-xl px-3 py-2 text-sm shadow-sm ${
+                        className={`relative rounded-xl px-3 py-2 text-sm shadow-sm ${
                           msg.role === 'assistant'
-                            ? 'bg-surface-elevated border border-border-subtle text-slate-100'
-                            : 'bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md'
+                            ? 'text-slate-100'
+                            : 'text-white'
                         }`}
+                        style={msg.role === 'user' ? userBubbleStyle : assistantBubbleStyle}
                       >
-                        <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+                        {(() => {
+                          const segments = parseSegments(msg.content);
+                          const isLong = msg.content.length > 1200;
+                          const isExpanded = expandedMessages.has(msg.id);
+                          return (
+                            <>
+                              <div
+                                className={`space-y-2 ${isLong && !isExpanded ? 'max-h-[380px] overflow-hidden pr-1.5' : ''}`}
+                              >
+                                {segments.map((segment, idx) =>
+                                  segment.type === 'code' ? (
+                                    <pre
+                                      key={`${msg.id}-code-${idx}`}
+                                      className="bg-surface-strong/80 border border-border-subtle text-slate-100 text-xs rounded-lg p-3 overflow-auto"
+                                    >
+                                      <code className="whitespace-pre">{segment.content}</code>
+                                    </pre>
+                                  ) : (
+                                    <div key={`${msg.id}-text-${idx}`} className="space-y-2">
+                                      {renderTextSegment(segment.content, `${msg.id}-t-${idx}`)}
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                              {isLong && !isExpanded && (
+                                <div className="absolute inset-x-0 bottom-0 h-20 pointer-events-none bg-gradient-to-t from-black/50 via-black/20 to-transparent rounded-b-xl" />
+                              )}
+                              {isLong && (
+                                <div className="pt-2 flex justify-end">
+                                  <button
+                                    onClick={() => {
+                                      setExpandedMessages((prev) => {
+                                        const next = new Set(prev);
+                                        if (isExpanded) {
+                                          next.delete(msg.id);
+                                        } else {
+                                          next.add(msg.id);
+                                        }
+                                        return next;
+                                      });
+                                    }}
+                                    className="text-xs px-2 py-1 rounded-lg border border-border-subtle bg-surface-strong hover:border-brand-300 transition"
+                                  >
+                                    {isExpanded ? 'Collapse' : 'Expand'}
+                                  </button>
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                       {msg.createdAt && (
                         <div className={`text-xs text-slate-400 mt-0.5 px-1 ${

@@ -38,7 +38,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
 
       {/* Player Actions */}
       {Array.isArray(mechanics.playerActions) && mechanics.playerActions.length > 0 && (
-        <section className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <section className="jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">🎮</span>
             <span>Player Actions</span>
@@ -59,7 +59,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
 
       {/* Progression Systems */}
       {(mechanics.progressionSystems || mechanics.progressionSystem) && (
-        <section className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <section className="jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">📈</span>
             <span>Progression System</span>
@@ -97,7 +97,8 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
                               {mechanics.progressionSystem.mechanics.map((mechanic: string, index: number) => (
                                 <li
                                   key={index}
-                                  className="flex items-start gap-3 p-2 bg-white dark:bg-slate-800 rounded border border-purple-100 dark:border-purple-800"
+                                  className="flex items-start gap-3 p-2 rounded border border-border-subtle"
+                                  style={{ background: 'var(--color-surface-muted)' }}
                                 >
                                   <span className="text-purple-600 dark:text-purple-400 font-bold mt-0.5">→</span>
                                   <span className="text-slate-700 dark:text-slate-300 flex-1">{mechanic}</span>
@@ -131,7 +132,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
 
       {/* Resource Systems */}
       {Array.isArray(mechanics.resourceSystems) && mechanics.resourceSystems.length > 0 && (
-        <section className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <section className="lg:col-span-2 jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">💎</span>
             <span>Resource Systems</span>
@@ -165,7 +166,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
 
       {/* Win Conditions */}
       {Array.isArray(mechanics.winConditions) && mechanics.winConditions.length > 0 && (
-        <section className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <section className="jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">🏆</span>
             <span>Win Conditions</span>
@@ -186,7 +187,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
 
       {/* Fail Conditions */}
       {Array.isArray(mechanics.failConditions) && mechanics.failConditions.length > 0 && (
-        <section className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <section className="jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">⚠️</span>
             <span>Fail Conditions</span>
@@ -218,7 +219,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
         }
 
         return (
-          <section key={key} className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+          <section key={key} className="jewel-card p-4 sm:p-6">
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-3 capitalize">
               {key.replace(/([A-Z])/g, ' $1').trim()}
             </h3>

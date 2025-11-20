@@ -70,13 +70,8 @@ function LayoutComponent({ children }: LayoutProps) {
 
   const isFullWidth = location.pathname.includes('/projects/') || location.pathname.includes('/architect');
 
-  return (
-    <div className="min-h-screen bg-[linear-gradient(140deg,rgba(99,102,241,0.05),rgba(20,184,166,0.05)),var(--color-bg-primary)] transition-colors flex flex-col">
-      {/* Depth background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 left-10 w-80 h-80 bg-brand-500/10 dark:bg-brand-500/15 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[26rem] h-[26rem] bg-mint-500/10 dark:bg-mint-500/15 rounded-full blur-3xl" />
-      </div>
+return (
+    <div className="min-h-screen bg-[var(--color-bg-primary)] transition-colors flex flex-col">
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border-subtle bg-white dark:bg-[rgba(12,18,36,0.94)] backdrop-blur-md shadow-sm">
@@ -267,7 +262,7 @@ function LayoutComponent({ children }: LayoutProps) {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-border-subtle bg-white/75 dark:bg-[rgba(10,15,26,0.9)] backdrop-blur-md mt-16">
+      <footer className="border-t border-border-subtle bg-[var(--color-surface-card)] mt-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-sm text-slate-600 dark:text-slate-400 space-y-2">
             <p className="font-medium text-slate-800 dark:text-slate-200">

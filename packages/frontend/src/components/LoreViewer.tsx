@@ -27,7 +27,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
       {/* Setting */}
       {lore.setting && (
-        <section className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 sm:p-6 border border-purple-200 dark:border-purple-800">
+        <section className="jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">🌍</span>
             <span>Setting</span>
@@ -57,7 +57,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
 
       {/* Protagonist */}
       {lore.protagonist && (
-        <section className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <section className="jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">👤</span>
             <span>Protagonist</span>
@@ -101,13 +101,13 @@ export function LoreViewer({ lore }: LoreViewerProps) {
 
       {/* Conflict */}
       {lore.conflict && (
-        <section className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <section className="lg:col-span-2 jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">⚔️</span>
             <span>Conflict</span>
           </h3>
           {lore.conflict.primary && (
-            <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-lg border border-red-200 dark:border-red-800">
+            <div className="mb-4 p-4 rounded-lg border border-border-subtle" style={{ background: 'var(--color-surface-strong)' }}>
               <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Primary Conflict</h4>
               <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                 {lore.conflict.primary}
@@ -142,7 +142,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
           </h3>
           <div className="space-y-4">
             {lore.worldRules.physics && (
-              <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+            <div className="p-4 rounded-lg border border-border-subtle" style={{ background: 'var(--color-surface-muted)' }}>
                 <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Physics</h4>
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                   {lore.worldRules.physics}
@@ -150,7 +150,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
               </div>
             )}
             {lore.worldRules.magic && (
-              <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+            <div className="p-4 rounded-lg border border-border-subtle" style={{ background: 'var(--color-surface-strong)' }}>
                 <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Magic</h4>
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                   {lore.worldRules.magic}
@@ -158,7 +158,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
               </div>
             )}
             {lore.worldRules.technology && (
-              <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+            <div className="p-4 rounded-lg border border-border-subtle" style={{ background: 'var(--color-surface-muted)' }}>
                 <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Technology</h4>
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                   {lore.worldRules.technology}
@@ -171,7 +171,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
 
       {/* Themes */}
       {lore.themes && lore.themes.length > 0 && (
-        <section className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <section className="lg:col-span-2 jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">🎭</span>
             <span>Themes</span>
@@ -180,7 +180,8 @@ export function LoreViewer({ lore }: LoreViewerProps) {
             {lore.themes.map((theme: any, index: number) => (
               <span
                 key={index}
-                className="px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-300 rounded-full font-medium border border-purple-200 dark:border-purple-800"
+                className="px-4 py-2 jewel-chip font-medium"
+                style={{ color: 'var(--color-text-secondary)' }}
               >
                 {theme}
               </span>
@@ -191,14 +192,14 @@ export function LoreViewer({ lore }: LoreViewerProps) {
 
       {/* Economy */}
       {lore.economy && typeof lore.economy === 'object' && (
-        <section className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <section className="lg:col-span-2 jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">💰</span>
             <span>Economy</span>
           </h3>
           <div className="space-y-4">
             {Object.entries(lore.economy as Record<string, unknown>).map(([key, value]) => (
-              <div key={key} className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              <div key={key} className="p-4 rounded-lg border border-border-subtle" style={{ background: 'var(--color-surface-strong)' }}>
                 <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2 capitalize">
                   {key.replace(/([A-Z])/g, ' $1').trim()}
                 </h4>
@@ -213,7 +214,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
 
       {/* Resource Context */}
       {lore.resourceContext && typeof lore.resourceContext === 'object' && (
-        <section className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <section className="lg:col-span-2 jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">📦</span>
             <span>Resource Context</span>
@@ -222,7 +223,8 @@ export function LoreViewer({ lore }: LoreViewerProps) {
             {Object.entries(lore.resourceContext as Record<string, unknown>).map(([resourceName, description]) => (
               <div
                 key={resourceName}
-                className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
+                className="p-4 rounded-lg border border-border-subtle"
+                style={{ background: 'var(--color-surface-muted)' }}
               >
                 <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">{resourceName}</h4>
                 <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
@@ -236,7 +238,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
 
       {/* Resource Logic */}
       {lore.resourceLogic && typeof lore.resourceLogic === 'object' && (
-        <section className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <section className="lg:col-span-2 jewel-card p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-2xl">⚡</span>
             <span>Resource Logic</span>
@@ -245,7 +247,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
             {Object.entries(lore.resourceLogic as Record<string, unknown>).map(([resourceName, description]) => {
               if (Array.isArray(description)) {
                 return (
-                  <div key={resourceName} className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                  <div key={resourceName} className="p-4 rounded-lg border border-border-subtle" style={{ background: 'var(--color-surface-muted)' }}>
                     <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">{resourceName}</h4>
                     <ul className="space-y-1">
                       {description.map((item, idx) => (
@@ -259,7 +261,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
               }
               if (typeof description === 'object' && description !== null) {
                 return (
-                  <div key={resourceName} className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                  <div key={resourceName} className="p-4 rounded-lg border border-border-subtle" style={{ background: 'var(--color-surface-muted)' }}>
                     <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">{resourceName}</h4>
                     <div className="space-y-2">
                       {Object.entries(description as Record<string, unknown>).map(([subKey, subValue]) => (

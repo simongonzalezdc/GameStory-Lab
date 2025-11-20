@@ -1,17 +1,17 @@
 
 /* Jewel Engine Theme Tokens
- * Sapphire primary + Turquoise secondary
+ * Turquoise primary + Topaz secondary
  * Warm desaturated jewel tones + warm brown neutrals
  */
 
 :root {
   /* Warm brown neutrals (desaturated except bg-body) */
-  --bg-body: #120E0D;
-  --bg-elevated: #181414;
-  --bg-panel: #221C1C;
-  --bg-panel-alt: #312725;
-  --border-subtle: #3B2F2B;
-  --border-strong: #4C3A33;
+  --bg-body: #0B0908;
+  --bg-elevated: #100D0C;
+  --bg-panel: #161110;
+  --bg-panel-alt: #1D1614;
+  --border-subtle: #251D1B;
+  --border-strong: #2F2422;
 
   /* Text */
   --text-primary: #F9FAFB;
@@ -19,18 +19,18 @@
   --text-muted: #8B8491;
   --text-inverse: #120E0D;
 
-  /* Brand (Sapphire core + Turquoise secondary) */
-  --brand-primary: #3F5DA8;      /* sapphire (primary) */
-  --brand-primary-hover: #4A6BC0;
-  --brand-primary-soft: #263356;
-  --brand-secondary: #3E9D98;    /* turquoise secondary */
-  --brand-secondary-soft: #1E4C49;
+  /* Brand (Turquoise primary + Topaz secondary) */
+  --brand-primary: #3E9D98;      /* turquoise primary */
+  --brand-primary-hover: #49B3AD;
+  --brand-primary-soft: #1F4C48;
+  --brand-secondary: #D89E32;    /* topaz secondary */
+  --brand-secondary-soft: #523822;
 
   /* Jewel tones (desaturated set) */
   --jewel-amethyst: #8554B3;
   --jewel-amethyst-soft: #352448;
 
-  --jewel-sapphire: #3F5DA8;
+  --jewel-sapphire: #3F5DA8; /* keep for reference */
   --jewel-sapphire-soft: #263356;
 
   --jewel-emerald: #6E9558;
@@ -46,7 +46,7 @@
   --jewel-fireopal-soft: #5A3324;
 
   --jewel-turquoise: #3E9D98;
-  --jewel-turquoise-soft: #1E4C49;
+  --jewel-turquoise-soft: #1F4C48;
 
   /* Semantic mapped into jewel family */
   --success: var(--jewel-emerald);
