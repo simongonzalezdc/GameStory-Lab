@@ -25,11 +25,15 @@
   --color-ink-900: #111015;
   --color-ink-800: #19161D;
   --color-ink-700: #211F26;
-  /* Radius tokens */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  /* Radius tokens - Consistent system */
+  --radius-xs: 0.25rem;    /* 4px - Very small elements */
+  --radius-sm: 0.375rem;   /* 6px - Small badges, tags */
+  --radius-md: 0.5rem;     /* 8px - Buttons, inputs, standard elements */
+  --radius-lg: 0.75rem;    /* 12px - Cards, panels, navigation */
+  --radius-xl: 1rem;       /* 16px - Large cards, modals */
+  --radius-2xl: 1.25rem;   /* 20px - Hero sections, major containers */
+  --radius-3xl: 1.5rem;    /* 24px - Full-width sections */
+  --radius-full: 9999px;   /* Perfect circles */
   /* Shadow tokens */
   --shadow-xs: 0 6px 18px -8px rgba(15, 23, 42, 0.25);
   --shadow-sm: 0 10px 30px -16px rgba(15, 23, 42, 0.35);
@@ -72,8 +76,8 @@
     --color-info: #346C68;     /* turquoise */
     
     --color-assistant-bg: #211F26;
-    --color-assistant-border-glow: rgba(181, 147, 60, 0.35); /* topaz glow */
-    --color-divider-glow: rgba(181, 147, 60, 0.35); /* topaz glow */
+    --color-assistant-border-glow: rgba(181, 147, 60, 0.2); /* topaz glow - reduced opacity */
+    --color-divider-glow: rgba(181, 147, 60, 0.2); /* topaz glow - reduced opacity */
     
     /* Chat Window Design System */
     --chat-container-height: calc(100vh - 4rem);
@@ -86,7 +90,7 @@
     --chat-message-padding-x: 16px;
     --chat-message-padding-y: 12px;
     --chat-avatar-size: 32px;
-    --chat-bubble-radius: 12px;
+    --chat-bubble-radius: var(--radius-lg); /* Use consistent design system */
     --chat-spacing-message: 12px;
     --chat-spacing-section: 16px;
     --chat-proposal-panel-width: 320px;
@@ -133,8 +137,8 @@
     --color-info: #346C68; /* turquoise */
     
     --color-assistant-bg: #211F26;
-    --color-assistant-border-glow: rgba(181, 147, 60, 0.35); /* topaz glow */
-    --color-divider-glow: rgba(181, 147, 60, 0.35); /* topaz glow */
+    --color-assistant-border-glow: rgba(181, 147, 60, 0.25); /* topaz glow - reduced opacity */
+    --color-divider-glow: rgba(181, 147, 60, 0.25); /* topaz glow - reduced opacity */
     
     /* Chat Window Design System (same as root) */
     --chat-container-height: calc(100vh - 4rem);
@@ -208,12 +212,12 @@
 
   /* Improved selection */
   ::selection {
-    background-color: rgba(210, 106, 58, 0.2);
+    background-color: rgba(143, 62, 72, 0.3); /* garnet */
     color: var(--color-text-primary);
   }
 
   .dark ::selection {
-    background-color: rgba(230, 122, 74, 0.3);
+    background-color: rgba(143, 62, 72, 0.4); /* garnet */
   }
 
   /* Better scrollbar */
@@ -311,7 +315,7 @@
 }
 
 @layer components {
-  /* Surface components */
+  /* Surface components - Consistent corner radii */
   .surface-panel {
     border-radius: var(--radius-lg);
     background: var(--color-surface-card);
@@ -330,30 +334,30 @@
   .jewel-card {
     background: var(--color-surface-card);
     border: 1px solid var(--color-border-subtle);
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
   }
 
   .jewel-chip {
     background: var(--color-surface-strong);
     border: 1px solid var(--color-border-subtle);
     color: var(--color-text-secondary);
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
   }
 
   .jewel-tag {
     background: var(--color-surface-muted);
     border: 1px solid var(--color-border-subtle);
     color: var(--color-text-secondary);
-    border-radius: 12px;
+    border-radius: var(--radius-md);
   }
 
-  /* Button components */
+  /* Button components - Consistent corner radii */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
     padding: 0.625rem 1rem;
     font-size: 0.875rem;
     font-weight: 500;
@@ -410,10 +414,10 @@
     outline-offset: 2px;
   }
 
-  /* Input components */
+  /* Input components - Consistent corner radii */
   .input {
     width: 100%;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
     border: 1px solid var(--color-border-subtle);
     background-color: var(--color-surface-elevated);
     padding: 0.75rem 1rem;
@@ -429,12 +433,12 @@
   .input:focus {
     border-color: var(--color-accent);
     outline: none;
-    box-shadow: 0 0 0 2px rgba(210, 106, 58, 0.2);
+    box-shadow: 0 0 0 2px rgba(143, 62, 72, 0.25); /* garnet */
   }
 
-  /* Card components */
+  /* Card components - Consistent corner radii */
   .card {
-    border-radius: 0.75rem;
+    border-radius: var(--radius-lg);
     background-color: var(--color-surface-card);
     border: 1px solid var(--color-border-subtle);
     box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -450,13 +454,80 @@
     transform: translateY(-2px);
   }
 
+  /* Navigation components - Consistent corner radii */
+  .nav-button {
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1rem;
+    transition: all 0.2s;
+  }
+
+  .nav-dropdown {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-subtle);
+    background: var(--color-surface-card);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Badge and tag components - Consistent corner radii */
+  .badge {
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    font-weight: 600;
+  }
+
+  .badge-lg {
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    font-weight: 600;
+  }
+
+  /* Modal and dialog components - Consistent corner radii */
+  .modal {
+    border-radius: var(--radius-xl);
+    background: var(--color-surface-card);
+    border: 1px solid var(--color-border-subtle);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Hero and major container components - Consistent corner radii */
+  .hero-container {
+    border-radius: var(--radius-2xl);
+    background: var(--color-surface-card);
+    border: 1px solid var(--color-border-subtle);
+  }
+
+  /* Avatar and circular components - Consistent corner radii */
+  .avatar {
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .avatar-sm {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .avatar-md {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .avatar-lg {
+    width: 3rem;
+    height: 3rem;
+  }
+
   /* Chat components with responsive design */
   .chat-container {
     display: flex;
     flex-direction: row;
     width: 100%;
     height: 100%;
-    container-type: inline-size;
+    min-width: 0;
   }
 
   .chat-header {
@@ -471,6 +542,7 @@
   .chat-messages-area {
     flex: 1;
     min-height: 0;
+    min-width: 0;
     overflow-y: auto;
     overflow-x: hidden;
     padding: var(--chat-spacing-section);
@@ -482,24 +554,52 @@
   }
 
   .chat-message-bubble {
-    min-width: 0;
+    min-width: 120px;
+    max-width: var(--chat-message-max-width);
+    width: fit-content;
     word-wrap: break-word;
     word-break: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
-    container-type: inline-size;
     display: block;
     position: relative;
+    white-space: normal;
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+  }
+
+  .chat-message-bubble * {
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
   }
 
   .chat-message-user {
     align-self: flex-end;
     margin-left: auto;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .chat-message-assistant {
     align-self: flex-start;
     margin-right: auto;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Ensure message wrapper containers don't collapse */
+  .chat-messages-area > div {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .chat-messages-area > div > div {
+    min-width: 0;
+  }
+
+  .chat-messages-area .flex-1 {
+    min-width: 0;
+    max-width: 100%;
   }
 
   .chat-avatar {
@@ -665,13 +765,13 @@
 
   /* Assistant card glow effect */
   .assistant-card-glow {
-    box-shadow: 0 0 20px var(--color-assistant-border-glow),
+    box-shadow: 0 0 12px var(--color-assistant-border-glow),
                 0 4px 6px -1px rgba(0, 0, 0, 0.1),
                 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   }
 
   .dark .assistant-card-glow {
-    box-shadow: 0 0 30px var(--color-assistant-border-glow),
+    box-shadow: 0 0 16px var(--color-assistant-border-glow),
                 0 4px 6px -1px rgba(0, 0, 0, 0.3),
                 0 2px 4px -2px rgba(0, 0, 0, 0.2);
   }
@@ -679,7 +779,7 @@
   /* Glowing divider lines */
   .divider-glow {
     border-color: var(--color-divider-glow);
-    box-shadow: 0 0 8px var(--color-divider-glow);
+    box-shadow: 0 0 4px var(--color-divider-glow);
   }
 
   /* Hero gradient layer */
@@ -711,6 +811,7 @@
   /* Container-aware layouts */
   .cq-panel {
     container-type: inline-size;
+    min-width: 0;
   }
 
   @container (max-width: 900px) {
@@ -722,5 +823,106 @@
   /* Smooth transitions for assistant state changes */
   .assistant-transition {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Chat components - Consistent corner radii */
+  .chat-bubble {
+    border-radius: var(--radius-lg);
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    display: block;
+    position: relative;
+    white-space: normal;
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+  }
+
+  .chat-message-user {
+    align-self: flex-end;
+    margin-left: auto;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .chat-message-assistant {
+    align-self: flex-start;
+    margin-right: auto;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .chat-container {
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+  }
+
+  .chat-header {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  .chat-input-area {
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  }
+
+  .chat-proposal-panel {
+    border-radius: var(--radius-lg);
+  }
+
+  .typing-indicator {
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .quick-action-pill {
+    border-radius: var(--radius-full);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    border: 1px solid var(--color-border-subtle);
+    background: var(--color-surface-strong);
+    color: var(--color-text-secondary);
+    transition: all 0.2s;
+  }
+
+  .quick-action-pill:hover {
+    border-color: var(--color-brand-300);
+    color: var(--color-text-primary);
+  }
+
+  .code-block {
+    border-radius: var(--radius-md);
+    background: var(--color-surface-strong);
+    border: 1px solid var(--color-border-subtle);
+    padding: 0.75rem;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
+    font-size: 0.75rem;
+    overflow-x: auto;
+  }
+
+  .inline-code {
+    border-radius: var(--radius-xs);
+    background: var(--color-surface-strong);
+    border: 1px solid var(--color-border-subtle);
+    padding: 0.125rem 0.25rem;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
+    font-size: 0.75rem;
+  }
+
+  .notification-badge {
+    border-radius: var(--radius-full);
+    width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 }

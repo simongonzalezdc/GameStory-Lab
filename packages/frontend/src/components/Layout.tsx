@@ -83,7 +83,7 @@ return (
               className="flex items-center gap-3 group transition-opacity hover:opacity-90"
               aria-label="GameStory Lab Home"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-mint-500 text-white font-bold text-lg shadow-md group-hover:shadow-lg transition-shadow">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-brand-600 to-mint-500 text-white font-bold text-lg shadow-md group-hover:shadow-lg transition-shadow">
                 GS
               </div>
               <div className="hidden sm:block">
@@ -92,7 +92,7 @@ return (
                 </div>
                 <div className="flex items-center gap-2 -mt-0.5">
                   <h1 className="text-base font-semibold text-primary">Experience Design OS</h1>
-                  <span className="rounded-md bg-brand-50 dark:bg-brand-900/40 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 dark:text-brand-200 border border-brand-100/60 dark:border-brand-800/70">
+                  <span className="badge bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-200 border border-brand-100/60 dark:border-brand-800/70">
                     Beta
                   </span>
                 </div>
@@ -114,7 +114,7 @@ return (
                       <button
                         type="button"
                         onClick={() => setShowSettingsMenu((open) => !open)}
-                        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 border ${
+                        className={`flex items-center gap-2 nav-button text-sm font-semibold transition-all duration-200 border ${
                           showSettingsMenu
                             ? 'bg-surface-card text-primary border-brand-400 shadow-md'
                             : 'text-secondary border-transparent hover:border-subtle hover:bg-surface-elevated'
@@ -122,13 +122,13 @@ return (
                         aria-expanded={showSettingsMenu}
                         aria-haspopup="menu"
                       >
-                        <span className={`w-8 h-8 rounded-full flex items-center justify-center ${showSettingsMenu ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
+                        <span className={`avatar avatar-sm flex items-center justify-center ${showSettingsMenu ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
                           <Icon />
                         </span>
                         <span>{item.label}</span>
                       </button>
                       {showSettingsMenu && (
-                        <div className="absolute right-0 mt-2 w-64 rounded-xl border border-subtle surface-card shadow-lg overflow-hidden z-50">
+                        <div className="absolute right-0 mt-2 w-64 nav-dropdown overflow-hidden z-50">
                           <div className="px-4 py-3 border-b border-subtle bg-surface-card">
                             <p className="text-sm font-semibold text-primary">Workspace Settings</p>
                             <p className="text-xs text-tertiary">Tutorial & status live here now.</p>
@@ -193,13 +193,13 @@ return (
                           navigate('/projects', { state: { focusAssistant: true } });
                         }
                       }}
-                      className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 border ${
+                      className={`flex items-center gap-2 nav-button text-sm font-semibold transition-all duration-200 border ${
                         isActive
                           ? 'bg-surface-card text-primary border-brand-400 shadow-md'
                           : 'text-secondary border-transparent hover:border-subtle hover:bg-surface-elevated'
                       }`}
                     >
-                      <span className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
+                      <span className={`avatar avatar-sm flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
                         <Icon />
                       </span>
                       <span>Assistant</span>
@@ -211,14 +211,14 @@ return (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 border ${
+                    className={`flex items-center gap-2 nav-button text-sm font-semibold transition-all duration-200 border ${
                       isActive
                         ? 'bg-surface-card text-primary border-brand-400 shadow-md'
                         : 'text-secondary border-transparent hover:border-subtle hover:bg-surface-elevated'
                     }`}
                     aria-current={isActive ? 'page' : undefined}
                   >
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
+                    <span className={`avatar avatar-sm flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
                       <Icon />
                     </span>
                     <span>{item.label}</span>
@@ -231,16 +231,16 @@ return (
             <div className="flex items-center gap-3">
               <Link
                 to="/templates"
-                className="hidden sm:inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-brand-600 to-mint-500 px-4 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+                className="hidden sm:inline-flex items-center gap-2 btn bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
                 style={{ boxShadow: '0 10px 30px -12px rgba(63, 93, 168, 0.55)' }}
               >
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-white/20">★</span>
+                <span className="inline-flex h-6 w-6 items-center justify-center badge bg-white/20 text-white">★</span>
                 <span>Explore Templates</span>
               </Link>
               {activeProjectId && (
                 <Link
                   to={`/projects/${activeProjectId}/architect`}
-                  className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-subtle px-4 py-2 text-sm font-semibold text-primary hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-200 transition"
+                  className="hidden sm:inline-flex items-center gap-2 btn border border-subtle text-primary hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-200 transition"
                 >
                   🏗️ <span>Project Architect</span>
                 </Link>

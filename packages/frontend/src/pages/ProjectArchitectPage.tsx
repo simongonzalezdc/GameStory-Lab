@@ -253,7 +253,7 @@ export function ProjectArchitectPage() {
                       </button>
                   <button
                     onClick={() => downloadDocument(doc.name)}
-                        className="px-3 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm font-medium"
+                        className="btn btn-secondary text-sm font-medium"
                       >
                         📥 Download
                   </button>

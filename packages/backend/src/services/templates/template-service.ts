@@ -74,10 +74,6 @@ export class TemplateService {
    * Get a specific genre template
    */
   getTemplate(genre: Genre): GenreTemplate | null {
-    if (genre === 'blank') {
-      return this.getBlankTemplate();
-    }
-
     const template = this.templates.get(genre);
     if (!template) {
       logger.warn('Template not found', { genre });
@@ -106,13 +102,6 @@ export class TemplateService {
       name: template.name,
       description: template.description,
     }));
-
-    // Add blank option
-    genres.push({
-      id: 'blank',
-      name: 'Blank Canvas',
-      description: 'Start from scratch with no preset mechanics or lore',
-    });
 
     return genres;
   }
@@ -167,50 +156,6 @@ export class TemplateService {
     };
 
     return { mechanics, lore };
-  }
-
-  /**
-   * Generate a blank template for starting from scratch
-   */
-  private getBlankTemplate(): GenreTemplate {
-    return {
-      id: 'blank',
-      name: 'Blank Canvas',
-      description: 'Start from scratch with no preset mechanics or lore',
-      mechanics: {
-        coreLoop: '',
-        playerActions: [],
-        progressionSystems: undefined,
-        winConditions: [],
-        failConditions: [],
-        resourceSystems: [],
-      },
-      lore: {
-        setting: {
-          era: '',
-          location: '',
-          worldType: '',
-        },
-        protagonist: {
-          background: '',
-          motivation: '',
-          abilities: [],
-        },
-        conflict: {
-          primary: '',
-          secondary: [],
-        },
-        worldRules: {
-          physics: '',
-          magic: '',
-          technology: '',
-        },
-        themes: [],
-      },
-      tags: [],
-      difficulty: 'Flexible',
-      targetAudience: 'All creators',
-    };
   }
 
   /**

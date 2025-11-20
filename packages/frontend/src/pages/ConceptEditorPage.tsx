@@ -404,7 +404,7 @@ export function ConceptEditorPage() {
         <p className="text-red-600 dark:text-red-300 mb-4">{error || 'Project not found'}</p>
         <button
           onClick={() => navigate('/projects')}
-          className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition"
+          className="btn btn-primary"
         >
           ← Back to Projects
         </button>
@@ -650,7 +650,7 @@ export function ConceptEditorPage() {
           <div>
             <button
               onClick={() => navigate('/projects')}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-2 inline-flex items-center gap-1"
+              className="btn btn-primary"
             >
               ← Back to Projects
             </button>
@@ -851,7 +851,7 @@ export function ConceptEditorPage() {
               runValidation('manual', true);
             }}
             disabled={validating}
-            className="px-4 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+            className="btn btn-primary disabled:opacity-50 flex items-center gap-2"
           >
             {validating ? (
               <>
@@ -960,7 +960,7 @@ export function ConceptEditorPage() {
                         setShowGenerateModal(true);
                         setGenerateType('lore');
                       }}
-                      className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition"
+                      className="btn btn-primary"
                     >
                       ✨ Generate Lore
                     </button>
@@ -1013,7 +1013,7 @@ export function ConceptEditorPage() {
                       }
                     }}
                     disabled={validating}
-                    className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm font-medium disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                    className="btn btn-primary disabled:opacity-50 flex items-center gap-2"
                   >
                     {validating ? (
                       <>

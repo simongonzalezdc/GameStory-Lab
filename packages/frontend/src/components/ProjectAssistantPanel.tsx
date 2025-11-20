@@ -47,8 +47,9 @@ export function ProjectAssistantPanel({
       background: [
         'radial-gradient(120% 140% at 22% 18%, rgba(255,255,255,0.09), rgba(255,255,255,0) 52%)',
         'radial-gradient(140% 160% at 82% 12%, rgba(255,255,255,0.07), rgba(255,255,255,0) 55%)',
-        'linear-gradient(145deg, var(--color-surface-strong) 0%, var(--brand-primary-soft) 55%, var(--brand-primary) 100%)',
+        'linear-gradient(145deg, #344676 0%, #4a5688 50%, #6B5D88 100%)', // sapphire to amethyst gradient
       ].join(','),
+      border: '1px solid rgba(107, 93, 136, 0.65)', // amethyst border
       color: 'var(--color-text-primary)',
       borderRadius: 'var(--chat-bubble-radius)',
       padding: 'var(--chat-message-padding-y) var(--chat-message-padding-x)',
@@ -58,6 +59,7 @@ export function ProjectAssistantPanel({
       maxWidth: 'var(--chat-message-max-width)',
       alignSelf: 'flex-end',
       marginLeft: 'auto',
+      boxShadow: '0 16px 36px -18px rgba(52, 70, 118, 0.7), 0 0 0 1px rgba(107, 93, 136, 0.28)',
     }),
     []
   );
@@ -67,11 +69,11 @@ export function ProjectAssistantPanel({
       background: [
         'radial-gradient(120% 140% at 18% 18%, rgba(255,255,255,0.07), rgba(255,255,255,0) 52%)',
         'radial-gradient(140% 160% at 82% 16%, rgba(255,255,255,0.05), rgba(255,255,255,0) 55%)',
-        'linear-gradient(155deg, #2B262F 0%, #3d3425 50%, #B5933C 100%)', // low-contrast topaz gradient
+        'linear-gradient(155deg, #8F3E48 0%, #A85664 50%, #B5933C 100%)', // garnet to topaz brand gradient
       ].join(', '),
-      border: '1px solid rgba(181, 147, 60, 0.65)', // low-contrast topaz line
+      border: '1px solid rgba(143, 62, 72, 0.65)', // garnet border
       boxShadow:
-        '0 16px 36px -18px rgba(43, 38, 47, 0.7), 0 0 0 1px rgba(181, 147, 60, 0.28)',
+        '0 16px 36px -18px rgba(143, 62, 72, 0.7), 0 0 0 1px rgba(143, 62, 72, 0.28)',
     }),
     []
   );
@@ -112,7 +114,7 @@ export function ProjectAssistantPanel({
         );
       } else if (match[5]) {
         parts.push(
-          <code key={`${keyPrefix}-${idx++}`} className="bg-surface-strong px-1 py-0.5 rounded text-xs border border-border-subtle">
+          <code key={`${keyPrefix}-${idx++}`} className="inline-code">
             {match[5]}
           </code>
         );
@@ -148,7 +150,7 @@ export function ProjectAssistantPanel({
         level.startsWith('warn') ? 'bg-amber-900/25 border-amber-700 text-amber-100' :
         'bg-brand-900/20 border-brand-700 text-brand-100';
       return (
-        <div key={`${keyPrefix}-callout`} className={`rounded-lg border px-3 py-2 text-sm ${bg}`}>
+        <div key={`${keyPrefix}-callout`} className={`rounded-md border px-3 py-2 text-sm ${bg}`}>
           <div className="font-semibold mb-1 uppercase tracking-wide text-xs">{calloutMatch[1]}</div>
           <div className="leading-relaxed">{renderInline(body, `${keyPrefix}-c`)}</div>
         </div>
@@ -483,7 +485,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
   return (
     <div className="chat-container relative cq-panel w-full h-full">
       {/* Full-height Assistant Card */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-surface rounded-2xl border border-border-subtle assistant-card-glow assistant-transition shadow-lg">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-surface chat-container assistant-card-glow assistant-transition shadow-lg">
         {/* Rich Header */}
         <div className="chat-header divider-glow">
           <div className="flex items-center justify-between mb-1">
@@ -502,7 +504,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
               <select
                 value={quickMode}
                 onChange={(e) => setQuickMode(e.target.value as 'standard' | 'concise' | 'detailed')}
-                className="text-xs px-2 py-1 bg-surface-strong border border-border-subtle rounded-lg text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="standard">Standard</option>
                 <option value="concise">Concise</option>
@@ -511,7 +513,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
               {proposals.length > 0 && (
                 <button
                   onClick={() => setShowProposals(!showProposals)}
-                  className={`relative px-3 py-1.5 rounded-lg transition text-xs font-medium flex items-center gap-1.5 ${
+                  className={`relative px-3 py-1.5 btn transition text-xs font-medium flex items-center gap-1.5 ${
                     showProposals
                       ? 'bg-brand-600 text-white'
                       : 'bg-brand-500 text-white hover:bg-brand-600 animate-pulse'
@@ -520,7 +522,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                 >
                   <span>💡</span>
                   <span>Proposals</span>
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold shadow-lg">
+                  <span className="notification-badge bg-red-500 -top-1 -right-1">
                     {proposals.length}
                   </span>
                 </button>
@@ -584,7 +586,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                                   segment.type === 'code' ? (
                                     <pre
                                       key={`${msg.id}-code-${idx}`}
-                                      className="bg-surface-strong/80 border border-border-subtle text-slate-100 text-xs rounded-lg p-3 overflow-auto"
+                                      className="code-block text-slate-100 overflow-auto"
                                     >
                                       <code className="whitespace-pre">{segment.content}</code>
                                     </pre>
@@ -596,7 +598,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                                 )}
                               </div>
                               {isLong && !isExpanded && (
-                                <div className="absolute inset-x-0 bottom-0 h-20 pointer-events-none bg-gradient-to-t from-black/50 via-black/20 to-transparent rounded-b-xl" />
+                                <div className="absolute inset-x-0 bottom-0 h-20 pointer-events-none bg-gradient-to-t from-black/50 via-black/20 to-transparent rounded-b-lg" />
                               )}
                               {isLong && (
                                 <div className="pt-2 flex justify-end">
@@ -612,7 +614,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                                         return next;
                                       });
                                     }}
-                                    className="text-xs px-2 py-1 rounded-lg border border-border-subtle bg-surface-strong hover:border-brand-300 transition"
+                                    className="text-xs px-2 py-1 btn border border-border-subtle bg-surface-strong hover:border-brand-300 transition"
                                   >
                                     {isExpanded ? 'Collapse' : 'Expand'}
                                   </button>
@@ -638,7 +640,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                   <div className="chat-avatar bg-gradient-to-br from-brand-600 to-mint-500 text-white">
                     AI
                   </div>
-                  <div className="flex items-center gap-1 px-3 py-2 bg-surface-elevated border border-border-subtle rounded-xl">
+                  <div className="typing-indicator bg-surface-elevated border border-border-subtle">
                     <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
                     <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
                     <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
@@ -651,7 +653,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
             <div className="chat-input-area shadow-lg">
               {error && (
                 <div className="px-4 pt-2">
-                  <div className="text-sm text-red-400 bg-red-900/20 border border-red-800 rounded-lg px-3 py-2 flex items-start justify-between gap-2">
+                  <div className="text-sm text-red-400 bg-red-900/20 border border-red-800 rounded-md px-3 py-2 flex items-start justify-between gap-2">
                     <div className="flex-1">
                       <p className="font-semibold mb-1">Error sending message</p>
                       <p className="text-xs">{error}</p>
@@ -674,13 +676,13 @@ For each category, provide specific, actionable suggestions. Help me understand 
                   {/* Quick Chat Actions */}
                   <button
                     onClick={() => handleQuickAction('summarize')}
-                    className="px-3 py-1 text-xs bg-surface-strong text-slate-200 rounded-full border border-border-subtle hover:border-brand-300 transition focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
+                    className="quick-action-pill focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
                   >
                     📋 Summarize & Check Consistency
                   </button>
                   <button
                     onClick={() => handleQuickAction('suggest-tweaks')}
-                    className="px-3 py-1 text-xs bg-surface-strong text-slate-200 rounded-full border border-border-subtle hover:border-brand-300 transition focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
+                    className="quick-action-pill focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
                   >
                     ✨ Suggest Tweaks
                   </button>
@@ -691,28 +693,28 @@ For each category, provide specific, actionable suggestions. Help me understand 
                       <button
                         onClick={() => onRefine('deepen-mechanics')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-brand-900/25 text-brand-200 rounded-full hover:bg-brand-900/40 transition disabled:opacity-50 border border-brand-800/70 focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
+                        className="quick-action-pill bg-brand-900/25 text-brand-200 hover:bg-brand-900/40 disabled:opacity-50 border border-brand-800/70 focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
                       >
                         ⚙️ Deepen Mechanics
                       </button>
                       <button
                         onClick={() => onRefine('enrich-lore')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-mint-500/20 text-mint-300 rounded-full hover:bg-mint-500/30 transition disabled:opacity-50 border border-mint-500/40 focus-visible:outline-2 focus-visible:outline focus-visible:outline-mint-500/70"
+                        className="quick-action-pill bg-mint-500/20 text-mint-300 hover:bg-mint-500/30 disabled:opacity-50 border border-mint-500/40 focus-visible:outline-2 focus-visible:outline focus-visible:outline-mint-500/70"
                       >
                         📖 Enrich Lore
                       </button>
                       <button
                         onClick={() => onRefine('improve-consistency')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-surface-strong text-emerald-200 rounded-full border border-border-subtle hover:border-emerald-400 transition disabled:opacity-50 focus-visible:outline-2 focus-visible:outline focus-visible:outline-emerald-500/80"
+                        className="quick-action-pill bg-surface-strong text-emerald-200 hover:border-emerald-400 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline focus-visible:outline-emerald-500/80"
                       >
                         ♻️ Improve Consistency
                       </button>
                       <button
                         onClick={() => onRefine('enhance-genre-fit')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-amber-900/30 text-amber-200 rounded-full hover:bg-amber-900/50 transition disabled:opacity-50 border border-amber-800/70 focus-visible:outline-2 focus-visible:outline focus-visible:outline-amber-500/80"
+                        className="quick-action-pill bg-amber-900/30 text-amber-200 hover:bg-amber-900/50 disabled:opacity-50 border border-amber-800/70 focus-visible:outline-2 focus-visible:outline focus-visible:outline-amber-500/80"
                       >
                         🎯 Enhance Genre Fit
                       </button>
@@ -725,8 +727,9 @@ For each category, provide specific, actionable suggestions. Help me understand 
               <div className="px-4 pb-3">
                 <div className="flex gap-2 items-end">
                   <button
-                    className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-border-subtle bg-surface-strong text-slate-300 hover:bg-surface-elevated transition"
+                    className="btn flex-shrink-0 w-10 h-10 border border-border-subtle bg-surface-strong text-slate-300 hover:bg-surface-elevated transition opacity-50 cursor-not-allowed"
                     title="Attach file"
+                    disabled
                   >
                     📎
                   </button>
@@ -742,12 +745,12 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     }}
                     placeholder="Ask for help..."
                     rows={1}
-                    className="flex-1 resize-none border border-border-subtle rounded-lg px-4 py-2.5 text-sm bg-surface-elevated text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent max-h-[120px]"
+                    className="input flex-1 resize-none border border-border-subtle px-4 py-2.5 text-sm bg-surface-elevated text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent max-h-[120px]"
                   />
                   <button
                     onClick={handleSend}
                     disabled={!input.trim() || loading}
-                    className="flex-shrink-0 px-6 py-2.5 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="btn flex-shrink-0 px-6 py-2.5 bg-brand-500 text-white hover:bg-brand-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     <span>Send</span>
                     <span>→</span>
@@ -775,14 +778,14 @@ For each category, provide specific, actionable suggestions. Help me understand 
                 {proposals.map((proposal, index) => (
                   <div
                     key={proposal.id}
-                    className={`bg-surface-elevated border rounded-xl p-4 text-sm shadow-sm ${
+                    className={`card p-4 text-sm shadow-sm ${
                       index === 0
                         ? 'border-brand-400 shadow-brand-500/20'
                         : 'border-border-subtle'
                     }`}
                   >
                     {index === 0 && (
-                      <div className="mb-3 px-3 py-1.5 bg-gradient-to-r from-brand-600 to-mint-500 text-white rounded-lg text-xs font-semibold text-center">
+                      <div className="mb-3 px-3 py-1.5 badge-lg bg-gradient-to-r from-brand-600 to-mint-500 text-white text-center">
                         ⭐ Most Recent Proposal
                       </div>
                     )}
@@ -871,13 +874,13 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     <div className="flex gap-2 mt-4">
                       <button
                         onClick={() => handleAccept(proposal.id)}
-                        className="flex-1 px-3 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition text-xs font-medium"
+                        className="flex-1 px-3 py-2 btn bg-brand-500 text-white hover:bg-brand-600 transition text-xs font-medium"
                       >
                         ✅ Accept
                       </button>
                       <button
                         onClick={() => handleReject(proposal.id)}
-                        className="px-3 py-2 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition text-xs font-medium"
+                        className="px-3 py-2 btn bg-slate-700 text-slate-300 hover:bg-slate-600 transition text-xs font-medium"
                       >
                         ❌
                       </button>

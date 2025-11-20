@@ -73,9 +73,14 @@ export default {
         '88': '22rem',
       },
       borderRadius: {
-        'xl': '0.75rem',
-        '2xl': '1rem',
-        '3xl': '1.5rem',
+        'xs': '0.25rem',   // 4px - Very small elements
+        'sm': '0.375rem',  // 6px - Small badges, tags
+        'md': '0.5rem',    // 8px - Buttons, inputs, standard
+        'lg': '0.75rem',   // 12px - Cards, panels, navigation
+        'xl': '1rem',      // 16px - Large cards, modals
+        '2xl': '1.25rem',  // 20px - Hero sections, major containers
+        '3xl': '1.5rem',   // 24px - Full-width sections
+        'full': '9999px',  // Perfect circles
       },
       boxShadow: {
         'soft': '0 2px 8px 0 rgb(0 0 0 / 0.04)',
