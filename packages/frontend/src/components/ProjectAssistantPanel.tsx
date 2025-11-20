@@ -4,6 +4,8 @@ import { assistantAPI } from '../services/api';
 interface ProjectAssistantPanelProps {
   projectId: string;
   type?: 'concept' | 'architect';
+  onRefine?: (focus: 'deepen-mechanics' | 'enrich-lore' | 'improve-consistency' | 'enhance-genre-fit') => void;
+  refining?: boolean;
   onProposalAccepted?: () => void;
 }
 
@@ -35,6 +37,8 @@ interface AssistantProposal {
 export function ProjectAssistantPanel({
   projectId,
   type = 'concept',
+  onRefine,
+  refining = false,
   onProposalAccepted,
 }: ProjectAssistantPanelProps) {
   const [session, setSession] = useState<any | null>(null);
@@ -51,9 +55,11 @@ export function ProjectAssistantPanel({
   useEffect(() => {
     if (!projectId) return;
     setError(null);
+    console.log('[Assistant] Starting session:', { projectId, type });
     assistantAPI
       .startSession({ projectId, type })
       .then((data) => {
+        console.log('[Assistant] Session started:', data);
         setSession(data.session);
         setMessages(
           (data.messages as ChatMessage[]).map((msg) => ({
@@ -68,6 +74,7 @@ export function ProjectAssistantPanel({
         }
       })
       .catch((err) => {
+        console.error('[Assistant] Failed to start session:', err);
         setError(err instanceof Error ? err.message : 'Failed to start assistant');
       });
   }, [projectId, type]);
@@ -91,27 +98,40 @@ export function ProjectAssistantPanel({
     setLoading(true);
     setError(null);
     setInput('');
+    
+    // Add user message immediately for better UX
+    const tempUserMessage = {
+      id: crypto.randomUUID(),
+      role: 'user' as const,
+      content: userMessage,
+      createdAt: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, tempUserMessage]);
+    
     try {
+      console.log('[Assistant] Sending message:', { sessionId: session.id, message: userMessage });
       const response = await assistantAPI.sendMessage(session.id, userMessage);
+      console.log('[Assistant] Received response:', response);
+      
       setMessages((prev) => [
         ...prev,
-        { 
-          id: crypto.randomUUID(), 
-          role: 'user', 
-          content: userMessage,
-          createdAt: new Date().toISOString(),
-        },
         {
           ...response.message,
           createdAt: response.message.createdAt || new Date().toISOString(),
         }
       ]);
+      
       if (response.proposal) {
+        console.log('[Assistant] Received proposal:', response.proposal);
         setProposals((prev) => [response.proposal as AssistantProposal, ...prev]);
         setShowProposals(true);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Assistant failed to respond');
+      console.error('[Assistant] Error sending message:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Assistant failed to respond';
+      setError(errorMessage);
+      // Remove the user message if sending failed
+      setMessages((prev) => prev.filter((msg) => msg.id !== tempUserMessage.id));
     } finally {
       setLoading(false);
     }
@@ -119,10 +139,25 @@ export function ProjectAssistantPanel({
 
   const handleQuickAction = (action: string) => {
     const prompts: Record<string, string> = {
-      'summarize': 'Can you summarize the current version?',
-      'suggest-tweaks': 'What improvements would you suggest for this version?',
-      'check-consistency': 'Check the consistency between mechanics and lore.',
-      'expand-lore': 'Can you expand on the lore and world-building?',
+      'summarize': `Summarize the current version and check its consistency:
+
+1. Provide a comprehensive summary of the mechanics and lore
+2. Analyze the consistency between mechanics and lore
+3. Highlight any alignment issues or validation concerns
+4. Give an overall assessment of the version's coherence
+
+This helps me understand the current state and identify any consistency problems.`,
+      'suggest-tweaks': `Analyze this version comprehensively and suggest improvements across all dimensions:
+
+1. **Mechanics Depth**: What opportunities exist to deepen gameplay mechanics? Consider edge cases, balancing, advanced systems, and complexity.
+
+2. **Lore Enrichment**: How could the narrative and worldbuilding be expanded? Think about character depth, backstory, thematic elements, and world rules.
+
+3. **Consistency Issues**: What inconsistencies exist between mechanics and lore? What validation issues need addressing?
+
+4. **Genre Fit**: How well does this align with genre conventions? What genre-specific elements could be enhanced?
+
+For each category, provide specific, actionable suggestions. Help me understand what improvements are possible before I decide which refinement to apply.`,
     };
     if (prompts[action]) {
       setInput(prompts[action]);
@@ -149,11 +184,16 @@ export function ProjectAssistantPanel({
 
   const handleAccept = async (proposalId: string) => {
     try {
-      await assistantAPI.acceptProposal(proposalId);
+      console.log('[Assistant] Accepting proposal:', proposalId);
+      const result = await assistantAPI.acceptProposal(proposalId);
+      console.log('[Assistant] Proposal accepted, result:', result);
       setProposals((prev) => prev.filter((p) => p.id !== proposalId));
       // Notify parent component to refresh data
-      onProposalAccepted?.();
+      if (onProposalAccepted) {
+        await onProposalAccepted();
+      }
     } catch (err) {
+      console.error('[Assistant] Failed to accept proposal:', err);
       setError(err instanceof Error ? err.message : 'Failed to apply proposal');
     }
   };
@@ -290,38 +330,74 @@ export function ProjectAssistantPanel({
             <div className="border-t border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow-lg flex-shrink-0">
               {error && (
                 <div className="px-6 pt-3">
-                  <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
-                    {error}
-                  </p>
+                  <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className="font-semibold mb-1">Error sending message</p>
+                      <p className="text-xs">{error}</p>
+                      <p className="text-xs mt-1 opacity-75">Check the browser console (F12) for more details.</p>
+                    </div>
+                    <button
+                      onClick={() => setError(null)}
+                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex-shrink-0"
+                      title="Dismiss error"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               )}
               
-              {/* Quick Action Chips */}
-              <div className="px-6 pt-3 pb-2 flex flex-wrap gap-2">
-                <button
-                  onClick={() => handleQuickAction('summarize')}
-                  className="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition"
-                >
-                  📋 Summarize version
-                </button>
-                <button
-                  onClick={() => handleQuickAction('suggest-tweaks')}
-                  className="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition"
-                >
-                  ✨ Suggest tweaks
-                </button>
-                <button
-                  onClick={() => handleQuickAction('check-consistency')}
-                  className="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition"
-                >
-                  🔍 Check consistency
-                </button>
-                <button
-                  onClick={() => handleQuickAction('expand-lore')}
-                  className="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition"
-                >
-                  📖 Expand lore
-                </button>
+              {/* Quick Actions */}
+              <div className="px-6 pt-3 pb-2">
+                <div className="flex flex-wrap gap-2">
+                  {/* Quick Chat Actions */}
+                  <button
+                    onClick={() => handleQuickAction('summarize')}
+                    className="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                  >
+                    📋 Summarize & Check Consistency
+                  </button>
+                  <button
+                    onClick={() => handleQuickAction('suggest-tweaks')}
+                    className="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                  >
+                    ✨ Suggest Tweaks
+                  </button>
+                  
+                  {/* Refinement Actions */}
+                  {onRefine && (
+                    <>
+                      <button
+                        onClick={() => onRefine('deepen-mechanics')}
+                        disabled={refining}
+                        className="px-3 py-1 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition disabled:opacity-50"
+                      >
+                        ⚙️ Deepen Mechanics
+                      </button>
+                      <button
+                        onClick={() => onRefine('enrich-lore')}
+                        disabled={refining}
+                        className="px-3 py-1 text-xs bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/50 transition disabled:opacity-50"
+                      >
+                        📖 Enrich Lore
+                      </button>
+                      <button
+                        onClick={() => onRefine('improve-consistency')}
+                        disabled={refining}
+                        className="px-3 py-1 text-xs bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-200 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition disabled:opacity-50"
+                      >
+                        ♻️ Improve Consistency
+                      </button>
+                      <button
+                        onClick={() => onRefine('enhance-genre-fit')}
+                        disabled={refining}
+                        className="px-3 py-1 text-xs bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/50 transition disabled:opacity-50"
+                      >
+                        🎯 Enhance Genre Fit
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* Input Area */}

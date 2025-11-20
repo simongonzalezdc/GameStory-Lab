@@ -248,13 +248,15 @@ export const assistantAPI = {
     request<{ session: any; messages: any[]; proposals: any[] }>('/api/assistant/session', {
       method: 'POST',
       body: JSON.stringify(data),
-    }),
+      timeout: 30000, // 30 seconds for session start
+    } as any),
 
   sendMessage: (sessionId: string, content: string) =>
     request<{ message: any; proposal?: any }>(`/api/assistant/session/${sessionId}/message`, {
       method: 'POST',
       body: JSON.stringify({ content }),
-    }),
+      timeout: 300000, // 5 minutes for AI response
+    } as any),
 
   getMessages: (sessionId: string) =>
     request<{ messages: any[] }>(`/api/assistant/session/${sessionId}/messages`),

@@ -7,6 +7,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { projectsAPI, validationAPI, exportAPI, refinementAPI, generateAPI } from '../services/api';
 import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
+import { MechanicsViewer } from '../components/MechanicsViewer';
+import { LoreViewer } from '../components/LoreViewer';
 
 interface Project {
   id: string;
@@ -50,6 +52,8 @@ export function ConceptEditorPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'mechanics' | 'lore' | 'validation'>('mechanics');
   const [merging, setMerging] = useState(false);
+  const [showRawJsonMechanics, setShowRawJsonMechanics] = useState(false);
+  const [showRawJsonLore, setShowRawJsonLore] = useState(false);
   
   // Track last validated version to avoid duplicate validations
   const lastValidatedVersionId = useRef<string | null>(null);
@@ -125,6 +129,8 @@ export function ConceptEditorPage() {
           hasLore: !!latestVersion.lore && Object.keys(latestVersion.lore).length > 0,
         });
         setCurrentVersion(latestVersion);
+        // Reset validation tracking when loading a new version
+        lastValidatedVersionId.current = null;
       }
       setError(null);
     } catch (err) {
@@ -600,20 +606,22 @@ export function ConceptEditorPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] max-h-[calc(100vh-8rem)]">
-      {/* Sticky Header Bar */}
+    <div className="flex flex-col h-[calc(100vh-8rem)] max-h-[calc(100vh-8rem)] w-full">
+      {/* Compact Sticky Header Bar */}
       <div className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0">
-        <div className="flex justify-between items-center py-4">
-          <div>
+        <div className="flex items-center justify-between gap-4 py-2.5">
+          {/* Left: Project Info & Navigation */}
+          <div className="flex items-center gap-4 flex-1 min-w-0">
             <button
               onClick={() => navigate('/projects')}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-2"
+              className="flex-shrink-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
+              title="Back to Projects"
             >
-              ← Back to Projects
+              ←
             </button>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{project.name}</h2>
-            <div className="flex items-center gap-4 mt-1">
-              {versions.length > 1 && (
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">{project.name}</h2>
+              {versions.length > 1 ? (
                 <select
                   value={currentVersion?.id || ''}
                   onChange={(e) => {
@@ -622,145 +630,130 @@ export function ConceptEditorPage() {
                       setCurrentVersion(selected);
                     }
                   }}
-                  className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-2.5 py-1 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-xs text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
                 >
                   {versions.map((v) => (
                     <option key={v.id} value={v.id}>
-                      Version {v.version} {v.version === versions[0].version ? '(Latest)' : ''}
-                      {v.mechanics && Object.keys(v.mechanics).length > 0 && v.lore && Object.keys(v.lore).length > 0 
-                        ? ' ✓ Complete' 
-                        : v.mechanics && Object.keys(v.mechanics).length > 0 
-                          ? ' (Mechanics only)' 
-                          : v.lore && Object.keys(v.lore).length > 0 
-                            ? ' (Lore only)' 
-                            : ' (Empty)'}
+                      v{v.version} {v.version === versions[0].version ? '(Latest)' : ''}
                     </option>
                   ))}
                 </select>
+              ) : (
+                <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">v{currentVersion.version}</span>
               )}
-              <p className="text-gray-600 dark:text-gray-300">
-                {versions.length === 1 
-                  ? `Version ${currentVersion.version}` 
-                  : `Version ${currentVersion.version} of ${versions.length} total`}
-              </p>
+              {versions.length > 1 && (
+                <div className="relative group flex-shrink-0">
+                  <button
+                    className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                    title={`${versions.length} versions`}
+                  >
+                    📋 {versions.length}
+                  </button>
+                  <div className="absolute left-0 mt-2 w-72 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-20 max-h-96 overflow-y-auto">
+                    <div className="p-2">
+                      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-2 py-1 mb-1">
+                        All Versions
+                      </div>
+                      {versions.map((v) => (
+                        <button
+                          key={v.id}
+                          onClick={() => setCurrentVersion(v)}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                            currentVersion?.id === v.id
+                              ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100'
+                              : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">Version {v.version}</span>
+                            {v.version === versions[0].version && (
+                              <span className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded">
+                                Latest
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {versions.length >= 2 && (
-              <button
-                onClick={handleMergeVersions}
-                disabled={merging || loading}
-                className="px-4 py-2 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition font-medium disabled:opacity-50 flex items-center gap-2"
-                title={`Merge all ${versions.length} versions into one`}
-              >
-                {merging ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Merging...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>🔀</span>
-                    <span>Merge All Versions</span>
-                  </>
-                )}
-              </button>
-            )}
-            {versions.length > 1 && (
-              <div className="relative group">
-                <button
-                  className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition font-medium flex items-center gap-2"
-                >
-                  <span>📋</span>
-                  <span>Versions ({versions.length})</span>
-                </button>
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-20 max-h-96 overflow-y-auto">
-                  <div className="p-2">
-                    <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-2 py-1 mb-1">
-                      All Versions
-                    </div>
-                    {versions.map((v) => (
-                      <button
-                        key={v.id}
-                        onClick={() => setCurrentVersion(v)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
-                          currentVersion?.id === v.id
-                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100'
-                            : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">Version {v.version}</span>
-                          {v.version === versions[0].version && (
-                            <span className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded">
-                              Latest
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                          {v.mechanics && Object.keys(v.mechanics).length > 0 && v.lore && Object.keys(v.lore).length > 0 
-                            ? '✓ Complete' 
-                            : v.mechanics && Object.keys(v.mechanics).length > 0 
-                              ? 'Mechanics only' 
-                              : v.lore && Object.keys(v.lore).length > 0 
-                                ? 'Lore only' 
-                                : 'Empty'}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+
+          {/* Right: Actions & Status */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Consistency Score - Compact */}
+            {consistencyScore !== null && (
+              <div className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${
+                consistencyScore >= 80 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' :
+                consistencyScore >= 60 ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' :
+                'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+              }`}>
+                <span className={`text-sm font-bold ${
+                  consistencyScore >= 80 ? 'text-green-700 dark:text-green-300' :
+                  consistencyScore >= 60 ? 'text-yellow-700 dark:text-yellow-300' :
+                  'text-red-700 dark:text-red-300'
+                }`}>
+                  {consistencyScore}%
+                </span>
+                <div className="w-16 bg-white dark:bg-slate-700 rounded-full h-1.5">
+                  <div
+                    className={`h-1.5 rounded-full transition-all ${
+                      consistencyScore >= 80 ? 'bg-green-600 dark:bg-green-500' :
+                      consistencyScore >= 60 ? 'bg-yellow-600 dark:bg-yellow-500' :
+                      'bg-red-600 dark:bg-red-500'
+                    }`}
+                    style={{ width: `${Math.min(100, Math.max(0, consistencyScore))}%` }}
+                  />
                 </div>
               </div>
             )}
-            <button
-              onClick={() => handleExport('gdd')}
-              disabled={exporting}
-              className="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition font-medium disabled:opacity-50"
-            >
-              📄 Export
-            </button>
-            <button
-              onClick={() => navigate(`/projects/${projectId}/architect`)}
-              className="px-4 py-2 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition font-medium"
-            >
-              🏗️ Project Architect
-            </button>
-            <div className="flex flex-wrap gap-2">
+            
+            {/* Action Buttons - Compact */}
+            <div className="flex items-center gap-1.5">
+              {versions.length >= 2 && (
+                <button
+                  onClick={handleMergeVersions}
+                  disabled={merging || loading}
+                  className="px-2.5 py-1.5 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition text-xs font-medium disabled:opacity-50 flex items-center gap-1.5"
+                  title={`Merge all ${versions.length} versions`}
+                >
+                  {merging ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Merging</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🔀</span>
+                      <span>Merge</span>
+                    </>
+                  )}
+                </button>
+              )}
               <button
-                onClick={() => handleRefine('deepen-mechanics')}
-                disabled={refining}
-                className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition disabled:opacity-50"
+                onClick={() => handleExport('gdd')}
+                disabled={exporting}
+                className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition text-xs font-medium disabled:opacity-50"
+                title="Export as GDD"
               >
-                ⚙️ Deepen Mechanics
+                📄
               </button>
               <button
-                onClick={() => handleRefine('enrich-lore')}
-                disabled={refining}
-                className="px-4 py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition disabled:opacity-50"
+                onClick={() => navigate(`/projects/${projectId}/architect`)}
+                className="px-2.5 py-1.5 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition text-xs font-medium"
+                title="Open Project Architect"
               >
-                📖 Enrich Lore
-              </button>
-              <button
-                onClick={() => handleRefine('improve-consistency')}
-                disabled={refining}
-                className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-200 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition disabled:opacity-50"
-              >
-                ♻️ Improve Consistency
-              </button>
-              <button
-                onClick={() => handleRefine('enhance-genre-fit')}
-                disabled={refining}
-                className="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/50 transition disabled:opacity-50"
-              >
-                🎯 Enhance Genre Fit
+                🏗️
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Split Layout: 60% Assistant, 40% Validation/Results */}
-      <div className="grid gap-6 lg:grid-cols-[3fr_2fr] flex-1 min-h-0 overflow-hidden">
+      {/* Split Layout: 50% Assistant, 50% Validation/Results */}
+      <div className="grid gap-4 lg:grid-cols-2 flex-1 min-h-0 overflow-hidden">
         {/* Floating Revalidate Button - always visible */}
         <div className="lg:hidden fixed bottom-4 right-4 z-40">
           <button
@@ -786,50 +779,34 @@ export function ConceptEditorPage() {
           </button>
         </div>
 
-        {/* Left Column: Assistant (60%) */}
+        {/* Left Column: Assistant (50%) */}
         <div className="flex flex-col min-h-0 overflow-hidden">
           {project?.id && (
             <ProjectAssistantPanel
               projectId={project.id}
               type="concept"
+              onRefine={handleRefine}
+              refining={refining}
               onProposalAccepted={async () => {
                 // Reload project to show the new version created from proposal acceptance
                 await loadProject();
                 // Reset validation tracking to force re-validation of new version
                 lastValidatedVersionId.current = null;
+                // Force validation immediately after a short delay to ensure version is loaded
+                setTimeout(() => {
+                  if (currentVersion) {
+                    runValidation();
+                  }
+                }, 1000);
               }}
             />
           )}
         </div>
 
-        {/* Right Column: Validation/Results (40%) */}
-        <div className="flex flex-col space-y-4 min-h-0 overflow-hidden">
-          {/* Consistency Score */}
-          {consistencyScore !== null && (
-            <div className={`p-4 rounded-lg border flex-shrink-0 ${
-              consistencyScore >= 80 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' :
-              consistencyScore >= 60 ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' :
-              'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-            }`}>
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-gray-900 dark:text-gray-100">Consistency Score:</span>
-                <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">{consistencyScore}%</span>
-              </div>
-              <div className="mt-2 bg-white dark:bg-slate-700 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full transition-all ${
-                    consistencyScore >= 80 ? 'bg-green-600 dark:bg-green-500' :
-                    consistencyScore >= 60 ? 'bg-yellow-600 dark:bg-yellow-500' :
-                    'bg-red-600 dark:bg-red-500'
-                  }`}
-                  style={{ width: `${Math.min(100, Math.max(0, consistencyScore))}%` }}
-                />
-              </div>
-            </div>
-          )}
-
+        {/* Right Column: Validation/Results (50%) */}
+        <div className="flex flex-col space-y-3 min-h-0 overflow-hidden">
           {/* Tabs */}
-          <div className="border-b border-gray-200 dark:border-gray-700 mb-4 flex-shrink-0">
+          <div className="border-b border-gray-200 dark:border-gray-700 mb-3 flex-shrink-0">
             <nav className="flex space-x-4">
               {(['mechanics', 'lore', 'validation'] as const).map((tab) => (
                 <button
@@ -853,19 +830,32 @@ export function ConceptEditorPage() {
           </div>
 
           {/* Tab Content */}
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex-1 min-h-0 overflow-hidden flex flex-col">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 flex-1 min-h-0 overflow-hidden flex flex-col">
             {activeTab === 'mechanics' && (
-              <div className="flex flex-col h-full min-h-0">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 flex-shrink-0">Game Mechanics</h3>
-                <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 flex-1 min-h-0">
-                  {JSON.stringify(currentVersion.mechanics, null, 2)}
-                </pre>
+              <div className="flex flex-col h-full min-h-0 overflow-y-auto">
+                <div className="flex items-center justify-between mb-6 flex-shrink-0">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Game Mechanics</h3>
+                  <button
+                    onClick={() => setShowRawJsonMechanics(!showRawJsonMechanics)}
+                    className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                  >
+                    {showRawJsonMechanics ? '📄 View Formatted' : '🔧 View JSON'}
+                  </button>
+                </div>
+                <div className="flex-1">
+                  {showRawJsonMechanics ? (
+                    <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 h-full">
+                      {JSON.stringify(currentVersion.mechanics, null, 2)}
+                    </pre>
+                  ) : (
+                    <MechanicsViewer mechanics={currentVersion.mechanics} />
+                  )}
+                </div>
               </div>
             )}
 
             {activeTab === 'lore' && (
-              <div className="flex flex-col h-full min-h-0">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 flex-shrink-0">Game Lore</h3>
+              <div className="flex flex-col h-full min-h-0 overflow-y-auto">
                 {!currentVersion.lore || Object.keys(currentVersion.lore).length === 0 ? (
                   <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-8 text-center flex-shrink-0">
                     <div className="text-4xl mb-2">📖</div>
@@ -884,9 +874,26 @@ export function ConceptEditorPage() {
                     </button>
                   </div>
                 ) : (
-                  <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 flex-1 min-h-0">
-                    {JSON.stringify(currentVersion.lore, null, 2)}
-                  </pre>
+                  <>
+                    <div className="flex items-center justify-between mb-6 flex-shrink-0">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Game Lore</h3>
+                      <button
+                        onClick={() => setShowRawJsonLore(!showRawJsonLore)}
+                        className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                      >
+                        {showRawJsonLore ? '📄 View Formatted' : '🔧 View JSON'}
+                      </button>
+                    </div>
+                    <div className="flex-1">
+                      {showRawJsonLore ? (
+                        <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 h-full">
+                          {JSON.stringify(currentVersion.lore, null, 2)}
+                        </pre>
+                      ) : (
+                        <LoreViewer lore={currentVersion.lore} />
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -896,10 +903,21 @@ export function ConceptEditorPage() {
                 <div className="flex justify-between items-center mb-4 flex-shrink-0">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Validation Results</h3>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       // Reset validation flag to force re-validation
                       lastValidatedVersionId.current = null;
-                      runValidation();
+                      // Ensure we're validating the current version
+                      if (currentVersion) {
+                        runValidation();
+                      } else {
+                        // If no current version, reload project first
+                        await loadProject();
+                        setTimeout(() => {
+                          if (currentVersion) {
+                            runValidation();
+                          }
+                        }, 500);
+                      }
                     }}
                     disabled={validating}
                     className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm font-medium disabled:opacity-50 flex items-center gap-2 shadow-sm"
@@ -925,7 +943,7 @@ export function ConceptEditorPage() {
                     <p className="text-green-600 dark:text-green-300">No validation issues found</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 overflow-y-auto flex-1 min-h-0">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 overflow-y-auto flex-1 min-h-0">
                     {validationIssues.map((issue, index) => (
                       <div
                         key={index}

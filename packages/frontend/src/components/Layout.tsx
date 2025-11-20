@@ -140,7 +140,7 @@ function LayoutComponent({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-8 flex-1 flex flex-col min-h-0">
+      <main className={`mx-auto ${location.pathname.includes('/projects/') && !location.pathname.includes('/architect') ? 'max-w-full px-2 sm:px-4 lg:px-6' : 'max-w-7xl px-4 sm:px-6 lg:px-8'} py-6 lg:py-8 flex-1 flex flex-col min-h-0`}>
         {children}
       </main>
 
