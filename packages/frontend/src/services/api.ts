@@ -32,11 +32,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const isLongRunning = endpoint.includes('/generate') || 
                         endpoint.includes('/refinement') || 
                         endpoint.includes('/assistant') ||
-                        endpoint.includes('/architect');
+                        endpoint.includes('/architect') ||
+                        endpoint.includes('/blend-intelligent'); // LLM-enhanced blending
   let customTimeout = (options as any).timeout || (isLongRunning ? 300000 : 30000); // 5 min for AI operations, 30s default
   
-  // Ensure we always use the longer timeout for assistant endpoints
-  if (endpoint.includes('/assistant') && customTimeout < 300000) {
+  // Ensure we always use the longer timeout for assistant and AI-enhanced blending endpoints
+  if ((endpoint.includes('/assistant') || endpoint.includes('/blend-intelligent')) && customTimeout < 300000) {
     customTimeout = 300000;
   }
   
@@ -164,6 +165,31 @@ export const templatesAPI = {
     request<{ blended: boolean; template: any; sourceGenres: any }>('/api/templates/blend', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+
+  blendIntelligent: (data: { genres: Array<{ genre: string; weight: number }>; designOptions?: TemplateDesignOptions }) =>
+    request<{ 
+      enhanced: boolean; 
+      template: any; 
+      analysis: {
+        conflicts: Array<{
+          type: 'mechanics' | 'lore' | 'setting' | 'conflict' | 'themes';
+          description: string;
+          severity: 'low' | 'medium' | 'high';
+          resolution: string;
+        }>;
+        coherence_score: number;
+        improvements: string[];
+      };
+      blend_strategy: string;
+      reasoning: string;
+      sourceGenres: any;
+      designOptions?: TemplateDesignOptions;
+      ai_enhanced: boolean;
+    }>('/api/templates/blend-intelligent', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      timeout: 300000, // 300 seconds (5 minutes) for complex LLM analysis
     }),
 
   blendAndCreate: (data: { projectName: string; genres: Array<{ genre: string; weight: number }>; designOptions?: TemplateDesignOptions }) =>

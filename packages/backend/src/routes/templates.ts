@@ -269,6 +269,107 @@ router.post('/blend-and-create', async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/templates/blend-intelligent
+ * LLM-enhanced blending with conflict resolution and coherence analysis
+ *
+ * Body:
+ * {
+ *   "genres": [
+ *     { "genre": "rpg", "weight": 0.7 },
+ *     { "genre": "fps", "weight": 0.3 }
+ *   ],
+ *   "designOptions": {
+ *     "tone": "dark intrigue",
+ *     "complexity": "medium",
+ *     "sessionLength": "20-40m"
+ *   }
+ * }
+ *
+ * Returns:
+ * - Enhanced blended template with AI analysis
+ * - Conflict resolution details
+ * - Coherence improvements
+ */
+router.post('/blend-intelligent', async (req: Request, res: Response) => {
+  try {
+    const { genres, designOptions } = req.body;
+
+    if (!genres || !Array.isArray(genres) || genres.length === 0) {
+      return res.status(400).json({
+        error: 'genres array is required with at least one genre',
+        example: {
+          genres: [
+            { genre: 'rpg', weight: 0.7 },
+            { genre: 'fps', weight: 0.3 },
+          ],
+          designOptions: {
+            tone: 'dark intrigue',
+            complexity: 'medium',
+            sessionLength: '20-40m'
+          }
+        },
+      });
+    }
+
+    // Validate each genre config
+    for (const config of genres) {
+      if (!config.genre || typeof config.weight !== 'number') {
+        return res.status(400).json({
+          error: 'Each genre config must have "genre" (string) and "weight" (number)',
+          example: { genre: 'rpg', weight: 0.5 },
+        });
+      }
+    }
+
+    // Validate design options if provided
+    const validDesignOptions = designOptions || {
+      tone: 'balanced',
+      complexity: 'medium',
+      sessionLength: '20-40m'
+    };
+
+    // Get LLM blend service
+    const { getLLMBlendService } = await import('../services/ai/llm-blend-service.js');
+    const llmBlendService = getLLMBlendService();
+
+    // Perform intelligent blending
+    const enhancedBlend = await llmBlendService.blendGenresIntelligently(
+      genres,
+      validDesignOptions
+    );
+
+    if (!enhancedBlend) {
+      return res.status(400).json({ error: 'Failed to perform intelligent blending. Check that all genres are valid.' });
+    }
+
+    // Log the enhancement for analytics
+    logger.info('Performed LLM-enhanced blending', {
+      genres: genres.map(g => `${g.genre}(${Math.round(g.weight * 100)}%)`),
+      coherence_score: enhancedBlend.analysis.coherence_score,
+      conflicts_resolved: enhancedBlend.analysis.conflicts.length,
+    });
+
+    res.json({
+      enhanced: true,
+      template: enhancedBlend.template,
+      analysis: enhancedBlend.analysis,
+      blend_strategy: enhancedBlend.blend_strategy,
+      reasoning: enhancedBlend.reasoning,
+      sourceGenres: genres,
+      designOptions: validDesignOptions,
+      ai_enhanced: true,
+    });
+  } catch (error) {
+    logger.error('Failed to perform intelligent blending', { 
+      error, 
+      genres: req.body.genres,
+      designOptions: req.body.designOptions 
+    });
+    res.status(500).json({ error: 'Failed to perform intelligent blending' });
+  }
+});
+
+/**
  * POST /api/templates/:genre/create-project
  * Create a new project from a template
  *
