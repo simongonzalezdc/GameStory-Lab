@@ -138,6 +138,15 @@ export function ProjectAssistantPanel({
       const response = await assistantAPI.sendMessage(session.id, userMessage);
       console.log('[Assistant] Received response:', response);
       
+      // Log debug info if available
+      if (response.debug) {
+        console.log('[Assistant] Debug Info:', response.debug);
+        console.log('[Assistant] AI Response Preview:', response.debug.aiResponsePreview);
+        console.log('[Assistant] Parsed Proposal Preview:', response.debug.parsedProposalPreview);
+        console.log('[Assistant] Has Proposal:', response.debug.hasProposal);
+        console.log('[Assistant] Proposal Keys:', response.debug.proposalKeys);
+      }
+      
       setMessages((prev) => [
         ...prev,
         {
@@ -150,6 +159,9 @@ export function ProjectAssistantPanel({
         console.log('[Assistant] Received proposal:', response.proposal);
         setProposals((prev) => [response.proposal as AssistantProposal, ...prev]);
         setShowProposals(true); // Auto-show when new proposal arrives
+      } else if (response.debug?.userWantsProposal) {
+        console.warn('[Assistant] User requested proposal but none was generated!');
+        console.warn('[Assistant] Debug details:', response.debug);
       }
     } catch (err) {
       console.error('[Assistant] Error sending message:', err);
@@ -209,9 +221,77 @@ For each category, provide specific, actionable suggestions. Help me understand 
 
   const handleAccept = async (proposalId: string) => {
     try {
-      console.log('[Assistant] Accepting proposal:', proposalId);
-      const result = await assistantAPI.acceptProposal(proposalId);
-      console.log('[Assistant] Proposal accepted, result:', result);
+      // Find the proposal to log its contents before accepting
+      const proposal = proposals.find(p => p.id === proposalId);
+      console.log('[Assistant] Accepting proposal:', {
+        proposalId,
+        proposalType: proposal?.proposalType,
+        hasMechanics: !!(proposal?.payload?.mechanics),
+        hasLore: !!(proposal?.payload?.lore),
+        mechanicsKeys: proposal?.payload?.mechanics ? Object.keys(proposal.payload.mechanics) : [],
+        loreKeys: proposal?.payload?.lore ? Object.keys(proposal.payload.lore) : [],
+        mechanicsEmpty: proposal?.payload?.mechanics && Object.keys(proposal.payload.mechanics).length === 0,
+        loreEmpty: proposal?.payload?.lore && Object.keys(proposal.payload.lore).length === 0,
+      });
+      
+      let response;
+      try {
+        response = await assistantAPI.acceptProposal(proposalId);
+      } catch (err: any) {
+        // Handle API errors (400, 500, etc.)
+        console.error('[Assistant] Proposal acceptance failed:', err);
+        const errorMessage = err?.error || err?.message || 'Failed to apply proposal';
+        const errorDetails = err?.details || '';
+        setError(`${errorMessage}${errorDetails ? `\n\nDetails: ${errorDetails}` : ''}`);
+        // Don't remove proposal from list if it failed
+        return;
+      }
+      
+      console.log('[Assistant] Proposal accepted, response:', response);
+      
+      // The API returns {success: true, result: {newVersion: {...} | documentation: {...}}}
+      // OR {error: "...", details: "..."} if validation failed
+      if (response.error) {
+        console.error('[Assistant] Proposal acceptance returned error:', response);
+        setError(response.error + (response.details ? `\n\n${response.details}` : ''));
+        // Don't remove proposal from list if it failed
+        return;
+      }
+      
+      const actualResult = response.result;
+      
+      console.log('[Assistant] Checking result structure:', {
+        fullResponse: response,
+        responseKeys: Object.keys(response),
+        hasResult: !!response.result,
+        resultType: typeof response.result,
+        resultValue: response.result,
+        resultKeys: response.result && typeof response.result === 'object' ? Object.keys(response.result) : [],
+        resultStringified: response.result ? JSON.stringify(response.result, null, 2) : 'null/undefined',
+      });
+      
+      if (!actualResult || (!actualResult.newVersion && !actualResult.documentation)) {
+        console.warn('[Assistant] Proposal accepted but no version or documentation was created', {
+          fullResponse: response,
+          actualResult,
+          hasNewVersion: !!actualResult?.newVersion,
+          hasDocumentation: !!actualResult?.documentation,
+          resultIsNull: actualResult === null,
+          resultIsUndefined: actualResult === undefined,
+        });
+        setError('Proposal was accepted but no changes were applied. The proposal may have been empty or contained no actual mechanics/lore changes.');
+        // Still remove the proposal from the list since it was accepted
+        setProposals((prev) => prev.filter((p) => p.id !== proposalId));
+        return;
+      }
+      
+      console.log('[Assistant] Proposal applied successfully', {
+        hasNewVersion: !!actualResult.newVersion,
+        hasDocumentation: !!actualResult.documentation,
+        newVersionId: actualResult.newVersion?.id,
+        newVersionNumber: actualResult.newVersion?.version,
+      });
+      
       setProposals((prev) => prev.filter((p) => p.id !== proposalId));
       // Notify parent component to refresh data
       if (onProposalAccepted) {
@@ -219,7 +299,10 @@ For each category, provide specific, actionable suggestions. Help me understand 
       }
     } catch (err) {
       console.error('[Assistant] Failed to accept proposal:', err);
-      setError(err instanceof Error ? err.message : 'Failed to apply proposal');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to apply proposal';
+      setError(errorMessage);
+      // Show alert for better visibility
+      alert(`Failed to apply proposal: ${errorMessage}`);
     }
   };
 
@@ -531,13 +614,25 @@ For each category, provide specific, actionable suggestions. Help me understand 
                           {proposal.payload?.mechanics && (
                             <div className="flex items-center gap-1">
                               <span>⚙️</span>
-                              <span>Mechanics</span>
+                              <span>Mechanics ({Object.keys(proposal.payload.mechanics).length} fields)</span>
+                              {Object.keys(proposal.payload.mechanics).length === 0 && (
+                                <span className="text-red-400 ml-2">⚠️ Empty!</span>
+                              )}
                             </div>
                           )}
                           {proposal.payload?.lore && (
                             <div className="flex items-center gap-1">
                               <span>📖</span>
-                              <span>Lore</span>
+                              <span>Lore ({Object.keys(proposal.payload.lore).length} fields)</span>
+                              {Object.keys(proposal.payload.lore).length === 0 && (
+                                <span className="text-red-400 ml-2">⚠️ Empty!</span>
+                              )}
+                            </div>
+                          )}
+                          {(!proposal.payload?.mechanics || Object.keys(proposal.payload.mechanics).length === 0) &&
+                           (!proposal.payload?.lore || Object.keys(proposal.payload.lore).length === 0) && (
+                            <div className="text-red-400 font-semibold mt-2 p-2 bg-red-900/20 rounded border border-red-800">
+                              ⚠️ WARNING: This proposal has no mechanics or lore content! Accepting it will not create a new version.
                             </div>
                           )}
                         </div>

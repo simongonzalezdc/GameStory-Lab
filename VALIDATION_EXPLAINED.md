@@ -2,7 +2,7 @@
 
 ## Overview
 
-The validation system checks if your game's **mechanics** (how it plays) and **lore** (the story/world) are consistent with each other. It runs **26 different validation rules** across 6 categories to catch potential conflicts before you start development.
+The validation system checks if your game's **mechanics** (how it plays) and **lore** (the story/world) are consistent with each other. It runs **27 different validation rules** across 6 categories to catch potential conflicts before you start development.
 
 ## The Validation Process
 
@@ -12,10 +12,12 @@ The validation system checks if your game's **mechanics** (how it plays) and **l
 - It analyzes the current version's mechanics and lore together
 
 ### 2. **Rule Execution**
-The validation engine runs all 26 rules in parallel:
+The validation engine runs all 27 rules in parallel:
 
 #### **Category 1: Mechanics-Lore Alignment** (10 rules, highest weight)
 These are the most critical - they check if gameplay matches the story:
+
+- **Content Completeness**: Core loop, player actions, win conditions, setting, protagonist, and world rules must exist; missing fundamentals reduce consistency confidence.
 
 - **Player Abilities Match**: Do the protagonist's abilities in lore match what they can do in gameplay?
   - Example: If lore says "mage with fire magic" but mechanics only have "sword attacks" → Issue!
@@ -146,4 +148,3 @@ Score = 1.0 - (sum of weighted issue scores)
 - **Confidence levels** (rules can be uncertain)
 - **Genre-aware** (different checks for RPG vs FPS)
 - **Rate limited** (30 validations/minute to prevent spam)
-

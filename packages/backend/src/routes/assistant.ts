@@ -99,10 +99,32 @@ router.post('/proposals/:proposalId/accept', async (req: Request, res: Response)
   try {
     const service = await getService();
     const result = await service.applyProposal(req.params.proposalId);
+    
+    // Validate that we got a result
+    if (!result || (!result.newVersion && !result.documentation)) {
+      logger.error('Proposal accepted but no result generated', {
+        proposalId: req.params.proposalId,
+        result,
+        hasNewVersion: !!(result && result.newVersion),
+        hasDocumentation: !!(result && result.documentation),
+      });
+      return res.status(400).json({
+        error: 'Proposal was accepted but no changes could be applied. The proposal may be empty or invalid.',
+        details: 'The proposal does not contain any mechanics, lore, or documentation changes to apply.',
+      });
+    }
+    
     res.json({ success: true, result });
   } catch (error) {
-    logger.error('Failed to apply assistant proposal', { error, proposalId: req.params.proposalId });
-    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to apply proposal' });
+    logger.error('Failed to apply assistant proposal', { 
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      proposalId: req.params.proposalId 
+    });
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Failed to apply proposal',
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined,
+    });
   }
 });
 

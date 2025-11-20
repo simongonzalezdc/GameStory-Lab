@@ -60,7 +60,20 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       );
     }
 
-    const data = await response.json();
+    // Handle 204 No Content and other empty responses
+    if (response.status === 204) {
+      console.log(`[API] Success:`, endpoint);
+      return {} as T;
+    }
+
+    // Try to parse JSON, but handle empty responses gracefully
+    const text = await response.text();
+    if (!text || text.trim() === '') {
+      console.log(`[API] Success:`, endpoint);
+      return {} as T;
+    }
+
+    const data = JSON.parse(text);
     console.log(`[API] Success:`, endpoint);
     return data;
   } catch (error) {
@@ -118,6 +131,18 @@ export const projectsAPI = {
 };
 
 // Templates API
+type TemplateDesignOptions = {
+  tone?: string;
+  camera?: string;
+  platform?: string;
+  multiplayer?: string;
+  sessionLength?: string;
+  complexity?: string;
+  artDirection?: string;
+  monetization?: string;
+  accessibility?: string;
+};
+
 export const templatesAPI = {
   list: () => request<{ genres: Array<{ id: string; name: string; description: string }> }>('/api/templates'),
 
@@ -129,19 +154,19 @@ export const templatesAPI = {
       body: JSON.stringify(data),
     }),
 
-  createProject: (genre: string, data: { projectName: string; mechanicsOverrides?: any; loreOverrides?: any }) =>
+  createProject: (genre: string, data: { projectName: string; mechanicsOverrides?: any; loreOverrides?: any; designOptions?: TemplateDesignOptions }) =>
     request<{ project: any; concept: any }>(`/api/templates/${genre}/create-project`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  blend: (data: { genres: Array<{ genre: string; weight: number }> }) =>
+  blend: (data: { genres: Array<{ genre: string; weight: number }>; designOptions?: TemplateDesignOptions }) =>
     request<{ blended: boolean; template: any; sourceGenres: any }>('/api/templates/blend', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  blendAndCreate: (data: { projectName: string; genres: Array<{ genre: string; weight: number }> }) =>
+  blendAndCreate: (data: { projectName: string; genres: Array<{ genre: string; weight: number }>; designOptions?: TemplateDesignOptions }) =>
     request<{ project: any; version: any; blendedTemplate: string; sourceGenres: any; message: string }>('/api/templates/blend-and-create', {
       method: 'POST',
       body: JSON.stringify(data),

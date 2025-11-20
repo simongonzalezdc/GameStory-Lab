@@ -10,22 +10,32 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../../test/mocks/server';
 
 describe('HealthPage', () => {
+  const mockHealthy = {
+    status: 'healthy',
+    timestamp: '2025-01-01T00:00:00.000Z',
+    database: 'connected',
+    ai: {
+      clients: [],
+      currentHourCost: 0,
+      costLimit: 5.0,
+    },
+  };
+
   it('should show loading state initially', () => {
+    server.use(http.get('http://localhost:3001/health', () => HttpResponse.json(mockHealthy)));
     render(<HealthPage />);
     expect(screen.getByText(/checking system status/i)).toBeInTheDocument();
   });
 
   it('should display health status after loading', async () => {
-    // MSW temporarily disabled for this test
-    // Note: This test will show error state due to API not being mocked
+    server.use(http.get('http://localhost:3001/health', () => HttpResponse.json(mockHealthy)));
+
     render(<HealthPage />);
 
-    // Wait for loading to finish
     await waitFor(() => {
       expect(screen.queryByText(/checking system status/i)).not.toBeInTheDocument();
     });
 
-    // Check that health data is displayed
     expect(screen.getByText('System Status')).toBeInTheDocument();
     expect(screen.getByText(/HEALTHY/i)).toBeInTheDocument();
     expect(screen.getByText(/CONNECTED/i)).toBeInTheDocument();

@@ -12,7 +12,7 @@ describe('ValidationEngine', () => {
   it('should register all validation rules', () => {
     const rules = engine.getRules();
     expect(rules.length).toBeGreaterThan(0);
-    expect(rules.length).toBe(26); // Should have 26 rules as per documentation
+    expect(rules.length).toBe(27); // Includes holistic completeness check
   });
 
   it('should validate a concept with no issues', async () => {
@@ -82,4 +82,3 @@ describe('ValidationEngine', () => {
     expect(Array.isArray(result.issues)).toBe(true);
   });
 });
-

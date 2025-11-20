@@ -5,7 +5,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { projectsAPI, validationAPI, exportAPI, refinementAPI, generateAPI } from '../services/api';
+import { projectsAPI, validationAPI, exportAPI, refinementAPI, generateAPI, APIError } from '../services/api';
 import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
 import { MechanicsViewer } from '../components/MechanicsViewer';
 import { LoreViewer } from '../components/LoreViewer';
@@ -30,6 +30,7 @@ interface ValidationIssue {
   severity: 'error' | 'warning' | 'info';
   message: string;
   field?: string;
+  suggestion?: string;
 }
 
 export function ConceptEditorPage() {
@@ -54,10 +55,65 @@ export function ConceptEditorPage() {
   const [merging, setMerging] = useState(false);
   const [showRawJsonMechanics, setShowRawJsonMechanics] = useState(false);
   const [showRawJsonLore, setShowRawJsonLore] = useState(false);
+  const [validationStatus, setValidationStatus] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [lastValidationSource, setLastValidationSource] = useState<'auto' | 'manual' | 'follow-up' | null>(null);
+  const [lastValidatedAt, setLastValidatedAt] = useState<string | null>(null);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
   
   // Track last validated version to avoid duplicate validations
   const lastValidatedVersionId = useRef<string | null>(null);
   const validationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentVersionRef = useRef<Version | null>(null);
+
+  const hasContentToValidate = (version: Version | null) =>
+    !!version &&
+    ((version.mechanics && Object.keys(version.mechanics).length > 0) ||
+      (version.lore && Object.keys(version.lore).length > 0));
+
+  const buildAssistantPrompt = (): string => {
+    const version = currentVersionRef.current;
+    if (!version) return 'No version loaded.';
+
+    const scoreText = consistencyScore !== null ? `${consistencyScore}/100` : 'Not available';
+    const header = [
+      `Project: ${project?.name || 'Unknown'}`,
+      `Version: ${version.version} (id: ${version.id})`,
+      `Consistency score: ${scoreText}`,
+      `Validated at: ${lastValidatedAt ? new Date(lastValidatedAt).toLocaleString() : 'Not validated yet'}`,
+    ].join('\n');
+
+    const mechanicsSummary = version.mechanics ? JSON.stringify(version.mechanics, null, 2) : 'None';
+    const loreSummary = version.lore ? JSON.stringify(version.lore, null, 2) : 'None';
+
+    const issues = validationIssues.length
+      ? validationIssues
+          .map(
+            (issue, idx) =>
+              `${idx + 1}. [${issue.severity.toUpperCase()}] Rule: ${issue.ruleId || issue.category || 'unknown'} | Category: ${
+                issue.category
+              }\n   Message: ${issue.message}\n   Suggestion: ${issue.suggestion || 'Not provided'}\n   Location: ${
+                issue.field ? issue.field : 'Not specified'
+              }`
+          )
+          .join('\n')
+      : 'No validation issues.';
+
+    return [
+      '=== VALIDATION SUMMARY FOR PROJECT ASSISTANT ===',
+      header,
+      '',
+      'Mechanics (for context):',
+      mechanicsSummary,
+      '',
+      'Lore (for context):',
+      loreSummary,
+      '',
+      'Issues:',
+      issues,
+      '=== END OF VALIDATION SUMMARY ===',
+    ].join('\n');
+  };
 
   useEffect(() => {
     if (projectId) {
@@ -66,16 +122,21 @@ export function ConceptEditorPage() {
   }, [projectId]);
 
   useEffect(() => {
+    currentVersionRef.current = currentVersion;
+  }, [currentVersion]);
+
+  useEffect(() => {
     // Only validate if version actually changed and we have content
     if (!currentVersion) return;
-    
+
     // Skip if already validated this version
     if (currentVersion.id === lastValidatedVersionId.current) return;
-    
+
     // Skip if version has no meaningful content to validate
-    const hasContent = (currentVersion.mechanics && Object.keys(currentVersion.mechanics).length > 0) ||
-                      (currentVersion.lore && Object.keys(currentVersion.lore).length > 0);
-    if (!hasContent) return;
+    if (!hasContentToValidate(currentVersion)) {
+      setValidationStatus('Add mechanics or lore to run validation.');
+      return;
+    }
     
     // Clear any pending validation
     if (validationTimeoutRef.current) {
@@ -91,7 +152,7 @@ export function ConceptEditorPage() {
     validationTimeoutRef.current = setTimeout(() => {
       // Double-check version is still current and hasn't been validated
       if (currentVersion && currentVersion.id === versionIdToValidate && currentVersion.id !== lastValidatedVersionId.current) {
-        runValidation();
+        runValidation('auto');
       }
     }, debounceDelay);
     
@@ -108,6 +169,8 @@ export function ConceptEditorPage() {
 
     try {
       setLoading(true);
+      setValidationStatus(null);
+      setValidationError(null);
       // Clear any pending validation
       if (validationTimeoutRef.current) {
         clearTimeout(validationTimeoutRef.current);
@@ -140,20 +203,36 @@ export function ConceptEditorPage() {
     }
   };
 
-  const runValidation = async () => {
-    if (!currentVersion) return;
+  const runValidation = async (source: 'auto' | 'manual' | 'follow-up' = 'auto', force = false) => {
+    const version = currentVersionRef.current;
     
-    // Skip if already validated this version
-    if (lastValidatedVersionId.current === currentVersion.id) {
+    if (!version) {
+      setValidationError('No version selected to validate.');
+      return;
+    }
+    
+    if (!hasContentToValidate(version)) {
+      setValidationStatus('Add mechanics or lore to run validation.');
+      setValidationIssues([]);
+      setConsistencyScore(null);
+      setValidationError(null);
+      return;
+    }
+    
+    // Skip if already validated this version unless forced
+    if (!force && lastValidatedVersionId.current === version.id) {
+      setValidationStatus('Already validated. Re-run manually to refresh.');
       return;
     }
 
     try {
       setValidating(true);
+      setValidationError(null);
+      setValidationStatus(source === 'manual' ? 'Running manual validation...' : 'Validating latest changes...');
       const response = await validationAPI.validate({
-        conceptId: currentVersion.id,
-        mechanics: currentVersion.mechanics,
-        lore: currentVersion.lore,
+        conceptId: version.id,
+        mechanics: version.mechanics,
+        lore: version.lore,
       });
       setValidationIssues(response.issues || []);
       
@@ -162,8 +241,8 @@ export function ConceptEditorPage() {
       const displayScore = Math.round(rawScore * 100);
       
       console.log('[Validation] Score updated:', {
-        versionId: currentVersion.id,
-        versionNumber: currentVersion.version,
+        versionId: version.id,
+        versionNumber: version.version,
         rawScore,
         displayScore,
         hasConsistencyScore: !!response.consistencyScore,
@@ -174,17 +253,26 @@ export function ConceptEditorPage() {
       });
       setConsistencyScore(displayScore);
       // Mark this version as validated
-      lastValidatedVersionId.current = currentVersion.id;
+      lastValidatedVersionId.current = version.id;
+      const now = new Date();
+      setLastValidationSource(source);
+      setLastValidatedAt(now.toISOString());
+      setValidationStatus(`Validated ${source === 'manual' ? 'manually' : 'automatically'} at ${now.toLocaleTimeString()}`);
     } catch (err) {
-      // Handle rate limit errors gracefully
-      if (err instanceof Error && err.message.includes('Too many requests')) {
-        console.warn('Validation rate limited - will retry automatically');
-        // Reset validation flag so it can retry later
-        lastValidatedVersionId.current = null;
-        // Don't show error to user for rate limits - it's temporary
+      // Handle rate limit errors gracefully and surface to user
+      if (err instanceof APIError) {
+        if (err.status === 429 || err.message.includes('Too many requests')) {
+          setValidationError('Validation temporarily rate-limited. Please retry in a few seconds.');
+        } else {
+          setValidationError(err.message || 'Validation failed.');
+        }
+      } else if (err instanceof Error) {
+        setValidationError(err.message);
       } else {
-        console.error('Validation failed:', err);
+        setValidationError('Validation failed. Check console for details.');
       }
+      setValidationStatus(null);
+      lastValidatedVersionId.current = null;
     } finally {
       setValidating(false);
     }
@@ -745,7 +833,7 @@ export function ConceptEditorPage() {
             onClick={() => handleExport('gdd')}
             disabled={exporting}
                 className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition text-xs font-medium disabled:opacity-50"
-                title="Export as GDD"
+            title="Export as GDD"
           >
                 📄
           </button>
@@ -769,7 +857,7 @@ export function ConceptEditorPage() {
             onClick={() => {
               // Reset validation flag to force re-validation
               lastValidatedVersionId.current = null;
-              runValidation();
+              runValidation('manual', true);
             }}
             disabled={validating}
             className="px-4 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm font-medium disabled:opacity-50 flex items-center gap-2"
@@ -803,8 +891,9 @@ export function ConceptEditorPage() {
                 lastValidatedVersionId.current = null;
                 // Force validation immediately after a short delay to ensure version is loaded
                 setTimeout(() => {
-                  if (currentVersion) {
-                    runValidation();
+                  const latestVersion = currentVersionRef.current;
+                  if (latestVersion) {
+                    runValidation('follow-up', true);
                   }
                 }, 1000);
               }}
@@ -917,13 +1006,14 @@ export function ConceptEditorPage() {
                       lastValidatedVersionId.current = null;
                       // Ensure we're validating the current version
                       if (currentVersion) {
-                      runValidation();
+                      runValidation('manual', true);
                       } else {
                         // If no current version, reload project first
                         await loadProject();
                         setTimeout(() => {
-                          if (currentVersion) {
-                            runValidation();
+                          const latestVersion = currentVersionRef.current;
+                          if (latestVersion) {
+                            runValidation('manual', true);
                           }
                         }, 500);
                       }
@@ -944,6 +1034,47 @@ export function ConceptEditorPage() {
                     )}
                   </button>
                 </div>
+
+                {(validationError || validationStatus) && (
+                  <div className="space-y-2 mb-3 flex-shrink-0">
+                    {validationError && (
+                      <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-200">
+                        <strong>Validation issue:</strong> {validationError}
+                      </div>
+                    )}
+                    {validationStatus && (
+                      <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-4 py-3 text-sm text-blue-700 dark:text-blue-200 flex items-center justify-between">
+                        <span>{validationStatus}</span>
+                        {lastValidationSource && lastValidatedAt && (
+                          <span className="text-xs text-blue-600 dark:text-blue-300">
+                            Trigger: {lastValidationSource} • {new Date(lastValidatedAt).toLocaleTimeString()}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {validationIssues.length > 0 && (
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <span className="text-xs text-slate-600 dark:text-slate-300">
+                          Copy the full validation context into the Project Assistant to auto-fix.
+                        </span>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(buildAssistantPrompt());
+                              setCopiedPrompt(true);
+                              setTimeout(() => setCopiedPrompt(false), 1500);
+                            } catch (err) {
+                              console.error('Failed to copy validation summary', err);
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                        >
+                          {copiedPrompt ? 'Copied!' : 'Copy for Assistant'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {validationIssues.length === 0 ? (
                   <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-8 text-center flex-shrink-0">

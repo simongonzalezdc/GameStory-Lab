@@ -8,6 +8,18 @@ import axios from 'axios';
 import { GLMClient } from './glm.js';
 import type { AICompletionRequest } from './base.js';
 
+vi.mock('axios', () => {
+  const post = vi.fn();
+  const create = vi.fn(() => ({ post }));
+  const isAxiosError = (err: any) => !!err?.isAxiosError;
+  return {
+    default: { create, isAxiosError },
+    create,
+    post,
+    isAxiosError,
+  };
+});
+
 // Mock logger to avoid noise in tests
 vi.mock('../../../utils/logger.js', () => ({
   logger: {
@@ -25,14 +37,12 @@ describe('GLMClient', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
     
     // Create mock for axios.post
     mockPost = vi.fn();
-    
-    // Mock axios.create to return our mock instance
-    vi.mocked(axios.create).mockReturnValue({
-      post: mockPost,
-    } as any);
+    (axios.create as any).mockReturnValue({ post: mockPost });
+    (axios as any).isAxiosError = (err: any) => !!err?.isAxiosError;
     
     // Mock environment variables
     vi.stubEnv('GLM_API_KEY', mockApiKey);
@@ -57,6 +67,7 @@ describe('GLMClient', () => {
     });
 
     it('should throw error without API key', () => {
+      vi.unstubAllEnvs();
       expect(() => {
         new GLMClient({ apiKey: '' });
       }).toThrow('GLM API key is required');
@@ -82,7 +93,7 @@ describe('GLMClient', () => {
     it('should list available models', async () => {
       const models = await client.listModels();
       expect(Array.isArray(models)).toBe(true);
-      expect(models).toContain('GLM-4.6');
+      expect(models).toContain('glm-4.6');
       expect(models).toContain('glm-3-turbo');
     });
   });
@@ -327,7 +338,8 @@ describe('GLMClient', () => {
 
   describe('Error Handling', () => {
     it('should handle API errors gracefully', async () => {
-      const mockError = {
+      const mockError = Object.assign(new Error('Internal server error'), {
+        isAxiosError: true,
         response: {
           status: 500,
           data: {
@@ -336,7 +348,7 @@ describe('GLMClient', () => {
             },
           },
         },
-      };
+      });
 
       mockPost.mockRejectedValue(mockError);
 
@@ -386,7 +398,10 @@ describe('GLMClient', () => {
     });
 
     it('should handle network errors', async () => {
-      const networkError = new Error('Network connection failed');
+      const networkError = Object.assign(new Error('Network connection failed'), {
+        isAxiosError: true,
+        response: { status: 503, data: { message: 'down' } },
+      });
       
       mockPost.mockRejectedValue(networkError);
 
@@ -411,7 +426,7 @@ describe('GLMClient', () => {
       expect(await envClient.isAvailable()).toBe(true);
       
       const models = await envClient.listModels();
-      expect(models).toContain('GLM-4.6');
+      expect(models).toContain('glm-4.6');
     });
   });
 });

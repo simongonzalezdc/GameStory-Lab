@@ -226,11 +226,14 @@ describe('RefinementService', () => {
 
       await service.refineConcept(request);
 
-      expect(mockAIOrchestrator.generate).toHaveBeenCalledWith(
-        'refinement',
-        expect.any(Array),
-        'auto'
-      );
+      const call = vi.mocked(mockAIOrchestrator.generate).mock.calls[0];
+      expect(call[0]).toBe('refinement');
+      expect(Array.isArray(call[1])).toBe(true);
+      expect(call[1].length).toBeGreaterThan(0);
+      // Third arg is model preference, now passed as options
+      expect(call[2]).toBe('auto');
+      // Optional fourth arg is options bag in current implementation
+      expect(call[3]).toEqual(expect.objectContaining({ maxTokens: expect.any(Number) }));
     });
 
     it('should include system message for focus', async () => {

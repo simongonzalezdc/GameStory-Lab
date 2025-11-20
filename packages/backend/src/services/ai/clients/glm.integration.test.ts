@@ -11,7 +11,8 @@ import type { AICompletionRequest } from './base.js';
 // These tests are marked as integration tests and only run when GLM_API_KEY is available
 const runIntegrationTests = !!process.env.GLM_API_KEY;
 
-describe('GLM Client Integration Tests', () => {
+// Integration test; requires GLM_API_KEY + network. Skipped by default.
+describe.skip('GLM Client Integration Tests', () => {
   let client: GLMClient;
 
   beforeAll(() => {

@@ -177,7 +177,7 @@ export class AssistantService {
       'assistant',
       aiMessages,
       'auto', // Will use GLM 4.6 if available, otherwise falls back to Ollama
-      { maxTokens: 3000 }
+      { maxTokens: 8000 } // Increased to allow for full mechanics/lore objects in proposals
     );
 
       logger.debug('AI response received', {
@@ -185,6 +185,18 @@ export class AssistantService {
         model: aiResponse.model,
         contentLength: aiResponse.content.length,
       });
+
+    // Log the raw AI response for debugging proposal issues
+    logger.info('Raw AI response', {
+      sessionId,
+      userMessage: content,
+      model: aiResponse.model,
+      responseLength: aiResponse.content.length,
+      responsePreview: aiResponse.content.substring(0, 2000),
+      hasProposalKeyword: /proposal/i.test(aiResponse.content),
+      hasMechanicsKeyword: /mechanics/i.test(aiResponse.content),
+      hasLoreKeyword: /lore/i.test(aiResponse.content),
+    });
 
     const parsed = this.parseAssistantResponse(aiResponse.content);
     const assistantMessage = await this.prisma.chatMessage.create({
@@ -242,9 +254,24 @@ export class AssistantService {
       });
     }
 
+    // Include debug info in development mode
+    const debugInfo = process.env.NODE_ENV === 'development' ? {
+      debug: {
+        userWantsProposal,
+        hasProposal: !!parsed.proposal,
+        proposalType: typeof parsed.proposal,
+        proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
+        hasMechanics: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.mechanics),
+        hasLore: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.lore),
+        aiResponsePreview: aiResponse.content.substring(0, 1000),
+        parsedProposalPreview: parsed.proposal && typeof parsed.proposal === 'object' ? JSON.stringify(parsed.proposal).substring(0, 500) : String(parsed.proposal),
+      }
+    } : {};
+
     return {
       message: assistantMessage,
       proposal: createdProposal,
+      ...debugInfo,
     };
     } catch (error) {
       logger.error('Error in sendMessage', {
@@ -270,6 +297,19 @@ export class AssistantService {
     const payload = proposal.payload as any;
     let result: any = null;
 
+    logger.info('Applying proposal', {
+      proposalId: proposal.id,
+      proposalType: proposal.proposalType,
+      payloadKeys: Object.keys(payload),
+      hasMechanics: !!payload.mechanics,
+      hasLore: !!payload.lore,
+      mechanicsType: typeof payload.mechanics,
+      loreType: typeof payload.lore,
+      mechanicsKeys: payload.mechanics && typeof payload.mechanics === 'object' ? Object.keys(payload.mechanics) : [],
+      loreKeys: payload.lore && typeof payload.lore === 'object' ? Object.keys(payload.lore) : [],
+      payloadPreview: JSON.stringify(payload).substring(0, 500),
+    });
+
     if (proposal.proposalType === 'concept-update') {
       const latestVersion = await this.getLatestVersion(proposal.projectId);
       if (!latestVersion) {
@@ -288,12 +328,18 @@ export class AssistantService {
         ? (payload.lore as LoreData)
         : baseLore;
 
-      // Validate that we actually have changes
-      if (!payload.mechanics && !payload.lore) {
+      // Validate that we actually have changes with actual content
+      const hasMechanics = payload.mechanics && typeof payload.mechanics === 'object' && Object.keys(payload.mechanics).length > 0;
+      const hasLore = payload.lore && typeof payload.lore === 'object' && Object.keys(payload.lore).length > 0;
+      
+      if (!hasMechanics && !hasLore) {
         logger.warn('Proposal accepted but contains no mechanics or lore changes', {
           proposalId: proposal.id,
-          hasMechanics: !!payload.mechanics,
-          hasLore: !!payload.lore,
+          hasMechanics,
+          hasLore,
+          mechanicsKeys: payload.mechanics && typeof payload.mechanics === 'object' ? Object.keys(payload.mechanics) : [],
+          loreKeys: payload.lore && typeof payload.lore === 'object' ? Object.keys(payload.lore) : [],
+          payloadKeys: Object.keys(payload),
         });
         throw new Error('Proposal contains no mechanics or lore changes to apply');
       }
@@ -341,6 +387,15 @@ export class AssistantService {
       });
 
       result = { newVersion };
+
+      // Optionally apply architect documents alongside mechanics/lore changes
+      if (payload.architectDocuments) {
+        const updated = architectService.applyAssistantUpdates(
+          proposal.projectId,
+          payload.architectDocuments
+        );
+        result.documentation = updated;
+      }
     }
 
     if (proposal.proposalType === 'architect-document' && payload.architectDocuments) {
@@ -358,6 +413,24 @@ export class AssistantService {
         resolvedAt: new Date(),
       },
     });
+
+    logger.info('Proposal application complete', {
+      proposalId: proposal.id,
+      hasResult: !!result,
+      resultKeys: result ? Object.keys(result) : [],
+      hasNewVersion: !!(result && result.newVersion),
+      hasDocumentation: !!(result && result.documentation),
+    });
+
+    // Ensure we always return a result if proposal was accepted
+    if (!result) {
+      logger.error('Proposal was accepted but no result was generated', {
+        proposalId: proposal.id,
+        proposalType: proposal.proposalType,
+        payloadKeys: Object.keys(payload),
+      });
+      throw new Error('Proposal was accepted but no changes could be applied. The proposal may be invalid or empty.');
+    }
 
     return result;
   }
@@ -1294,6 +1367,18 @@ export class AssistantService {
         ? parsed.proposal
         : {};
       
+      // Log what we're returning
+      logger.info('Parsed response result', {
+        hasReply: !!reply,
+        replyLength: reply?.length || 0,
+        hasProposal: !!proposal,
+        proposalType: typeof proposal,
+        proposalKeys: proposal && typeof proposal === 'object' ? Object.keys(proposal) : [],
+        hasMechanics: !!(proposal && typeof proposal === 'object' && proposal.mechanics),
+        hasLore: !!(proposal && typeof proposal === 'object' && proposal.lore),
+        proposalPreview: proposal && typeof proposal === 'object' ? JSON.stringify(proposal).substring(0, 500) : String(proposal),
+      });
+      
       return {
         reply: reply,
         proposal: proposal,
@@ -1392,22 +1477,43 @@ export class AssistantService {
     const latestVersion = await this.getLatestVersion(session.projectId);
     const baseMechanics = (latestVersion?.mechanics || {}) as MechanicsData;
     const baseLore = (latestVersion?.lore || {}) as LoreData;
-    const newMechanics = proposal?.mechanics || baseMechanics;
-    const newLore = proposal?.lore || baseLore;
+    
+    // Validate that proposal has actual content (not just empty objects)
+    const hasMechanics = proposal?.mechanics && typeof proposal.mechanics === 'object' && Object.keys(proposal.mechanics).length > 0;
+    const hasLore = proposal?.lore && typeof proposal.lore === 'object' && Object.keys(proposal.lore).length > 0;
+    const hasArchitectDocuments = proposal?.architectDocuments && Array.isArray(proposal.architectDocuments) && proposal.architectDocuments.length > 0;
+    
+    if (!hasMechanics && !hasLore && !hasArchitectDocuments) {
+      logger.warn('Attempted to create proposal with no actual content', {
+        sessionId: session.id,
+        projectId: session.projectId,
+        hasMechanics,
+        hasLore,
+        hasArchitectDocuments,
+        proposalKeys: proposal && typeof proposal === 'object' ? Object.keys(proposal) : [],
+      });
+      throw new Error('Proposal must contain mechanics, lore, or architectDocuments with actual content');
+    }
+    
+    const newMechanics = hasMechanics ? (proposal.mechanics as MechanicsData) : baseMechanics;
+    const newLore = hasLore ? (proposal.lore as LoreData) : baseLore;
 
     const changeLog = [
       ...this.detectChanges(baseMechanics, newMechanics, 'mechanics'),
       ...this.detectChanges(baseLore, newLore, 'lore'),
     ];
 
+    // Only include mechanics/lore in payload if they have actual content
     const payload = {
-      mechanics: proposal?.mechanics,
-      lore: proposal?.lore,
-      architectDocuments: proposal?.architectDocuments,
+      ...(hasMechanics && { mechanics: proposal.mechanics }),
+      ...(hasLore && { lore: proposal.lore }),
+      ...(hasArchitectDocuments && { architectDocuments: proposal.architectDocuments }),
       explanation: proposal?.explanation || 'Improves game design with enhanced mechanics and lore.',
     } as any; // Cast to any for Prisma Json type compatibility
 
-    const proposalType = proposal?.architectDocuments ? 'architect-document' : 'concept-update';
+    // If mechanics or lore are present, treat as concept-update even if documents are included.
+    // Only fall back to architect-document when there are no mechanics/lore changes.
+    const proposalType = hasMechanics || hasLore ? 'concept-update' : 'architect-document';
 
     return this.prisma.assistantProposal.create({
       data: {

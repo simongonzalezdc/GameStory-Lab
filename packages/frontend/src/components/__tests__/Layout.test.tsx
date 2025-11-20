@@ -20,11 +20,9 @@ describe('Layout', () => {
       </Layout>
     );
 
-    // Check for navigation items - some may appear multiple times so check they exist
     expect(screen.getByText('Projects')).toBeTruthy();
-    expect(screen.getByText('Templates')).toBeTruthy();
-    expect(screen.getByText('Tutorial')).toBeTruthy();
-    expect(screen.getByText('Status')).toBeTruthy();
+    expect(screen.getByText('Assistant')).toBeTruthy();
+    expect(screen.getByText('Settings')).toBeTruthy();
   });
 
   it('should render children content', () => {
@@ -49,41 +47,6 @@ describe('Layout', () => {
     expect(screen.getByText('Beta')).toBeTruthy();
   });
 
-  it('should have theme toggle button', () => {
-    render(
-      <Layout>
-        <div>Content</div>
-      </Layout>
-    );
-
-    const themeButton = screen.getByRole('button', { name: /switch to/i });
-    expect(themeButton).toBeTruthy();
-  });
-
-  it('should toggle theme when theme button is clicked', async () => {
-    const user = userEvent.setup();
-
-    render(
-      <Layout>
-        <div>Content</div>
-      </Layout>
-    );
-
-    const themeButton = screen.getByRole('button', { name: /switch to/i });
-
-    // Initial state (light mode by default in test environment)
-    expect(themeButton).toHaveAttribute('aria-label', 'Switch to dark mode');
-
-    // Click to toggle
-    await user.click(themeButton);
-
-    // Should switch to light mode label (meaning we're now in dark mode)
-    expect(themeButton).toHaveAttribute('aria-label', 'Switch to light mode');
-
-    // Check localStorage was updated
-    expect(localStorage.getItem('theme')).toBe('dark');
-  });
-
   it('should render footer with links', () => {
     render(
       <Layout>
@@ -91,7 +54,6 @@ describe('Layout', () => {
       </Layout>
     );
 
-    expect(screen.getByText(/crafted with care/i)).toBeTruthy();
     expect(screen.getByRole('link', { name: /share feedback/i })).toBeTruthy();
     expect(screen.getByRole('link', { name: /read the tutorial/i })).toBeTruthy();
     expect(screen.getByRole('link', { name: /view on github/i })).toBeTruthy();
@@ -129,5 +91,23 @@ describe('Layout', () => {
     const exploreButton = screen.getByRole('link', { name: /explore templates/i });
     expect(exploreButton).toBeTruthy();
     expect(exploreButton).toHaveAttribute('href', '/templates');
+  });
+
+  it('should open settings menu and show entries', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Layout>
+        <div>Content</div>
+      </Layout>
+    );
+
+    const settingsButton = screen.getByRole('button', { name: /settings/i });
+    await user.click(settingsButton);
+
+    expect(screen.getByText(/workspace settings/i)).toBeInTheDocument();
+    expect(screen.getByText(/view tutorial/i)).toBeInTheDocument();
+    expect(screen.getByText(/system status/i)).toBeInTheDocument();
+    expect(screen.getByText(/reset tutorial/i)).toBeInTheDocument();
   });
 });

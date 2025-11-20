@@ -187,7 +187,7 @@ router.post('/blend', (req: Request, res: Response) => {
  */
 router.post('/blend-and-create', async (req: Request, res: Response) => {
   try {
-    const { projectName, genres } = req.body;
+    const { projectName, genres, designOptions } = req.body;
 
     if (!projectName) {
       return res.status(400).json({ error: 'projectName is required' });
@@ -250,6 +250,7 @@ router.post('/blend-and-create', async (req: Request, res: Response) => {
           generatedFrom: `blended:${genres.map(g => `${g.genre}(${Math.round(g.weight * 100)}%)`).join('+')}`,
           blendedGenres: genres,
           blendedTemplateName: blendedTemplate.name,
+          designOptions,
         } as any,
       },
     });
@@ -281,7 +282,7 @@ router.post('/blend-and-create', async (req: Request, res: Response) => {
 router.post('/:genre/create-project', async (req: Request, res: Response) => {
   try {
     const genre = req.params.genre as Genre;
-    const { projectName, mechanicsOverrides, loreOverrides } = req.body;
+    const { projectName, mechanicsOverrides, loreOverrides, designOptions } = req.body;
 
     if (!projectName) {
       return res.status(400).json({ error: 'projectName is required' });
@@ -319,6 +320,7 @@ router.post('/:genre/create-project', async (req: Request, res: Response) => {
           startedWith: 'mechanics',
           userEdited: false,
           generatedFrom: `template:${genre}`,
+          designOptions,
         } as any,
       },
     });

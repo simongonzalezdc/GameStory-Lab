@@ -53,6 +53,7 @@ import {
   validatePerformanceConsiderations,
   validateScopeRealityCheck,
 } from './rules/technical-feasibility.js';
+import { validateContentCompleteness } from './rules/holistic-consistency.js';
 
 export interface ValidationRule {
   name: string;
@@ -72,6 +73,16 @@ export class ValidationEngine {
    * Register all validation rules
    */
   private registerRules(): void {
+    // =================================================================
+    // Holistic completeness (ensures fundamentals exist)
+    // =================================================================
+    this.rules.push({
+      name: 'content-completeness',
+      category: 'mechanics-lore-alignment',
+      weight: 1.1,
+      execute: validateContentCompleteness,
+    });
+
     // =================================================================
     // Mechanics-Lore Alignment (10 rules, weight 1.5 - critical)
     // =================================================================

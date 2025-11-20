@@ -57,6 +57,17 @@ export function TemplateBrowserPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [designOptions, setDesignOptions] = useState({
+    tone: 'dark intrigue',
+    camera: 'isometric',
+    platform: 'PC',
+    multiplayer: 'solo',
+    sessionLength: '20-40m',
+    complexity: 'medium',
+    artDirection: 'stylized minimal HUD',
+    monetization: 'premium',
+    accessibility: 'comfort+color-safe',
+  });
 
   // Genre mixing state
   const [mixMode, setMixMode] = useState(false);
@@ -137,11 +148,11 @@ export function TemplateBrowserPage() {
     try {
       setLoadingTemplate(true);
       normalizeWeights();
-      const response = await templatesAPI.blend({ genres: selectedGenres });
-      setTemplate(response.template);
-      setSelectedGenre(null);
-      setIsBlended(true);
-      setError(null);
+        const response = await templatesAPI.blend({ genres: selectedGenres, designOptions });
+        setTemplate(response.template);
+        setSelectedGenre(null);
+        setIsBlended(true);
+        setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to blend genres');
       setTemplate(null);
@@ -172,6 +183,7 @@ export function TemplateBrowserPage() {
         const response = await templatesAPI.blendAndCreate({
           projectName: projectName.trim(),
           genres: selectedGenres,
+          designOptions,
         });
         navigate(`/projects/${response.project.id}`);
       } else {
@@ -179,6 +191,7 @@ export function TemplateBrowserPage() {
         if (!selectedGenre) return;
         const response = await templatesAPI.createProject(selectedGenre, {
           projectName: projectName.trim(),
+          designOptions,
         });
         navigate(`/projects/${response.project.id}`);
       }
@@ -198,11 +211,11 @@ export function TemplateBrowserPage() {
   }
 
   return (
-    <div>
-      <div className="mb-8 flex justify-between items-start">
+    <div className="space-y-6">
+      <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Genre Templates</h2>
-          <p className="text-slate-600 dark:text-slate-300 mt-1">
+          <h2 className="text-3xl font-bold text-slate-100">Genre Templates</h2>
+          <p className="text-slate-300 mt-1">
             {mixMode
               ? 'Blend multiple genres to create custom hybrid templates'
               : 'Start with a professionally crafted template'}
@@ -221,14 +234,14 @@ export function TemplateBrowserPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
           <p className="text-red-700 dark:text-red-300">{error}</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Genre Selection */}
-        <div>
+        <div className="lg:col-span-1">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {mixMode ? 'Select Genres to Mix' : 'Select a Genre'}
@@ -299,8 +312,142 @@ export function TemplateBrowserPage() {
           </div>
         </div>
 
+        {/* Customization Controls */}
+        <div className="lg:col-span-1 space-y-4">
+          <div className="rounded-xl bg-surface-card border border-border-subtle p-4">
+            <h3 className="text-lg font-semibold text-slate-100 mb-3">Experience Tuning</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="text-sm text-slate-300 space-y-1">
+                <span>Tone / Mood</span>
+                <select
+                  className="w-full rounded-lg border border-border-subtle bg-surface-elevated text-slate-100 p-2"
+                  value={designOptions.tone}
+                  onChange={(e) => setDesignOptions((o) => ({ ...o, tone: e.target.value }))}
+                >
+                  <option value="dark intrigue">Dark intrigue</option>
+                  <option value="hopeful adventure">Hopeful adventure</option>
+                  <option value="cozy">Cozy</option>
+                  <option value="high-tension">High tension</option>
+                  <option value="whimsical">Whimsical</option>
+                </select>
+              </label>
+              <label className="text-sm text-slate-300 space-y-1">
+                <span>Session Length</span>
+                <select
+                  className="w-full rounded-lg border border-border-subtle bg-surface-elevated text-slate-100 p-2"
+                  value={designOptions.sessionLength}
+                  onChange={(e) => setDesignOptions((o) => ({ ...o, sessionLength: e.target.value }))}
+                >
+                  <option value="5-10m">5-10m runs</option>
+                  <option value="20-40m">20-40m sessions</option>
+                  <option value="60m+">60m+</option>
+                </select>
+              </label>
+              <label className="text-sm text-slate-300 space-y-1">
+                <span>Complexity</span>
+                <select
+                  className="w-full rounded-lg border border-border-subtle bg-surface-elevated text-slate-100 p-2"
+                  value={designOptions.complexity}
+                  onChange={(e) => setDesignOptions((o) => ({ ...o, complexity: e.target.value }))}
+                >
+                  <option value="low">Low / Accessible</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High / Hardcore</option>
+                </select>
+              </label>
+              <label className="text-sm text-slate-300 space-y-1">
+                <span>Monetization</span>
+                <select
+                  className="w-full rounded-lg border border-border-subtle bg-surface-elevated text-slate-100 p-2"
+                  value={designOptions.monetization}
+                  onChange={(e) => setDesignOptions((o) => ({ ...o, monetization: e.target.value }))}
+                >
+                  <option value="premium">Premium (no MTX)</option>
+                  <option value="cosmetic-pass">Seasonal/cosmetic pass</option>
+                  <option value="free-ipa">Free + IAP</option>
+                  <option value="none">Non-commercial</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-surface-card border border-border-subtle p-4">
+            <h3 className="text-lg font-semibold text-slate-100 mb-3">World & Delivery</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="text-sm text-slate-300 space-y-1">
+                <span>Camera / View</span>
+                <select
+                  className="w-full rounded-lg border border-border-subtle bg-surface-elevated text-slate-100 p-2"
+                  value={designOptions.camera}
+                  onChange={(e) => setDesignOptions((o) => ({ ...o, camera: e.target.value }))}
+                >
+                  <option value="isometric">Isometric</option>
+                  <option value="side">Side-scrolling</option>
+                  <option value="first">First-person</option>
+                  <option value="third">Third-person</option>
+                  <option value="top-down">Top-down</option>
+                </select>
+              </label>
+              <label className="text-sm text-slate-300 space-y-1">
+                <span>Platform Target</span>
+                <select
+                  className="w-full rounded-lg border border-border-subtle bg-surface-elevated text-slate-100 p-2"
+                  value={designOptions.platform}
+                  onChange={(e) => setDesignOptions((o) => ({ ...o, platform: e.target.value }))}
+                >
+                  <option value="PC">PC</option>
+                  <option value="Console">Console</option>
+                  <option value="Mobile">Mobile</option>
+                  <option value="Web">Web</option>
+                  <option value="VR">VR</option>
+                </select>
+              </label>
+              <label className="text-sm text-slate-300 space-y-1">
+                <span>Multiplayer</span>
+                <select
+                  className="w-full rounded-lg border border-border-subtle bg-surface-elevated text-slate-100 p-2"
+                  value={designOptions.multiplayer}
+                  onChange={(e) => setDesignOptions((o) => ({ ...o, multiplayer: e.target.value }))}
+                >
+                  <option value="solo">Solo</option>
+                  <option value="co-op">Co-op</option>
+                  <option value="pvp">PvP</option>
+                  <option value="pvevp">PvEvP</option>
+                </select>
+              </label>
+              <label className="text-sm text-slate-300 space-y-1">
+                <span>Art Direction</span>
+                <select
+                  className="w-full rounded-lg border border-border-subtle bg-surface-elevated text-slate-100 p-2"
+                  value={designOptions.artDirection}
+                  onChange={(e) => setDesignOptions((o) => ({ ...o, artDirection: e.target.value }))}
+                >
+                  <option value="stylized minimal HUD">Stylized, minimal HUD</option>
+                  <option value="bold neon UI">Bold neon UI</option>
+                  <option value="painterly low-sat">Painterly, low saturation</option>
+                  <option value="gritty realistic">Gritty realistic</option>
+                  <option value="diegetic ui">Diegetic UI</option>
+                </select>
+              </label>
+              <label className="text-sm text-slate-300 space-y-1">
+                <span>Accessibility</span>
+                <select
+                  className="w-full rounded-lg border border-border-subtle bg-surface-elevated text-slate-100 p-2"
+                  value={designOptions.accessibility}
+                  onChange={(e) => setDesignOptions((o) => ({ ...o, accessibility: e.target.value }))}
+                >
+                  <option value="comfort+color-safe">Comfort + color-safe</option>
+                  <option value="low-vision friendly">Low-vision friendly</option>
+                  <option value="motion-light">Reduced motion</option>
+                  <option value="controller friendly">Controller-friendly</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+
         {/* Template Preview */}
-        <div>
+        <div className="lg:col-span-1">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Template Preview</h3>
           {loadingTemplate ? (
             <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">

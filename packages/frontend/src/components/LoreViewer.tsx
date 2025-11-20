@@ -184,6 +184,51 @@ export function LoreViewer({ lore }: LoreViewerProps) {
         </section>
       )}
 
+      {/* Economy */}
+      {lore.economy && typeof lore.economy === 'object' && (
+        <section className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+            <span className="text-2xl">💰</span>
+            <span>Economy</span>
+          </h3>
+          <div className="space-y-4">
+            {Object.entries(lore.economy as Record<string, unknown>).map(([key, value]) => (
+              <div key={key} className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2 capitalize">
+                  {key.replace(/([A-Z])/g, ' $1').trim()}
+                </h4>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                  {typeof value === 'string' ? value : String(value)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Resource Context */}
+      {lore.resourceContext && typeof lore.resourceContext === 'object' && (
+        <section className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+            <span className="text-2xl">📦</span>
+            <span>Resource Context</span>
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            {Object.entries(lore.resourceContext as Record<string, unknown>).map(([resourceName, description]) => (
+              <div
+                key={resourceName}
+                className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
+              >
+                <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">{resourceName}</h4>
+                <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
+                  {typeof description === 'string' ? description : String(description)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Resource Logic */}
       {lore.resourceLogic && typeof lore.resourceLogic === 'object' && (
         <section className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
@@ -419,7 +464,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
       {/* Additional Fields */}
       {Object.entries(lore).map(([key, value]) => {
         // Skip already rendered fields
-        if (['setting', 'protagonist', 'conflict', 'worldRules', 'themes', 'resourceLogic', 'tutorialPhase', 'primaryConflict', 'gatingJustification'].includes(key)) {
+        if (['setting', 'protagonist', 'conflict', 'worldRules', 'themes', 'resourceLogic', 'resourceContext', 'economy', 'tutorialPhase', 'primaryConflict', 'gatingJustification'].includes(key)) {
           return null;
         }
 

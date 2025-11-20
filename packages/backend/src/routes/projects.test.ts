@@ -1,112 +1,96 @@
 /**
- * Projects API Endpoint Tests
+ * Projects API Routes (mocked)
+ * Covers routing without touching a real database
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import { prisma } from '../server.js';
-import projectsRouter from './projects.js';
 
-const app = express();
-app.use(express.json());
-app.use('/api/projects', projectsRouter);
+// Mock prisma used by the router via server import
+const prismaMock = {
+  project: {
+    findMany: vi.fn(),
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
+};
 
-describe.skip('Projects API', () => {
-  // Skipping Prisma-dependent tests for coverage analysis
-  let testProjectId: string;
+vi.mock('../server.js', () => ({
+  prisma: prismaMock,
+}));
 
-  beforeAll(async () => {
-    await prisma.$connect();
-  });
-
-  afterAll(async () => {
-    // Clean up test data
-    if (testProjectId) {
-      await prisma.project.delete({ where: { id: testProjectId } }).catch(() => {});
-    }
-    await prisma.$disconnect();
-  });
+describe('Projects API (mocked)', () => {
+  let app: express.Express;
 
   beforeEach(async () => {
-    // Clean up any existing test projects
-    await prisma.project.deleteMany({
-      where: {
-        name: {
-          startsWith: 'Test Project',
-        },
-      },
-    });
+    vi.clearAllMocks();
+    const routerModule = await import('./projects.js');
+    app = express();
+    app.use(express.json());
+    app.use('/api/projects', routerModule.default);
   });
 
-  it('should create a new project', async () => {
-    const response = await request(app)
-      .post('/api/projects')
-      .send({
+  it('GET /api/projects should list projects', async () => {
+    prismaMock.project.findMany.mockResolvedValue([
+      {
+        id: 'p1',
         name: 'Test Project',
         genre: 'rpg',
-      });
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-02'),
+        _count: { versions: 2 },
+      },
+    ]);
 
-    expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty('id');
-    expect(response.body.name).toBe('Test Project');
-    expect(response.body.genre).toBe('rpg');
-
-    testProjectId = response.body.id;
+    const res = await request(app).get('/api/projects');
+    expect(res.status).toBe(200);
+    expect(res.body.projects[0].id).toBe('p1');
+    expect(prismaMock.project.findMany).toHaveBeenCalled();
   });
 
-  it('should return 400 for invalid project data', async () => {
-    const response = await request(app)
-      .post('/api/projects')
-      .send({
-        name: '', // Invalid: empty name
-      });
+  it('POST /api/projects should create a project', async () => {
+    prismaMock.project.create.mockResolvedValue({
+      id: 'p2',
+      name: 'New Project',
+      genre: 'fps',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
-    expect(response.status).toBe(400);
-    expect(response.body.error).toHaveProperty('code', 'VALIDATION_ERROR');
+    const res = await request(app).post('/api/projects').send({ name: 'New Project', genre: 'fps' });
+    expect(res.status).toBe(201);
+    expect(res.body.project.id).toBe('p2');
+    expect(prismaMock.project.create).toHaveBeenCalled();
   });
 
-  it('should list all projects', async () => {
-    // Create a test project first
-    const createResponse = await request(app)
-      .post('/api/projects')
-      .send({
-        name: 'Test Project List',
-        genre: 'fps',
-      });
-
-    const response = await request(app).get('/api/projects');
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('projects');
-    expect(Array.isArray(response.body.projects)).toBe(true);
-    expect(response.body.projects.length).toBeGreaterThan(0);
+  it('POST /api/projects should 400 on invalid body', async () => {
+    const res = await request(app).post('/api/projects').send({ name: '' });
+    expect(res.status).toBe(400);
   });
 
-  it('should get a specific project by ID', async () => {
-    // Create a test project first
-    const createResponse = await request(app)
-      .post('/api/projects')
-      .send({
-        name: 'Test Project Get',
-        genre: 'strategy',
-      });
-
-    const projectId = createResponse.body.id;
-
-    const response = await request(app).get(`/api/projects/${projectId}`);
-
-    expect(response.status).toBe(200);
-    expect(response.body.id).toBe(projectId);
-    expect(response.body.name).toBe('Test Project Get');
+  it('GET /api/projects/:id should 404 when missing', async () => {
+    prismaMock.project.findUnique.mockResolvedValue(null);
+    const res = await request(app).get('/api/projects/missing');
+    expect(res.status).toBe(404);
   });
 
-  it('should return 404 for non-existent project', async () => {
-    const fakeId = '00000000-0000-0000-0000-000000000000';
-    const response = await request(app).get(`/api/projects/${fakeId}`);
-
-    expect(response.status).toBe(404);
-    expect(response.body.error).toHaveProperty('code', 'NOT_FOUND');
+  it('GET /api/projects/:id should return project with versions', async () => {
+    prismaMock.project.findUnique.mockResolvedValue({
+      id: 'p3',
+      name: 'Detail Project',
+      genre: 'rpg',
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-02'),
+      versions: [
+        { id: 'v1', version: 1, title: '', mechanics: {}, lore: {}, metadata: {}, createdAt: new Date('2024-01-01') },
+      ],
+    });
+    const res = await request(app).get('/api/projects/p3');
+    expect(res.status).toBe(200);
+    expect(res.body.project.id).toBe('p3');
+    expect(res.body.versions.length).toBe(1);
   });
 });
-
