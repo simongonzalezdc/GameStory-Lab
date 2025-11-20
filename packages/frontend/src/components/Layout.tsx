@@ -87,11 +87,11 @@ return (
                 GS
               </div>
               <div className="hidden sm:block">
-                <div className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-[0.12em]">
+                <div className="text-xs font-bold text-tertiary uppercase tracking-[0.12em]">
                   GameStory Lab
                 </div>
                 <div className="flex items-center gap-2 -mt-0.5">
-                  <h1 className="text-base font-semibold text-slate-900 dark:text-slate-100">Experience Design OS</h1>
+                  <h1 className="text-base font-semibold text-primary">Experience Design OS</h1>
                   <span className="rounded-md bg-brand-50 dark:bg-brand-900/40 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 dark:text-brand-200 border border-brand-100/60 dark:border-brand-800/70">
                     Beta
                   </span>
@@ -116,49 +116,49 @@ return (
                         onClick={() => setShowSettingsMenu((open) => !open)}
                         className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 border ${
                           showSettingsMenu
-                            ? 'bg-surface-card text-slate-900 dark:text-white border-brand-400 shadow-md'
-                            : 'text-slate-600 dark:text-slate-300 border-transparent hover:border-border-subtle hover:bg-surface-elevated dark:hover:bg-surface-elevated'
+                            ? 'bg-surface-card text-primary border-brand-400 shadow-md'
+                            : 'text-secondary border-transparent hover:border-subtle hover:bg-surface-elevated'
                         }`}
                         aria-expanded={showSettingsMenu}
                         aria-haspopup="menu"
                       >
-                        <span className={`w-8 h-8 rounded-full flex items-center justify-center ${showSettingsMenu ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-slate-500 dark:text-slate-300'} border border-border-subtle`}>
+                        <span className={`w-8 h-8 rounded-full flex items-center justify-center ${showSettingsMenu ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
                           <Icon />
                         </span>
                         <span>{item.label}</span>
                       </button>
                       {showSettingsMenu && (
-                        <div className="absolute right-0 mt-2 w-64 rounded-xl border border-border-subtle bg-white dark:bg-slate-900 shadow-lg overflow-hidden z-50">
-                          <div className="px-4 py-3 border-b border-border-subtle bg-surface-card dark:bg-slate-800/70">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Workspace Settings</p>
-                            <p className="text-xs text-slate-600 dark:text-slate-400">Tutorial & status live here now.</p>
+                        <div className="absolute right-0 mt-2 w-64 rounded-xl border border-subtle surface-card shadow-lg overflow-hidden z-50">
+                          <div className="px-4 py-3 border-b border-subtle bg-surface-card">
+                            <p className="text-sm font-semibold text-primary">Workspace Settings</p>
+                            <p className="text-xs text-tertiary">Tutorial & status live here now.</p>
                           </div>
                           <div className="flex flex-col">
                             <Link
                               to="/tutorial"
-                              className="flex items-start gap-3 px-4 py-3 text-sm hover:bg-surface-elevated dark:hover:bg-slate-800 transition"
+                              className="flex items-start gap-3 px-4 py-3 text-sm hover:bg-surface-elevated transition"
                               onClick={() => setShowSettingsMenu(false)}
                             >
                               <span className="mt-0.5 text-brand-600 dark:text-brand-300">✨</span>
                               <div>
-                                <p className="font-semibold text-slate-900 dark:text-slate-100">View Tutorial</p>
-                                <p className="text-xs text-slate-600 dark:text-slate-400">Replay the guided experience any time.</p>
+                                <p className="font-semibold text-primary">View Tutorial</p>
+                                <p className="text-xs text-tertiary">Replay the guided experience any time.</p>
                               </div>
                             </Link>
                             <Link
                               to="/health"
-                              className="flex items-start gap-3 px-4 py-3 text-sm hover:bg-surface-elevated dark:hover:bg-slate-800 transition"
+                              className="flex items-start gap-3 px-4 py-3 text-sm hover:bg-surface-elevated transition"
                               onClick={() => setShowSettingsMenu(false)}
                             >
                               <span className="mt-0.5 text-green-600 dark:text-green-300">📡</span>
                               <div>
-                                <p className="font-semibold text-slate-900 dark:text-slate-100">System Status</p>
-                                <p className="text-xs text-slate-600 dark:text-slate-400">API, AI providers, and rate limits.</p>
+                                <p className="font-semibold text-primary">System Status</p>
+                                <p className="text-xs text-tertiary">API, AI providers, and rate limits.</p>
                               </div>
                             </Link>
                             <button
                               type="button"
-                              className="flex items-start gap-3 px-4 py-3 text-sm text-left hover:bg-surface-elevated dark:hover:bg-slate-800 transition"
+                              className="flex items-start gap-3 px-4 py-3 text-sm text-left hover:bg-surface-elevated transition"
                               onClick={() => {
                                 localStorage.removeItem('tutorial_seen');
                                 setShowSettingsMenu(false);
@@ -167,10 +167,10 @@ return (
                                 }
                               }}
                             >
-                              <span className="mt-0.5 text-slate-600 dark:text-slate-300">🔁</span>
+                              <span className="mt-0.5 text-tertiary">🔁</span>
                               <div>
-                                <p className="font-semibold text-slate-900 dark:text-slate-100">Reset Tutorial</p>
-                                <p className="text-xs text-slate-600 dark:text-slate-400">Show the intro experience again.</p>
+                                <p className="font-semibold text-primary">Reset Tutorial</p>
+                                <p className="text-xs text-tertiary">Show the intro experience again.</p>
                               </div>
                             </button>
                           </div>
@@ -195,11 +195,11 @@ return (
                       }}
                       className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 border ${
                         isActive
-                          ? 'bg-surface-card text-slate-900 dark:text-white border-brand-400 shadow-md'
-                          : 'text-slate-600 dark:text-slate-300 border-transparent hover:border-border-subtle hover:bg-surface-elevated dark:hover:bg-surface-elevated'
+                          ? 'bg-surface-card text-primary border-brand-400 shadow-md'
+                          : 'text-secondary border-transparent hover:border-subtle hover:bg-surface-elevated'
                       }`}
                     >
-                      <span className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-slate-500 dark:text-slate-300'} border border-border-subtle`}>
+                      <span className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
                         <Icon />
                       </span>
                       <span>Assistant</span>
@@ -213,12 +213,12 @@ return (
                     to={item.path}
                     className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 border ${
                       isActive
-                        ? 'bg-surface-card text-slate-900 dark:text-white border-brand-400 shadow-md'
-                        : 'text-slate-600 dark:text-slate-300 border-transparent hover:border-border-subtle hover:bg-surface-elevated dark:hover:bg-surface-elevated'
+                        ? 'bg-surface-card text-primary border-brand-400 shadow-md'
+                        : 'text-secondary border-transparent hover:border-subtle hover:bg-surface-elevated'
                     }`}
                     aria-current={isActive ? 'page' : undefined}
                   >
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-slate-500 dark:text-slate-300'} border border-border-subtle`}>
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
                       <Icon />
                     </span>
                     <span>{item.label}</span>
@@ -240,7 +240,7 @@ return (
               {activeProjectId && (
                 <Link
                   to={`/projects/${activeProjectId}/architect`}
-                  className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-border-subtle px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-100 hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-200 transition"
+                  className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-subtle px-4 py-2 text-sm font-semibold text-primary hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-200 transition"
                 >
                   🏗️ <span>Project Architect</span>
                 </Link>
@@ -264,8 +264,8 @@ return (
       {/* Footer */}
       <footer className="border-t border-border-subtle bg-[var(--color-surface-card)] mt-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-sm text-slate-600 dark:text-slate-400 space-y-2">
-            <p className="font-medium text-slate-800 dark:text-slate-200">
+          <div className="text-center text-sm text-secondary space-y-2">
+            <p className="font-medium text-primary">
               Crafted for player-first storytelling.{' '}
               <a 
                 href="mailto:team@gamestory.lab" 

@@ -1,0 +1,125 @@
+
+/* Jewel Engine Theme Tokens – Low-Contrast Jewels
+ * Warm-charcoal base + muted Garnet (primary) & Topaz (secondary)
+ * All jewel tones are low-contrast / closer to the background.
+ */
+
+:root {
+  /* Base surfaces – warm charcoal (between brown and grey) */
+  --bg-body: #111015;
+  --bg-elevated: #19161D;
+  --bg-panel: #211F26;
+  --bg-panel-alt: #2B262F;
+  --border-subtle: #3A343F;
+  --border-strong: #4A424F;
+
+  /* Text */
+  --text-primary: #F9FAFB;
+  --text-secondary: #C4C0C8;
+  --text-muted: #8B8491;
+  --text-inverse: #111015;
+
+  /* Brand – Low-contrast / muted (Garnet + Topaz) */
+  --brand-primary: #8F3E48;      /* muted garnet (primary) */
+  --brand-primary-hover: #AE5D37;
+  --brand-primary-soft: #5B2B33;
+  --brand-primary-outline: rgba(143, 62, 72, 0.9);
+
+  --brand-secondary: #B5933C;    /* muted topaz (secondary) */
+  --brand-secondary-soft: #7F6530;
+
+  /* Jewel tones – low contrast / closer to background */
+  --jewel-amethyst: #6B5D88;
+  --jewel-sapphire: #344676;
+  --jewel-emerald: #5A7850;
+  --jewel-topaz: #B5933C;
+  --jewel-garnet: #8F3E48;
+  --jewel-fireopal: #AE5D37;
+  --jewel-turquoise: #346C68;
+
+  /* Semantic mapped into jewel family */
+  --success: var(--jewel-emerald);   /* build green, stable states */
+  --warning: var(--jewel-topaz);     /* performance / risk */
+  --danger: var(--jewel-garnet);     /* destructive, broken */
+  --info: var(--jewel-turquoise);    /* info, AI, guidance */
+
+  /* Optional graph / highlight accents */
+  --graph-accent-a: rgba(143, 62, 72, 0.22);
+  --graph-accent-b: rgba(181, 147, 60, 0.18);
+}
+
+/* Example utility mappings (optional – adapt to your system) */
+
+.bg-app {
+  background: var(--bg-body);
+  color: var(--text-primary);
+}
+
+.surface-panel {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+.surface-panel-alt {
+  background: var(--bg-panel-alt);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* Buttons */
+
+.button-primary {
+  background: var(--brand-primary);
+  color: var(--text-primary);
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.button-primary:hover {
+  background: var(--brand-primary-hover);
+}
+
+.button-secondary {
+  background: var(--brand-secondary);
+  color: var(--text-primary);
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+/* Semantic badges */
+
+.badge {
+  border-radius: 999px;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.badge-success {
+  background: color-mix(in srgb, var(--success) 24%, transparent);
+  color: #DDFBE4;
+}
+
+.badge-warning {
+  background: color-mix(in srgb, var(--warning) 24%, transparent);
+  color: #FFE8C0;
+}
+
+.badge-danger {
+  background: color-mix(in srgb, var(--danger) 26%, transparent);
+  color: #FFD3DB;
+}
+
+.badge-info {
+  background: color-mix(in srgb, var(--info) 24%, transparent);
+  color: #D3F2F1;
+}

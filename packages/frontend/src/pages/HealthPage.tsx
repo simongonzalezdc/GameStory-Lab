@@ -44,7 +44,28 @@ export function HealthPage() {
   if (loading && !health) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 dark:text-gray-400">Checking system status...</div>
+        <div className="text-6xl mb-4">📊</div>
+        <h3 className="text-xl font-semibold text-primary mb-2">System Status</h3>
+        <p className="text-secondary max-w-md mx-auto mb-8">
+          Check system health, AI provider status, and cost monitoring
+        </p>
+        <button
+          onClick={loadHealth}
+          disabled={loading}
+          className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-brand-primary-hover transition text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+        >
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span>Refreshing...</span>
+            </>
+          ) : (
+            <>
+              <span>🔄</span>
+              <span>Refresh</span>
+            </>
+          )}
+        </button>
       </div>
     );
   }
@@ -53,90 +74,88 @@ export function HealthPage() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">System Status</h2>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Monitor backend health and AI providers</p>
+          <h2 className="text-3xl font-bold text-primary mb-2">System Status</h2>
+          <p className="text-secondary max-w-md mx-auto mb-8">
+            Monitor backend health and AI providers
+          </p>
         </div>
         <button
           onClick={loadHealth}
-          className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium"
           disabled={loading}
+          className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-brand-primary-hover transition text-sm font-medium disabled:opacity-50 flex items-center gap-2"
         >
-          {loading ? 'Refreshing...' : '🔄 Refresh'}
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span>Refreshing...</span>
+            </>
+          ) : (
+            <>
+              <span>🔄</span>
+              <span>Refresh</span>
+            </>
+          )}
         </button>
       </div>
-
+      
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-          <p className="text-red-700 dark:text-red-300">{error}</p>
+        <div className="bg-error/20 border border-error rounded-lg p-4 mb-6">
+          <p className="text-error">{error}</p>
         </div>
       )}
-
+      
       {health && (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <div className="surface-card rounded-lg shadow-sm border border-subtle p-6">
+            <p className="text-sm text-tertiary mb-4">
               Last checked: {new Date(health.timestamp).toLocaleString()}
             </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">API Status</h3>
-                <p className="text-green-700 dark:text-green-300 text-3xl font-bold">
-                  {health.status.toUpperCase()}
-                </p>
+            
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-primary mb-2">Database</h4>
+                <p className="text-secondary">{health.database}</p>
               </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-blue-800 mb-2">Database</h3>
-                <p className="text-blue-700 text-3xl font-bold">
-                  {health.database.toUpperCase()}
-                </p>
+              
+              <div>
+                <h4 className="font-semibold text-primary mb-2">AI Providers</h4>
+                <ul className="space-y-2">
+                  {health.ai.clients.map((client, index) => (
+                    <li key={index} className="flex items-center justify-between">
+                      <span className="text-secondary">
+                        {client.name} ({client.type})
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        client.available 
+                          ? 'bg-success/20 border border-success text-success' 
+                          : 'bg-error/20 border border-error text-error'
+                      }`}>
+                        {client.available ? 'Available' : 'Offline'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">AI Providers</h3>
-            <div className="space-y-3">
-              {health.ai.clients.map((client) => (
-                <div
-                  key={client.name}
-                  className="flex items-center justify-between bg-gray-50 dark:bg-slate-700/50 rounded-lg p-4"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">{client.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{client.type}</p>
-                  </div>
-                  <div
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      client.available
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
-                        : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
-                    }`}
-                  >
-                    {client.available ? 'Available' : 'Offline'}
-                  </div>
+              
+              <div>
+                <h4 className="font-semibold text-primary mb-2">Cost Tracking</h4>
+                <p className="text-secondary mb-2">
+                  Current hour: ${health.ai.currentHourCost.toFixed(4)} / ${health.ai.costLimit.toFixed(2)}
+                </p>
+                <div className="w-full bg-surface-muted rounded-full h-2 mb-2">
+                  <div 
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min((health.ai.currentHourCost / health.ai.costLimit) * 100, 100)}%`,
+                      backgroundColor: health.ai.currentHourCost / health.ai.costLimit > 0.8 
+                        ? 'var(--color-error)' 
+                        : health.ai.currentHourCost / health.ai.costLimit > 0.6 
+                          ? 'var(--color-warning)' 
+                          : 'var(--color-success)'
+                    }}
+                  />
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Cost Tracking</h3>
-            <p className="text-yellow-700 dark:text-yellow-300">
-              Current hour: ${health.ai.currentHourCost.toFixed(4)} / $
-              {health.ai.costLimit.toFixed(2)} limit
-            </p>
-            <div className="mt-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-full h-2">
-              <div
-                className="bg-yellow-600 dark:bg-yellow-500 h-2 rounded-full transition-all"
-                style={{
-                  width: `${Math.min(
-                    (health.ai.currentHourCost / health.ai.costLimit) * 100,
-                    100
-                  )}%`,
-                }}
-              />
+              </div>
             </div>
           </div>
         </div>

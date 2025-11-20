@@ -15,7 +15,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
 
   if (!mechanics || Object.keys(mechanics).length === 0) {
     return (
-      <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+      <div className="text-center py-12 text-tertiary">
         <p>No mechanics data available</p>
       </div>
     );
@@ -26,11 +26,11 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
       {/* Core Loop - Full Width */}
       {mechanics.coreLoop && (
         <section className="lg:col-span-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-blue-800">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-primary mb-3 flex items-center gap-2">
             <span className="text-2xl">⚙️</span>
             <span>Core Gameplay Loop</span>
           </h3>
-          <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+          <p className="text-secondary leading-relaxed whitespace-pre-wrap">
             {mechanics.coreLoop}
           </p>
         </section>
@@ -39,7 +39,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
       {/* Player Actions */}
       {Array.isArray(mechanics.playerActions) && mechanics.playerActions.length > 0 && (
         <section className="jewel-card p-4 sm:p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
             <span className="text-2xl">🎮</span>
             <span>Player Actions</span>
           </h3>
@@ -47,10 +47,10 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
             {mechanics.playerActions.map((action: any, index: number) => (
               <li
                 key={index}
-                className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700"
+                className="flex items-start gap-3 p-3 bg-surface-muted rounded-lg border border-subtle"
               >
-                <span className="text-blue-600 dark:text-blue-400 font-bold mt-0.5">•</span>
-                <span className="text-slate-700 dark:text-slate-300 flex-1">{action}</span>
+                <span className="text-brand font-bold mt-0.5">•</span>
+                <span className="text-secondary flex-1">{action}</span>
               </li>
             ))}
           </ul>
@@ -60,7 +60,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
       {/* Progression Systems */}
       {(mechanics.progressionSystems || mechanics.progressionSystem) && (
         <section className="jewel-card p-4 sm:p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
             <span className="text-2xl">📈</span>
             <span>Progression System</span>
             {mechanics.progressionSystems?.type && (
@@ -74,10 +74,10 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
               {mechanics.progressionSystems.mechanics.map((mechanic: any, index: number) => (
                 <li
                   key={index}
-                  className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700"
+                  className="flex items-start gap-3 p-3 bg-surface-muted rounded-lg border border-subtle"
                 >
                   <span className="text-purple-600 dark:text-purple-400 font-bold mt-0.5">→</span>
-                  <span className="text-slate-700 dark:text-slate-300 flex-1">{mechanic}</span>
+                  <span className="text-secondary flex-1">{mechanic}</span>
                 </li>
               ))}
             </ul>
@@ -87,7 +87,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
                 <>
                   {mechanics.progressionSystem.name && (
                     <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                      <h4 className="font-semibold text-primary mb-2">
                         {mechanics.progressionSystem.name}
                       </h4>
                       {mechanics.progressionSystem.mechanics && (
@@ -101,12 +101,12 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
                                   style={{ background: 'var(--color-surface-muted)' }}
                                 >
                                   <span className="text-purple-600 dark:text-purple-400 font-bold mt-0.5">→</span>
-                                  <span className="text-slate-700 dark:text-slate-300 flex-1">{mechanic}</span>
+                                  <span className="text-secondary flex-1">{mechanic}</span>
                                 </li>
                               ))}
                             </ul>
                           ) : (
-                            <p className="text-slate-700 dark:text-slate-300 mt-2 whitespace-pre-wrap">
+                            <p className="text-secondary mt-2 whitespace-pre-wrap">
                               {String(mechanics.progressionSystem.mechanics)}
                             </p>
                           )}
@@ -121,7 +121,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
                   )}
                 </>
               ) : (
-                <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                <p className="text-secondary whitespace-pre-wrap">
                   {String(mechanics.progressionSystem)}
                 </p>
               )}
@@ -133,7 +133,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
       {/* Resource Systems */}
       {Array.isArray(mechanics.resourceSystems) && mechanics.resourceSystems.length > 0 && (
         <section className="lg:col-span-2 jewel-card p-4 sm:p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
             <span className="text-2xl">💎</span>
             <span>Resource Systems</span>
           </h3>
@@ -144,7 +144,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
                 className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-800"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-slate-900 dark:text-slate-100">{safeString((resource as any).name, 'Resource')}</h4>
+                  <h4 className="font-semibold text-primary">{safeString((resource as any).name, 'Resource')}</h4>
                   {(resource as any).scarcity && (
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       (resource as any).scarcity === 'abundant'
@@ -157,7 +157,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-slate-700 dark:text-slate-300">{safeString((resource as any).mechanics)}</p>
+                <p className="text-sm text-secondary">{safeString((resource as any).mechanics)}</p>
               </div>
             ))}
           </div>
@@ -167,7 +167,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
       {/* Win Conditions */}
       {Array.isArray(mechanics.winConditions) && mechanics.winConditions.length > 0 && (
         <section className="jewel-card p-4 sm:p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
             <span className="text-2xl">🏆</span>
             <span>Win Conditions</span>
           </h3>
@@ -178,7 +178,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
                 className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
               >
                 <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">✓</span>
-                <span className="text-slate-700 dark:text-slate-300 flex-1">{condition}</span>
+                <span className="text-secondary flex-1">{condition}</span>
               </li>
             ))}
           </ul>
@@ -188,7 +188,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
       {/* Fail Conditions */}
       {Array.isArray(mechanics.failConditions) && mechanics.failConditions.length > 0 && (
         <section className="jewel-card p-4 sm:p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
             <span className="text-2xl">⚠️</span>
             <span>Fail Conditions</span>
           </h3>
@@ -199,7 +199,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
                 className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800"
               >
                 <span className="text-red-600 dark:text-red-400 font-bold mt-0.5">✗</span>
-                <span className="text-slate-700 dark:text-slate-300 flex-1">{condition}</span>
+                <span className="text-secondary flex-1">{condition}</span>
               </li>
             ))}
           </ul>
@@ -220,23 +220,23 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
 
         return (
           <section key={key} className="jewel-card p-4 sm:p-6">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-3 capitalize">
+            <h3 className="text-lg font-bold text-primary mb-3 capitalize">
               {key.replace(/([A-Z])/g, ' $1').trim()}
             </h3>
             {Array.isArray(value) ? (
               <ul className="space-y-2">
                 {value.map((item, index) => (
-                  <li key={index} className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg text-slate-700 dark:text-slate-300">
+                  <li key={index} className="p-3 bg-surface-muted rounded-lg text-secondary">
                     {typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)}
                   </li>
                 ))}
               </ul>
             ) : typeof value === 'object' ? (
-              <pre className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg text-sm text-slate-700 dark:text-slate-300 overflow-x-auto">
+              <pre className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg text-sm text-secondary overflow-x-auto">
                 {JSON.stringify(value, null, 2)}
               </pre>
             ) : (
-              <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{String(value)}</p>
+              <p className="text-secondary whitespace-pre-wrap">{String(value)}</p>
             )}
           </section>
         );

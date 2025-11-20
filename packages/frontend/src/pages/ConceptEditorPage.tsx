@@ -515,81 +515,60 @@ export function ConceptEditorPage() {
           }
         }}
       >
-        <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-800 shadow-2xl border border-slate-200 dark:border-slate-700">
+        <div className="w-full max-w-lg rounded-2xl surface-card shadow-2xl border border-subtle">
           <div className="p-8">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-              {currentVersion ? 'Generate Content' : 'Generate Your First Version'}
+            <h2 className="text-2xl font-bold text-primary mb-2">
+              {currentVersion ? `Edit Version ${currentVersion.version}` : 'Create New Version'}
             </h2>
-            <p className="text-slate-600 dark:text-slate-300 mb-6">
-              AI will create game mechanics and lore based on your project's genre and your description.
+            <p className="text-secondary mb-6">
+              {currentVersion 
+                ? 'Refine your game concept by making targeted improvements.'
+                : 'Create a new version of your game concept by defining mechanics and lore.'
+              }
             </p>
             
             <form onSubmit={handleGenerateConcept} className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                  What would you like to generate?
+                <label className="block text-sm font-semibold text-primary mb-2">
+                  Generation Focus
                 </label>
-                <div className="flex gap-3">
-                  <label className="flex-1 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="generateType"
-                      value="both"
-                      checked={generateType === 'both'}
-                      onChange={(e) => setGenerateType(e.target.value as 'both')}
-                      className="sr-only"
-                    />
-                    <div className={`p-4 rounded-lg border-2 transition ${
-                      generateType === 'both' 
-                        ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30' 
-                        : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
-                    }`}>
-                      <div className="font-medium text-slate-900 dark:text-slate-100">Both</div>
-                      <div className="text-sm text-slate-600 dark:text-slate-300">Mechanics + Lore</div>
-                    </div>
-                  </label>
-                  <label className="flex-1 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="generateType"
-                      value="mechanics"
-                      checked={generateType === 'mechanics'}
-                      onChange={(e) => setGenerateType(e.target.value as 'mechanics')}
-                      className="sr-only"
-                    />
-                    <div className={`p-4 rounded-lg border-2 transition ${
-                      generateType === 'mechanics' 
-                        ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30' 
-                        : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
-                    }`}>
-                      <div className="font-medium text-slate-900 dark:text-slate-100">Mechanics</div>
-                      <div className="text-sm text-slate-600 dark:text-slate-300">Gameplay only</div>
-                    </div>
-                  </label>
-                  <label className="flex-1 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="generateType"
-                      value="lore"
-                      checked={generateType === 'lore'}
-                      onChange={(e) => setGenerateType(e.target.value as 'lore')}
-                      className="sr-only"
-                    />
-                    <div className={`p-4 rounded-lg border-2 transition ${
-                      generateType === 'lore' 
-                        ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30' 
-                        : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
-                    }`}>
-                      <div className="font-medium text-slate-900 dark:text-slate-100">Lore</div>
-                      <div className="text-sm text-slate-600 dark:text-slate-300">Story only</div>
-                    </div>
-                  </label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button
+                    onClick={() => setGenerateType('both')}
+                    className={`p-4 rounded-lg border transition ${
+                      generateType === 'both'
+                        ? 'border-accent bg-surface-muted'
+                        : 'border-subtle hover:border-accent'
+                    }`}
+                  >
+                    <div className="font-medium text-primary">Both</div>
+                    <div className="text-sm text-secondary">Mechanics + Lore</div>
+                  </button>
+                  <button
+                    onClick={() => setGenerateType('mechanics')}
+                    className={`p-4 rounded-lg border transition ${
+                      generateType === 'mechanics'
+                        ? 'border-accent bg-surface-muted'
+                        : 'border-subtle hover:border-accent'
+                    }`}
+                  >
+                    <div className="font-medium text-primary">Mechanics</div>
+                    <div className="text-sm text-secondary">Gameplay only</div>
+                  </button>
+                  <button
+                    onClick={() => setGenerateType('lore')}
+                    className={`p-4 rounded-lg border transition ${
+                      generateType === 'lore'
+                        ? 'border-accent bg-surface-muted'
+                        : 'border-subtle hover:border-accent'
+                    }`}
+                  >
+                    <div className="font-medium text-primary">Lore</div>
+                    <div className="text-sm text-secondary">Story only</div>
+                  </button>
                 </div>
-              </div>
-
-              <div>
-                <label htmlFor="generate-prompt" className="block text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                  Describe your game idea (optional)
+                <label htmlFor="generate-prompt" className="block text-sm font-semibold text-primary mb-2">
+                  What kind of {generateType === 'mechanics' ? 'gameplay' : generateType === 'lore' ? 'story' : 'game'} do you want?
                 </label>
                 <textarea
                   id="generate-prompt"
@@ -598,7 +577,7 @@ export function ConceptEditorPage() {
                   className="input min-h-[100px] resize-y"
                   placeholder="e.g., A cozy farming sim with city-building elements where players manage resources and relationships..."
                 />
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                <p className="text-xs text-secondary mt-2">
                   Leave empty to generate based on genre, or describe your vision for more tailored results.
                 </p>
               </div>
@@ -675,25 +654,21 @@ export function ConceptEditorPage() {
             >
               ← Back to Projects
             </button>
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{project.name}</h2>
+            <h2 className="text-3xl font-bold text-primary">{project.name}</h2>
             {project.genre && (
-              <p className="text-slate-600 dark:text-slate-300 mt-1">Genre: {project.genre}</p>
+              <p className="text-secondary mt-1">Genre: {project.genre}</p>
             )}
           </div>
-        </div>
+          <div className="surface-card rounded-xl border border-subtle shadow-sm p-12 text-center">
+            <h3 className="text-2xl font-bold text-primary mb-2">No Versions Yet</h3>
+            <p className="text-secondary mb-2 max-w-2xl mx-auto">
+              Create your first version to get started with game concept development.
+            </p>
+            <p className="text-sm text-tertiary mb-8 max-w-2xl mx-auto">
+              You can start with mechanics, lore, or both - AI will adapt to your creative process.
+            </p>
+          </div>
 
-        {/* Empty State */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-12 text-center">
-          <div className="text-6xl mb-4">🎮</div>
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">No Versions Yet</h3>
-          <p className="text-slate-600 dark:text-slate-300 mb-2 max-w-2xl mx-auto">
-            <strong>Versions</strong> are versioned game designs that combine <strong>mechanics</strong> (how the game plays) 
-            and <strong>lore</strong> (the story and world). Each version can be refined and validated for consistency.
-          </p>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto">
-            Start by generating your first version with AI, or create one from a template.
-          </p>
-          
           <div className="flex flex-wrap justify-center gap-3">
             <button
               onClick={() => setShowGenerateModal(true)}
@@ -719,9 +694,9 @@ export function ConceptEditorPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] max-h-[calc(100vh-8rem)] w-full">
+    <div className="flex flex-col h-full w-full">
       {/* Compact Sticky Header Bar */}
-      <div className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0">
+      <div className="sticky top-0 z-30 surface-card border-b border-subtle shadow-sm flex-shrink-0">
         <div className="flex items-center justify-between gap-4 py-2.5">
           {/* Left: Project Info & Navigation */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -733,7 +708,7 @@ export function ConceptEditorPage() {
               ←
           </button>
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">{project.name}</h2>
+              <h2 className="text-xl font-bold text-primary truncate">{project.name}</h2>
               {versions.length > 1 ? (
               <select
                 value={currentVersion?.id || ''}
@@ -951,7 +926,7 @@ export function ConceptEditorPage() {
             {activeTab === 'mechanics' && (
               <div className="flex flex-col h-full min-h-0 overflow-y-auto">
                 <div className="flex items-center justify-between mb-6 flex-shrink-0">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Game Mechanics</h3>
+                  <h3 className="text-xl font-semibold text-primary">Game Mechanics</h3>
                   <button
                     onClick={() => setShowRawJsonMechanics(!showRawJsonMechanics)}
                     className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
@@ -993,7 +968,7 @@ export function ConceptEditorPage() {
                 ) : (
                   <>
                     <div className="flex items-center justify-between mb-6 flex-shrink-0">
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Game Lore</h3>
+                      <h3 className="text-xl font-semibold text-primary">Game Lore</h3>
                       <button
                         onClick={() => setShowRawJsonLore(!showRawJsonLore)}
                         className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
@@ -1018,7 +993,7 @@ export function ConceptEditorPage() {
             {activeTab === 'validation' && (
               <div className="flex flex-col h-full min-h-0">
                 <div className="flex justify-between items-center mb-4 flex-shrink-0">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Validation Results</h3>
+                  <h3 className="text-xl font-semibold text-primary">Validation Results</h3>
                   <button
                     onClick={async () => {
                       // Reset validation flag to force re-validation
@@ -1073,13 +1048,13 @@ export function ConceptEditorPage() {
                     )}
                     {validationIssues.length > 0 && (
                       <div className="flex items-center justify-between flex-wrap gap-2">
-                        <span className="text-xs text-slate-600 dark:text-slate-300">
+                        <span className="text-xs text-secondary">
                           Copy the full validation context into the Project Assistant to auto-fix.
                         </span>
                         <button
                           onClick={async () => {
                             try {
-                              await navigator.clipboard.writeText(buildAssistantPrompt());
+                              await window.navigator.clipboard.writeText(buildAssistantPrompt());
                               setCopiedPrompt(true);
                               setTimeout(() => setCopiedPrompt(false), 1500);
                             } catch (err) {

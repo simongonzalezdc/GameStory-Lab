@@ -128,31 +128,31 @@ export function ProjectArchitectPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-slate-50 dark:bg-slate-900 w-full max-w-none">
+    <div className="flex flex-col h-full overflow-hidden bg-surface w-full max-w-none">
       {/* Compact Header */}
-      <div className="flex-shrink-0 px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+      <div className="flex-shrink-0 px-4 py-3 border-b border-subtle bg-surface-card">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-        <button
-          onClick={() => navigate(`/projects/${projectId}`)}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition text-sm font-medium"
-        >
-          ← Back to Project
-        </button>
-            <div className="h-4 w-px bg-slate-300 dark:bg-slate-600" />
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-        🏗️ AI Project Architect
-      </h1>
-        </div>
+            <button
+              onClick={() => navigate(`/projects/${projectId}`)}
+              className="text-accent hover:text-brand-primary-hover transition text-sm font-medium"
+            >
+              ← Back to Project
+            </button>
+            <div className="h-4 w-px bg-border-subtle" />
+            <h1 className="text-lg font-bold text-primary">
+              🏗️ AI Project Architect
+            </h1>
+          </div>
           {documentationGenerated && generatedDocs && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600 dark:text-slate-400">
+              <span className="text-sm text-secondary">
                 {generatedDocs.documentCount} documents ready
               </span>
             </div>
           )}
-            </div>
-          </div>
+        </div>
+      </div>
 
       {/* Main Content - Chat Only */}
       <div className="flex-1 min-h-0 overflow-hidden">
@@ -164,9 +164,9 @@ export function ProjectArchitectPage() {
               // Reload documentation after proposal is accepted
               await checkDocumentation();
                 }}
-              />
-            )}
-          </div>
+            />
+          )}
+        </div>
 
       {/* Document Preview Modal */}
       {previewDoc && (
@@ -175,27 +175,27 @@ export function ProjectArchitectPage() {
           onClick={() => setPreviewDoc(null)}
         >
           <div
-            className="bg-white dark:bg-slate-800 rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
+            className="surface-card rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between flex-shrink-0">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            <div className="px-6 py-4 border-b border-subtle flex items-center justify-between flex-shrink-0">
+              <h3 className="text-xl font-bold text-primary">
                 {previewDoc.name.replace(/-/g, ' ').replace('.md', '')}
               </h3>
               <div className="flex gap-2">
                 <button
                   onClick={() => downloadDocument(previewDoc.name)}
-                  className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-sm font-medium"
+                  className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-brand-primary-hover transition text-sm font-medium"
                 >
                   📥 Download
                 </button>
                 <button
                   onClick={() => setPreviewDoc(null)}
-                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition text-sm font-medium"
+                  className="px-4 py-2 surface-elevated text-secondary rounded-lg hover:border-accent transition text-sm font-medium"
                 >
                   ✕ Close
-          </button>
+                </button>
               </div>
             </div>
             {/* Content */}

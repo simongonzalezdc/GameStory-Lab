@@ -47,11 +47,17 @@ export function ProjectAssistantPanel({
       background: [
         'radial-gradient(120% 140% at 22% 18%, rgba(255,255,255,0.09), rgba(255,255,255,0) 52%)',
         'radial-gradient(140% 160% at 82% 12%, rgba(255,255,255,0.07), rgba(255,255,255,0) 55%)',
-        'linear-gradient(145deg, #163634 0%, #2b5e58 55%, #3E9D98 100%)',
-      ].join(', '),
-      border: '1px solid rgba(62, 157, 152, 0.82)',
-      boxShadow:
-        '0 16px 38px -18px rgba(31, 78, 74, 0.7), 0 0 0 1px rgba(62, 157, 152, 0.3)',
+        'linear-gradient(145deg, var(--color-surface-strong) 0%, var(--brand-primary-soft) 55%, var(--brand-primary) 100%)',
+      ].join(','),
+      color: 'var(--color-text-primary)',
+      borderRadius: 'var(--chat-bubble-radius)',
+      padding: 'var(--chat-message-padding-y) var(--chat-message-padding-x)',
+      fontSize: '0.875rem',
+      lineHeight: '1.5',
+      wordWrap: 'break-word' as const,
+      maxWidth: 'var(--chat-message-max-width)',
+      alignSelf: 'flex-end',
+      marginLeft: 'auto',
     }),
     []
   );
@@ -133,14 +139,14 @@ export function ProjectAssistantPanel({
 
   const renderTextSegment = (text: string, keyPrefix: string) => {
     const trimmed = text.trim();
-    const calloutMatch = trimmed.match(/^(INFO|WARNING|WARN|ERROR)\:?\s*(.*)$/i);
+    const calloutMatch = trimmed.match(/^(INFO|WARNING|WARN|ERROR):?\s*(.*)$/i);
     if (calloutMatch) {
       const level = calloutMatch[1].toLowerCase();
       const body = calloutMatch[2] || '';
       const bg =
         level.startsWith('err') ? 'bg-red-900/25 border-red-700 text-red-100' :
         level.startsWith('warn') ? 'bg-amber-900/25 border-amber-700 text-amber-100' :
-        'bg-blue-900/20 border-blue-700 text-blue-100';
+        'bg-brand-900/20 border-brand-700 text-brand-100';
       return (
         <div key={`${keyPrefix}-callout`} className={`rounded-lg border px-3 py-2 text-sm ${bg}`}>
           <div className="font-semibold mb-1 uppercase tracking-wide text-xs">{calloutMatch[1]}</div>
@@ -475,14 +481,14 @@ For each category, provide specific, actionable suggestions. Help me understand 
   }, [type]);
 
   return (
-    <div className="flex flex-col h-full min-h-0 overflow-hidden relative cq-panel w-full">
+    <div className="chat-container relative cq-panel w-full h-full">
       {/* Full-height Assistant Card */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-surface rounded-2xl border border-border-subtle assistant-card-glow assistant-transition shadow-lg">
         {/* Rich Header */}
-        <div className="px-4 py-3 border-b border-border-subtle divider-glow bg-surface-card flex-shrink-0">
+        <div className="chat-header divider-glow">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+              <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white shadow-lg" style={{ width: '40px', height: '40px', fontSize: '1rem' }}>
                 AI
               </div>
               <div>
@@ -496,7 +502,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
               <select
                 value={quickMode}
                 onChange={(e) => setQuickMode(e.target.value as 'standard' | 'concise' | 'detailed')}
-                className="text-xs px-2 py-1 bg-slate-700 border border-slate-600 rounded-lg text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-xs px-2 py-1 bg-surface-strong border border-border-subtle rounded-lg text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="standard">Standard</option>
                 <option value="concise">Concise</option>
@@ -507,8 +513,8 @@ For each category, provide specific, actionable suggestions. Help me understand 
                   onClick={() => setShowProposals(!showProposals)}
                   className={`relative px-3 py-1.5 rounded-lg transition text-xs font-medium flex items-center gap-1.5 ${
                     showProposals
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-blue-500 text-white hover:bg-blue-600 animate-pulse'
+                      ? 'bg-brand-600 text-white'
+                      : 'bg-brand-500 text-white hover:bg-brand-600 animate-pulse'
                   }`}
                   title={`${proposals.length} proposal${proposals.length > 1 ? 's' : ''} ready for review`}
                 >
@@ -528,10 +534,10 @@ For each category, provide specific, actionable suggestions. Help me understand 
           {/* Chat Area */}
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* Messages */}
-            <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2 min-h-0">
+            <div ref={listRef} className="chat-messages-area">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg mb-3 shadow-lg">
+                  <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     AI
                   </div>
                   <h4 className="text-base font-semibold text-slate-100 mb-1.5">
@@ -545,23 +551,23 @@ For each category, provide specific, actionable suggestions. Help me understand 
                 messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                    className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                   >
                     {/* Avatar */}
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                    <div className={`chat-avatar ${
                       msg.role === 'assistant'
-                        ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
+                        ? 'bg-gradient-to-br from-brand-500 to-mint-500 text-white'
                         : 'bg-gradient-to-br from-slate-400 to-slate-600 text-white'
                     }`}>
                       {getInitials(msg.role)}
                     </div>
                     {/* Message Bubble */}
-                    <div className={`flex-1 max-w-[70%] md:max-w-[65%] ${msg.role === 'user' ? 'flex flex-col items-end' : ''}`}>
+                    <div className={`flex-1 ${msg.role === 'user' ? 'flex flex-col items-end' : 'flex flex-col items-start'}`}>
                       <div
-                        className={`relative rounded-xl px-3 py-2 text-sm shadow-sm ${
+                        className={`chat-message-bubble relative shadow-sm ${
                           msg.role === 'assistant'
-                            ? 'text-slate-100'
-                            : 'text-white'
+                            ? 'chat-message-assistant text-slate-100'
+                            : 'chat-message-user text-white'
                         }`}
                         style={msg.role === 'user' ? userBubbleStyle : assistantBubbleStyle}
                       >
@@ -628,8 +634,8 @@ For each category, provide specific, actionable suggestions. Help me understand 
                 ))
               )}
               {loading && (
-                <div className="flex gap-2">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-brand-600 to-mint-500 flex items-center justify-center text-xs font-bold text-white">
+                <div className="flex gap-3">
+                  <div className="chat-avatar bg-gradient-to-br from-brand-600 to-mint-500 text-white">
                     AI
                   </div>
                   <div className="flex items-center gap-1 px-3 py-2 bg-surface-elevated border border-border-subtle rounded-xl">
@@ -642,7 +648,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
             </div>
 
             {/* Composer - Always Visible */}
-            <div className="border-t border-border-subtle bg-surface-card shadow-lg flex-shrink-0">
+            <div className="chat-input-area shadow-lg">
               {error && (
                 <div className="px-4 pt-2">
                   <div className="text-sm text-red-400 bg-red-900/20 border border-red-800 rounded-lg px-3 py-2 flex items-start justify-between gap-2">
@@ -719,7 +725,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
               <div className="px-4 pb-3">
                 <div className="flex gap-2 items-end">
                   <button
-                    className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-slate-600 bg-slate-700 text-slate-300 hover:bg-slate-600 transition"
+                    className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-border-subtle bg-surface-strong text-slate-300 hover:bg-surface-elevated transition"
                     title="Attach file"
                   >
                     📎
@@ -736,12 +742,12 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     }}
                     placeholder="Ask for help..."
                     rows={1}
-                    className="flex-1 resize-none border border-slate-600 rounded-lg px-4 py-2.5 text-sm bg-slate-900 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent max-h-[120px]"
+                    className="flex-1 resize-none border border-border-subtle rounded-lg px-4 py-2.5 text-sm bg-surface-elevated text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent max-h-[120px]"
                   />
                   <button
                     onClick={handleSend}
                     disabled={!input.trim() || loading}
-                    className="flex-shrink-0 px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="flex-shrink-0 px-6 py-2.5 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     <span>Send</span>
                     <span>→</span>
@@ -753,8 +759,8 @@ For each category, provide specific, actionable suggestions. Help me understand 
 
           {/* Proposals Side Rail */}
           {showProposals && proposals.length > 0 && (
-            <div className="w-80 border-l border-border-subtle bg-surface-strong flex flex-col min-h-0 overflow-hidden flex-shrink-0 panel-slide-in">
-              <div className="px-4 py-3 border-b border-border-subtle flex items-center justify-between flex-shrink-0">
+            <div className="chat-proposal-panel panel-slide-in">
+              <div className="chat-header flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-slate-100">
                   Proposals ({proposals.length})
                 </h4>
@@ -784,9 +790,9 @@ For each category, provide specific, actionable suggestions. Help me understand 
                       {proposal.proposalType === 'architect-document' ? '📄 Document Update' : '🎮 Mechanics & Lore Update'}
                     </p>
                     
-                    <div className="mb-3 p-2 bg-blue-900/20 rounded border border-blue-800">
-                      <p className="text-xs font-semibold text-blue-200 mb-1">What this will improve:</p>
-                      <div className="text-xs text-blue-300 whitespace-pre-wrap">
+                    <div className="mb-3 p-2 bg-brand-900/20 rounded border border-brand-800">
+                      <p className="text-xs font-semibold text-brand-200 mb-1">What this will improve:</p>
+                      <div className="text-xs text-brand-300 whitespace-pre-wrap">
                         {proposal.payload?.explanation || (
                           proposal.proposalType === 'architect-document'
                             ? 'Updates project documentation with better structure and content.'
@@ -865,7 +871,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     <div className="flex gap-2 mt-4">
                       <button
                         onClick={() => handleAccept(proposal.id)}
-                        className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-xs font-medium"
+                        className="flex-1 px-3 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition text-xs font-medium"
                       >
                         ✅ Accept
                       </button>

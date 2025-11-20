@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { projectsAPI } from '../services/api';
 import { useDebounce } from '../hooks';
 
@@ -61,6 +61,7 @@ export function ProjectsPage() {
   const [creating, setCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
+  const navigate = useNavigate();
 
   // Debounce search query to avoid excessive re-renders while typing
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -250,35 +251,35 @@ export function ProjectsPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="stat-card p-6">
             <div className="eyebrow mb-2">Projects</div>
-            <div className="text-4xl font-bold text-slate-900 dark:text-white">{stats.projectCount}</div>
-            <p className="text-sm text-slate-600 dark:text-slate-300">active initiatives</p>
+            <div className="text-4xl font-bold text-primary">{stats.projectCount}</div>
+            <p className="text-sm text-secondary">active initiatives</p>
           </div>
           <div className="stat-card p-6">
             <div className="eyebrow mb-2">Versions</div>
-            <div className="text-4xl font-bold text-slate-900 dark:text-white">{stats.totalVersions}</div>
-            <p className="text-sm text-slate-600 dark:text-slate-300">documented beats</p>
+            <div className="text-4xl font-bold text-primary">{stats.totalVersions}</div>
+            <p className="text-sm text-secondary">documented beats</p>
           </div>
           <div className="stat-card p-6">
             <div className="eyebrow mb-2">Last Touch</div>
-            <div className="text-2xl font-semibold text-slate-900 dark:text-white">{stats.lastTouched}</div>
-            <p className="text-sm text-slate-600 dark:text-slate-300">across the lab</p>
+            <div className="text-2xl font-semibold text-primary">{stats.lastTouched}</div>
+            <p className="text-sm text-secondary">across all projects</p>
           </div>
           <div className="stat-card p-6">
             <div className="eyebrow mb-2">Avg Depth</div>
-            <div className="text-4xl font-bold text-slate-900 dark:text-white">{stats.averageVersions}</div>
-            <p className="text-sm text-slate-600 dark:text-slate-300">versions per project</p>
+            <div className="text-4xl font-bold text-primary">{stats.averageVersions}</div>
+            <p className="text-sm text-secondary">versions per project</p>
           </div>
         </div>
       </section>
 
       {/* Error Message */}
       {error && (
-        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-6 py-4">
+        <div className="rounded-xl border border-error bg-error/20 px-6 py-4">
           <div className="flex items-center gap-3">
             <span className="text-xl">⚠️</span>
             <div>
-              <div className="font-medium text-red-900 dark:text-red-200">Error</div>
-              <div className="text-sm text-red-700 dark:text-red-300 mt-0.5">{error}</div>
+              <div className="font-medium text-error">Error</div>
+              <div className="text-sm text-error mt-0.5">{error}</div>
             </div>
           </div>
         </div>
@@ -303,39 +304,20 @@ export function ProjectsPage() {
             />
           </div>
 
-          {/* Sort Buttons */}
+          {/* Sort Options */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-300 mr-2">Sort:</span>
-            <button
-              onClick={() => setSortMode('recent')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                sortMode === 'recent'
-                  ? 'bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md'
-                  : 'bg-surface-muted dark:bg-surface-strong text-slate-700 dark:text-slate-200 border border-border-subtle hover:border-brand-300'
-              }`}
-            >
-              Most Recent
-            </button>
-            <button
-              onClick={() => setSortMode('alphabetical')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                sortMode === 'alphabetical'
-                  ? 'bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md'
-                  : 'bg-surface-muted dark:bg-surface-strong text-slate-700 dark:text-slate-200 border border-border-subtle hover:border-brand-300'
-              }`}
-            >
-              A → Z
-            </button>
-            <button
-              onClick={() => setSortMode('versions')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                sortMode === 'versions'
-                  ? 'bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md'
-                  : 'bg-surface-muted dark:bg-surface-strong text-slate-700 dark:text-slate-200 border border-border-subtle hover:border-brand-300'
-              }`}
-            >
-              Depth
-            </button>
+            <span className="text-sm text-secondary">Sort:</span>
+            <div className="relative">
+              <button
+                onClick={() => setShowSortMenu(!showSortMenu)}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm surface-elevated border border-subtle rounded-lg hover:border-accent transition"
+              >
+                <span>{sortMode === 'recent' ? 'Recent' : sortMode === 'alphabetical' ? 'A-Z' : 'Most Versions'}</span>
+                <svg className="w-4 h-4 text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -398,7 +380,7 @@ export function ProjectsPage() {
                     className="group glass-card border border-border-subtle shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden"
                   >
                     {/* Card Header */}
-                    <div className="p-6 border-b border-border-subtle bg-surface-card dark:bg-surface-elevated">
+                    <div className="p-6 border-b border-subtle bg-surface-card">
                       <div className="flex items-start justify-between gap-4 mb-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
@@ -408,21 +390,21 @@ export function ProjectsPage() {
                               </span>
                             )}
                             {!project.genre && (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium surface-elevated text-secondary">
                                 No genre
                               </span>
                             )}
                           </div>
-                          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 truncate">
+                          <h3 className="text-xl font-bold text-primary mb-1 truncate">
                             {project.name}
                           </h3>
-                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                          <p className="text-sm text-tertiary">
                             Updated {formatDistanceToNow(project.updatedAt)}
                           </p>
                         </div>
                         <button
                           onClick={() => handleDeleteProject(project.id, project.name)}
-                          className="flex-shrink-0 p-2 rounded-lg text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          className="flex-shrink-0 p-2 rounded-lg text-tertiary hover:text-error transition-colors"
                           title="Delete project"
                           aria-label={`Delete ${project.name}`}
                         >
@@ -434,17 +416,17 @@ export function ProjectsPage() {
 
                       {/* Stats */}
                       <div className="grid grid-cols-2 gap-4 mt-4">
-                        <div className="rounded-lg bg-surface-muted dark:bg-surface-strong p-3 border border-border-subtle">
-                          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                        <div className="rounded-lg bg-surface-muted p-3 border border-subtle">
+                          <div className="text-xs font-medium text-tertiary uppercase tracking-wider mb-1">
                             Versions
                           </div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">{versions}</div>
+                          <div className="text-2xl font-bold text-primary">{versions}</div>
                         </div>
-                        <div className="rounded-lg bg-surface-muted dark:bg-surface-strong p-3 border border-border-subtle">
-                          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                        <div className="rounded-lg bg-surface-muted p-3 border border-subtle">
+                          <div className="text-xs font-medium text-tertiary uppercase tracking-wider mb-1">
                             Created
                           </div>
-                          <div className="text-base font-semibold text-slate-900 dark:text-slate-100">{formatDate(project.createdAt)}</div>
+                          <div className="text-base font-semibold text-primary">{formatDate(project.createdAt)}</div>
                         </div>
                       </div>
 
