@@ -3,7 +3,7 @@
  * Centralized API client for backend communication
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3006';
 
 class APIError extends Error {
   constructor(
@@ -295,35 +295,25 @@ export const healthAPI = {
 
 // Assistant API
 export const assistantAPI = {
-  startSession: (data: { projectId: string; type?: 'concept' | 'architect' }) =>
+  startSession: (data: { projectId: string; type?: 'concept' | 'architect' | 'project'; mode?: 'concept' | 'architect' | 'auto' }) =>
     request<{ session: any; messages: any[]; proposals: any[] }>('/api/assistant/session', {
       method: 'POST',
       body: JSON.stringify(data),
       timeout: 30000, // 30 seconds for session start
     } as any),
 
-  sendMessage: (sessionId: string, content: string) =>
+  sendMessage: (sessionId: string, content: string, mode?: 'concept' | 'architect' | 'auto') =>
     request<{ message: any; proposal?: any }>(`/api/assistant/session/${sessionId}/message`, {
       method: 'POST',
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, mode }),
       timeout: 300000, // 5 minutes for AI response
     } as any),
 
+  updateSessionMode: (sessionId: string, mode: 'concept' | 'architect' | 'auto') =>
+    request<{ session: any; message: string }>(`/api/assistant/session/${sessionId}/mode`, {
+      method: 'POST',
+      body: JSON.stringify({ mode }),
+    } as any),
+
   getMessages: (sessionId: string) =>
-    request<{ messages: any[] }>(`/api/assistant/session/${sessionId}/messages`),
-
-  getProposals: (sessionId: string) =>
-    request<{ proposals: any[] }>(`/api/assistant/session/${sessionId}/proposals`),
-
-  acceptProposal: (proposalId: string) =>
-    request<{ success: boolean; result?: any }>(`/api/assistant/proposals/${proposalId}/accept`, {
-      method: 'POST',
-    }),
-
-  rejectProposal: (proposalId: string) =>
-    request<{ success: boolean }>(`/api/assistant/proposals/${proposalId}/reject`, {
-      method: 'POST',
-    }),
-};
-
-export { APIError };
+    request<{ messages: any[] }>(`

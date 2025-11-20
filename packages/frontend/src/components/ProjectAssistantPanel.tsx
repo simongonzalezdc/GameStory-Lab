@@ -3,7 +3,8 @@ import { assistantAPI } from '../services/api';
 
 interface ProjectAssistantPanelProps {
   projectId: string;
-  type?: 'concept' | 'architect';
+  type?: 'concept' | 'architect' | 'project';
+  mode?: 'concept' | 'architect' | 'auto';
   onRefine?: (focus: 'deepen-mechanics' | 'enrich-lore' | 'improve-consistency' | 'enhance-genre-fit') => void;
   refining?: boolean;
   onProposalAccepted?: () => void;
@@ -38,6 +39,7 @@ interface AssistantProposal {
 export function ProjectAssistantPanel({
   projectId,
   type = 'concept',
+  mode: initialMode = 'auto',
   onRefine,
   refining = false,
   onProposalAccepted,
@@ -209,15 +211,16 @@ export function ProjectAssistantPanel({
   const [showProposals, setShowProposals] = useState(false);
   const [quickMode, setQuickMode] = useState<'standard' | 'concise' | 'detailed'>('standard');
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
+  const [currentMode, setCurrentMode] = useState<'concept' | 'architect' | 'auto'>(initialMode);
   const listRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (!projectId) return;
     setError(null);
-    console.log('[Assistant] Starting session:', { projectId, type });
+    console.log('[Assistant] Starting unified session:', { projectId, type: 'project', mode: currentMode });
     assistantAPI
-      .startSession({ projectId, type })
+      .startSession({ projectId, type: 'project', mode: currentMode })
       .then((data) => {
         console.log('[Assistant] Session started:', data);
         setSession(data.session);
@@ -234,12 +237,17 @@ export function ProjectAssistantPanel({
           setShowProposals(true);
         }
         
-        // For architect type, automatically send a greeting to trigger the interview
-        if (type === 'architect' && data.messages.length === 0 && data.session?.id) {
+        // Set current mode from session metadata
+        if (data.session?.metadata?.mode) {
+          setCurrentMode(data.session.metadata.mode);
+        }
+        
+        // For architect mode, automatically send a greeting to trigger the interview
+        if ((currentMode === 'architect' || initialMode === 'architect') && data.messages.length === 0 && data.session?.id) {
           // Wait a moment for the session to be fully initialized, then send greeting
           setTimeout(async () => {
             try {
-              const response = await assistantAPI.sendMessage(data.session.id, 'Hi! I\'m ready to create documentation for my game.');
+              const response = await assistantAPI.sendMessage(data.session.id, 'Hi! I\'m ready to create documentation for my game.', 'architect');
               setMessages((prev) => [
                 ...prev,
                 {
@@ -262,7 +270,7 @@ export function ProjectAssistantPanel({
         console.error('[Assistant] Failed to start session:', err);
         setError(err instanceof Error ? err.message : 'Failed to start assistant');
       });
-  }, [projectId, type]);
+  }, [projectId, currentMode]); // Reinitialize when mode changes
 
   useEffect(() => {
     if (!listRef.current) return;
@@ -294,8 +302,8 @@ export function ProjectAssistantPanel({
     setMessages((prev) => [...prev, tempUserMessage]);
     
     try {
-      console.log('[Assistant] Sending message:', { sessionId: session.id, message: userMessage });
-      const response: any = await assistantAPI.sendMessage(session.id, userMessage);
+      console.log('[Assistant] Sending message:', { sessionId: session.id, message: userMessage, mode: currentMode });
+      const response: any = await assistantAPI.sendMessage(session.id, userMessage, currentMode);
       console.log('[Assistant] Received response:', response);
       
       // Log debug info if available
@@ -478,9 +486,16 @@ For each category, provide specific, actionable suggestions. Help me understand 
   };
 
   const headerLabel = useMemo(() => {
-    if (type === 'architect') return 'Architect Assistant';
-    return 'Project Assistant';
-  }, [type]);
+    switch (currentMode) {
+      case 'architect':
+        return '🏗️ Architect Assistant';
+      case 'concept':
+        return '🎮 Concept Assistant';
+      case 'auto':
+      default:
+        return '🤖 Unified Assistant';
+    }
+  }, [currentMode]);
 
   return (
     <div className="chat-container relative cq-panel w-full h-full">
@@ -501,6 +516,25 @@ For each category, provide specific, actionable suggestions. Help me understand 
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Mode Switcher */}
+              <select
+                value={currentMode}
+                onChange={(e) => {
+                  const newMode = e.target.value as 'concept' | 'architect' | 'auto';
+                  setCurrentMode(newMode);
+                  // Update session mode on the server
+                  if (session?.id) {
+                    assistantAPI.updateSessionMode(session.id, newMode).catch(console.error);
+                  }
+                }}
+                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                title="Switch assistant mode"
+              >
+                <option value="auto">🤖 Auto</option>
+                <option value="concept">🎮 Concept</option>
+                <option value="architect">🏗️ Architect</option>
+              </select>
+              
               <select
                 value={quickMode}
                 onChange={(e) => setQuickMode(e.target.value as 'standard' | 'concise' | 'detailed')}

@@ -7,6 +7,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { projectsAPI } from '../services/api';
 import { useDebounce } from '../hooks';
+import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
 
 interface Project {
   id: string;
@@ -61,7 +62,17 @@ export function ProjectsPage() {
   const [creating, setCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
+  const [showAssistant, setShowAssistant] = useState(() => {
+    // Load visibility preference from localStorage
+    return localStorage.getItem('assistantVisible') !== 'false';
+  });
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // Save assistant visibility preference
+  useEffect(() => {
+    localStorage.setItem('assistantVisible', showAssistant.toString());
+  }, [showAssistant]);
 
   // Debounce search query to avoid excessive re-renders while typing
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -205,6 +216,22 @@ export function ProjectsPage() {
                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-surface-muted text-brand-700">🎨</span>
                 <span>Browse Templates</span>
               </Link>
+              
+              {/* Assistant Toggle */}
+              <button
+                onClick={() => setShowAssistant(!showAssistant)}
+                className={`btn transition-all duration-200 ${
+                  showAssistant 
+                    ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-lg' 
+                    : 'btn-secondary'
+                }`}
+                title="Toggle AI Assistant"
+              >
+                <span className="text-lg">🤖</span>
+                <span>AI Assistant</span>
+                {showAssistant && <span className="text-xs ml-1">●</span>}
+              </button>
+              
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/70 dark:bg-slate-900 border border-border-subtle">
                   ⚡
@@ -510,6 +537,60 @@ export function ProjectsPage() {
           </div>
         </aside>
       </div>
+
+      {/* Assistant Panel */}
+      {showAssistant && (
+        <div className="fixed right-4 top-4 bottom-4 w-96 z-40 bg-surface rounded-2xl shadow-2xl border border-border-subtle overflow-hidden">
+          <div className="h-full flex flex-col">
+            {/* Header */}
+            <div className="flex-shrink-0 px-4 py-3 border-b border-border-subtle bg-surface-card">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">AI Assistant</h3>
+                <button
+                  onClick={() => setShowAssistant(false)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+                  title="Close assistant"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* Assistant Content */}
+            <div className="flex-1 min-h-0">
+              {selectedProjectId ? (
+                <ProjectAssistantPanel
+                  projectId={selectedProjectId}
+                  type="concept"
+                  onProposalAccepted={async () => {
+                    // Refresh projects after proposal acceptance
+                    await loadProjects();
+                  }}
+                />
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+                  <div className="w-16 h-16 bg-brand-100 dark:bg-brand-900 rounded-full flex items-center justify-center mb-4">
+                    <span className="text-2xl">🤖</span>
+                  </div>
+                  <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                    Welcome to GameForge Studio
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                    Select a project to chat with the AI assistant about concept refinement, validation issues, and improvement suggestions.
+                  </p>
+                  <div className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+                    <p>• Ask about game design best practices</p>
+                    <p>• Get help with project planning</p>
+                    <p>• Learn about templates and workflows</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Project Modal */}
       {showCreateModal && (

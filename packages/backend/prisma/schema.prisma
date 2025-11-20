@@ -108,7 +108,7 @@ model ValidationResult {
 model ChatSession {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId  String   @map("project_id") @db.Uuid
-  type       String   @db.VarChar(50)
+  type       String   @db.VarChar(50) @default("project")
   targetId   String?  @map("target_id") @db.Uuid
   metadata   Json     @default("{}") @db.JsonB
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz

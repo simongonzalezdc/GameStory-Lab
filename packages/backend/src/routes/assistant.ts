@@ -24,13 +24,14 @@ async function getService() {
 }
 
 router.post('/session', async (req: Request, res: Response) => {
-  const { projectId, type } = req.body;
+  const { projectId, type, mode } = req.body;
   if (!projectId) {
     return res.status(400).json({ error: 'projectId is required' });
   }
   try {
     const service = await getService();
-    const session = await service.getOrCreateSession(projectId, type || 'concept');
+    // Always use unified 'project' session type, but accept mode hints
+    const session = await service.getOrCreateSession(projectId, 'project', mode);
     const messages = await service.getMessages(session.id);
     const proposals = await service.listPendingProposals(session.id);
     res.json({
@@ -66,13 +67,43 @@ router.get('/session/:sessionId/proposals', async (req: Request, res: Response) 
   }
 });
 
+router.post('/session/:sessionId/mode', async (req: Request, res: Response) => {
+  const { mode } = req.body;
+  if (!mode || !['concept', 'architect', 'auto'].includes(mode)) {
+    return res.status(400).json({ error: 'Valid mode is required (concept|architect|auto)' });
+  }
+  try {
+    const service = await getService();
+    const session = await service.getSession(req.params.sessionId);
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    
+    // Update session mode in metadata
+    const updatedSession = await service.updateSessionMode(session.id, mode);
+    res.json({
+      session: updatedSession,
+      message: `Session mode updated to ${mode}`,
+    });
+  } catch (error) {
+    logger.error('Failed to update session mode', { error, sessionId: req.params.sessionId });
+    res.status(500).json({ error: 'Failed to update session mode' });
+  }
+});
+
 router.post('/session/:sessionId/message', async (req: Request, res: Response) => {
-  const { content } = req.body;
+  const { content, mode } = req.body;
   if (!content) {
     return res.status(400).json({ error: 'content is required' });
   }
   try {
     const service = await getService();
+    
+    // If mode is provided, update the session mode first
+    if (mode && ['concept', 'architect', 'auto'].includes(mode)) {
+      await service.updateSessionMode(req.params.sessionId, mode);
+    }
+    
     const response = await service.sendMessage(req.params.sessionId, content);
     res.json(response);
   } catch (error: any) {
