@@ -22,23 +22,23 @@ export default {
         error: 'var(--color-error)',
         danger: 'var(--color-danger)',
         info: 'var(--color-info)',
-        // Brand colors: Fireopal orange primary scale
+        // Brand colors: Low-contrast Garnet primary scale
         brand: {
-          50: '#fef3ed',
-          100: '#fde4d6',
-          200: '#fbc7ad',
-          300: '#f8a179',
-          400: '#f47a4a',
-          500: '#d26a3a', // fireopal primary
-          600: '#b85a2f',
-          700: '#9a4a28',
-          800: '#7d3d22',
-          900: '#5a3324',
+          50: '#f5e8ea',
+          100: '#e8d1d5',
+          200: '#d4a3ab',
+          300: '#c07581',
+          400: '#a85664',
+          500: '#8F3E48', // muted garnet primary
+          600: '#7a343c',
+          700: '#652a31',
+          800: '#502026',
+          900: '#5B2B33',
         },
-        // Secondary colors: Topaz accent
+        // Secondary colors: Low-contrast Topaz accent
         mint: {
-          400: '#e6b65a',
-          500: '#d89e32', // topaz secondary
+          400: '#c9a85a',
+          500: '#B5933C', // muted topaz secondary
         },
       },
       backgroundColor: {
@@ -81,7 +81,7 @@ export default {
         'soft': '0 2px 8px 0 rgb(0 0 0 / 0.04)',
         'medium': '0 4px 12px 0 rgb(0 0 0 / 0.08)',
         'large': '0 8px 24px 0 rgb(0 0 0 / 0.12)',
-        'glow': '0 0 0 1px rgba(210, 106, 58, 0.2), 0 12px 40px -18px rgba(216, 158, 50, 0.45)',
+        'glow': '0 0 0 1px rgba(143, 62, 72, 0.2), 0 12px 40px -18px rgba(181, 147, 60, 0.35)',
       },
     },
   },

@@ -7,24 +7,24 @@
     'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
   --font-display: "Space Grotesk", "Plus Jakarta Sans", system-ui, sans-serif;
   
-  /* Jewel brand scale (Fireopal orange primary) */
-  --color-brand-50: #fef3ed;
-  --color-brand-100: #fde4d6;
-  --color-brand-200: #fbc7ad;
-  --color-brand-300: #f8a179;
-  --color-brand-400: #f47a4a;
-  --color-brand-500: #d26a3a; /* fireopal core */
-  --color-brand-600: #b85a2f;
-  --color-brand-700: #9a4a28;
-  --color-brand-800: #7d3d22;
-  --color-brand-900: #5a3324;
-  /* Secondary Topaz accent */
-  --color-mint-400: #e6b65a;
-  --color-mint-500: #d89e32;
-  /* Neutral ink (unused with jewel palette but kept for fallback) */
-  --color-ink-900: #0d0b0a;
-  --color-ink-800: #13100f;
-  --color-ink-700: #1a1413;
+  /* Jewel brand scale (Low-contrast Garnet primary) */
+  --color-brand-50: #f5e8ea;
+  --color-brand-100: #e8d1d5;
+  --color-brand-200: #d4a3ab;
+  --color-brand-300: #c07581;
+  --color-brand-400: #a85664;
+  --color-brand-500: #8F3E48; /* muted garnet core */
+  --color-brand-600: #7a343c;
+  --color-brand-700: #652a31;
+  --color-brand-800: #502026;
+  --color-brand-900: #5B2B33;
+  /* Secondary Topaz accent (low-contrast) */
+  --color-mint-400: #c9a85a;
+  --color-mint-500: #B5933C; /* muted topaz */
+  /* Neutral ink (warm charcoal base) */
+  --color-ink-900: #111015;
+  --color-ink-800: #19161D;
+  --color-ink-700: #211F26;
   /* Radius tokens */
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -34,46 +34,46 @@
   --shadow-xs: 0 6px 18px -8px rgba(15, 23, 42, 0.25);
   --shadow-sm: 0 10px 30px -16px rgba(15, 23, 42, 0.35);
   --shadow-md: 0 18px 44px -24px rgba(15, 23, 42, 0.45);
-  --shadow-glow: 0 0 0 1px rgba(210, 106, 58, 0.2), 0 12px 40px -18px rgba(216, 158, 50, 0.45);
+  --shadow-glow: 0 0 0 1px rgba(143, 62, 72, 0.2), 0 12px 40px -18px rgba(181, 147, 60, 0.35);
   
-    /* Jewel Engine theme (dark-first) */
-    --color-bg-primary: #0B0908;
-    --color-bg-secondary: #100D0C;
-    --color-bg-tertiary: #161110;
-    --color-surface: #100D0C;
-    --color-surface-elevated: #161110;
-    --color-surface-card: #14100F;
-    --color-surface-strong: #1D1614;
-    --color-surface-muted: #100D0C;
+    /* Jewel Engine theme - Low-Contrast Garnet & Topaz (warm charcoal base) */
+    --color-bg-primary: #111015; /* warm charcoal body */
+    --color-bg-secondary: #19161D; /* warm charcoal elevated */
+    --color-bg-tertiary: #211F26; /* warm charcoal panel */
+    --color-surface: #211F26; /* bg-panel */
+    --color-surface-elevated: #19161D; /* bg-elevated */
+    --color-surface-card: #211F26; /* bg-panel */
+    --color-surface-strong: #2B262F; /* bg-panel-alt */
+    --color-surface-muted: #2B262F; /* bg-panel-alt */
 
     --color-text-primary: #F9FAFB;
     --color-text-secondary: #C4C0C8;
     --color-text-tertiary: #8B8491;
     --color-text-muted: #8B8491;
 
-    --color-border: #251D1B;
-    --color-border-subtle: #251D1B;
-    --color-border-strong: #2F2422;
+    --color-border: #4A424F; /* border-strong */
+    --color-border-subtle: #3A343F; /* border-subtle */
+    --color-border-strong: #4A424F; /* border-strong */
 
-    --color-accent: #D26A3A; /* fireopal orange primary */
-    --color-accent-hover: #E67A4A;
+    --color-accent: #8F3E48; /* muted garnet primary */
+    --color-accent-hover: #AE5D37;
     
-    /* Brand colors matching jewel-engine-theme.css */
-    --brand-primary: #D26A3A;
-    --brand-primary-hover: #E67A4A;
-    --brand-primary-soft: #5A3324;
-    --brand-secondary: #D89E32; /* topaz secondary */
-    --brand-secondary-soft: #523822;
+    /* Brand colors - Low-contrast Garnet & Topaz */
+    --brand-primary: #8F3E48; /* muted garnet */
+    --brand-primary-hover: #AE5D37;
+    --brand-primary-soft: #5B2B33;
+    --brand-secondary: #B5933C; /* muted topaz */
+    --brand-secondary-soft: #7F6530;
 
-    --color-success: #6E9558;  /* emerald */
-    --color-warning: #D89E32;  /* topaz */
-    --color-error: #B24452;    /* garnet */
-    --color-danger: #B24452;
-    --color-info: #D26A3A;     /* fireopal orange */
+    --color-success: #5A7850;  /* emerald */
+    --color-warning: #B5933C;  /* topaz */
+    --color-error: #8F3E48;    /* garnet */
+    --color-danger: #8F3E48;   /* garnet */
+    --color-info: #346C68;     /* turquoise */
     
-    --color-assistant-bg: #100D0C;
-    --color-assistant-border-glow: rgba(216, 158, 50, 0.35);
-    --color-divider-glow: rgba(216, 158, 50, 0.35);
+    --color-assistant-bg: #211F26;
+    --color-assistant-border-glow: rgba(181, 147, 60, 0.35); /* topaz glow */
+    --color-divider-glow: rgba(181, 147, 60, 0.35); /* topaz glow */
     
     /* Chat Window Design System */
     --chat-container-height: calc(100vh - 4rem);
@@ -97,44 +97,44 @@
   }
 
   .dark {
-    /* Same palette for dark mode (this app is dark-first) */
-    --color-bg-primary: #0B0908;
-    --color-bg-secondary: #100D0C;
-    --color-bg-tertiary: #161110;
-    --color-surface: #100D0C;
-    --color-surface-elevated: #161110;
-    --color-surface-card: #14100F;
-    --color-surface-strong: #1D1614;
-    --color-surface-muted: #100D0C;
+    /* Same palette for dark mode (this app is dark-first) - Low-Contrast Garnet & Topaz */
+    --color-bg-primary: #111015; /* warm charcoal body */
+    --color-bg-secondary: #19161D; /* warm charcoal elevated */
+    --color-bg-tertiary: #211F26; /* warm charcoal panel */
+    --color-surface: #211F26; /* bg-panel */
+    --color-surface-elevated: #19161D; /* bg-elevated */
+    --color-surface-card: #211F26; /* bg-panel */
+    --color-surface-strong: #2B262F; /* bg-panel-alt */
+    --color-surface-muted: #2B262F; /* bg-panel-alt */
 
     --color-text-primary: #F9FAFB;
     --color-text-secondary: #C4C0C8;
     --color-text-tertiary: #8B8491;
     --color-text-muted: #8B8491;
 
-    --color-border: #251D1B;
-    --color-border-subtle: #251D1B;
-    --color-border-strong: #2F2422;
+    --color-border: #4A424F; /* border-strong */
+    --color-border-subtle: #3A343F; /* border-subtle */
+    --color-border-strong: #4A424F; /* border-strong */
 
-    --color-accent: #D26A3A;
-    --color-accent-hover: #E67A4A;
+    --color-accent: #8F3E48; /* muted garnet primary */
+    --color-accent-hover: #AE5D37;
     
-    /* Brand colors matching jewel-engine-theme.css */
-    --brand-primary: #D26A3A;
-    --brand-primary-hover: #E67A4A;
-    --brand-primary-soft: #5A3324;
-    --brand-secondary: #D89E32; /* topaz secondary */
-    --brand-secondary-soft: #523822;
+    /* Brand colors - Low-contrast Garnet & Topaz */
+    --brand-primary: #8F3E48; /* muted garnet */
+    --brand-primary-hover: #AE5D37;
+    --brand-primary-soft: #5B2B33;
+    --brand-secondary: #B5933C; /* muted topaz */
+    --brand-secondary-soft: #7F6530;
 
-    --color-success: #6E9558;
-    --color-error: #B24452;
-    --color-warning: #D89E32;
-    --color-danger: #B24452;
-    --color-info: #D26A3A;
+    --color-success: #5A7850; /* emerald */
+    --color-error: #8F3E48; /* garnet */
+    --color-warning: #B5933C; /* topaz */
+    --color-danger: #8F3E48; /* garnet */
+    --color-info: #346C68; /* turquoise */
     
-    --color-assistant-bg: #100D0C;
-    --color-assistant-border-glow: rgba(216, 158, 50, 0.35);
-    --color-divider-glow: rgba(216, 158, 50, 0.35);
+    --color-assistant-bg: #211F26;
+    --color-assistant-border-glow: rgba(181, 147, 60, 0.35); /* topaz glow */
+    --color-divider-glow: rgba(181, 147, 60, 0.35); /* topaz glow */
     
     /* Chat Window Design System (same as root) */
     --chat-container-height: calc(100vh - 4rem);

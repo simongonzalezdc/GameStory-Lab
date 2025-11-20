@@ -67,11 +67,11 @@ export function ProjectAssistantPanel({
       background: [
         'radial-gradient(120% 140% at 18% 18%, rgba(255,255,255,0.07), rgba(255,255,255,0) 52%)',
         'radial-gradient(140% 160% at 82% 16%, rgba(255,255,255,0.05), rgba(255,255,255,0) 55%)',
-        'linear-gradient(155deg, #241b0b 0%, #3b2a12 50%, #d89e32 100%)',
+        'linear-gradient(155deg, #2B262F 0%, #3d3425 50%, #B5933C 100%)', // low-contrast topaz gradient
       ].join(', '),
-      border: '1px solid rgba(216, 158, 50, 0.65)', // topaz line
+      border: '1px solid rgba(181, 147, 60, 0.65)', // low-contrast topaz line
       boxShadow:
-        '0 16px 36px -18px rgba(58, 40, 21, 0.7), 0 0 0 1px rgba(216, 158, 50, 0.28)',
+        '0 16px 36px -18px rgba(43, 38, 47, 0.7), 0 0 0 1px rgba(181, 147, 60, 0.28)',
     }),
     []
   );
