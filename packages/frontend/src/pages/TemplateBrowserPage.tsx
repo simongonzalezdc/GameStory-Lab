@@ -192,7 +192,7 @@ export function TemplateBrowserPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 dark:text-gray-400">Loading templates...</div>
+        <div className="text-slate-500 dark:text-slate-400">Loading templates...</div>
       </div>
     );
   }
@@ -201,8 +201,8 @@ export function TemplateBrowserPage() {
     <div>
       <div className="mb-8 flex justify-between items-start">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Genre Templates</h2>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Genre Templates</h2>
+          <p className="text-slate-600 dark:text-slate-300 mt-1">
             {mixMode
               ? 'Blend multiple genres to create custom hybrid templates'
               : 'Start with a professionally crafted template'}
@@ -213,7 +213,7 @@ export function TemplateBrowserPage() {
           className={`px-4 py-2 rounded-lg font-medium transition ${
             mixMode
               ? 'bg-purple-600 dark:bg-purple-500 text-white hover:bg-purple-700 dark:hover:bg-purple-600'
-              : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-slate-600'
+              : 'bg-gray-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-gray-300 dark:hover:bg-slate-600'
           }`}
         >
           {mixMode ? '✨ Mix Mode Active' : '🎨 Enable Mix Mode'}
@@ -230,7 +230,7 @@ export function TemplateBrowserPage() {
         {/* Genre Selection */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {mixMode ? 'Select Genres to Mix' : 'Select a Genre'}
             </h3>
             {mixMode && selectedGenres.length > 1 && (
@@ -263,8 +263,8 @@ export function TemplateBrowserPage() {
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{genre.name}</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{genre.description}</p>
+                        <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">{genre.name}</h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-300">{genre.description}</p>
                       </div>
                       {mixMode && isSelected && (
                         <span className="ml-2 px-2 py-1 bg-purple-600 dark:bg-purple-500 text-white text-xs font-bold rounded-full whitespace-nowrap">
@@ -287,7 +287,7 @@ export function TemplateBrowserPage() {
                           onTouchEnd={normalizeWeights}
                           className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-600"
                         />
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-mono w-10 text-right">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono w-10 text-right">
                           {Math.round(genreWeight * 100)}%
                         </span>
                       </div>
@@ -301,12 +301,12 @@ export function TemplateBrowserPage() {
 
         {/* Template Preview */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Template Preview</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Template Preview</h3>
           {loadingTemplate ? (
             <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
               <div className="animate-pulse">
                 <div className="text-4xl mb-3">⚡</div>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-slate-500 dark:text-slate-400">
                   {mixMode && selectedGenres.length > 1 ? 'Blending genres...' : 'Loading template...'}
                 </p>
               </div>
@@ -321,9 +321,9 @@ export function TemplateBrowserPage() {
                       BLENDED TEMPLATE
                     </div>
                   )}
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{template.name}</h3>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">{template.name}</h3>
                   {template.description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{template.description}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{template.description}</p>
                   )}
                   {template.tags && template.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
@@ -338,7 +338,7 @@ export function TemplateBrowserPage() {
                     </div>
                   )}
                   {(template.difficulty || template.targetAudience) && (
-                    <div className="mt-3 text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                    <div className="mt-3 text-xs text-slate-600 dark:text-slate-400 space-y-1">
                       {template.difficulty && (
                         <div><span className="font-semibold">Difficulty:</span> {template.difficulty}</div>
                       )}
@@ -352,15 +352,15 @@ export function TemplateBrowserPage() {
 
               {/* Mechanics */}
               <div>
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Mechanics</h4>
+                <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Mechanics</h4>
                 <div className="space-y-2 text-sm">
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <p className="text-slate-700 dark:text-slate-300">
                     <span className="font-medium">Core Loop:</span> {template.mechanics.coreLoop}
                   </p>
                   {template.mechanics.playerActions && template.mechanics.playerActions.length > 0 && (
                     <div>
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Player Actions:</span>
-                      <ul className="list-disc list-inside text-gray-600 dark:text-gray-400 ml-2 mt-1">
+                      <span className="font-medium text-slate-700 dark:text-slate-300">Player Actions:</span>
+                      <ul className="list-disc list-inside text-slate-600 dark:text-slate-400 ml-2 mt-1">
                         {template.mechanics.playerActions.slice(0, 4).map((action, i) => (
                           <li key={i}>{action}</li>
                         ))}
@@ -377,51 +377,51 @@ export function TemplateBrowserPage() {
 
               {/* Lore */}
               <div className="border-t dark:border-gray-700 pt-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Lore</h4>
+                <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Lore</h4>
                 <div className="space-y-3 text-sm">
                   {template.lore.setting && (
-                    <div className="text-gray-700 dark:text-gray-300">
+                    <div className="text-slate-700 dark:text-slate-300">
                       <span className="font-medium">Setting:</span>
-                      <ul className="list-disc list-inside ml-2 mt-1 space-y-1 text-gray-600 dark:text-gray-400">
+                      <ul className="list-disc list-inside ml-2 mt-1 space-y-1 text-slate-600 dark:text-slate-400">
                         {template.lore.setting.era && (
-                          <li><span className="font-medium text-gray-700 dark:text-gray-300">Era:</span> {template.lore.setting.era}</li>
+                          <li><span className="font-medium text-slate-700 dark:text-slate-300">Era:</span> {template.lore.setting.era}</li>
                         )}
                         {template.lore.setting.location && (
-                          <li><span className="font-medium text-gray-700 dark:text-gray-300">Location:</span> {template.lore.setting.location}</li>
+                          <li><span className="font-medium text-slate-700 dark:text-slate-300">Location:</span> {template.lore.setting.location}</li>
                         )}
                         {template.lore.setting.worldType && (
-                          <li><span className="font-medium text-gray-700 dark:text-gray-300">World:</span> {template.lore.setting.worldType}</li>
+                          <li><span className="font-medium text-slate-700 dark:text-slate-300">World:</span> {template.lore.setting.worldType}</li>
                         )}
                       </ul>
                     </div>
                   )}
                   {template.lore.protagonist && (template.lore.protagonist.background || template.lore.protagonist.motivation) && (
-                    <div className="text-gray-700 dark:text-gray-300">
+                    <div className="text-slate-700 dark:text-slate-300">
                       <span className="font-medium">Protagonist:</span>
-                      <ul className="list-disc list-inside ml-2 mt-1 space-y-1 text-gray-600 dark:text-gray-400">
+                      <ul className="list-disc list-inside ml-2 mt-1 space-y-1 text-slate-600 dark:text-slate-400">
                         {template.lore.protagonist.background && (
                           <li>{template.lore.protagonist.background}</li>
                         )}
                         {template.lore.protagonist.motivation && (
-                          <li><span className="font-medium text-gray-700 dark:text-gray-300">Goal:</span> {template.lore.protagonist.motivation}</li>
+                          <li><span className="font-medium text-slate-700 dark:text-slate-300">Goal:</span> {template.lore.protagonist.motivation}</li>
                         )}
                       </ul>
                     </div>
                   )}
                   {template.lore.conflict?.primary && (
-                    <div className="text-gray-700 dark:text-gray-300">
+                    <div className="text-slate-700 dark:text-slate-300">
                       <span className="font-medium">Conflict:</span>
-                      <p className="ml-2 mt-1 text-gray-600 dark:text-gray-400">{template.lore.conflict.primary}</p>
+                      <p className="ml-2 mt-1 text-slate-600 dark:text-slate-400">{template.lore.conflict.primary}</p>
                     </div>
                   )}
                   {template.lore.themes && template.lore.themes.length > 0 && (
                     <div>
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Themes:</span>
+                      <span className="font-medium text-slate-700 dark:text-slate-300">Themes:</span>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {template.lore.themes.map((theme, i) => (
                           <span
                             key={i}
-                            className="px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-full text-xs"
+                            className="px-2 py-1 bg-gray-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full text-xs"
                           >
                             {theme}
                           </span>
@@ -447,7 +447,7 @@ export function TemplateBrowserPage() {
           ) : (
             <div className="bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">
               <div className="text-5xl mb-3">{mixMode ? '🎨' : '📋'}</div>
-              <p className="text-gray-500 dark:text-gray-400 font-medium mb-1">
+              <p className="text-slate-500 dark:text-slate-400 font-medium mb-1">
                 {mixMode
                   ? 'Select 2+ genres and click "Blend"'
                   : 'Select a genre to see the template'}
@@ -467,7 +467,7 @@ export function TemplateBrowserPage() {
       {showCreateModal && (selectedGenre || isBlended) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
               {isBlended
                 ? `✨ Create Project from Blended Template`
                 : `Create Project from ${genres.find((g) => g.id === selectedGenre)?.name} Template`}
@@ -479,19 +479,19 @@ export function TemplateBrowserPage() {
             )}
             <form onSubmit={handleCreateProject}>
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Project Name *
                 </label>
                 <input
                   type="text"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                   placeholder="My Game Project"
                   required
                   autoFocus
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   The template will be customized and added to your new project
                 </p>
               </div>
@@ -502,7 +502,7 @@ export function TemplateBrowserPage() {
                     setShowCreateModal(false);
                     setProjectName('');
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition font-medium"
+                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition font-medium"
                   disabled={creating}
                 >
                   Cancel

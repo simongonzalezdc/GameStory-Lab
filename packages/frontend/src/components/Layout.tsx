@@ -48,37 +48,12 @@ const NAV_ITEMS = [
 
 function LayoutComponent({ children }: LayoutProps) {
   const location = useLocation();
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
-    // Check localStorage first, then system preference
-    const stored = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = stored === 'dark' || (!stored && prefersDark);
-
-    // Apply theme to DOM immediately
-    if (shouldBeDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    
-    // Set state after DOM update to avoid cascading renders
-    setIsDark(shouldBeDark);
+    document.documentElement.classList.add('dark');
+    setIsDark(true);
   }, []);
-
-  const toggleTheme = () => {
-    const newIsDark = !isDark;
-    setIsDark(newIsDark);
-
-    if (newIsDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
 
   const isFullWidth = location.pathname.includes('/projects/') || location.pathname.includes('/architect');
 
@@ -91,7 +66,7 @@ function LayoutComponent({ children }: LayoutProps) {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border-subtle bg-white/85 dark:bg-[rgba(12,18,36,0.9)] backdrop-blur-md shadow-sm">
+      <header className="sticky top-0 z-50 border-b border-border-subtle bg-white dark:bg-[rgba(12,18,36,0.94)] backdrop-blur-md shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo */}
@@ -143,22 +118,6 @@ function LayoutComponent({ children }: LayoutProps) {
 
             {/* Actions */}
             <div className="flex items-center gap-3">
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-surface-muted dark:hover:bg-surface-elevated transition-colors border border-transparent hover:border-border-subtle"
-                aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {isDark ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                )}
-              </button>
               <Link
                 to="/templates"
                 className="hidden sm:inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-brand-600 to-mint-500 px-4 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98]"

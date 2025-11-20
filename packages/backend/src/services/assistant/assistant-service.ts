@@ -141,7 +141,27 @@ export class AssistantService {
         content: JSON.stringify({
           userMessage: content,
           context,
-            instructions: 'Respond using the required JSON schema. If the user asks for a plan, implementation, or anything to approve, you MUST include a proposal with complete mechanics and lore objects.',
+          instructions: [
+            'Respond using the required JSON schema: { "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }',
+            '',
+            'CRITICAL PROPOSAL REQUIREMENT:',
+            'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", or anything they can approve, you MUST include a proposal object with actual data.',
+            '',
+            'The proposal object MUST contain:',
+            '- "explanation": A string describing what the proposal does',
+            '- "mechanics": A complete mechanics object (if proposing mechanics changes)',
+            '- "lore": A complete lore object (if proposing lore changes)',
+            '',
+            'DO NOT:',
+            '- Return {proposal: null} or {proposal: {}}',
+            '- Just say "I will create..." without actually including the proposal',
+            '- Include only an explanation without mechanics/lore objects',
+            '',
+            'DO:',
+            '- Include the full, complete mechanics and/or lore objects in the proposal',
+            '- Make sure proposal.mechanics and proposal.lore contain actual JSON data, not empty objects',
+            '- If proposing both mechanics and lore, include both objects',
+          ].join('\n'),
         }),
       },
     ];
@@ -184,8 +204,42 @@ export class AssistantService {
       }
 
     let createdProposal: Awaited<ReturnType<typeof this.prisma.assistantProposal.create>> | null = null;
-    if (parsed.proposal && (parsed.proposal.mechanics || parsed.proposal.lore || parsed.proposal.architectDocuments)) {
+    
+    // Check if user is requesting a proposal/action
+    const userWantsProposal = /(do it|go ahead|create|make changes|generate|implement|apply|proposal|approve|please make)/i.test(content);
+    
+    // Log what we got from parsing
+    logger.info('Parsed assistant response', {
+      sessionId,
+      hasProposal: !!parsed.proposal,
+      proposalType: typeof parsed.proposal,
+      proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
+      hasMechanics: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.mechanics),
+      hasLore: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.lore),
+      hasArchitectDocuments: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.architectDocuments),
+      userWantsProposal,
+      aiResponsePreview: aiResponse.content.substring(0, 1000),
+    });
+    
+    if (parsed.proposal && typeof parsed.proposal === 'object' && (parsed.proposal.mechanics || parsed.proposal.lore || parsed.proposal.architectDocuments)) {
+      logger.info('Creating proposal from AI response', {
+        sessionId,
+        hasMechanics: !!parsed.proposal.mechanics,
+        hasLore: !!parsed.proposal.lore,
+        hasArchitectDocuments: !!parsed.proposal.architectDocuments,
+      });
       createdProposal = await this.createProposal(session, parsed.proposal);
+    } else if (userWantsProposal) {
+      // User asked for action but no proposal was generated
+      logger.warn('User requested proposal but AI did not generate one', {
+        sessionId,
+        userMessage: content,
+        hasProposal: !!parsed.proposal,
+        proposalType: typeof parsed.proposal,
+        proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
+        aiResponsePreview: aiResponse.content.substring(0, 1000),
+        parsedReplyPreview: parsed.reply?.substring(0, 500),
+      });
     }
 
     return {
@@ -525,9 +579,26 @@ export class AssistantService {
         'Reference validation issues if available.',
         'Explain how proposed changes enhance gameplay consistency, player experience, or narrative coherence.',
         '',
-        'CRITICAL: When users ask for implementation plans, actionable improvements, or anything they can "approve", you MUST create a proposal with actual mechanics and lore changes.',
-        'Do not just describe what should be done - include the full updated mechanics and lore objects in the proposal.',
-        'Keywords that require proposals: "plan", "implement", "approve", "apply", "make changes", "create a version", "do it", "go ahead".',
+        'CRITICAL PROPOSAL GENERATION RULES:',
+        '1. When users say "do it", "go ahead", "create", "make changes", "generate", "implement", "apply", "ok", "yes", "please make", or similar approval language, you MUST include a proposal.',
+        '2. When users ask for "a proposal", "plan", "implementation", or anything they can approve, you MUST include a proposal.',
+        '3. The proposal MUST contain complete mechanics and/or lore JSON objects - not just descriptions or explanations.',
+        '4. Do not just say "I will create..." or "I\'ve created..." - you MUST actually include the proposal object in your JSON response.',
+        '5. If you mention creating changes, you MUST include those changes in the proposal field with actual JSON data.',
+        '6. The proposal.explanation field should describe what you are proposing, but proposal.mechanics and proposal.lore must contain the actual complete JSON objects.',
+        '7. NEVER return {reply: "...", proposal: null} or {reply: "...", proposal: {}} - if the user asks for a proposal, you MUST include mechanics and/or lore objects.',
+        '',
+        'REQUIRED JSON FORMAT WHEN USER ASKS FOR PROPOSAL:',
+        '{',
+        '  "reply": "I\'ve created a comprehensive proposal that addresses all validation issues...",',
+        '  "proposal": {',
+        '    "explanation": "This proposal strengthens the primary conflict, explains technology, etc.",',
+        '    "mechanics": { "coreLoop": "...", "playerActions": [...], ... },',
+        '    "lore": { "setting": {...}, "conflict": {...}, ... }',
+        '  }',
+        '}',
+        '',
+        'IMPORTANT: The "proposal" field is REQUIRED and must contain actual data, not be empty or null.',
         '',
         'When users ask for suggestions or improvements, provide comprehensive analysis across all dimensions:',
         '1. Mechanics depth opportunities (edge cases, balancing, advanced systems)',
@@ -1175,6 +1246,7 @@ export class AssistantService {
         hasProposal: !!parsed.proposal,
         replyType: typeof parsed.reply,
         proposalType: typeof parsed.proposal,
+        proposalValue: parsed.proposal,
       });
       
       // Handle case where model returns only reply field without proposal
@@ -1182,7 +1254,9 @@ export class AssistantService {
       if (parsed.proposal === undefined || parsed.proposal === null) {
         logger.warn('Model response missing proposal field', {
           keys: Object.keys(parsed),
-          hasReply: !!parsed.reply
+          hasReply: !!parsed.reply,
+          replyPreview: typeof parsed.reply === 'string' ? parsed.reply.substring(0, 200) : String(parsed.reply),
+          fullParsed: JSON.stringify(parsed).substring(0, 500),
         });
         
         // Return just the reply without proposal

@@ -343,15 +343,24 @@ export function ConceptEditorPage() {
       // Generate lore (use mechanics if available for better alignment)
       if (generateType === 'both' || generateType === 'lore') {
         setGenerationStep(generateType === 'both' ? 'Generating lore and story...' : 'Generating lore...');
-        console.log('[Generate] Starting lore generation');
+        console.log('[Generate] Starting lore generation', { 
+          hasMechanicsResult: !!mechanicsResult,
+          mechanicsFromResult: mechanicsResult?.content?.mechanics ? 'present' : 'missing',
+        });
         
         try {
           // If generating lore only and we have an existing version, pass its mechanics
+          // When generating both, pass mechanics from the just-generated result
           const existingMechanics = mechanicsResult 
-            ? mechanicsResult.content.mechanics 
+            ? mechanicsResult.content?.mechanics 
             : (currentVersion?.mechanics && Object.keys(currentVersion.mechanics).length > 0 
                 ? currentVersion.mechanics 
                 : undefined);
+          
+          console.log('[Generate] Passing mechanics to lore generation', { 
+            hasMechanics: !!existingMechanics,
+            mechanicsKeys: existingMechanics ? Object.keys(existingMechanics).length : 0,
+          });
           
           await generateAPI.generate({
             projectId,
@@ -362,7 +371,7 @@ export function ConceptEditorPage() {
               existingContent: existingMechanics ? { mechanics: existingMechanics } : undefined,
             },
           });
-          console.log('[Generate] Lore generated');
+          console.log('[Generate] Lore generated successfully');
         } catch (err) {
           console.error('[Generate] Lore generation failed:', err);
           throw new Error(`Failed to generate lore: ${err instanceof Error ? err.message : 'Unknown error'}`);

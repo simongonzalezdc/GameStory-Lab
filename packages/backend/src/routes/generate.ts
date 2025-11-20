@@ -204,7 +204,21 @@ router.post('/', async (req, res, next) => {
     let version;
     if (taskType === 'lore') {
       // Check if there's a recent version with mechanics but no lore (or empty lore)
+      // Look for versions created in the last 30 seconds to catch "generate both" scenarios
+      const thirtySecondsAgo = new Date(Date.now() - 30000);
       const recentVersion = await prismaClient.version.findFirst({
+        where: { 
+          projectId,
+          createdAt: {
+            gte: thirtySecondsAgo,
+          },
+        },
+        orderBy: { version: 'desc' },
+        take: 1,
+      });
+      
+      // Also check the most recent version regardless of time (fallback)
+      const mostRecentVersion = recentVersion || await prismaClient.version.findFirst({
         where: { 
           projectId,
         },
@@ -213,21 +227,30 @@ router.post('/', async (req, res, next) => {
       });
       
       // If recent version exists and has mechanics but empty/missing lore, update it
-      if (recentVersion && 
-          recentVersion.mechanics && 
-          Object.keys(recentVersion.mechanics as object).length > 0 &&
-          (!recentVersion.lore || Object.keys(recentVersion.lore as object).length === 0)) {
-        logger.info('Updating existing version with lore', { versionId: recentVersion.id });
+      const hasMechanics = mostRecentVersion?.mechanics && 
+        typeof mostRecentVersion.mechanics === 'object' &&
+        Object.keys(mostRecentVersion.mechanics as object).length > 0;
+      const hasNoLore = !mostRecentVersion?.lore || 
+        (typeof mostRecentVersion.lore === 'object' && Object.keys(mostRecentVersion.lore as object).length === 0);
+      
+      if (mostRecentVersion && hasMechanics && hasNoLore) {
+        logger.info('Updating existing version with lore', { 
+          versionId: mostRecentVersion.id,
+          versionNumber: mostRecentVersion.version,
+          hasMechanics,
+          hasNoLore,
+        });
         version = await prismaClient.version.update({
-          where: { id: recentVersion.id },
+          where: { id: mostRecentVersion.id },
           data: {
             lore: generatedContent,
             metadata: {
-              ...(recentVersion.metadata as object || {}),
+              ...(mostRecentVersion.metadata as object || {}),
               aiModel: response.model,
               promptTokens: response.tokensUsed.prompt,
               completionTokens: response.tokensUsed.completion,
               generationTime: Date.now() - startTime,
+              startedWith: 'both', // Mark as started with both since we're updating
             },
           },
         });
@@ -236,9 +259,21 @@ router.post('/', async (req, res, next) => {
           hasLore: !!version.lore && Object.keys(version.lore as object).length > 0 
         });
       } else {
-        // Create new version with mechanics from context or empty
-        logger.info('Creating new version with lore', { hasMechanics: !!context.existingContent?.mechanics });
-        const mechanicsData = (context.existingContent?.mechanics || {}) as any;
+        // Create new version with mechanics from context or from most recent version
+        const mechanicsFromContext = context.existingContent?.mechanics;
+        const mechanicsFromRecent = mostRecentVersion?.mechanics && 
+          typeof mostRecentVersion.mechanics === 'object' &&
+          Object.keys(mostRecentVersion.mechanics as object).length > 0
+          ? mostRecentVersion.mechanics
+          : null;
+        const mechanicsData = (mechanicsFromContext || mechanicsFromRecent || {}) as any;
+        
+        logger.info('Creating new version with lore', { 
+          hasMechanicsFromContext: !!mechanicsFromContext,
+          hasMechanicsFromRecent: !!mechanicsFromRecent,
+          recentVersionId: mostRecentVersion?.id,
+        });
+        
         const loreData = generatedContent as any;
         const titleValue = ('title' in generatedContent && (generatedContent as { title?: string }).title) ? (generatedContent as { title?: string }).title : null;
         version = await prismaClient.version.create({
@@ -254,7 +289,7 @@ router.post('/', async (req, res, next) => {
               completionTokens: response.tokensUsed.completion,
               generationTime: Date.now() - startTime,
               userEdited: false,
-              startedWith: context.existingContent?.mechanics ? 'both' : 'lore',
+              startedWith: mechanicsData && Object.keys(mechanicsData).length > 0 ? 'both' : 'lore',
             },
           },
         });

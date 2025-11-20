@@ -240,17 +240,17 @@ For each category, provide specific, actionable suggestions. Help me understand 
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden relative cq-panel">
       {/* Full-height Assistant Card */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-gradient-to-br from-surface via-surface-card to-brand-50/50 dark:from-surface dark:via-surface-elevated dark:to-brand-900/10 rounded-2xl border border-border-subtle assistant-card-glow assistant-transition shadow-lg">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-surface rounded-2xl border border-border-subtle assistant-card-glow assistant-transition shadow-lg">
         {/* Rich Header */}
-        <div className="px-6 py-4 border-b border-border-subtle divider-glow bg-white/70 dark:bg-surface/80 backdrop-blur-sm flex-shrink-0">
+        <div className="px-6 py-4 border-b border-border-subtle divider-glow bg-surface-card flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                 AI
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{headerLabel}</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <h3 className="text-lg font-bold text-slate-100">{headerLabel}</h3>
+                <p className="text-xs text-slate-400">
                   {session ? `Session ${session.id.slice(0, 8)}` : 'Connecting...'}
                 </p>
               </div>
@@ -259,7 +259,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
               <select
                 value={quickMode}
                 onChange={(e) => setQuickMode(e.target.value as 'standard' | 'concise' | 'detailed')}
-                className="text-xs px-2 py-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-xs px-2 py-1 bg-slate-700 border border-slate-600 rounded-lg text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="standard">Standard</option>
                 <option value="concise">Concise</option>
@@ -270,8 +270,8 @@ For each category, provide specific, actionable suggestions. Help me understand 
                   onClick={() => setShowProposals(!showProposals)}
                   className={`relative px-3 py-1.5 rounded-lg transition text-xs font-medium flex items-center gap-1.5 ${
                     showProposals
-                      ? 'bg-blue-700 dark:bg-blue-600 text-white'
-                      : 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 animate-pulse'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-blue-500 text-white hover:bg-blue-600 animate-pulse'
                   }`}
                   title={`${proposals.length} proposal${proposals.length > 1 ? 's' : ''} ready for review`}
                 >
@@ -297,10 +297,10 @@ For each category, provide specific, actionable suggestions. Help me understand 
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl mb-4 shadow-lg">
                     AI
                   </div>
-                  <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  <h4 className="text-lg font-semibold text-slate-100 mb-2">
                     Start a conversation
                   </h4>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md">
+                  <p className="text-sm text-slate-400 max-w-md">
                     Ask me anything about your project. I can help refine mechanics, expand lore, check consistency, and more.
                   </p>
                 </div>
@@ -323,14 +323,14 @@ For each category, provide specific, actionable suggestions. Help me understand 
                       <div
                         className={`rounded-2xl px-4 py-3 text-sm shadow-sm ${
                           msg.role === 'assistant'
-                            ? 'bg-surface-card dark:bg-surface-elevated border border-border-subtle text-slate-900 dark:text-slate-100'
+                            ? 'bg-surface-elevated border border-border-subtle text-slate-100'
                             : 'bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md'
                         }`}
                       >
                         <div className="whitespace-pre-wrap break-words">{msg.content}</div>
                       </div>
                       {msg.createdAt && (
-                        <div className={`text-xs text-slate-500 dark:text-slate-400 mt-1 px-1 ${
+                        <div className={`text-xs text-slate-400 mt-1 px-1 ${
                           msg.role === 'user' ? 'text-right' : ''
                         }`}>
                           {formatTime(msg.createdAt)}
@@ -345,7 +345,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-brand-600 to-mint-500 flex items-center justify-center text-xs font-bold text-white">
                     AI
                   </div>
-                  <div className="flex items-center gap-1 px-4 py-3 bg-surface-card dark:bg-surface-elevated border border-border-subtle rounded-2xl">
+                  <div className="flex items-center gap-1 px-4 py-3 bg-surface-elevated border border-border-subtle rounded-2xl">
                     <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
                     <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
                     <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
@@ -355,10 +355,10 @@ For each category, provide specific, actionable suggestions. Help me understand 
             </div>
 
             {/* Composer - Always Visible */}
-            <div className="border-t border-border-subtle bg-white/80 dark:bg-surface/85 backdrop-blur-md shadow-lg flex-shrink-0">
+            <div className="border-t border-border-subtle bg-surface-card shadow-lg flex-shrink-0">
               {error && (
                 <div className="px-6 pt-3">
-                  <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 flex items-start justify-between gap-2">
+                  <div className="text-sm text-red-400 bg-red-900/20 border border-red-800 rounded-lg px-3 py-2 flex items-start justify-between gap-2">
                     <div className="flex-1">
                       <p className="font-semibold mb-1">Error sending message</p>
                       <p className="text-xs">{error}</p>
@@ -366,7 +366,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     </div>
                     <button
                       onClick={() => setError(null)}
-                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex-shrink-0"
+                      className="text-red-400 hover:text-red-300 flex-shrink-0"
                       title="Dismiss error"
                     >
                       ✕
@@ -381,13 +381,13 @@ For each category, provide specific, actionable suggestions. Help me understand 
                   {/* Quick Chat Actions */}
                   <button
                     onClick={() => handleQuickAction('summarize')}
-                    className="px-3 py-1 text-xs bg-surface-muted dark:bg-surface-strong text-slate-700 dark:text-slate-200 rounded-full hover:border hover:border-brand-300 transition"
+                    className="px-3 py-1 text-xs bg-surface-strong text-slate-200 rounded-full border border-border-subtle hover:border-brand-300 transition focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
                   >
                     📋 Summarize & Check Consistency
                   </button>
                   <button
                     onClick={() => handleQuickAction('suggest-tweaks')}
-                    className="px-3 py-1 text-xs bg-surface-muted dark:bg-surface-strong text-slate-700 dark:text-slate-200 rounded-full hover:border hover:border-brand-300 transition"
+                    className="px-3 py-1 text-xs bg-surface-strong text-slate-200 rounded-full border border-border-subtle hover:border-brand-300 transition focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
                   >
                     ✨ Suggest Tweaks
                   </button>
@@ -398,28 +398,28 @@ For each category, provide specific, actionable suggestions. Help me understand 
                       <button
                         onClick={() => onRefine('deepen-mechanics')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-brand-50 dark:bg-brand-900/25 text-brand-700 dark:text-brand-200 rounded-full hover:bg-brand-100/80 dark:hover:bg-brand-900/40 transition disabled:opacity-50 border border-brand-100/60 dark:border-brand-800/70"
+                        className="px-3 py-1 text-xs bg-brand-900/25 text-brand-200 rounded-full hover:bg-brand-900/40 transition disabled:opacity-50 border border-brand-800/70 focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
                       >
                         ⚙️ Deepen Mechanics
                       </button>
                       <button
                         onClick={() => onRefine('enrich-lore')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-mint-500/15 dark:bg-mint-500/20 text-mint-600 dark:text-mint-300 rounded-full hover:bg-mint-500/25 dark:hover:bg-mint-500/30 transition disabled:opacity-50 border border-mint-500/40"
+                        className="px-3 py-1 text-xs bg-mint-500/20 text-mint-300 rounded-full hover:bg-mint-500/30 transition disabled:opacity-50 border border-mint-500/40 focus-visible:outline-2 focus-visible:outline focus-visible:outline-mint-500/70"
                       >
                         📖 Enrich Lore
                       </button>
                       <button
                         onClick={() => onRefine('improve-consistency')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-surface-muted dark:bg-surface-strong text-emerald-700 dark:text-emerald-200 rounded-full hover:border hover:border-emerald-400 transition disabled:opacity-50"
+                        className="px-3 py-1 text-xs bg-surface-strong text-emerald-200 rounded-full border border-border-subtle hover:border-emerald-400 transition disabled:opacity-50 focus-visible:outline-2 focus-visible:outline focus-visible:outline-emerald-500/80"
                       >
                         ♻️ Improve Consistency
                       </button>
                       <button
                         onClick={() => onRefine('enhance-genre-fit')}
                         disabled={refining}
-                        className="px-3 py-1 text-xs bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/50 transition disabled:opacity-50 border border-amber-200/70 dark:border-amber-800/70"
+                        className="px-3 py-1 text-xs bg-amber-900/30 text-amber-200 rounded-full hover:bg-amber-900/50 transition disabled:opacity-50 border border-amber-800/70 focus-visible:outline-2 focus-visible:outline focus-visible:outline-amber-500/80"
                       >
                         🎯 Enhance Genre Fit
                       </button>
@@ -432,7 +432,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
               <div className="px-6 pb-4">
                 <div className="flex gap-2 items-end">
                   <button
-                    className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 transition"
+                    className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-slate-600 bg-slate-700 text-slate-300 hover:bg-slate-600 transition"
                     title="Attach file"
                   >
                     📎
@@ -449,12 +449,12 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     }}
                     placeholder="Ask for help..."
                     rows={1}
-                    className="flex-1 resize-none border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent max-h-[120px]"
+                    className="flex-1 resize-none border border-slate-600 rounded-lg px-4 py-2.5 text-sm bg-slate-900 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent max-h-[120px]"
                   />
                   <button
                     onClick={handleSend}
                     disabled={!input.trim() || loading}
-                    className="flex-shrink-0 px-6 py-2.5 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="flex-shrink-0 px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     <span>Send</span>
                     <span>→</span>
@@ -466,14 +466,14 @@ For each category, provide specific, actionable suggestions. Help me understand 
 
           {/* Proposals Side Rail */}
           {showProposals && proposals.length > 0 && (
-            <div className="w-80 border-l border-border-subtle divider-glow bg-surface-muted dark:bg-surface-strong backdrop-blur-sm flex flex-col min-h-0 overflow-hidden flex-shrink-0 panel-slide-in">
+            <div className="w-80 border-l border-border-subtle bg-surface-strong flex flex-col min-h-0 overflow-hidden flex-shrink-0 panel-slide-in">
               <div className="px-4 py-3 border-b border-border-subtle flex items-center justify-between flex-shrink-0">
-                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <h4 className="text-sm font-semibold text-slate-100">
                   Proposals ({proposals.length})
                 </h4>
                 <button
                   onClick={() => setShowProposals(false)}
-                  className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                  className="text-slate-400 hover:text-slate-200"
                 >
                   ✕
                 </button>
@@ -482,7 +482,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                 {proposals.map((proposal, index) => (
                   <div
                     key={proposal.id}
-                    className={`bg-surface-card dark:bg-surface-elevated border rounded-xl p-4 text-sm shadow-sm ${
+                    className={`bg-surface-elevated border rounded-xl p-4 text-sm shadow-sm ${
                       index === 0
                         ? 'border-brand-400 shadow-brand-500/20'
                         : 'border-border-subtle'
@@ -493,13 +493,13 @@ For each category, provide specific, actionable suggestions. Help me understand 
                         ⭐ Most Recent Proposal
                       </div>
                     )}
-                    <p className="font-medium text-slate-800 dark:text-slate-100 mb-2">
+                    <p className="font-medium text-slate-100 mb-2">
                       {proposal.proposalType === 'architect-document' ? '📄 Document Update' : '🎮 Mechanics & Lore Update'}
                     </p>
                     
-                    <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
-                      <p className="text-xs font-semibold text-blue-800 dark:text-blue-200 mb-1">What this will improve:</p>
-                      <div className="text-xs text-blue-700 dark:text-blue-300 whitespace-pre-wrap">
+                    <div className="mb-3 p-2 bg-blue-900/20 rounded border border-blue-800">
+                      <p className="text-xs font-semibold text-blue-200 mb-1">What this will improve:</p>
+                      <div className="text-xs text-blue-300 whitespace-pre-wrap">
                         {proposal.payload?.explanation || (
                           proposal.proposalType === 'architect-document'
                             ? 'Updates project documentation with better structure and content.'
@@ -510,9 +510,9 @@ For each category, provide specific, actionable suggestions. Help me understand 
 
                     {/* Show preview of architect documents if present */}
                     {proposal.proposalType === 'architect-document' && proposal.payload?.architectDocuments && (
-                      <div className="mb-3 p-2 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 dark:border-purple-800">
-                        <p className="text-xs font-semibold text-purple-800 dark:text-purple-200 mb-1">Documents to create/update:</p>
-                        <ul className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
+                      <div className="mb-3 p-2 bg-purple-900/20 rounded border border-purple-800">
+                        <p className="text-xs font-semibold text-purple-200 mb-1">Documents to create/update:</p>
+                        <ul className="text-xs text-purple-300 space-y-1">
                           {proposal.payload.architectDocuments.map((doc: any, idx: number) => (
                             <li key={idx} className="flex items-start gap-1">
                               <span>📄</span>
@@ -525,9 +525,9 @@ For each category, provide specific, actionable suggestions. Help me understand 
 
                     {/* Show preview of mechanics/lore changes if present */}
                     {proposal.proposalType === 'concept-update' && (
-                      <div className="mb-3 p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded border border-emerald-200 dark:border-emerald-800">
-                        <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-200 mb-1">Will update:</p>
-                        <div className="text-xs text-emerald-700 dark:text-emerald-300 space-y-1">
+                      <div className="mb-3 p-2 bg-emerald-900/20 rounded border border-emerald-800">
+                        <p className="text-xs font-semibold text-emerald-200 mb-1">Will update:</p>
+                        <div className="text-xs text-emerald-300 space-y-1">
                           {proposal.payload?.mechanics && (
                             <div className="flex items-center gap-1">
                               <span>⚙️</span>
@@ -546,9 +546,9 @@ For each category, provide specific, actionable suggestions. Help me understand 
 
                     {proposal.changeLog?.length > 0 && (
                       <div className="mb-3 space-y-1">
-                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Changes:</p>
+                        <p className="text-xs font-semibold text-slate-300 mb-1">Changes:</p>
                         {proposal.changeLog.slice(0, 3).map((change) => (
-                          <div key={change.field} className="text-xs text-slate-600 dark:text-slate-300 flex items-start gap-1">
+                          <div key={change.field} className="text-xs text-slate-300 flex items-start gap-1">
                             <span>
                               {change.changeType === 'added' ? '➕' :
                                change.changeType === 'modified' ? '✏️' :
@@ -566,13 +566,13 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     <div className="flex gap-2 mt-4">
                       <button
                         onClick={() => handleAccept(proposal.id)}
-                        className="flex-1 px-3 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-xs font-medium"
+                        className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-xs font-medium"
                       >
                         ✅ Accept
                       </button>
                       <button
                         onClick={() => handleReject(proposal.id)}
-                        className="px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition text-xs font-medium"
+                        className="px-3 py-2 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition text-xs font-medium"
                       >
                         ❌
                       </button>

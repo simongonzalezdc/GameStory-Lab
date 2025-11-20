@@ -174,7 +174,7 @@ export function ProjectsPage() {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <section className="hero-pane shadow-lg p-8 lg:p-12 space-y-10" style={{ background: 'linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-strong) 100%)', border: '1px solid var(--color-border-subtle)' }}>
+      <section className="hero-pane shadow-lg p-8 lg:p-12 space-y-10" style={{ border: '1px solid var(--color-border-subtle)' }}>
         <div className="grid lg:grid-cols-[1.3fr_1fr] gap-8 relative z-10">
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-100 rounded-full border border-brand-100/60 dark:border-brand-800/70 w-max">
@@ -182,10 +182,10 @@ export function ProjectsPage() {
               Experience Design OS
             </div>
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl font-[700] text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+              <h1 className="text-4xl md:text-5xl font-[700] text-slate-900 dark:text-white tracking-tight max-w-3xl" style={{ fontFamily: 'var(--font-display)' }}>
                 Command center for player-first concepts
               </h1>
-              <p className="text-lg leading-7 text-slate-700 dark:text-slate-300 max-w-2xl text-balance">
+              <p className="text-lg leading-7 text-slate-800 dark:text-slate-300 max-w-2xl text-balance">
                 Curate, validate, and revive experiments with a clear signal on narrative and mechanics. Move from spark to shippable beats with decisive next steps.
               </p>
             </div>
@@ -290,7 +290,7 @@ export function ProjectsPage() {
           {/* Search */}
           <div className="flex-1 relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-              <svg className="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -299,7 +299,7 @@ export function ProjectsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by title, theme, or genre..."
-              className="w-full pl-12 pr-4 py-3 rounded-lg border border-border-subtle bg-white dark:bg-surface-elevated text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-colors"
+              className="w-full pl-12 pr-4 py-3 rounded-lg border border-border-subtle bg-white dark:bg-surface-elevated text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors"
             />
           </div>
 
@@ -357,7 +357,7 @@ export function ProjectsPage() {
         {/* Main Content */}
         <div>
           {filteredProjects.length === 0 ? (
-            <div className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm p-12 text-center">
+            <div className="rounded-xl bg-white dark:bg-surface-elevated border border-border-subtle dark:border-slate-700 shadow-sm p-12 text-center">
               <div className="text-6xl mb-4">📭</div>
               <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">No projects found</h3>
               <p className="text-slate-600 dark:text-slate-300 mb-8 max-w-md mx-auto">
