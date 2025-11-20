@@ -131,6 +131,7 @@ function LayoutComponent({ children }: LayoutProps) {
                 const isActive = location.pathname === normalizedPath || location.pathname + location.hash === item.path;
                 const Icon = item.icon;
                 const isSettings = item.path === '/settings';
+                const isAssistant = item.path.includes('#assistant');
 
                 if (isSettings) {
                   return (
@@ -204,6 +205,33 @@ function LayoutComponent({ children }: LayoutProps) {
                   );
                 }
 
+                if (isAssistant) {
+                  return (
+                    <button
+                      key="assistant-nav"
+                      type="button"
+                      onClick={() => {
+                        // Jump to an active project assistant if available; otherwise go to projects list
+                        if (activeProjectId) {
+                          navigate(`/projects/${activeProjectId}`, { state: { focusAssistant: true } });
+                        } else {
+                          navigate('/projects', { state: { focusAssistant: true } });
+                        }
+                      }}
+                      className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 border ${
+                        isActive
+                          ? 'bg-surface-card text-slate-900 dark:text-white border-brand-400 shadow-md'
+                          : 'text-slate-600 dark:text-slate-300 border-transparent hover:border-border-subtle hover:bg-surface-elevated dark:hover:bg-surface-elevated'
+                      }`}
+                    >
+                      <span className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-slate-500 dark:text-slate-300'} border border-border-subtle`}>
+                        <Icon />
+                      </span>
+                      <span>Assistant</span>
+                    </button>
+                  );
+                }
+
                 return (
                   <Link
                     key={item.path}
@@ -247,9 +275,15 @@ function LayoutComponent({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className={`mx-auto ${isFullWidth ? 'max-w-full px-2 sm:px-4 lg:px-6' : 'max-w-7xl px-4 sm:px-6 lg:px-8'} py-6 lg:py-8 flex-1 flex flex-col min-h-0`}>
-        {children}
-      </main>
+      {location.pathname.includes('/architect') ? (
+        <main className="w-full h-[calc(100vh-4rem)] overflow-hidden px-4 sm:px-6 lg:px-8">
+          {children}
+        </main>
+      ) : (
+        <main className={`mx-auto ${isFullWidth ? 'max-w-full px-0' : 'max-w-7xl px-4 sm:px-6 lg:px-8'} py-6 lg:py-8 flex-1 flex flex-col min-h-0`}>
+          {children}
+        </main>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-border-subtle bg-white/75 dark:bg-[rgba(10,15,26,0.9)] backdrop-blur-md mt-16">

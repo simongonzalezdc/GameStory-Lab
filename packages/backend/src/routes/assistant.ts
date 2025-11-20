@@ -78,19 +78,30 @@ router.post('/session/:sessionId/message', async (req: Request, res: Response) =
   } catch (error: any) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
+    const errorDetails = error instanceof Error ? {
+      name: error.name,
+      message: error.message,
+      stack: errorStack,
+    } : {
+      type: typeof error,
+      value: String(error),
+    };
     
     logger.error('Assistant message failed', {
       error: errorMessage,
       stack: errorStack,
       sessionId: req.params.sessionId,
       errorType: error?.constructor?.name,
+      errorDetails,
     });
     
     console.error('[Assistant Route] Full error:', error);
+    console.error('[Assistant Route] Error details:', JSON.stringify(errorDetails, null, 2));
     
     res.status(500).json({ 
       error: errorMessage,
       details: process.env.NODE_ENV === 'development' ? errorStack : undefined,
+      errorType: error?.constructor?.name,
     });
   }
 });

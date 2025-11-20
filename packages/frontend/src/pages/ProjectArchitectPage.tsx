@@ -34,8 +34,14 @@ export function ProjectArchitectPage() {
     if (!projectId) return;
     try {
       const response = await fetch(`${API_BASE_URL}/api/architect/documentation/${projectId}`);
+      if (response.status === 404) {
+        // Documentation doesn't exist yet - this is expected and not an error
+        setDocumentationGenerated(false);
+        setGeneratedDocs(null);
+        return;
+      }
       if (response.ok) {
-      const data = await response.json();
+        const data = await response.json();
         if (data.success && data.data) {
           const docs = data.data;
           setGeneratedDocs({
@@ -51,10 +57,13 @@ export function ProjectArchitectPage() {
           });
           setDocumentationGenerated(true);
         }
+      } else {
+        // Other error status codes
+        console.warn('Failed to check documentation:', response.status, response.statusText);
       }
     } catch (err) {
-      // Documentation doesn't exist yet, that's fine
-      console.log('No documentation found yet');
+      // Network or other errors
+      console.warn('Error checking documentation:', err);
     }
   };
 
@@ -119,7 +128,7 @@ export function ProjectArchitectPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
+    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-slate-50 dark:bg-slate-900 w-full max-w-none">
       {/* Compact Header */}
       <div className="flex-shrink-0 px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         <div className="flex items-center justify-between">

@@ -138,31 +138,62 @@ export class AssistantService {
       })),
       {
         role: 'user' as const,
-        content: JSON.stringify({
-          userMessage: content,
-          context,
-          instructions: [
-            'Respond using the required JSON schema: { "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }',
-            '',
-            'CRITICAL PROPOSAL REQUIREMENT:',
-            'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", or anything they can approve, you MUST include a proposal object with actual data.',
-            '',
-            'The proposal object MUST contain:',
-            '- "explanation": A string describing what the proposal does',
-            '- "mechanics": A complete mechanics object (if proposing mechanics changes)',
-            '- "lore": A complete lore object (if proposing lore changes)',
-            '',
-            'DO NOT:',
-            '- Return {proposal: null} or {proposal: {}}',
-            '- Just say "I will create..." without actually including the proposal',
-            '- Include only an explanation without mechanics/lore objects',
-            '',
-            'DO:',
-            '- Include the full, complete mechanics and/or lore objects in the proposal',
-            '- Make sure proposal.mechanics and proposal.lore contain actual JSON data, not empty objects',
-            '- If proposing both mechanics and lore, include both objects',
-          ].join('\n'),
-        }),
+        content: (() => {
+          try {
+            // Safely serialize context to avoid circular reference errors
+            const safeContext = {
+              project: context.project,
+              latestVersion: context.latestVersion ? {
+                id: context.latestVersion.id,
+                version: context.latestVersion.version,
+                mechanics: context.latestVersion.mechanics,
+                lore: context.latestVersion.lore,
+              } : undefined,
+              validationIssues: context.validationIssues,
+              architect: context.architect,
+            };
+            return JSON.stringify({
+              userMessage: content,
+              context: safeContext,
+              instructions: [
+                'Respond using the required JSON schema: { "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }',
+                '',
+                'CRITICAL PROPOSAL REQUIREMENT:',
+                'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", or anything they can approve, you MUST include a proposal object with actual data.',
+                '',
+                'The proposal object MUST contain:',
+                '- "explanation": A string describing what the proposal does',
+                '- "mechanics": A complete mechanics object (if proposing mechanics changes)',
+                '- "lore": A complete lore object (if proposing lore changes)',
+                '',
+                'DO NOT:',
+                '- Return {proposal: null} or {proposal: {}}',
+                '- Just say "I will create..." without actually including the proposal',
+                '- Include only an explanation without mechanics/lore objects',
+                '',
+                'DO:',
+                '- Include the full, complete mechanics and/or lore objects in the proposal',
+                '- Make sure proposal.mechanics and proposal.lore contain actual JSON data, not empty objects',
+                '- If proposing both mechanics and lore, include both objects',
+              ].join('\n'),
+            });
+          } catch (serializeError) {
+            logger.error('Failed to serialize context for AI message', {
+              error: serializeError instanceof Error ? serializeError.message : String(serializeError),
+              sessionId,
+            });
+            // Fallback: send just the user message without full context
+            return JSON.stringify({
+              userMessage: content,
+              instructions: [
+                'Respond using the required JSON schema: { "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }',
+                '',
+                'CRITICAL PROPOSAL REQUIREMENT:',
+                'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", or anything they can approve, you MUST include a proposal object with actual data.',
+              ].join('\n'),
+            });
+          }
+        })(),
       },
     ];
 
@@ -177,7 +208,7 @@ export class AssistantService {
       'assistant',
       aiMessages,
       'auto', // Will use GLM 4.6 if available, otherwise falls back to Ollama
-      { maxTokens: 8000 } // Increased to allow for full mechanics/lore objects in proposals
+      { maxTokens: 16000 } // Increased significantly to allow for full mechanics/lore objects in proposals
     );
 
       logger.debug('AI response received', {
@@ -187,15 +218,19 @@ export class AssistantService {
       });
 
     // Log the raw AI response for debugging proposal issues
+    const responseEndsProperly = aiResponse.content.trim().endsWith('}') || aiResponse.content.trim().endsWith('"}');
     logger.info('Raw AI response', {
       sessionId,
       userMessage: content,
       model: aiResponse.model,
       responseLength: aiResponse.content.length,
       responsePreview: aiResponse.content.substring(0, 2000),
+      responseEnd: aiResponse.content.substring(Math.max(0, aiResponse.content.length - 200)),
+      responseEndsProperly,
       hasProposalKeyword: /proposal/i.test(aiResponse.content),
       hasMechanicsKeyword: /mechanics/i.test(aiResponse.content),
       hasLoreKeyword: /lore/i.test(aiResponse.content),
+      mightBeTruncated: !responseEndsProperly && aiResponse.content.includes('"proposal"'),
     });
 
     const parsed = this.parseAssistantResponse(aiResponse.content);
@@ -1320,17 +1355,43 @@ export class AssistantService {
         replyType: typeof parsed.reply,
         proposalType: typeof parsed.proposal,
         proposalValue: parsed.proposal,
+        originalContentLength: content.length,
+        cleanedContentLength: cleanedContent.length,
       });
+      
+      // Check if the response might be truncated
+      // If the cleaned content doesn't end with a closing brace, it might be truncated
+      const mightBeTruncated = !cleanedContent.trim().endsWith('}') && cleanedContent.includes('"proposal"');
+      if (mightBeTruncated) {
+        logger.warn('Response might be truncated - JSON may be incomplete', {
+          contentLength: cleanedContent.length,
+          lastChars: cleanedContent.substring(Math.max(0, cleanedContent.length - 100)),
+          hasProposalKey: cleanedContent.includes('"proposal"'),
+        });
+      }
       
       // Handle case where model returns only reply field without proposal
       // Sometimes models return {reply: "..."} instead of {reply: "...", proposal: {...}}
       if (parsed.proposal === undefined || parsed.proposal === null) {
-        logger.warn('Model response missing proposal field', {
-          keys: Object.keys(parsed),
-          hasReply: !!parsed.reply,
-          replyPreview: typeof parsed.reply === 'string' ? parsed.reply.substring(0, 200) : String(parsed.reply),
-          fullParsed: JSON.stringify(parsed).substring(0, 500),
-        });
+        // Check if the original content has a proposal but it wasn't parsed
+        const hasProposalInContent = content.includes('"proposal"') && content.includes('"mechanics"');
+        if (hasProposalInContent) {
+          logger.error('Proposal exists in content but was not parsed correctly', {
+            keys: Object.keys(parsed),
+            hasReply: !!parsed.reply,
+            contentHasProposal: content.includes('"proposal"'),
+            contentHasMechanics: content.includes('"mechanics"'),
+            contentPreview: content.substring(0, 2000),
+            parsedPreview: JSON.stringify(parsed).substring(0, 500),
+          });
+        } else {
+          logger.warn('Model response missing proposal field', {
+            keys: Object.keys(parsed),
+            hasReply: !!parsed.reply,
+            replyPreview: typeof parsed.reply === 'string' ? parsed.reply.substring(0, 200) : String(parsed.reply),
+            fullParsed: JSON.stringify(parsed).substring(0, 500),
+          });
+        }
         
         // Return just the reply without proposal
         return {

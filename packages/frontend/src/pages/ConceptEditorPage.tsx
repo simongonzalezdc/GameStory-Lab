@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { projectsAPI, validationAPI, exportAPI, refinementAPI, generateAPI, APIError } from '../services/api';
 import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
 import { MechanicsViewer } from '../components/MechanicsViewer';
@@ -35,6 +35,7 @@ interface ValidationIssue {
 
 export function ConceptEditorPage() {
   const { projectId } = useParams<{ projectId: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [versions, setVersions] = useState<Version[]>([]);
@@ -60,16 +61,31 @@ export function ConceptEditorPage() {
   const [lastValidationSource, setLastValidationSource] = useState<'auto' | 'manual' | 'follow-up' | null>(null);
   const [lastValidatedAt, setLastValidatedAt] = useState<string | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [highlightAssistant, setHighlightAssistant] = useState(false);
   
   // Track last validated version to avoid duplicate validations
   const lastValidatedVersionId = useRef<string | null>(null);
   const validationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentVersionRef = useRef<Version | null>(null);
+  const assistantRef = useRef<HTMLDivElement | null>(null);
 
   const hasContentToValidate = (version: Version | null) =>
     !!version &&
     ((version.mechanics && Object.keys(version.mechanics).length > 0) ||
       (version.lore && Object.keys(version.lore).length > 0));
+
+  useEffect(() => {
+    currentVersionRef.current = currentVersion;
+  }, [currentVersion]);
+
+  useEffect(() => {
+    if ((location.state as any)?.focusAssistant && assistantRef.current) {
+      assistantRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setHighlightAssistant(true);
+      setTimeout(() => setHighlightAssistant(false), 2000);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
 
   const buildAssistantPrompt = (): string => {
     const version = currentVersionRef.current;
@@ -849,8 +865,8 @@ export function ConceptEditorPage() {
         </div>
       </div>
 
-      {/* Split Layout: 50% Assistant, 50% Validation/Results */}
-      <div className="grid gap-4 lg:grid-cols-2 flex-1 min-h-0 overflow-hidden">
+      {/* Split Layout: 60% Assistant, 40% Validation/Results */}
+      <div className="flex gap-4 flex-1 min-h-0 overflow-hidden">
         {/* Floating Revalidate Button - always visible */}
         <div className="lg:hidden fixed bottom-4 right-4 z-40">
           <button
@@ -876,8 +892,11 @@ export function ConceptEditorPage() {
           </button>
         </div>
 
-        {/* Left Column: Assistant (50%) */}
-        <div className="flex flex-col min-h-0 overflow-hidden">
+        {/* Left Column: Assistant (60%) */}
+        <div
+          ref={assistantRef}
+          className={`flex flex-col min-h-0 overflow-hidden flex-[3] ${highlightAssistant ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-slate-100 dark:ring-offset-slate-900 rounded-xl transition' : ''}`}
+        >
           {project?.id && (
             <ProjectAssistantPanel
               projectId={project.id}
@@ -901,8 +920,8 @@ export function ConceptEditorPage() {
           )}
         </div>
 
-        {/* Right Column: Validation/Results (50%) */}
-        <div className="flex flex-col space-y-3 min-h-0 overflow-hidden">
+        {/* Right Column: Validation/Results (40%) */}
+        <div className="flex flex-col space-y-3 min-h-0 overflow-hidden flex-[2] min-w-0">
           {/* Tabs */}
           <div className="border-b border-gray-200 dark:border-gray-700 mb-3 flex-shrink-0">
             <nav className="flex space-x-4">

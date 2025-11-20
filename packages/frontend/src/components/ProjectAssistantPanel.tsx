@@ -321,12 +321,12 @@ For each category, provide specific, actionable suggestions. Help me understand 
   }, [type]);
 
   return (
-    <div className="flex flex-col h-full min-h-0 overflow-hidden relative cq-panel">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden relative cq-panel w-full">
       {/* Full-height Assistant Card */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-surface rounded-2xl border border-border-subtle assistant-card-glow assistant-transition shadow-lg">
         {/* Rich Header */}
-        <div className="px-6 py-4 border-b border-border-subtle divider-glow bg-surface-card flex-shrink-0">
-          <div className="flex items-center justify-between mb-2">
+        <div className="px-4 py-3 border-b border-border-subtle divider-glow bg-surface-card flex-shrink-0">
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                 AI
@@ -374,16 +374,16 @@ For each category, provide specific, actionable suggestions. Help me understand 
           {/* Chat Area */}
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* Messages */}
-            <div ref={listRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
+            <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2 min-h-0">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl mb-4 shadow-lg">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg mb-3 shadow-lg">
                     AI
                   </div>
-                  <h4 className="text-lg font-semibold text-slate-100 mb-2">
+                  <h4 className="text-base font-semibold text-slate-100 mb-1.5">
                     Start a conversation
                   </h4>
-                  <p className="text-sm text-slate-400 max-w-md">
+                  <p className="text-xs text-slate-400 max-w-md">
                     Ask me anything about your project. I can help refine mechanics, expand lore, check consistency, and more.
                   </p>
                 </div>
@@ -391,7 +391,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                 messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                    className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                   >
                     {/* Avatar */}
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -404,7 +404,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     {/* Message Bubble */}
                     <div className={`flex-1 max-w-[75%] ${msg.role === 'user' ? 'flex flex-col items-end' : ''}`}>
                       <div
-                        className={`rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                        className={`rounded-xl px-3 py-2 text-sm shadow-sm ${
                           msg.role === 'assistant'
                             ? 'bg-surface-elevated border border-border-subtle text-slate-100'
                             : 'bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md'
@@ -413,7 +413,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                         <div className="whitespace-pre-wrap break-words">{msg.content}</div>
                       </div>
                       {msg.createdAt && (
-                        <div className={`text-xs text-slate-400 mt-1 px-1 ${
+                        <div className={`text-xs text-slate-400 mt-0.5 px-1 ${
                           msg.role === 'user' ? 'text-right' : ''
                         }`}>
                           {formatTime(msg.createdAt)}
@@ -424,11 +424,11 @@ For each category, provide specific, actionable suggestions. Help me understand 
                 ))
               )}
               {loading && (
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-brand-600 to-mint-500 flex items-center justify-center text-xs font-bold text-white">
                     AI
                   </div>
-                  <div className="flex items-center gap-1 px-4 py-3 bg-surface-elevated border border-border-subtle rounded-2xl">
+                  <div className="flex items-center gap-1 px-3 py-2 bg-surface-elevated border border-border-subtle rounded-xl">
                     <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
                     <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
                     <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
@@ -440,7 +440,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
             {/* Composer - Always Visible */}
             <div className="border-t border-border-subtle bg-surface-card shadow-lg flex-shrink-0">
               {error && (
-                <div className="px-6 pt-3">
+                <div className="px-4 pt-2">
                   <div className="text-sm text-red-400 bg-red-900/20 border border-red-800 rounded-lg px-3 py-2 flex items-start justify-between gap-2">
                     <div className="flex-1">
                       <p className="font-semibold mb-1">Error sending message</p>
@@ -459,7 +459,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
               )}
               
               {/* Quick Actions */}
-              <div className="px-6 pt-3 pb-2">
+              <div className="px-4 pt-2 pb-1.5">
                 <div className="flex flex-wrap gap-2">
                   {/* Quick Chat Actions */}
                   <button
@@ -512,7 +512,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
               </div>
 
               {/* Input Area */}
-              <div className="px-6 pb-4">
+              <div className="px-4 pb-3">
                 <div className="flex gap-2 items-end">
                   <button
                     className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-slate-600 bg-slate-700 text-slate-300 hover:bg-slate-600 transition"
