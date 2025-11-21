@@ -6,35 +6,17 @@
 
 import React, { useEffect, useState, memo, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { FolderKanban, Settings, Sparkles } from 'lucide-react';
+import { CursorGlow } from './CursorGlow';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-const IconProjects = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-    <path d="M5 7.5A1.5 1.5 0 016.5 6h11A1.5 1.5 0 0119 7.5V18a.5.5 0 01-.5.5H5.5a.5.5 0 01-.5-.5V7.5Z" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M9 10h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
-
-const IconSettings = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-    <path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M19.4 12a7.4 7.4 0 00-.1-1l1.7-1.3-1.6-2.8-2 .6a7.5 7.5 0 00-1.8-1L15 2.5h-3.1L11.3 6a7.5 7.5 0 00-1.8 1l-2-.6-1.6 2.8L7.6 11a7.4 7.4 0 000 2l-1.7 1.3 1.6 2.8 2-.6a7.5 7.5 0 001.8 1l.6 3.5H15l.6-3.5a7.5 7.5 0 001.8-1l2 .6 1.6-2.8-1.7-1.3c.1-.3.1-.7.1-1z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-  </svg>
-);
-
-const IconSpark = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-    <path d="M12 3l2.1 5.9L20 11l-5.9 2.1L12 19l-2.1-5.9L4 11l5.9-2.1L12 3z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-  </svg>
-);
-
 // Navigation items constant (defined outside component to prevent recreation)
 const NAV_ITEMS = [
-  { path: '/', label: 'Projects', icon: IconProjects },
-  { path: '/settings', label: 'Settings', icon: IconSettings },
+  { path: '/', label: 'Projects', icon: FolderKanban },
+  { path: '/settings', label: 'Settings', icon: Settings },
 ] as const;
 
 function LayoutComponent({ children }: LayoutProps) {
@@ -70,7 +52,8 @@ function LayoutComponent({ children }: LayoutProps) {
   const isFullWidth = location.pathname.includes('/projects/') || location.pathname.includes('/architect');
 
 return (
-    <div className="min-h-screen bg-[var(--color-bg-primary)] transition-colors flex flex-col">
+    <div className="min-h-screen bg-[var(--color-bg-primary)] transition-colors flex flex-col relative overflow-hidden">
+      <CursorGlow />
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border-subtle bg-white dark:bg-[rgba(12,18,36,0.94)] backdrop-blur-md shadow-sm">
@@ -118,7 +101,7 @@ return (
                         aria-haspopup="menu"
                       >
                         <span className={`avatar avatar-sm flex items-center justify-center ${showSettingsMenu ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
-                          <Icon />
+                          <Icon className="w-4 h-4" />
                         </span>
                         <span>{item.label}</span>
                       </button>
@@ -198,7 +181,7 @@ return (
                     aria-current={isActive ? 'page' : undefined}
                   >
                     <span className={`avatar avatar-sm flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
-                      <Icon />
+                      <Icon className="w-4 h-4" />
                     </span>
                     <span>{item.label}</span>
                   </Link>
@@ -208,6 +191,14 @@ return (
 
             {/* Actions */}
             <div className="flex items-center gap-3">
+              <Link
+                to="/templates"
+                className="hidden sm:inline-flex items-center gap-2 btn bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+                style={{ boxShadow: '0 10px 30px -12px rgba(63, 93, 168, 0.55)' }}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Explore Templates</span>
+              </Link>
               {activeProjectId && (
                 <Link
                   to={`/projects/${activeProjectId}/architect`}

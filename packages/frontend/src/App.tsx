@@ -4,7 +4,8 @@
  */
 
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Layout } from './components/Layout';
 
 // Lazy load page components for code splitting
@@ -27,20 +28,65 @@ function LoadingFallback() {
   );
 }
 
+// Animated routes component
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  const pageVariants = {
+    initial: {
+      opacity: 0,
+      y: 20,
+      scale: 0.98
+    },
+    in: {
+      opacity: 1,
+      y: 0,
+      scale: 1
+    },
+    out: {
+      opacity: 0,
+      y: -20,
+      scale: 1.02
+    }
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.4
+  };
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial="initial"
+        animate="in"
+        exit="out"
+        variants={pageVariants}
+        transition={pageTransition}
+        className="w-full"
+      >
+        <Routes location={location}>
+          <Route path="/" element={<ProjectsPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/projects/:projectId" element={<ConceptEditorPage />} />
+          <Route path="/projects/:projectId/architect" element={<ProjectArchitectPage />} />
+          <Route path="/templates" element={<TemplateBrowserPage />} />
+          <Route path="/health" element={<HealthPage />} />
+          <Route path="/tutorial" element={<TutorialPage />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 function App() {
   return (
     <Router>
       <Layout>
         <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            <Route path="/" element={<ProjectsPage />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/projects/:projectId" element={<ConceptEditorPage />} />
-            <Route path="/projects/:projectId/architect" element={<ProjectArchitectPage />} />
-            <Route path="/templates" element={<TemplateBrowserPage />} />
-            <Route path="/health" element={<HealthPage />} />
-            <Route path="/tutorial" element={<TutorialPage />} />
-          </Routes>
+          <AnimatedRoutes />
         </Suspense>
       </Layout>
     </Router>

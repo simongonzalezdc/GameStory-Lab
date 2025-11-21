@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { projectsAPI } from '../services/api';
 import { useDebounce } from '../hooks';
 import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
+import { SpotlightCard } from '../components/SpotlightCard';
 
 interface Project {
   id: string;
@@ -62,6 +63,7 @@ export function ProjectsPage() {
   const [creating, setCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const [showAssistant, setShowAssistant] = useState(() => {
     // Load visibility preference from localStorage
     return localStorage.getItem('assistantVisible') !== 'false';
@@ -185,19 +187,26 @@ export function ProjectsPage() {
 
   return (
     <div className="space-y-8">
-      {/* Hero Section */}
-      <section className="hero-pane shadow-lg p-8 lg:p-12 space-y-10" style={{ border: '1px solid var(--color-border-subtle)' }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="space-y-6">
+      {/* Bento Grid Hero Section */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        {/* Large Welcome Cell - spans 8 columns on large screens */}
+        <div className="lg:col-span-8 glass-card p-8 lg:p-12 flex flex-col justify-center min-h-[400px] relative overflow-hidden">
+          {/* CSS-only abstract jewel illustration */}
+          <div className="absolute top-0 right-0 w-64 h-64 opacity-20 pointer-events-none">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-500 via-brand-400 to-mint-500 rounded-full blur-3xl transform rotate-45" />
+            <div className="absolute inset-4 bg-gradient-to-tr from-mint-500 via-brand-500 to-brand-600 rounded-full blur-2xl transform -rotate-45" />
+            <div className="absolute inset-8 bg-gradient-to-bl from-brand-600 to-mint-400 rounded-full blur-xl" />
+          </div>
+          <div className="relative z-10 space-y-6">
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl font-[700] text-slate-900 dark:text-white tracking-tight max-w-3xl" style={{ fontFamily: 'var(--font-display)' }}>
+              <h1 className="text-4xl md:text-5xl font-[700] text-slate-900 dark:text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
                 Create Game Design Documents with AI
               </h1>
-              <p className="text-lg leading-7 text-slate-800 dark:text-slate-300 max-w-2xl text-balance">
+              <p className="text-lg leading-7 text-slate-800 dark:text-slate-300 text-balance">
                 Generate mechanics, write lore, validate consistency, export professional documentation.
               </p>
             </div>
-            <div className="flex flex-wrap justify-center items-center gap-3">
+            <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="btn btn-primary shadow-lg hover:shadow-xl"
@@ -227,21 +236,44 @@ export function ProjectsPage() {
               </button>
             </div>
           </div>
-
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-          <div className="stat-card p-6">
-            <div className="eyebrow mb-2">Projects</div>
-            <div className="text-4xl font-bold text-primary">{stats.projectCount}</div>
-            <p className="text-sm text-secondary">active projects</p>
+        {/* Stats Cell - spans 2 columns */}
+        <div className="lg:col-span-2 glass-card p-6 flex flex-col justify-center">
+          <div className="space-y-4">
+            <div className="stat-card p-4">
+              <div className="eyebrow mb-1">Projects</div>
+              <div className="text-3xl font-bold text-primary">{stats.projectCount}</div>
+              <p className="text-xs text-secondary">active</p>
+            </div>
+            <div className="stat-card p-4">
+              <div className="eyebrow mb-1">Versions</div>
+              <div className="text-3xl font-bold text-primary">{stats.totalVersions}</div>
+              <p className="text-xs text-secondary">total</p>
+            </div>
           </div>
-          <div className="stat-card p-6">
-            <div className="eyebrow mb-2">Versions</div>
-            <div className="text-4xl font-bold text-primary">{stats.totalVersions}</div>
-            <p className="text-sm text-secondary">total versions</p>
-          </div>
+        </div>
+
+        {/* Recent Activity Cell - spans 2 columns */}
+        <div className="lg:col-span-2 glass-card p-6">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Recent Activity</h3>
+          {recentActivity.length === 0 ? (
+            <div className="text-center py-4">
+              <div className="text-2xl mb-2">📝</div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">No recent edits</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {recentActivity.slice(0, 3).map((activity) => (
+                <div key={activity.id} className="rounded border border-border-subtle p-2 hover:bg-surface-muted dark:hover:bg-surface-strong transition-colors">
+                  <div className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{activity.name}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {formatDistanceToNow(activity.updatedAt)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -348,9 +380,9 @@ export function ProjectsPage() {
                 const versionDepth = Math.min(100, Math.round((versions / 8) * 100));
 
                 return (
-                  <div
+                  <SpotlightCard
                     key={project.id}
-                    className="group glass-card border border-border-subtle shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden"
+                    className="group hover:shadow-lg transition-all duration-200 overflow-hidden"
                   >
                     {/* Card Header */}
                     <div className="p-6 border-b border-subtle bg-surface-card">
@@ -427,7 +459,7 @@ export function ProjectsPage() {
                         Open Project
                       </Link>
                     </div>
-                  </div>
+                  </SpotlightCard>
                 );
               })}
             </div>
