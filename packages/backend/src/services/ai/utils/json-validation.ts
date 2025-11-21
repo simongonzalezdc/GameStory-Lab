@@ -217,6 +217,20 @@ function extractFirstJSONSegment(text: string): string | null {
   }
   }
 
+  // If we reached the end with an incomplete segment, return it for repair
+  if (start !== -1 && depth > 0 && text.length > 50) {
+    const incomplete = text.substring(start);
+    logger.warn('Extracted incomplete JSON segment (will attempt repair)', {
+      textLength: text.length,
+      incompleteLength: incomplete.length,
+      finalDepth: depth,
+      inString: inString,
+      bracketType,
+      preview: incomplete.substring(0, 200),
+    });
+    return incomplete.trim();
+  }
+
   logger.warn('Failed to extract complete JSON segment', {
     textLength: text.length,
     finalDepth: depth,
@@ -226,6 +240,88 @@ function extractFirstJSONSegment(text: string): string | null {
   });
 
   return null;
+}
+
+/**
+ * Repair truncated JSON by closing unclosed strings, arrays, and objects
+ */
+function repairTruncatedJSON(json: string): string | null {
+  let repaired = json.trim();
+  let inString = false;
+  let escapeNext = false;
+  const stack: Array<'{' | '['> = [];
+  
+  // Safety limit
+  const maxLength = Math.min(repaired.length, 1000000);
+  
+  // First pass: track state and build stack
+  for (let i = 0; i < maxLength; i++) {
+    const char = repaired[i];
+    
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
+    }
+    
+    if (char === '\\') {
+      escapeNext = true;
+      continue;
+    }
+    
+    if (char === '"' && !escapeNext) {
+      inString = !inString;
+      continue;
+    }
+    
+    if (inString) {
+      continue;
+    }
+    
+    if (char === '{') {
+      stack.push('{');
+    } else if (char === '[') {
+      stack.push('[');
+    } else if (char === '}') {
+      if (stack.length > 0 && stack[stack.length - 1] === '{') {
+        stack.pop();
+      }
+    } else if (char === ']') {
+      if (stack.length > 0 && stack[stack.length - 1] === '[') {
+        stack.pop();
+      }
+    }
+  }
+  
+  // Remove trailing comma if present (before any whitespace)
+  repaired = repaired.replace(/,\s*$/, '');
+  
+  // Close unclosed string
+  if (inString) {
+    repaired += '"';
+    logger.debug('Repaired: closed unclosed string');
+  }
+  
+  // Close unclosed arrays/objects in reverse order
+  while (stack.length > 0) {
+    const opener = stack.pop();
+    if (opener === '{') {
+      repaired += '}';
+    } else if (opener === '[') {
+      repaired += ']';
+    }
+  }
+  
+  // Final check: remove any trailing comma before closing braces
+  repaired = repaired.replace(/,\s*([}\]])/g, '$1');
+  
+  logger.debug('Repaired truncated JSON', {
+    originalLength: json.length,
+    repairedLength: repaired.length,
+    closedStrings: inString ? 1 : 0,
+    closedBrackets: stack.length,
+  });
+  
+  return repaired;
 }
 
 function tryParseJSONString(jsonSnippet: string, originalContent: string): JSONParseAttempt {
@@ -241,6 +337,8 @@ function tryParseJSONString(jsonSnippet: string, originalContent: string): JSONP
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    // Try basic JSON fix first
     const fixed = attemptJSONFix(jsonSnippet);
     if (fixed) {
       try {
@@ -258,10 +356,34 @@ function tryParseJSONString(jsonSnippet: string, originalContent: string): JSONP
           },
         };
       } catch (fixError) {
+        // Continue to repair attempt
+      }
+    }
+    
+    // Try truncation repair if basic fix failed
+    const repaired = repairTruncatedJSON(jsonSnippet);
+    if (repaired && repaired !== jsonSnippet) {
+      try {
+        const parsed = JSON.parse(repaired);
+        logger.info('Successfully repaired truncated JSON', {
+          originalLength: jsonSnippet.length,
+          repairedLength: repaired.length,
+          originalPreview: jsonSnippet.substring(Math.max(0, jsonSnippet.length - 100)),
+          repairedPreview: repaired.substring(Math.max(0, repaired.length - 100)),
+        });
         return {
-          success: false,
-          error: fixError instanceof Error ? fixError.message : String(fixError),
+          success: true,
+          result: {
+            isValid: true,
+            parsed,
+            reformatted: JSON.stringify(parsed, null, 2),
+          },
         };
+      } catch (repairError) {
+        logger.warn('Repair attempt failed', {
+          repairError: repairError instanceof Error ? repairError.message : String(repairError),
+          repairedPreview: repaired.substring(0, 200),
+        });
       }
     }
 

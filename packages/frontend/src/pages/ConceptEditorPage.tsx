@@ -9,6 +9,7 @@ import { projectsAPI, validationAPI, exportAPI, refinementAPI, generateAPI, APIE
 import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
 import { MechanicsViewer } from '../components/MechanicsViewer';
 import { LoreViewer } from '../components/LoreViewer';
+import { JewelSpinner } from '../components/JewelSpinner';
 
 interface Project {
   id: string;
@@ -594,7 +595,7 @@ export function ConceptEditorPage() {
               {generating && generationStep && (
                 <div className="validation-info px-4 py-3 text-sm">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-[var(--color-info)]/30 border-t-[var(--color-info)] rounded-full animate-spin" />
+                    <JewelSpinner size="sm" />
                     <span><strong>Status:</strong> {generationStep}</span>
                   </div>
                   <div className="mt-2 text-xs text-[var(--color-info)]">
@@ -624,7 +625,7 @@ export function ConceptEditorPage() {
                 >
                   {generating ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <JewelSpinner size="sm" />
                       <span>{generationStep || 'Generating...'}</span>
                     </>
                   ) : (
@@ -809,7 +810,7 @@ export function ConceptEditorPage() {
                 >
                   {merging ? (
                     <>
-                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <JewelSpinner size="sm" />
                       <span>Merging</span>
                     </>
                   ) : (
@@ -855,7 +856,7 @@ export function ConceptEditorPage() {
           >
             {validating ? (
               <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <JewelSpinner size="sm" />
                 <span>Validating...</span>
               </>
             ) : (
@@ -1019,7 +1020,7 @@ export function ConceptEditorPage() {
                   >
                     {validating ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <JewelSpinner size="sm" />
                         <span>Validating...</span>
                       </>
                     ) : (

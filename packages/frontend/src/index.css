@@ -1666,24 +1666,6 @@
     }
   }
 
-  @keyframes jewel-sparkle {
-    0%, 100% {
-      opacity: 0.3;
-      transform: scale(0.8) rotate(0deg) translateY(0);
-    }
-    25% {
-      opacity: 0.8;
-      transform: scale(1.2) rotate(90deg) translateY(-2px);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1.4) rotate(180deg) translateY(-4px);
-    }
-    75% {
-      opacity: 0.8;
-      transform: scale(1.2) rotate(270deg) translateY(-2px);
-    }
-  }
 
   @keyframes morph-shape {
     0%, 100% { border-radius: 50%; }
@@ -1701,6 +1683,24 @@
     }
   }
 
+  @keyframes jewel-spin-ring {
+    0% {
+      transform: rotate(0deg) scale(1);
+    }
+    25% {
+      transform: rotate(90deg) scale(1.04);
+    }
+    50% {
+      transform: rotate(180deg) scale(1.08);
+    }
+    75% {
+      transform: rotate(270deg) scale(1.04);
+    }
+    100% {
+      transform: rotate(360deg) scale(1);
+    }
+  }
+
   @keyframes shimmer {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
@@ -1711,16 +1711,6 @@
     50% { transform: translateY(-10px) scale(1.05); }
   }
 
-  @keyframes sparkle-depth {
-    0%, 100% {
-      transform: scale(0.9) translateZ(0);
-      opacity: 0.2;
-    }
-    50% {
-      transform: scale(1.1) translateZ(0);
-      opacity: 0.35;
-    }
-  }
 
   .jewel-spinner {
     position: relative;
@@ -1759,7 +1749,7 @@
     border-right-color: var(--jewel-amethyst);
     border-bottom-color: var(--jewel-garnet);
     border-radius: 50%;
-    animation: jewel-spin 2s linear infinite reverse, ring-morph 3.5s ease-in-out infinite alternate;
+    animation: jewel-spin-ring 2s linear infinite reverse;
     opacity: 0.5;
     z-index: 0;
   }
@@ -1779,86 +1769,6 @@
     box-shadow: 0 0 18px rgba(52, 70, 118, 0.5), 0 0 28px rgba(52, 70, 118, 0.25);
   }
 
-  /* Sparkle particles around the jewel */
-  .jewel-spinner .sparkle {
-    position: absolute;
-    width: 3px;
-    height: 3px;
-    background: radial-gradient(circle, var(--jewel-sapphire-soft) 0%, var(--jewel-amethyst-soft) 60%, var(--jewel-garnet-soft) 100%);
-    border-radius: 50%;
-    animation: 
-      jewel-sparkle 2.5s ease-in-out infinite,
-      sparkle-depth 4s ease-in-out infinite alternate;
-    z-index: 3;
-    opacity: 0.3;
-    box-shadow: 
-      0 0 5px color-mix(in srgb, var(--jewel-amethyst-rich) 70%, transparent),
-      0 0 8px color-mix(in srgb, var(--jewel-garnet-rich) 45%, transparent),
-      inset 0 0 1px var(--jewel-sapphire-soft);
-    transform-origin: center center;
-    pointer-events: none;
-    transform: translateZ(0);
-    filter: drop-shadow(0 0 1px color-mix(in srgb, var(--jewel-sapphire) 60%, transparent));
-  }
-
-  /* Fix selectors: core is child 1, sparkles are children 2-5 */
-  /* Using nth-child to target specific sparkle positions */
-  .jewel-spinner .sparkle:nth-child(2) {
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    animation-delay: 0s;
-  }
-
-  .jewel-spinner .sparkle:nth-child(3) {
-    top: 50%;
-    right: -10px;
-    transform: translateY(-50%);
-    animation-delay: 0.625s;
-  }
-
-  .jewel-spinner .sparkle:nth-child(4) {
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    animation-delay: 1.25s;
-  }
-
-  .jewel-spinner .sparkle:nth-child(5) {
-    top: 50%;
-    left: -10px;
-    transform: translateY(-50%);
-    animation-delay: 1.875s;
-  }
-  
-  /* Alternative selector using data attributes for more reliable targeting */
-  .jewel-spinner .sparkle[data-sparkle-index="0"] {
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    animation-delay: 0s;
-  }
-
-  .jewel-spinner .sparkle[data-sparkle-index="1"] {
-    top: 50%;
-    right: -10px;
-    transform: translateY(-50%);
-    animation-delay: 0.625s;
-  }
-
-  .jewel-spinner .sparkle[data-sparkle-index="2"] {
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    animation-delay: 1.25s;
-  }
-
-  .jewel-spinner .sparkle[data-sparkle-index="3"] {
-    top: 50%;
-    left: -10px;
-    transform: translateY(-50%);
-    animation-delay: 1.875s;
-  }
 
   /* Shimmering Skeleton Effect */
   .skeleton-shimmer {

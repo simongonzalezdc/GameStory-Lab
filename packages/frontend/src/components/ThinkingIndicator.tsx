@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { JewelSpinner } from './JewelSpinner';
 
 interface ThinkingIndicatorProps {
   className?: string;
@@ -30,14 +31,7 @@ export function ThinkingIndicator({ className = '' }: ThinkingIndicatorProps) {
     <div className={`flex flex-col items-start gap-3 p-4 ${className}`}>
       <div className="flex w-full flex-col gap-4 items-start sm:flex-row sm:items-center">
         <div className="flex-shrink-0">
-          {/* Gradient orb + sparkles */}
-          <div className="jewel-spinner">
-            <div className="jewel-spinner-core" />
-            <div className="sparkle" data-sparkle-index="0" />
-            <div className="sparkle" data-sparkle-index="1" />
-            <div className="sparkle" data-sparkle-index="2" />
-            <div className="sparkle" data-sparkle-index="3" />
-          </div>
+          <JewelSpinner size="md" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="h-5 relative overflow-hidden w-full">

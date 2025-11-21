@@ -4,6 +4,7 @@
  */
 
 import { useNavigate } from 'react-router-dom';
+import { JewelSpinner } from '../../../components/JewelSpinner';
 
 interface ArchitectHeaderProps {
   projectId: string;
@@ -41,7 +42,7 @@ export function ArchitectHeader({
           <div className="flex items-center gap-2">
             {isGenerating ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
+                <JewelSpinner size="sm" />
                 <span className="text-sm text-secondary">
                   {generationMessage}
                 </span>

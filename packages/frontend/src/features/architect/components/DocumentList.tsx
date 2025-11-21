@@ -3,6 +3,8 @@
  * Sidebar list of generated documents with status icons
  */
 
+import { JewelSpinner } from '../../../components/JewelSpinner';
+
 interface Document {
   name: string;
   generatedAt: string;
@@ -82,7 +84,7 @@ export function DocumentList({
                   <div className="font-medium truncate flex-1">{displayName}</div>
                   <div className="flex items-center gap-1 ml-2">
                     {status === 'generating' && (
-                      <div className="animate-spin rounded-full h-3 w-3 border-b border-brand-500"></div>
+                      <JewelSpinner size="sm" />
                     )}
                     {status === 'failed' && (
                       <span className="text-red-500 text-xs">⚠️</span>

@@ -16,12 +16,14 @@ const HealthPage = lazy(() => import('./pages/HealthPage').then(m => ({ default:
 const TutorialPage = lazy(() => import('./pages/TutorialPage').then(m => ({ default: m.TutorialPage })));
 const ProjectArchitectPage = lazy(() => import('./pages/ProjectArchitectPage').then(m => ({ default: m.ProjectArchitectPage })));
 
+import { JewelSpinner } from './components/JewelSpinner';
+
 // Loading fallback component
 function LoadingFallback() {
   return (
     <div className="flex items-center justify-center min-h-[400px]">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
+        <JewelSpinner size="lg" className="mx-auto mb-4" />
         <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       </div>
     </div>

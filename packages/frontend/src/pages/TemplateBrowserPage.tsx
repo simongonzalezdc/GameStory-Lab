@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { templatesAPI } from '../services/api';
 import { cn } from '../lib/utils';
+import { JewelSpinner } from '../components/JewelSpinner';
 
 interface GenreInfo {
   id: string;
@@ -376,7 +377,7 @@ export function TemplateBrowserPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-        <div className="w-14 h-14 border-4 border-border-subtle border-t-brand-500 rounded-full animate-spin" />
+        <JewelSpinner size="lg" />
         <p className="text-primary text-lg font-semibold">Preparing the Template Forge...</p>
         <p className="text-secondary text-sm max-w-md">
           Loading genres, blending heuristics, and Cozy Creator Lab presets.

@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 import { MarkdownRenderer } from '../../../components/MarkdownRenderer';
+import { JewelSpinner } from '../../../components/JewelSpinner';
 
 interface DocumentPreviewProps {
   documentName: string;
@@ -72,7 +73,7 @@ export function DocumentPreview({
         ) : (
           <div className="flex items-center justify-center h-full text-tertiary">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-2"></div>
+              <JewelSpinner size="md" className="mx-auto mb-2" />
               <p className="text-sm">Loading document...</p>
             </div>
           </div>

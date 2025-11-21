@@ -280,8 +280,11 @@ export class AssistantService {
           // Add critical proposal requirements
           instructionBlocks.push('🚨 CRITICAL RESPONSE FORMAT:');
           instructionBlocks.push('You MUST respond with PURE JSON ONLY - NO tool calls, NO markdown, NO wrapper formats!');
-          instructionBlocks.push('Return ONLY valid JSON using this EXACT nested schema:');
-          instructionBlocks.push('{ "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }');
+          instructionBlocks.push('Return ONLY valid JSON using this EXACT nested schema (NOTE: proposal comes FIRST to prevent truncation):');
+          instructionBlocks.push('{ "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] }, "reply": "string (MAX 2 SENTENCES)" }');
+          instructionBlocks.push('');
+          instructionBlocks.push('⚠️ CRITICAL: Put "proposal" FIRST, "reply" SECOND. This ensures truncation cuts the reply (dispensable) instead of the proposal (critical).');
+          instructionBlocks.push('⚠️ CRITICAL: Keep "reply" field to MAXIMUM 2 sentences to save tokens for the proposal data.');
           instructionBlocks.push('');
           instructionBlocks.push('You must output a JSON object containing exactly these keys: title (string), fileName (string ending in .md), and markdownContent (string). Do not invent other keys like "mechanics" or "explanation".');
           instructionBlocks.push('When creating documents, the content values (like "mechanics" or "lore") MUST be formatted as valid Markdown (use # headers, - lists, bold). Do not return plain text blocks.');
@@ -293,7 +296,8 @@ export class AssistantService {
           instructionBlocks.push('');
           instructionBlocks.push('⚠️ STRUCTURE REQUIREMENT - CRITICAL:');
           instructionBlocks.push('The "proposal" object MUST be NESTED under a "proposal" key at the top level.');
-          instructionBlocks.push('CORRECT: { "reply": "...", "proposal": { "mechanics": {...}, "lore": {...} } }');
+          instructionBlocks.push('CORRECT: { "proposal": { "mechanics": {...}, "lore": {...} }, "reply": "..." }  ← proposal FIRST!');
+          instructionBlocks.push('WRONG:   { "reply": "...", "proposal": {...} }  ← reply first will cause truncation issues!');
           instructionBlocks.push('WRONG:   { "reply": "...", "mechanics": {...}, "lore": {...} }  ← This will FAIL!');
           instructionBlocks.push('WRONG:   { "reply": "...", "explanation": "...", "mechanics": {...} }  ← This will FAIL!');
           instructionBlocks.push('WRONG:   [TOOL_CALL] {tool => "json_build_output"...}  ← This will FAIL!');
@@ -307,11 +311,12 @@ export class AssistantService {
           instructionBlocks.push('');
           instructionBlocks.push('⚠️ PROPOSAL VALIDATION CHECKLIST (check before responding):');
           instructionBlocks.push('1. Does user want something actionable? → MUST include proposal');
-          instructionBlocks.push('2. Is the proposal nested under "proposal" key? → MUST be {reply: "...", proposal: {...}}');
-          instructionBlocks.push('3. Is proposal.mechanics empty {}? → ERROR - include full mechanics object');
-          instructionBlocks.push('4. Is proposal.lore empty {}? → ERROR - include full lore object if proposing lore changes');
-          instructionBlocks.push('5. Is proposal.architectDocuments empty []? → ERROR - include documents if proposing docs');
-          instructionBlocks.push('6. Does proposal only have explanation? → ERROR - must include actual data objects');
+          instructionBlocks.push('2. Is the proposal nested under "proposal" key AND placed FIRST? → MUST be {proposal: {...}, reply: "..."}');
+          instructionBlocks.push('3. Is the reply field limited to 2 sentences? → MUST be concise to save tokens');
+          instructionBlocks.push('4. Is proposal.mechanics empty {}? → ERROR - include full mechanics object');
+          instructionBlocks.push('5. Is proposal.lore empty {}? → ERROR - include full lore object if proposing lore changes');
+          instructionBlocks.push('6. Is proposal.architectDocuments empty []? → ERROR - include documents if proposing docs');
+          instructionBlocks.push('7. Does proposal only have explanation? → ERROR - must include actual data objects');
           instructionBlocks.push('');
           instructionBlocks.push('✅ The proposal object MUST contain:');
           instructionBlocks.push('- "explanation": A string describing what the proposal does');
@@ -320,6 +325,8 @@ export class AssistantService {
           instructionBlocks.push('- "architectDocuments": Array of document objects with "name" and "content" fields - NOT []');
           instructionBlocks.push('');
           instructionBlocks.push('❌ DO NOT:');
+          instructionBlocks.push('- Put reply first: {reply: "...", proposal: {...}} ← WRONG! Proposal must come first');
+          instructionBlocks.push('- Make reply longer than 2 sentences ← WRONG! Keep it concise');
           instructionBlocks.push('- Return flat structure: {reply: "...", mechanics: {...}} ← WRONG! Must nest under proposal');
           instructionBlocks.push('- Return {proposal: null} or {proposal: {}} or {proposal: {explanation: "..."}}');
           instructionBlocks.push('- Say "I will create..." without including the proposal data');
@@ -328,7 +335,8 @@ export class AssistantService {
           instructionBlocks.push('- Skip the proposal if user asks for documents/changes');
           instructionBlocks.push('');
           instructionBlocks.push('✅ DO:');
-          instructionBlocks.push('- ALWAYS nest proposal data under "proposal" key: {reply: "...", proposal: {...}}');
+          instructionBlocks.push('- ALWAYS put proposal FIRST, reply SECOND: {proposal: {...}, reply: "..."}');
+          instructionBlocks.push('- Keep reply to MAXIMUM 2 sentences to reserve tokens for proposal data');
           instructionBlocks.push('- Include FULL, COMPLETE mechanics and/or lore objects in the proposal');
           instructionBlocks.push('- For documentation: Include architectDocuments with actual document content');
           instructionBlocks.push('- Make sure proposal.mechanics and proposal.lore contain REAL data, not empty objects');
@@ -906,8 +914,8 @@ export class AssistantService {
       '',
       'Which area would you like to explore first?"',
       '',
-      'JSON Schema:',
-      '{ "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [{ "name": "", "content": "" }] } }',
+      'JSON Schema (proposal FIRST to prevent truncation):',
+      '{ "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [{ "name": "", "content": "" }] }, "reply": "string (MAX 2 SENTENCES)" }',
       'If you suggest mechanics or lore changes, include the full updated objects.',
       'If you suggest documentation changes, include architectDocuments with full content.',
       'Do not modify game data directly—only propose changes.',
@@ -938,15 +946,15 @@ export class AssistantService {
       '- Is proposal object complete? → Must have mechanics/lore/architectDocuments with actual data',
       '- Is proposal empty? → This is an error - include actual data',
       '',
-      'REQUIRED JSON FORMAT WHEN USER ASKS FOR PROPOSAL:',
+      'REQUIRED JSON FORMAT WHEN USER ASKS FOR PROPOSAL (proposal FIRST, reply SECOND):',
       '{',
-      '  "reply": "I\'ve created a comprehensive proposal that addresses all validation issues...",',
       '  "proposal": {',
       '    "explanation": "This proposal strengthens the primary conflict, explains technology, etc.",',
       '    "mechanics": { "coreLoop": "...", "playerActions": [...], ... },',
       '    "lore": { "setting": {...}, "conflict": {...}, ... }',
       '    "architectDocuments": [{ "name": "document.md", "content": "# Document content..." }]',
-      '  }',
+      '  },',
+      '  "reply": "Proposal created. (MAX 2 SENTENCES)"',
       '}',
     ];
 
