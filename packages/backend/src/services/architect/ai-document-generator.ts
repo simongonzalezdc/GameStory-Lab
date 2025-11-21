@@ -44,7 +44,12 @@ export class AIDocumentGenerator {
   }
 
   /**
-   * Generate all documents for a project using cascading context
+   * Generate all documents for a project using parallelized dependency groups
+   * 
+   * Group 1 (Foundation): Executive Summary - Must run first
+   * Group 2 (Technical): Technical Specification - Depends on Group 1 completion
+   * Group 3 (Parallel Extensions): Product Requirements, Roadmap, Monetization Audit - Run in parallel after Group 2
+   * Group 4 (Final): Launch Checklist - Depends on Roadmap from Group 3
    */
   async generateAllDocuments(
     sessionId: string,
@@ -55,10 +60,14 @@ export class AIDocumentGenerator {
     const failedDocuments: DOCUMENT_TYPES[] = [];
     let totalTokensUsed = 0;
 
-    // Build base context with error handling
+    // Build base context ONCE and cache it (optimization)
     let baseContext: string;
     try {
       baseContext = this.contextBuilder.buildPromptContext(sessionId);
+      logger.info('[AIDocumentGenerator] Built and cached context', {
+        sessionId,
+        baseContextLength: baseContext.length,
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('[AIDocumentGenerator] Failed to build context', {
@@ -73,68 +82,122 @@ export class AIDocumentGenerator {
     // Track summaries for dependency injection
     const summaries: Record<string, string> = {};
 
-    logger.info('[AIDocumentGenerator] Starting cascade generation', {
+    logger.info('[AIDocumentGenerator] Starting parallelized generation', {
       sessionId,
       baseContextLength: baseContext.length,
     });
 
-    // Generate documents in dependency order
-    for (const documentType of DOCUMENT_GENERATION_ORDER) {
-      // Skip open source documents if not applicable
-      if (requiresOpenSource(documentType) && !context.isOpenSource) {
-        logger.info(`[AIDocumentGenerator] Skipping ${documentType} - not open source project`);
-        continue;
-      }
+    // ===== GROUP 1: Foundation (Executive Summary) =====
+    logger.info('[AIDocumentGenerator] Group 1: Generating Executive Summary', { sessionId });
+    const execSummaryResult = await this.generateDocumentWithRetry(
+      DOCUMENT_TYPES.EXECUTIVE_SUMMARY,
+      baseContext,
+      summaries,
+      sessionId,
+      context
+    );
+    results.push(execSummaryResult);
+    totalTokensUsed += execSummaryResult.tokensUsed;
+    if (!execSummaryResult.success) {
+      failedDocuments.push(DOCUMENT_TYPES.EXECUTIVE_SUMMARY);
+    }
 
-      try {
-        const docStartTime = Date.now();
+    // ===== GROUP 2: Technical (Technical Specification) =====
+    logger.info('[AIDocumentGenerator] Group 2: Generating Technical Specification', { sessionId });
+    const techSpecResult = await this.generateDocumentWithRetry(
+      DOCUMENT_TYPES.TECHNICAL_SPECIFICATION,
+      baseContext,
+      summaries,
+      sessionId,
+      context
+    );
+    results.push(techSpecResult);
+    totalTokensUsed += techSpecResult.tokensUsed;
+    if (!techSpecResult.success) {
+      failedDocuments.push(DOCUMENT_TYPES.TECHNICAL_SPECIFICATION);
+    } else {
+      // Extract summary for Group 3 dependencies
+      summaries.techSpecSummary = this.extractSummary(techSpecResult.content);
+    }
 
-        // Generate document with dependencies
-        const prompt = getDocumentPrompt(documentType, baseContext, summaries);
-        const result = await this.generateSingleDocument(documentType, prompt);
+    // ===== GROUP 3: Parallel Extensions (max 3 concurrent) =====
+    logger.info('[AIDocumentGenerator] Group 3: Generating parallel documents', { sessionId });
+    const group3Documents: DOCUMENT_TYPES[] = [
+      DOCUMENT_TYPES.PRODUCT_REQUIREMENTS,
+      DOCUMENT_TYPES.ROADMAP,
+    ];
 
-        const docTime = Date.now() - docStartTime;
-        result.generationTimeMs = docTime;
+    // Add open source documents if applicable
+    if (context.isOpenSource) {
+      group3Documents.push(DOCUMENT_TYPES.MONETIZATION_AUDIT);
+    }
+
+    // Generate Group 3 documents in parallel (max 3 concurrent)
+    const group3Promises = group3Documents.map(docType => 
+      this.generateDocumentWithRetry(docType, baseContext, summaries, sessionId, context)
+    );
+
+    const group3Results = await Promise.allSettled(group3Promises);
+    
+    group3Results.forEach((settled, index) => {
+      const docType = group3Documents[index];
+      
+      if (settled.status === 'fulfilled') {
+        const result = settled.value;
         results.push(result);
         totalTokensUsed += result.tokensUsed;
-
-        // Extract summary for next document's dependencies
-        const summaryKey = this.getSummaryKey(documentType);
-        if (summaryKey) {
-          summaries[summaryKey] = this.extractSummary(result.content);
+        
+        if (!result.success) {
+          failedDocuments.push(docType);
+        } else {
+          // Extract summaries for Group 4 dependencies
+          const summaryKey = this.getSummaryKey(docType);
+          if (summaryKey) {
+            summaries[summaryKey] = this.extractSummary(result.content);
+          }
         }
-
-        logger.info(`[AIDocumentGenerator] Generated ${documentType}`, {
-          sessionId,
-          tokensUsed: result.tokensUsed,
-          timeMs: docTime,
-          success: result.success,
-        });
-
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.error(`[AIDocumentGenerator] Failed to generate ${documentType}`, {
+      } else {
+        // Promise rejected
+        const errorMessage = settled.reason instanceof Error ? settled.reason.message : String(settled.reason);
+        logger.error(`[AIDocumentGenerator] Promise rejected for ${docType}`, {
           sessionId,
           error: errorMessage,
         });
-
-        // Add failed result
         results.push({
-          documentType,
+          documentType: docType,
           content: '',
           tokensUsed: 0,
           generationTimeMs: 0,
           success: false,
           error: errorMessage,
         });
-        failedDocuments.push(documentType);
+        failedDocuments.push(docType);
       }
+    });
+
+    // ===== GROUP 4: Final (Launch Checklist - depends on Roadmap) =====
+    if (context.isOpenSource && summaries.roadmapSummary) {
+      logger.info('[AIDocumentGenerator] Group 4: Generating Launch Checklist', { sessionId });
+      const launchChecklistResult = await this.generateDocumentWithRetry(
+        DOCUMENT_TYPES.LAUNCH_CHECKLIST,
+        baseContext,
+        summaries,
+        sessionId,
+        context
+      );
+      results.push(launchChecklistResult);
+      totalTokensUsed += launchChecklistResult.tokensUsed;
+      if (!launchChecklistResult.success) {
+        failedDocuments.push(DOCUMENT_TYPES.LAUNCH_CHECKLIST);
+      }
+    } else if (context.isOpenSource && !summaries.roadmapSummary) {
+      logger.warn('[AIDocumentGenerator] Skipping Launch Checklist - Roadmap summary not available', { sessionId });
     }
 
     const totalTime = Date.now() - startTime;
     const success = failedDocuments.length === 0;
 
-    logger.info('[AIDocumentGenerator] Cascade generation completed', {
+    logger.info('[AIDocumentGenerator] Parallelized generation completed', {
       sessionId,
       totalDocuments: results.length,
       failedDocuments: failedDocuments.length,
@@ -150,6 +213,67 @@ export class AIDocumentGenerator {
       success,
       failedDocuments,
     };
+  }
+
+  /**
+   * Generate a single document with retry logic and timing
+   */
+  private async generateDocumentWithRetry(
+    documentType: DOCUMENT_TYPES,
+    baseContext: string,
+    summaries: Record<string, string>,
+    sessionId: string,
+    projectContext?: ProjectContext
+  ): Promise<DocumentGenerationResult> {
+    const docStartTime = Date.now();
+    
+    try {
+      // Skip open source documents if not applicable
+      const context = projectContext || {} as ProjectContext;
+      if (requiresOpenSource(documentType) && !context.isOpenSource) {
+        logger.info(`[AIDocumentGenerator] Skipping ${documentType} - not open source project`, { sessionId });
+        return {
+          documentType,
+          content: '',
+          tokensUsed: 0,
+          generationTimeMs: 0,
+          success: false,
+          error: 'Not applicable - project is not open source',
+        };
+      }
+
+      // Generate document with dependencies
+      const prompt = getDocumentPrompt(documentType, baseContext, summaries);
+      const result = await this.generateSingleDocument(documentType, prompt);
+
+      const docTime = Date.now() - docStartTime;
+      result.generationTimeMs = docTime;
+
+      logger.info(`[AIDocumentGenerator] Generated ${documentType}`, {
+        sessionId,
+        tokensUsed: result.tokensUsed,
+        timeMs: docTime,
+        success: result.success,
+      });
+
+      return result;
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`[AIDocumentGenerator] Failed to generate ${documentType}`, {
+        sessionId,
+        error: errorMessage,
+      });
+
+      return {
+        documentType,
+        content: '',
+        tokensUsed: 0,
+        generationTimeMs: Date.now() - docStartTime,
+        success: false,
+        error: errorMessage,
+      };
+    }
   }
 
   /**
