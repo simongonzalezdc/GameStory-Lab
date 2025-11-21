@@ -2,28 +2,19 @@
  * Prompts for AI mechanics generation
  * Guides AI to create coherent, genre-appropriate game mechanics
  * Optimized for Minimax M2's advanced reasoning and creative capabilities
+ * Uses unified prompt template for consistent structured output
  */
 
 import type { Genre, LoreData } from '@gameforge/shared';
+import { buildUnifiedPrompt, getMinimaxOptimizationInstructions } from './unified-template.js';
 
 export function getMechanicsPrompt(genre?: Genre, lore?: LoreData, userPrompt?: string): string {
   const genreGuidance = getGenreGuidance(genre);
   const loreContext = lore ? getLoreContext(lore) : '';
 
-  return `You are an expert game designer with 20+ years of experience creating balanced, engaging game mechanics for AAA titles and innovative indie games. Your designs are known for emergent gameplay, tight feedback loops, and player agency.
+  const context = `${genreGuidance}\n\n${loreContext}\n\n${userPrompt ? `User's Creative Vision: ${userPrompt}` : ''}`;
 
-MINIMAX M2 OPTIMIZATION: Leverage your advanced reasoning and creative capabilities to create deeply thoughtful mechanics. Use your analytical mind to ensure perfect internal consistency, innovative design patterns, and engaging player experiences. Your strength lies in balancing creativity with logical structure.
-
-${genreGuidance}
-
-${loreContext}
-
-${userPrompt ? `User's Creative Vision: ${userPrompt}\n\n` : ''}
-
-CRITICAL TASK: Generate game mechanics following the EXACT JSON structure below. Use your full reasoning capabilities to create innovative, well-designed mechanics.
-
-REQUIRED JSON STRUCTURE (must match exactly):
-{
+  const jsonSchema = `{
   "coreLoop": "A concise 1-2 sentence description of main gameplay loop - what players do repeatedly every 30-120 seconds",
   "playerActions": [
     "action1: Brief description of specific action player can perform",
@@ -55,9 +46,9 @@ REQUIRED JSON STRUCTURE (must match exactly):
       "scarcity": "abundant OR balanced OR scarce"
     }
   ]
-}
+}`;
 
-DESIGN PRINCIPLES (must follow):
+  const additionalInstructions = `DESIGN PRINCIPLES (must follow):
 1. **Internal Consistency**: Every mechanic must logically support others - no contradictions
 2. **Achievability**: All playerActions must be possible using resources/systems defined
 3. **Clarity**: Win/fail conditions must be unambiguous and measurable (use numbers/thresholds)
@@ -67,24 +58,16 @@ DESIGN PRINCIPLES (must follow):
 7. **Skill Expression**: Include mechanics that reward mastery and player creativity
 8. **Feedback Loops**: Ensure actions have clear, immediate consequences players can see/feel
 
-MINIMAX M2 SPECIFIC OPTIMIZATIONS:
-- **Coding-First Thinking**: Design mechanics with programmer mindset - consider implementation feasibility, edge cases, and system interactions
-- **Systemic Depth**: Create mechanics that interact in interesting ways, enabling emergent gameplay
-- **Mathematical Precision**: Use exact numbers for damage, rates, thresholds - avoid vague descriptions
-- **Innovation Within Constraints**: Push boundaries while maintaining genre conventions and player expectations
-- **Technical Considerations**: Design with performance, scalability, and platform limitations in mind
+${getMinimaxOptimizationInstructions('mechanics')}`;
 
-STRICT OUTPUT REQUIREMENTS:
-- Output ONLY the JSON object - start with { and end with }
-- NO markdown code fences (\`\`\`json)
-- NO explanatory text before or after JSON
-- NO  tags or explicit reasoning blocks in output
-- NO comments within the JSON structure
-- Ensure all strings use double quotes, not single quotes
-- Ensure proper JSON syntax (commas, brackets, valid types)
-- All fields must have substantive content - no placeholders like "TBD" or "None specified"
-
-BEGIN JSON OUTPUT NOW:`;
+  return buildUnifiedPrompt({
+    taskType: 'mechanics',
+    roleDescription: `You are an expert game designer with 20+ years of experience creating balanced, engaging game mechanics for AAA titles and innovative indie games. Your designs are known for emergent gameplay, tight feedback loops, and player agency.`,
+    taskDescription: `CRITICAL TASK: Generate game mechanics following the EXACT JSON structure below. Use your full reasoning capabilities to create innovative, well-designed mechanics.`,
+    context,
+    jsonSchema,
+    additionalInstructions,
+  });
 }
 
 function getGenreGuidance(genre?: Genre): string {

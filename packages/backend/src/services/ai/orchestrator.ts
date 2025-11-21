@@ -142,12 +142,17 @@ export class AIOrchestrator {
     logger.debug('Model selected', { rationale: selection.rationale, model: selection.model });
 
     // Execute the completion
+    // Auto-set response_format for structured output tasks (MiniMax optimization)
+    const shouldUseJSONFormat = taskType === 'mechanics' || taskType === 'lore' || taskType === 'refinement' || taskType === 'title';
+    const responseFormat = options?.responseFormat || (shouldUseJSONFormat ? { type: 'json_object' as const } : undefined);
+
     const request: AICompletionRequest = {
       model: selection.model,
       messages,
       temperature: options?.temperature ?? 0.7,
       maxTokens: options?.maxTokens ?? 2000,
       topP: options?.topP ?? 0.9,
+      ...(responseFormat ? { responseFormat } : {}),
     };
 
     try {

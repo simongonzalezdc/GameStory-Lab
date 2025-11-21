@@ -2,9 +2,11 @@
  * Refinement Generation Prompts
  * Prompts for refining and improving game concepts
  * Optimized for MINIMAX M2's advanced reasoning capabilities
+ * Uses unified prompt template for consistent structured output
  */
 
 import type { MechanicsData, LoreData } from '@gameforge/shared';
+import { buildUnifiedPrompt, getMinimaxOptimizationInstructions } from './unified-template.js';
 
 /**
  * Generate refinement prompt
@@ -14,31 +16,15 @@ export function getRefinementPrompt(
   lore?: LoreData,
   focus?: string
 ): string {
-  return `You are an expert game design consultant who specializes in iterative refinement and polish. You have a keen eye for ludonarrative harmony, internal consistency, player experience optimization, and elevating good concepts into great ones.
-
-MINIMAX M2 OPTIMIZATION: Leverage your advanced reasoning and analytical capabilities to provide deeply insightful refinements. Use your coding expertise to identify systemic improvements and your narrative sense to enhance storytelling depth.
-
-REFINEMENT FOCUS: ${focus || 'General quality improvement and coherence'}
+  const context = `REFINEMENT FOCUS: ${focus || 'General quality improvement and coherence'}
 
 CURRENT MECHANICS:
 ${mechanics ? JSON.stringify(mechanics, null, 2) : 'No mechanics provided'}
 
 CURRENT LORE:
-${lore ? JSON.stringify(lore, null, 2) : 'No lore provided'}
+${lore ? JSON.stringify(lore, null, 2) : 'No lore provided'}`;
 
-CRITICAL TASK: Analyze the above concept and provide refined, improved versions of BOTH mechanics AND lore. Use your full reasoning capabilities to create meaningful enhancements.
-
-KEY REFINEMENT GOALS:
-1. **Ludonarrative Harmony**: Ensure mechanics and lore support each other perfectly - no disconnects between what players do and why they do it
-2. **Internal Consistency**: Eliminate contradictions within mechanics, within lore, and between the two
-3. **Depth Over Breadth**: Strengthen core concepts rather than adding new features - make existing elements richer
-4. **Player Experience**: Optimize for engagement, clarity, and emotional resonance
-5. **Polish & Specificity**: Replace vague descriptions with concrete, vivid details
-6. **Balance & Pacing**: Ensure mechanics feel fair and progression feels rewarding
-7. **Thematic Coherence**: Strengthen how themes emerge through gameplay and narrative
-
-REQUIRED JSON STRUCTURE (must match exactly):
-{
+  const jsonSchema = `{
   "mechanics": {
     "coreLoop": "Refined description with more specific timing/pacing details",
     "playerActions": [
@@ -98,15 +84,18 @@ REQUIRED JSON STRUCTURE (must match exactly):
     "Specific improvement 3: Focus on measurable enhancements to clarity, consistency, or depth",
     "Continue with 5-10 total improvements covering both mechanics and lore"
   ]
-}
+}`;
 
-MINIMAX M2 REFINEMENT STRATEGIES:
-- **Systems Thinking**: Analyze how mechanics interact as complex systems, not isolated features
-- **Player Psychology**: Consider how changes affect player experience, learning curves, and emotional engagement
-- **Narrative Integration**: Ensure story elements enhance rather than restrict gameplay
-- **Mathematical Balance**: Use precise numbers for progression, difficulty, and resource economics
-- **Emergent Gameplay**: Design refinements that create new player strategies and possibilities
-- **Technical Feasibility**: Consider implementation complexity and performance implications
+  const additionalInstructions = `KEY REFINEMENT GOALS:
+1. **Ludonarrative Harmony**: Ensure mechanics and lore support each other perfectly - no disconnects between what players do and why they do it
+2. **Internal Consistency**: Eliminate contradictions within mechanics, within lore, and between the two
+3. **Depth Over Breadth**: Strengthen core concepts rather than adding new features - make existing elements richer
+4. **Player Experience**: Optimize for engagement, clarity, and emotional resonance
+5. **Polish & Specificity**: Replace vague descriptions with concrete, vivid details
+6. **Balance & Pacing**: Ensure mechanics feel fair and progression feels rewarding
+7. **Thematic Coherence**: Strengthen how themes emerge through gameplay and narrative
+
+${getMinimaxOptimizationInstructions('refinement')}
 
 REFINEMENT APPROACH:
 - **Fix Contradictions**: If mechanics mention fire magic but lore has no magic, either add magic to lore or change mechanics
@@ -117,15 +106,14 @@ REFINEMENT APPROACH:
 - **Enhance Theme**: If theme is "sacrifice", ensure mechanics involve sacrificial choices (lose HP to gain power, etc.)
 - **Polish Language**: Replace generic terms with evocative, specific vocabulary
 
-STRICT OUTPUT REQUIREMENTS:
-- Output ONLY the JSON object - start with { and end with }
-- NO markdown code fences (\`\`\`json)
-- NO explanatory text before or after the JSON
-- NO explicit reasoning blocks or  tags in output
-- NO comments within the JSON structure
-- Ensure all strings use double quotes, not single quotes
-- Ensure proper JSON syntax (commas, brackets, valid types)
-- improvements array should have 5-10 specific, actionable items
+IMPORTANT: improvements array should have 5-10 specific, actionable items`;
 
-BEGIN JSON OUTPUT NOW:`;
+  return buildUnifiedPrompt({
+    taskType: 'refinement',
+    roleDescription: `You are an expert game design consultant who specializes in iterative refinement and polish. You have a keen eye for ludonarrative harmony, internal consistency, player experience optimization, and elevating good concepts into great ones.`,
+    taskDescription: `CRITICAL TASK: Analyze the above concept and provide refined, improved versions of BOTH mechanics AND lore. Use your full reasoning capabilities to create meaningful enhancements.`,
+    context,
+    jsonSchema,
+    additionalInstructions,
+  });
 }

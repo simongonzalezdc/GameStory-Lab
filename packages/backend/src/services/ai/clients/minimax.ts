@@ -14,6 +14,7 @@ import type {
   AIClientError,
 } from './base.js';
 import { logger } from '../../../utils/logger.js';
+import { extractJSON, reformatResponse } from '../utils/json-validation.js';
 
 // Anthropic-compatible message format
 interface AnthropicMessage {
@@ -22,7 +23,7 @@ interface AnthropicMessage {
     type: 'text' | 'thinking' | 'tool_use' | 'tool_result';
     text?: string;
     thinking?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }>;
 }
 
@@ -35,6 +36,16 @@ interface AnthropicRequest {
   temperature?: number;
   top_p?: number;
   stream?: boolean;
+  response_format?: {
+    type: 'json_object' | 'text';
+  } | {
+    type: 'json_schema';
+    json_schema: {
+      name: string;
+      description?: string;
+      schema: Record<string, unknown>;
+    };
+  };
 }
 
 // Anthropic-compatible response format
@@ -118,10 +129,12 @@ export class MinimaxClient implements IAIClient {
         temperature: request.temperature ?? 1.0, // Anthropic recommends 1.0, range (0.0, 1.0]
         top_p: request.topP ?? 0.9,
         stream: false,
+        // Add response_format if specified (for structured JSON output)
+        ...(request.responseFormat ? { response_format: request.responseFormat } : {}),
       };
 
       logger.debug('Minimax API (Anthropic-compatible) request details', {
-        url: `${this.baseUrl}/messages`,
+        url: `${this.baseUrl}/v1/messages`,
         headers: {
           'x-api-key': `${this.apiKey.substring(0, 10)}...`,
           'anthropic-version': '2023-06-01',
@@ -133,8 +146,9 @@ export class MinimaxClient implements IAIClient {
         model: modelName,
       });
 
+      // Anthropic-compatible API uses /v1/messages endpoint
       const response = await this.client.post<AnthropicResponse>(
-        '/messages',
+        '/v1/messages',
         anthropicRequest
       );
 
@@ -187,6 +201,34 @@ export class MinimaxClient implements IAIClient {
           model: modelName,
         });
         throw new Error('Minimax API returned empty text content');
+      }
+
+      // Apply JSON validation and reformatting guardrails if response_format was requested
+      if (request.responseFormat && (request.responseFormat.type === 'json_object' || request.responseFormat.type === 'json_schema')) {
+        const jsonResult = extractJSON(content);
+        if (jsonResult.isValid && jsonResult.reformatted) {
+          // Use reformatted JSON for better consistency
+          content = jsonResult.reformatted;
+          logger.debug('Minimax response validated and reformatted as JSON', {
+            originalLength: content.length,
+            reformattedLength: jsonResult.reformatted.length,
+          });
+        } else {
+          // Try to reformat even if extraction failed
+          const reformatted = reformatResponse(content);
+          if (reformatted) {
+            content = reformatted;
+            logger.warn('Minimax response required JSON reformatting', {
+              error: jsonResult.error,
+            });
+          } else {
+            logger.error('Minimax response failed JSON validation', {
+              error: jsonResult.error,
+              contentPreview: content.substring(0, 500),
+            });
+            // Don't throw - let the caller handle malformed JSON
+          }
+        }
       }
 
       logger.info(`Minimax API request successful with model: ${modelName}`, {

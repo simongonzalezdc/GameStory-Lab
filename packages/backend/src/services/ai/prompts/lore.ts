@@ -2,28 +2,19 @@
  * Prompts for AI lore generation
  * Guides the AI to create rich, coherent game narratives and worldbuilding
  * Optimized for MINIMAX M2's advanced reasoning capabilities
+ * Uses unified prompt template for consistent structured output
  */
 
 import type { Genre, MechanicsData } from '@gameforge/shared';
+import { buildUnifiedPrompt, getMinimaxOptimizationInstructions } from './unified-template.js';
 
 export function getLorePrompt(genre?: Genre, mechanics?: MechanicsData, userPrompt?: string): string {
   const genreGuidance = getGenreGuidance(genre);
   const mechanicsContext = mechanics ? getMechanicsContext(mechanics) : '';
 
-  return `You are a master narrative designer and worldbuilder with credits on critically acclaimed story-driven games. You specialize in environmental storytelling, ludonarrative harmony (story and gameplay alignment), and creating emotionally resonant narratives that emerge through player interaction.
+  const context = `${genreGuidance}\n\n${mechanicsContext}\n\n${userPrompt ? `User's Creative Vision: ${userPrompt}` : ''}`;
 
-MINIMAX M2 OPTIMIZATION: Leverage your advanced reasoning and narrative capabilities to create deeply compelling stories. Use your analytical mind to ensure perfect internal consistency and emotional depth. Your coding expertise helps create narratives that naturally integrate with gameplay mechanics.
-
-${genreGuidance}
-
-${mechanicsContext}
-
-${userPrompt ? `User's Creative Vision: ${userPrompt}\n\n` : ''}
-
-CRITICAL TASK: Generate game lore and narrative following the EXACT JSON structure below. Use your full reasoning capabilities to create rich, coherent narratives.
-
-REQUIRED JSON STRUCTURE (must match exactly):
-{
+  const jsonSchema = `{
   "setting": {
     "era": "Specific time period, age, or year (e.g., 'Post-apocalyptic 2147', 'Medieval 1200s', 'Mythic Age of Heroes')",
     "location": "Concrete place with geographic/cultural details (e.g., 'Floating sky-city of Aetherholm', 'War-torn trenches of Europa', 'Isolated research station Polaris-7')",
@@ -57,9 +48,9 @@ REQUIRED JSON STRUCTURE (must match exactly):
     "Central theme 2: Should emerge through gameplay, not cutscenes",
     "Central theme 3: Resonant, mature themes that give narrative weight"
   ]
-}
+}`;
 
-NARRATIVE DESIGN PRINCIPLES (must follow):
+  const additionalInstructions = `NARRATIVE DESIGN PRINCIPLES (must follow):
 1. **Internal Consistency**: Zero contradictions - every lore element must logically fit with others
 2. **Ludonarrative Harmony**: If mechanics are provided, protagonist abilities MUST justify gameplay actions (no shooting fireballs if abilities don't explain it)
 3. **Compelling Conflict**: Antagonist/problem must be worthy of an entire game's length - high stakes, personal relevance, satisfying to resolve through gameplay
@@ -69,25 +60,16 @@ NARRATIVE DESIGN PRINCIPLES (must follow):
 7. **Thematic Depth**: Themes woven into mechanics and player choices, creating meaningful resonance (e.g., game about revenge has revenge-driven mechanics)
 8. **Player Agency**: Leave room for player interpretation and discovery - not every mystery needs explicit answers
 
-MINIMAX M2 NARRATIVE OPTIMIZATIONS:
-- **Character Psychology**: Create protagonists with complex motivations, internal conflicts, and realistic emotional responses
-- **World-Building Depth**: Design societies with history, politics, economics, and cultural nuances
-- **Narrative Pacing**: Structure reveals and discoveries to maximize emotional impact and player engagement
-- **Thematic Integration**: Weave themes naturally through all story elements, not as explicit statements
-- **Foreshadowing & Mystery**: Plant seeds for future revelations and player theories
-- **Emotional Resonance**: Focus on creating moments that players remember and discuss
+${getMinimaxOptimizationInstructions('lore')}`;
 
-STRICT OUTPUT REQUIREMENTS:
-- Output ONLY the JSON object - start with { and end with }
-- NO markdown code fences (\`\`\`json)
-- NO explanatory text before or after the JSON
-- NO explicit reasoning blocks or  tags in output
-- NO comments within the JSON structure
-- Ensure all strings use double quotes, not single quotes
-- Ensure proper JSON syntax (commas, brackets, valid types)
-- All fields must have substantive content - no placeholders like "TBD" or "None specified"
-
-BEGIN JSON OUTPUT NOW:`;
+  return buildUnifiedPrompt({
+    taskType: 'lore',
+    roleDescription: `You are a master narrative designer and worldbuilder with credits on critically acclaimed story-driven games. You specialize in environmental storytelling, ludonarrative harmony (story and gameplay alignment), and creating emotionally resonant narratives that emerge through player interaction.`,
+    taskDescription: `CRITICAL TASK: Generate game lore and narrative following the EXACT JSON structure below. Use your full reasoning capabilities to create rich, coherent narratives.`,
+    context,
+    jsonSchema,
+    additionalInstructions,
+  });
 }
 
 function getGenreGuidance(genre?: Genre): string {

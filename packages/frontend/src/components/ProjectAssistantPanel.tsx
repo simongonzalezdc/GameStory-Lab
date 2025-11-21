@@ -128,6 +128,29 @@ export function ProjectAssistantPanel({
     []
   );
 
+  // Helper function to format JSON strings
+  const formatJSON = (text: string): string => {
+    try {
+      // Try to parse as JSON
+      const parsed = JSON.parse(text.trim());
+      // Return formatted JSON with 2-space indentation
+      return JSON.stringify(parsed, null, 2);
+    } catch {
+      // Not valid JSON, return as-is
+      return text;
+    }
+  };
+
+  // Helper function to detect if a string is JSON
+  const isJSON = (text: string): boolean => {
+    try {
+      JSON.parse(text.trim());
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const parseSegments = (content: string) => {
     const segments: Array<{ type: 'code' | 'text'; lang?: string; content: string }> = [];
     const codeRegex = /```(\w+)?\n([\s\S]*?)```/gm;
@@ -137,7 +160,15 @@ export function ProjectAssistantPanel({
       if (match.index > lastIndex) {
         segments.push({ type: 'text', content: content.slice(lastIndex, match.index) });
       }
-      segments.push({ type: 'code', lang: match[1] || undefined, content: match[2] });
+      let codeContent = match[2];
+      const lang = match[1]?.toLowerCase() || undefined;
+      
+      // Auto-detect and format JSON
+      if (lang === 'json' || (!lang && isJSON(codeContent))) {
+        codeContent = formatJSON(codeContent);
+      }
+      
+      segments.push({ type: 'code', lang: lang || (isJSON(codeContent) ? 'json' : undefined), content: codeContent });
       lastIndex = codeRegex.lastIndex;
     }
     if (lastIndex < content.length) {
@@ -191,6 +222,38 @@ export function ProjectAssistantPanel({
 
   const renderTextSegment = (text: string, keyPrefix: string) => {
     const trimmed = text.trim();
+    
+    // Check if the entire text segment is a JSON object/array (not in code blocks)
+    if (trimmed.startsWith('{') && trimmed.endsWith('}') || trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      if (isJSON(trimmed)) {
+        // Render as a formatted JSON code block
+        return (
+          <div key={`${keyPrefix}-json`} className="relative">
+            <div className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
+              style={{ 
+                backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
+                color: 'var(--color-text-tertiary)',
+                borderBottom: '1px solid var(--color-border-subtle)'
+              }}
+            >
+              JSON
+            </div>
+            <pre
+              className="code-block text-[var(--color-text-primary)] overflow-auto font-mono text-sm leading-relaxed rounded-md rounded-tl-none"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 60%, transparent)',
+                border: '1px solid var(--color-border-subtle)',
+                padding: '0.75rem',
+                marginTop: '0',
+              }}
+            >
+              <code className="whitespace-pre-wrap break-words">{formatJSON(trimmed)}</code>
+            </pre>
+          </div>
+        );
+      }
+    }
+    
     const calloutMatch = trimmed.match(/^(INFO|WARNING|WARN|ERROR):?\s*(.*)$/i);
     if (calloutMatch) {
       const level = calloutMatch[1].toLowerCase();
@@ -793,12 +856,30 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                               >
                                 {segments.map((segment, idx) =>
                                   segment.type === 'code' ? (
-                                    <pre
-                                      key={`${msg.id}-code-${idx}`}
-                                      className="code-block text-[var(--color-text-primary)] overflow-auto font-medium"
-                                    >
-                                      <code className="whitespace-pre">{segment.content}</code>
-                                    </pre>
+                                    <div key={`${msg.id}-code-${idx}`} className="relative">
+                                      {segment.lang && (
+                                        <div className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
+                                          style={{ 
+                                            backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
+                                            color: 'var(--color-text-tertiary)',
+                                            borderBottom: '1px solid var(--color-border-subtle)'
+                                          }}
+                                        >
+                                          {segment.lang.toUpperCase()}
+                                        </div>
+                                      )}
+                                      <pre
+                                        className="code-block text-[var(--color-text-primary)] overflow-auto font-mono text-sm leading-relaxed rounded-md"
+                                        style={{
+                                          backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 60%, transparent)',
+                                          border: '1px solid var(--color-border-subtle)',
+                                          padding: segment.lang ? '0.75rem' : '0.75rem',
+                                          marginTop: segment.lang ? '0' : '0',
+                                        }}
+                                      >
+                                        <code className="whitespace-pre-wrap break-words">{segment.content}</code>
+                                      </pre>
+                                    </div>
                                   ) : (
                                     <div key={`${msg.id}-text-${idx}`} className="space-y-2">
                                       {renderTextSegment(segment.content, `${msg.id}-t-${idx}`)}
@@ -848,39 +929,57 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                                 return next;
                               });
                             }}
-                            className="flex items-center gap-2 w-full text-left text-xs transition-colors"
+                            className="flex items-center gap-2 w-full text-left text-xs transition-all duration-200 rounded-md px-2 py-1.5 hover:bg-surface-panel/30"
                             style={{ 
                               color: 'var(--color-text-secondary)',
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
-                            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = 'var(--color-text-primary)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = 'var(--color-text-secondary)';
+                            }}
                           >
                             <svg
-                              className={`w-4 h-4 transition-transform ${expandedThinking.has(msg.id) ? 'rotate-90' : ''}`}
+                              className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedThinking.has(msg.id) ? 'rotate-90' : ''}`}
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
                             >
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
-                            <span className="font-medium">
+                            <span className="font-medium flex items-center gap-1.5">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                              </svg>
                               {expandedThinking.has(msg.id) ? 'Hide' : 'Show'} Reasoning
                             </span>
-                            <span className="ml-auto" style={{ color: 'var(--color-text-tertiary)' }}>
-                              ({msg.metadata.thinking.length} chars)
+                            <span className="ml-auto text-[10px] font-normal opacity-70" style={{ color: 'var(--color-text-tertiary)' }}>
+                              {Math.round(msg.metadata.thinking.length / 100) / 10}k chars
                             </span>
                           </button>
                           {expandedThinking.has(msg.id) && (
                             <div 
-                              className="mt-2 p-3 rounded-md border"
+                              className="mt-2 p-4 rounded-lg border overflow-hidden"
                               style={{ 
-                                backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 50%, transparent)',
+                                backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 70%, transparent)',
                                 borderColor: 'var(--color-border-subtle)',
                               }}
                             >
+                              <div className="flex items-center gap-2 mb-2 pb-2 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-text-tertiary)' }}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-tertiary)' }}>
+                                  AI Reasoning Process
+                                </span>
+                              </div>
                               <div 
-                                className="text-xs leading-relaxed whitespace-pre-wrap font-mono"
-                                style={{ color: 'var(--color-text-secondary)' }}
+                                className="text-xs leading-relaxed whitespace-pre-wrap font-mono max-h-[400px] overflow-y-auto"
+                                style={{ 
+                                  color: 'var(--color-text-secondary)',
+                                  lineHeight: '1.7',
+                                }}
                               >
                                 {msg.metadata.thinking}
                               </div>

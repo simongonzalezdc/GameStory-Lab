@@ -21,6 +21,16 @@ export interface AICompletionRequest {
   maxTokens?: number;
   topP?: number;
   stream?: boolean;
+  responseFormat?: {
+    type: 'json_object' | 'text';
+  } | {
+    type: 'json_schema';
+    json_schema: {
+      name: string;
+      description?: string;
+      schema: Record<string, any>;
+    };
+  };
 }
 
 export interface AICompletionResponse {
