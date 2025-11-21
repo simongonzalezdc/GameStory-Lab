@@ -1,7 +1,7 @@
 /**
  * Refinement Generation Prompts
  * Prompts for refining and improving game concepts
- * Optimized for GLM-4.6's advanced reasoning capabilities
+ * Optimized for MINIMAX M2's advanced reasoning capabilities
  */
 
 import type { MechanicsData, LoreData } from '@gameforge/shared';
@@ -16,7 +16,7 @@ export function getRefinementPrompt(
 ): string {
   return `You are an expert game design consultant who specializes in iterative refinement and polish. You have a keen eye for ludonarrative harmony, internal consistency, player experience optimization, and elevating good concepts into great ones.
 
-GLM-4.6 OPTIMIZATION: Leverage your advanced reasoning and analytical capabilities to provide deeply insightful refinements. Use your coding expertise to identify systemic improvements and your narrative sense to enhance storytelling depth.
+MINIMAX M2 OPTIMIZATION: Leverage your advanced reasoning and analytical capabilities to provide deeply insightful refinements. Use your coding expertise to identify systemic improvements and your narrative sense to enhance storytelling depth.
 
 REFINEMENT FOCUS: ${focus || 'General quality improvement and coherence'}
 
@@ -100,7 +100,7 @@ REQUIRED JSON STRUCTURE (must match exactly):
   ]
 }
 
-GLM-4.6 REFINEMENT STRATEGIES:
+MINIMAX M2 REFINEMENT STRATEGIES:
 - **Systems Thinking**: Analyze how mechanics interact as complex systems, not isolated features
 - **Player Psychology**: Consider how changes affect player experience, learning curves, and emotional engagement
 - **Narrative Integration**: Ensure story elements enhance rather than restrict gameplay

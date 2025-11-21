@@ -382,6 +382,8 @@ export class AssistantService {
         content: parsed.reply,
         metadata: {
           model: aiResponse.model,
+          // Include thinking content if available (from Minimax M2)
+          ...(aiResponse.metadata?.thinking ? { thinking: aiResponse.metadata.thinking } : {}),
         },
       },
     });

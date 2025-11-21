@@ -18,6 +18,8 @@ interface ChatMessage {
   debug?: any;
   metadata?: {
     quickActionId?: string;
+    thinking?: string; // Minimax M2 thinking/reasoning content
+    model?: string;
   };
 }
 
@@ -255,9 +257,10 @@ export function ProjectAssistantPanel({
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
+  const [expandedThinking, setExpandedThinking] = useState<Set<string>>(new Set());
   const [showProposals, setShowProposals] = useState(false);
   const [quickMode, setQuickMode] = useState<'standard' | 'concise' | 'detailed'>('standard');
-  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
   const [currentMode, setCurrentMode] = useState<'concept' | 'architect' | 'auto'>(initialMode);
   const listRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -765,7 +768,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     <div className={`chat-avatar ${
                       msg.role === 'assistant'
                         ? 'gradient-brand-to-br text-white'
-                        : 'gradient-surface-card text-white'
+                        : 'gradient-user-avatar text-white'
                     }`}>
                       {getInitials(msg.role)}
                     </div>
@@ -830,6 +833,61 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                           );
                         })()}
                       </div>
+                      {/* Thinking Block - Collapsible (only for assistant messages) */}
+                      {msg.role === 'assistant' && msg.metadata?.thinking && (
+                        <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                          <button
+                            onClick={() => {
+                              setExpandedThinking((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(msg.id)) {
+                                  next.delete(msg.id);
+                                } else {
+                                  next.add(msg.id);
+                                }
+                                return next;
+                              });
+                            }}
+                            className="flex items-center gap-2 w-full text-left text-xs transition-colors"
+                            style={{ 
+                              color: 'var(--color-text-secondary)',
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}
+                          >
+                            <svg
+                              className={`w-4 h-4 transition-transform ${expandedThinking.has(msg.id) ? 'rotate-90' : ''}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                            <span className="font-medium">
+                              {expandedThinking.has(msg.id) ? 'Hide' : 'Show'} Reasoning
+                            </span>
+                            <span className="ml-auto" style={{ color: 'var(--color-text-tertiary)' }}>
+                              ({msg.metadata.thinking.length} chars)
+                            </span>
+                          </button>
+                          {expandedThinking.has(msg.id) && (
+                            <div 
+                              className="mt-2 p-3 rounded-md border"
+                              style={{ 
+                                backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 50%, transparent)',
+                                borderColor: 'var(--color-border-subtle)',
+                              }}
+                            >
+                              <div 
+                                className="text-xs leading-relaxed whitespace-pre-wrap font-mono"
+                                style={{ color: 'var(--color-text-secondary)' }}
+                              >
+                                {msg.metadata.thinking}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {msg.createdAt && (
                         <div className={`text-xs text-secondary mt-0.5 px-1 ${
                           msg.role === 'user' ? 'text-right' : ''

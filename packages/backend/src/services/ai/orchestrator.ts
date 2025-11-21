@@ -12,6 +12,7 @@ import { OpenRouterClient } from './clients/openrouter.js';
 import { GoogleClient } from './clients/google.js';
 import { OllamaClient } from './clients/ollama.js';
 import { GLMClient } from './clients/glm.js';
+import { MinimaxClient } from './clients/minimax.js';
 import type { IAIClient, AICompletionRequest, AICompletionResponse } from './clients/base.js';
 import { logger } from '../../utils/logger.js';
 
@@ -19,6 +20,7 @@ export interface OrchestratorConfig {
   openrouterApiKey?: string;
   googleApiKey?: string;
   glmApiKey?: string;
+  minimaxApiKey?: string;
   ollamaBaseUrl?: string;
   costLimitPerHourUsd?: number;
 }
@@ -37,25 +39,38 @@ export class AIOrchestrator {
   constructor(config: OrchestratorConfig = {}) {
     this.costLimit = config.costLimitPerHourUsd || 5.0;
 
-    // Initialize GLM client first (primary provider)
+    // Initialize Minimax client first (primary provider, Anthropic-compatible API)
+    try {
+      const minimaxApiKey = config.minimaxApiKey || process.env.MINIMAX_API_KEY;
+      logger.debug('Checking Minimax API key', {
+        hasConfigKey: !!config.minimaxApiKey,
+        hasEnvKey: !!process.env.MINIMAX_API_KEY,
+        envKeyLength: process.env.MINIMAX_API_KEY?.length || 0,
+        finalKey: minimaxApiKey ? minimaxApiKey.substring(0, 15) + '...' : 'NOT SET'
+      });
+      if (minimaxApiKey) {
+        this.clients.set('minimax', new MinimaxClient({ apiKey: minimaxApiKey }));
+        logger.info('Minimax M2 client initialized (primary AI provider, Anthropic-compatible API)');
+      } else {
+        logger.debug('Minimax API key not found, skipping Minimax client initialization');
+      }
+    } catch (error) {
+      logger.warn('Minimax client initialization failed', { 
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+    }
+
+    // Initialize GLM client as fallback (if Minimax not available)
     try {
       const glmApiKey = config.glmApiKey || process.env.GLM_API_KEY;
-      logger.debug('Checking GLM API key', {
-        hasConfigKey: !!config.glmApiKey,
-        hasEnvKey: !!process.env.GLM_API_KEY,
-        envKeyLength: process.env.GLM_API_KEY?.length || 0,
-        finalKey: glmApiKey ? glmApiKey.substring(0, 15) + '...' : 'NOT SET'
-      });
-      if (glmApiKey) {
+      if (glmApiKey && !this.clients.has('minimax')) {
         this.clients.set('glm', new GLMClient({ apiKey: glmApiKey }));
-        logger.info('GLM client initialized (primary AI provider)');
-      } else {
-        logger.debug('GLM API key not found, skipping GLM client initialization');
+        logger.info('GLM client initialized (fallback AI provider)');
       }
     } catch (error) {
       logger.warn('GLM client initialization failed', { 
         error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
       });
     }
 
@@ -76,17 +91,16 @@ export class AIOrchestrator {
       logger.warn('Google client initialization failed', { error });
     }
 
-    // TEMPORARILY DISABLED: Ollama fallback disabled to test GLM only
-    // Initialize Ollama client only if GLM is not available
-    if (!this.clients.has('glm')) {
+    // Initialize Ollama client only if Minimax is not available
+    if (!this.clients.has('minimax')) {
       try {
         this.clients.set('ollama', new OllamaClient({ baseUrl: config.ollamaBaseUrl }));
-        logger.info('Ollama client initialized (primary provider - GLM not available)');
+        logger.info('Ollama client initialized (fallback provider - Minimax not available)');
       } catch (error) {
         logger.warn('Ollama client initialization failed', { error });
       }
     } else {
-      logger.debug('Ollama client disabled - GLM is primary provider (Ollama fallback temporarily disabled)');
+      logger.debug('Ollama client disabled - Minimax is primary provider');
     }
   }
 
@@ -151,13 +165,40 @@ export class AIOrchestrator {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      // TEMPORARILY DISABLED: Ollama fallback disabled to test GLM only
-      // If GLM failed, throw error immediately (no fallback)
-      if (selection.client.type === 'glm') {
-        logger.error('GLM generation failed - Ollama fallback disabled', {
-          originalError: error instanceof Error ? error.message : String(error),
-        });
-        throw error;
+      // If Minimax failed, try GLM fallback if available
+      if (selection.client.type === 'minimax' && this.clients.has('glm')) {
+        logger.info('Minimax generation failed, trying GLM fallback');
+        const glmClient = this.clients.get('glm')!;
+        try {
+          const fallbackRequest: AICompletionRequest = {
+            ...request,
+            model: 'glm-4.6',
+          };
+          return await glmClient.complete(fallbackRequest);
+        } catch (glmError) {
+          logger.warn('GLM fallback also failed', {
+            minimaxError: error instanceof Error ? error.message : String(error),
+            glmError: glmError instanceof Error ? glmError.message : String(glmError),
+          });
+        }
+      }
+      
+      // If GLM failed, try Minimax fallback if available
+      if (selection.client.type === 'glm' && this.clients.has('minimax')) {
+        logger.info('GLM generation failed, trying Minimax fallback');
+        const minimaxClient = this.clients.get('minimax')!;
+        try {
+          const fallbackRequest: AICompletionRequest = {
+            ...request,
+            model: 'MiniMax-M2',
+          };
+          return await minimaxClient.complete(fallbackRequest);
+        } catch (minimaxError) {
+          logger.warn('Minimax fallback also failed', {
+            glmError: error instanceof Error ? error.message : String(error),
+            minimaxError: minimaxError instanceof Error ? minimaxError.message : String(minimaxError),
+          });
+        }
       }
 
       const defaultOllamaModels = [
@@ -209,12 +250,13 @@ export class AIOrchestrator {
         });
       }
 
-      // Fallback to Ollama only if we're not using GLM and Ollama is available
-      // (GLM fallback is handled above)
+      // Fallback to Ollama only if we're not using Minimax/GLM and Ollama is available
+      // (Minimax/GLM fallback is handled above)
       if (selection.client.type !== 'ollama' && 
+          selection.client.type !== 'minimax' &&
           selection.client.type !== 'glm' && 
           this.clients.has('ollama')) {
-        logger.info('Falling back to Ollama (non-GLM provider failed)');
+        logger.info('Falling back to Ollama (non-Minimax/GLM provider failed)');
         const ollamaClient = this.clients.get('ollama')!;
         // Try known models in order
         for (const modelName of defaultOllamaModels) {
@@ -298,6 +340,17 @@ export class AIOrchestrator {
       }
     }
 
+    if (preference === 'minimax') {
+      const minimaxClient = this.clients.get('minimax');
+      if (minimaxClient && (await minimaxClient.isAvailable())) {
+        return {
+          client: minimaxClient,
+          model: 'MiniMax-M2', // Minimax M2 model name (Anthropic-compatible format)
+          rationale: 'Minimax M2 (user preference)',
+        };
+      }
+    }
+
     if (preference === 'glm') {
       const glmClient = this.clients.get('glm');
       if (glmClient && (await glmClient.isAvailable())) {
@@ -323,7 +376,17 @@ export class AIOrchestrator {
 
     // Auto selection based on task type (optimal model per task)
     if (preference === 'auto') {
-      // Prioritize GLM 4.6 for all tasks if available
+      // Prioritize Minimax M2 for all tasks if available
+      const minimaxClient = this.clients.get('minimax');
+      if (minimaxClient && (await minimaxClient.isAvailable())) {
+        return {
+          client: minimaxClient,
+          model: 'MiniMax-M2', // Minimax M2 model name (Anthropic-compatible format)
+          rationale: 'Minimax M2 (auto-selected, optimal for all tasks)',
+        };
+      }
+      
+      // Fallback to GLM 4.6 if Minimax not available
       const glmClient = this.clients.get('glm');
       if (glmClient && (await glmClient.isAvailable())) {
         return {

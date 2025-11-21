@@ -71,6 +71,14 @@ function AppShellComponent({ children }: AppShellProps) {
   // Determine assistant type based on route
   const assistantType = location.pathname.includes('/architect') ? 'architect' : 
                         activeProjectId ? 'concept' : 'project';
+  
+  // Pages that have their own embedded assistant (should hide AppShell right panel)
+  // ConceptEditorPage (/projects/:id) and ProjectArchitectPage (/projects/:id/architect) have embedded assistants
+  const hasEmbeddedAssistant = (activeProjectId && !location.pathname.includes('/architect')) || 
+                               location.pathname.includes('/architect');
+  
+  // Hide right panel on pages with embedded assistants
+  const effectiveShowRightPanel = showRightPanel && !hasEmbeddedAssistant;
 
   const triggerSync = useCallback(() => {
     if (syncTimerRef.current) {
@@ -310,7 +318,7 @@ function AppShellComponent({ children }: AppShellProps) {
       <div
         className={`flex-1 flex flex-col min-h-0 transition-all duration-300 ${
           sidebarCollapsed ? 'ml-[var(--sidebar-width-collapsed)]' : 'ml-[var(--sidebar-width)]'
-        } ${showRightPanel ? 'mr-[var(--right-panel-width)]' : ''}`}
+        } ${effectiveShowRightPanel ? 'mr-[var(--right-panel-width)]' : ''}`}
       >
         {/* Top Bar (Contextual) */}
         <header className="flex-shrink-0 h-[var(--top-bar-height)] border-b border-[var(--color-border-subtle)] bg-[var(--color-surface-card)] flex items-center px-4 gap-4">
@@ -392,20 +400,22 @@ function AppShellComponent({ children }: AppShellProps) {
               </button>
             </div>
 
-            {/* AI Assistant Toggle */}
-            <button
-              type="button"
-              onClick={() => setShowRightPanel(!showRightPanel)}
-              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium border rounded-lg transition h-9 ${
-                showRightPanel
-                  ? 'bg-[var(--brand-primary)]/20 text-primary border-[var(--brand-primary)]/40'
-                  : 'border-[var(--color-border-subtle)] text-secondary hover:text-primary hover:border-[var(--brand-primary)]/40'
-              }`}
-              title={showRightPanel ? 'Hide AI Assistant' : 'Show AI Assistant'}
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Assistant</span>
-            </button>
+            {/* AI Assistant Toggle - Hidden on pages with embedded assistants */}
+            {!hasEmbeddedAssistant && (
+              <button
+                type="button"
+                onClick={() => setShowRightPanel(!showRightPanel)}
+                className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium border rounded-lg transition h-9 ${
+                  showRightPanel
+                    ? 'bg-[var(--brand-primary)]/20 text-primary border-[var(--brand-primary)]/40'
+                    : 'border-[var(--color-border-subtle)] text-secondary hover:text-primary hover:border-[var(--brand-primary)]/40'
+                }`}
+                title={showRightPanel ? 'Hide AI Assistant' : 'Show AI Assistant'}
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Assistant</span>
+              </button>
+            )}
           </div>
         </header>
 
@@ -415,8 +425,8 @@ function AppShellComponent({ children }: AppShellProps) {
         </main>
       </div>
 
-      {/* Right Panel - AI Assistant (Collapsible) */}
-      {showRightPanel && (
+      {/* Right Panel - AI Assistant (Collapsible) - Hidden on pages with embedded assistants */}
+      {effectiveShowRightPanel && (
         <aside
           className={`fixed right-0 top-[var(--top-bar-height)] bottom-0 z-30 bg-[var(--color-surface-card)] border-l border-[var(--color-border-subtle)] transition-all duration-300 w-[var(--right-panel-width)] flex flex-col`}
         >

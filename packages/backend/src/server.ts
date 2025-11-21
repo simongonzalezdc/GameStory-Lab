@@ -15,9 +15,34 @@ const __dirname = dirname(__filename);
 const rootEnvPath = resolve(__dirname, '../../../.env');
 
 // Load .env file synchronously before any other code runs
-const envResult = config({ path: rootEnvPath });
-if (envResult.error) {
-  console.warn('Failed to load .env file:', envResult.error);
+// Try multiple paths to ensure we find the .env file
+const envPaths = [
+  rootEnvPath, // Expected: packages/backend/src/../../../.env (root)
+  resolve(process.cwd(), '.env'), // Current working directory (most reliable)
+  resolve(__dirname, '../../.env'), // packages/.env
+];
+
+let envResult: { error?: Error; parsed?: Record<string, string> } = { error: new Error('No .env file found') };
+let loadedEnvPath: string | null = null;
+
+for (const envPath of envPaths) {
+  const result = config({ path: envPath });
+  if (!result.error) {
+    envResult = result;
+    loadedEnvPath = envPath;
+    break;
+  }
+}
+
+if (envResult.error || !loadedEnvPath) {
+  console.warn('⚠️ Failed to load .env file from any path:', {
+    attemptedPaths: envPaths,
+    error: envResult.error?.message,
+  });
+  console.warn('   Using environment variables from process.env only');
+} else {
+  console.log(`✅ Loaded .env file from: ${loadedEnvPath}`);
+  console.log(`   PORT=${process.env.PORT || 'NOT SET (will use default 3001)'}`);
 }
 
 // Now import other modules (they will have access to process.env)
@@ -34,19 +59,39 @@ import { logger } from './utils/logger.js';
 // Log environment variable status
 logger.debug('Environment variables loaded', { 
   loadedKeys: Object.keys(envResult.parsed || {}).length,
+  hasMinimaxKey: !!process.env.MINIMAX_API_KEY,
+  minimaxKeyPreview: process.env.MINIMAX_API_KEY ? process.env.MINIMAX_API_KEY.substring(0, 15) + '...' : 'NOT SET',
   hasGLMKey: !!process.env.GLM_API_KEY,
   glmKeyPreview: process.env.GLM_API_KEY ? process.env.GLM_API_KEY.substring(0, 15) + '...' : 'NOT SET'
 });
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3001;
+// Parse PORT as number, fallback to 3001 if not set
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
+
+// Log port configuration for debugging
+console.log('🔧 Server Configuration:', {
+  PORT_ENV: process.env.PORT || 'NOT SET',
+  PORT_PARSED: PORT,
+  NODE_ENV: process.env.NODE_ENV || 'development',
+});
 
 // Initialize Prisma
 export const prisma = new PrismaClient();
 
-// Initialize AI Orchestrator
-export const aiOrchestrator = new AIOrchestrator();
+// Initialize AI Orchestrator (with error handling to prevent startup failure)
+let aiOrchestrator: AIOrchestrator;
+try {
+  aiOrchestrator = new AIOrchestrator();
+} catch (error) {
+  logger.error('Failed to initialize AI Orchestrator during module load', {
+    error: error instanceof Error ? error.message : String(error),
+  });
+  // Create a minimal orchestrator to prevent crashes
+  aiOrchestrator = new AIOrchestrator();
+}
+export { aiOrchestrator };
 
 // Rate limiting middleware - more lenient for validation endpoint
 const generalLimiter = rateLimit({
@@ -229,48 +274,18 @@ app.use((req, res) => {
 
 // Start server
 async function start() {
+  logger.info('Starting GameForge Studio API server...', {
+    port: PORT,
+    nodeEnv: process.env.NODE_ENV || 'development',
+    envFileLoaded: !!envResult.parsed,
+    envKeysCount: Object.keys(envResult.parsed || {}).length,
+  });
+
+  // Start listening FIRST to ensure server is available even if initialization fails
+  let server: ReturnType<typeof app.listen>;
   try {
-    // Test database connection (non-blocking)
-    try {
-      await prisma.$connect();
-      logger.info('Database connected');
-    } catch (dbError) {
-      logger.warn('Database connection failed - server will start but database features will be unavailable', {
-        error: dbError instanceof Error ? dbError.message : String(dbError),
-      });
-    }
-
-    // Initialize Ollama only if GLM is not available (Ollama is fallback only)
-    const glmAvailable = process.env.GLM_API_KEY && process.env.GLM_API_KEY.length > 0;
-    if (!glmAvailable) {
-      logger.info('GLM not available, initializing Ollama as primary provider');
-      try {
-        const { initializeOllama } = await import('./utils/ollama-setup.js');
-        await initializeOllama();
-      } catch (ollamaError) {
-        logger.warn('Ollama initialization failed - AI features may be limited', {
-          error: ollamaError instanceof Error ? ollamaError.message : String(ollamaError),
-        });
-      }
-    } else {
-      logger.debug('Skipping Ollama setup - GLM is available as primary provider');
-    }
-
-    // Check AI providers
-    try {
-      const aiStatus = await aiOrchestrator.getStatus();
-      logger.info('AI Orchestrator initialized', {
-        availableProviders: aiStatus.clients.filter((c) => c.available).map((c) => c.name),
-      });
-    } catch (aiError) {
-      logger.warn('AI Orchestrator initialization warning', {
-        error: aiError instanceof Error ? aiError.message : String(aiError),
-      });
-    }
-
-    // Start listening
-    const server = app.listen(PORT, () => {
-      logger.info(`GameForge Studio API running on http://localhost:${PORT}`, {
+    server = app.listen(PORT, () => {
+      logger.info(`✅ GameForge Studio API running on http://localhost:${PORT}`, {
         environment: process.env.NODE_ENV || 'development',
         port: PORT,
       });
@@ -278,9 +293,70 @@ async function start() {
     
     // Set server timeout to 10 minutes for long-running AI requests (local LLMs can be slow)
     server.timeout = 600000; // 10 minutes
-  } catch (error) {
-    logger.error('Failed to start server', { error });
+    
+    // Handle server errors
+    server.on('error', (error: NodeJS.ErrnoException) => {
+      if (error.code === 'EADDRINUSE') {
+        logger.error(`Port ${PORT} is already in use. Please stop the process using this port or change PORT in .env`);
+      } else {
+        logger.error('Server error:', error);
+      }
+      process.exit(1);
+    });
+  } catch (listenError) {
+    logger.error('Failed to start server listener', {
+      error: listenError instanceof Error ? listenError.message : String(listenError),
+      port: PORT,
+    });
     process.exit(1);
+  }
+
+  // Initialize services (non-blocking - server already listening)
+  try {
+    // Test database connection (non-blocking)
+    try {
+      await prisma.$connect();
+      logger.info('✅ Database connected');
+    } catch (dbError) {
+      logger.warn('⚠️ Database connection failed - server will start but database features will be unavailable', {
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+      });
+    }
+
+    // Initialize Ollama only if Minimax is not available (Ollama is fallback only)
+    const minimaxAvailable = process.env.MINIMAX_API_KEY && process.env.MINIMAX_API_KEY.length > 0;
+    if (!minimaxAvailable) {
+      logger.info('Minimax not available, initializing Ollama as primary provider');
+      try {
+        const { initializeOllama } = await import('./utils/ollama-setup.js');
+        await initializeOllama();
+      } catch (ollamaError) {
+        logger.warn('⚠️ Ollama initialization failed - AI features may be limited', {
+          error: ollamaError instanceof Error ? ollamaError.message : String(ollamaError),
+        });
+      }
+    } else {
+      logger.debug('Skipping Ollama setup - Minimax is available as primary provider');
+    }
+
+    // Check AI providers
+    try {
+      const aiStatus = await aiOrchestrator.getStatus();
+      logger.info('✅ AI Orchestrator initialized', {
+        availableProviders: aiStatus.clients.filter((c) => c.available).map((c) => c.name),
+        totalClients: aiStatus.clients.length,
+      });
+    } catch (aiError) {
+      logger.warn('⚠️ AI Orchestrator initialization warning', {
+        error: aiError instanceof Error ? aiError.message : String(aiError),
+      });
+    }
+  } catch (initError) {
+    logger.error('⚠️ Some services failed to initialize, but server is running', {
+      error: initError instanceof Error ? initError.message : String(initError),
+      stack: initError instanceof Error ? initError.stack : undefined,
+    });
+    // Don't exit - server is already listening
   }
 }
 
@@ -297,4 +373,31 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-start();
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Promise Rejection', {
+    reason: reason instanceof Error ? reason.message : String(reason),
+    stack: reason instanceof Error ? reason.stack : undefined,
+    promise: String(promise),
+  });
+  // Don't exit - let the server continue running
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception', {
+    error: error.message,
+    stack: error.stack,
+  });
+  // Exit on uncaught exceptions as they indicate a serious problem
+  process.exit(1);
+});
+
+// Start the server
+start().catch((error) => {
+  logger.error('Failed to start server (unhandled error in start function)', {
+    error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+  });
+  process.exit(1);
+});

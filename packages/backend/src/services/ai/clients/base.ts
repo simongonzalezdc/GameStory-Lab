@@ -41,7 +41,7 @@ export interface AICompletionResponse {
 
 export interface IAIClient {
   readonly name: string;
-  readonly type: 'openrouter' | 'google' | 'ollama' | 'glm';
+  readonly type: 'openrouter' | 'google' | 'ollama' | 'glm' | 'minimax';
 
   /**
    * Generate a completion from the AI model

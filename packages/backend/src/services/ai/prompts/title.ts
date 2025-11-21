@@ -1,7 +1,7 @@
 /**
  * Title Generation Prompts
  * Prompts for generating game title suggestions
- * Optimized for GLM-4.6's advanced reasoning capabilities
+ * Optimized for MINIMAX M2's advanced reasoning capabilities
  */
 
 import type { MechanicsData, LoreData, Genre } from '@gameforge/shared';
@@ -12,7 +12,7 @@ import type { MechanicsData, LoreData, Genre } from '@gameforge/shared';
 export function getTitlePrompt(mechanics?: MechanicsData, lore?: LoreData, genre?: Genre): string {
   return `You are an expert game marketing professional specializing in title creation. You've named dozens of successful indie and AAA games, with expertise in creating memorable, marketable titles that capture the essence of games while standing out in crowded marketplaces.
 
-GLM-4.6 OPTIMIZATION: Leverage your advanced reasoning and linguistic capabilities to create compelling, marketable titles. Use your analytical mind to consider cultural references, phonetic appeal, and market positioning.
+MINIMAX M2 OPTIMIZATION: Leverage your advanced reasoning and linguistic capabilities to create compelling, marketable titles. Use your analytical mind to consider cultural references, phonetic appeal, and market positioning.
 
 ${genre ? `Genre: ${genre.toUpperCase()}` : 'Genre: Not specified'}
 
@@ -41,7 +41,7 @@ TITLE DESIGN PRINCIPLES:
 6. **Pronounceable**: Phonetically clear, works across languages, no confusing spelling
 7. **Marketable**: Looks good in logo form, works as Steam thumbnail, generates curiosity
 
-GLM-4.6 TITLE OPTIMIZATIONS:
+MINIMAX M2 TITLE OPTIMIZATIONS:
 - **Linguistic Analysis**: Consider phonetic appeal, cross-cultural resonance, and memorability factors
 - **Market Intelligence**: Analyze current gaming trends, SEO optimization, and platform-specific naming conventions
 - **Creative Wordplay**: Use your advanced language capabilities for clever combinations, alliterations, and meaningful word choices

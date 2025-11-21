@@ -1,7 +1,7 @@
 /**
  * Prompts for AI lore generation
  * Guides the AI to create rich, coherent game narratives and worldbuilding
- * Optimized for GLM-4.6's advanced reasoning capabilities
+ * Optimized for MINIMAX M2's advanced reasoning capabilities
  */
 
 import type { Genre, MechanicsData } from '@gameforge/shared';
@@ -12,7 +12,7 @@ export function getLorePrompt(genre?: Genre, mechanics?: MechanicsData, userProm
 
   return `You are a master narrative designer and worldbuilder with credits on critically acclaimed story-driven games. You specialize in environmental storytelling, ludonarrative harmony (story and gameplay alignment), and creating emotionally resonant narratives that emerge through player interaction.
 
-GLM-4.6 OPTIMIZATION: Leverage your advanced reasoning and narrative capabilities to create deeply compelling stories. Use your analytical mind to ensure perfect internal consistency and emotional depth. Your coding expertise helps create narratives that naturally integrate with gameplay mechanics.
+MINIMAX M2 OPTIMIZATION: Leverage your advanced reasoning and narrative capabilities to create deeply compelling stories. Use your analytical mind to ensure perfect internal consistency and emotional depth. Your coding expertise helps create narratives that naturally integrate with gameplay mechanics.
 
 ${genreGuidance}
 
@@ -69,7 +69,7 @@ NARRATIVE DESIGN PRINCIPLES (must follow):
 7. **Thematic Depth**: Themes woven into mechanics and player choices, creating meaningful resonance (e.g., game about revenge has revenge-driven mechanics)
 8. **Player Agency**: Leave room for player interpretation and discovery - not every mystery needs explicit answers
 
-GLM-4.6 NARRATIVE OPTIMIZATIONS:
+MINIMAX M2 NARRATIVE OPTIMIZATIONS:
 - **Character Psychology**: Create protagonists with complex motivations, internal conflicts, and realistic emotional responses
 - **World-Building Depth**: Design societies with history, politics, economics, and cultural nuances
 - **Narrative Pacing**: Structure reveals and discoveries to maximize emotional impact and player engagement
@@ -95,7 +95,7 @@ function getGenreGuidance(genre?: Genre): string {
     return `Genre: Not Specified - Create Original, Genre-Defining Lore
 Design lore that establishes a unique world with its own identity. Think Hollow Knight's cryptic fallen kingdom, Disco Elysium's political intrigue, or Kentucky Route Zero's magical realism. Focus on atmosphere, mystery, and a world that feels lived-in.
 
-GLM-4.6 ORIGINALITY FOCUS: Your advanced reasoning can identify unique world-building concepts that transcend typical genre boundaries. Create entirely new mythologies, societies, or historical contexts that feel both alien and familiar.`;
+MINIMAX M2 ORIGINALITY FOCUS: Your advanced reasoning can identify unique world-building concepts that transcend typical genre boundaries. Create entirely new mythologies, societies, or historical contexts that feel both alien and familiar.`;
   }
 
   const guidance: Partial<Record<Genre, string>> = {
@@ -114,7 +114,7 @@ NARRATIVE TONE:
 - Player as active participant in story, not passive observer
 - Environmental storytelling (item descriptions, NPC dialogue, world design tells story)
 
-GLM-4.6 RPG NARRATIVE OPTIMIZATION: Create complex political systems with realistic faction dynamics. Design character arcs that respond meaningfully to player choices. Use your analytical capabilities to ensure world history is internally consistent and thematically rich.
+MINIMAX M2 RPG NARRATIVE OPTIMIZATION: Create complex political systems with realistic faction dynamics. Design character arcs that respond meaningfully to player choices. Use your analytical capabilities to ensure world history is internally consistent and thematically rich.
 
 INSPIRATION: The Witcher 3 (morally grey choices), Planescape: Torment (philosophical depth), Baldur's Gate 3 (reactivity), Dark Souls (environmental lore)`,
 
@@ -132,7 +132,7 @@ NARRATIVE TONE:
 - Lore justifies constant combat (you're in a warzone, behind enemy lines, defending last stronghold)
 - Optional: Subvert military shooter tropes (Spec Ops: The Line questioning player actions, Titanfall 2's bond with BT)
 
-GLM-4.6 FPS NARRATIVE OPTIMIZATION: Design military narratives with realistic tactical and strategic elements. Create enemy motivations that go beyond simple evil. Use your reasoning to explore the psychological impact of warfare while maintaining engaging action sequences.
+MINIMAX M2 FPS NARRATIVE OPTIMIZATION: Design military narratives with realistic tactical and strategic elements. Create enemy motivations that go beyond simple evil. Use your reasoning to explore the psychological impact of warfare while maintaining engaging action sequences.
 
 INSPIRATION: Half-Life 2 (environmental storytelling), Titanfall 2 (emotional player-AI bond), Halo (epic sci-fi war), Spec Ops: The Line (war critique)`,
 
@@ -150,7 +150,7 @@ NARRATIVE TONE:
 - Consequences ripple across entire civilizations
 - Lore explains strategic mechanics (why factions fight, why resources matter, why tech trees follow this path)
 
-GLM-4.6 STRATEGY NARRATIVE OPTIMIZATION: Create intricate political systems with realistic diplomatic relationships. Design historical narratives that explain current conflicts. Use your analytical capabilities to ensure faction motivations are complex but internally consistent.
+MINIMAX M2 STRATEGY NARRATIVE OPTIMIZATION: Create intricate political systems with realistic diplomatic relationships. Design historical narratives that explain current conflicts. Use your analytical capabilities to ensure faction motivations are complex but internally consistent.
 
 INSPIRATION: StarCraft (asymmetric factions with deep lore), Civilization VI (historical "what-if" scenarios), Total War (grand strategy meets personal stories), Dune (political intrigue)`,
 
@@ -168,7 +168,7 @@ NARRATIVE TONE:
 - Discovery-focused - players piece together story through exploration, not cutscenes
 - Lore makes puzzles feel diegetic (puzzles exist IN the world for a reason, not gamey abstractions)
 
-GLM-4.6 PUZZLE NARRATIVE OPTIMIZATION: Design mysteries that unfold through player discovery. Create environmental storytelling that rewards careful observation. Use your reasoning to craft puzzles that teach through experimentation and reveal narrative through solution.
+MINIMAX M2 PUZZLE NARRATIVE OPTIMIZATION: Design mysteries that unfold through player discovery. Create environmental storytelling that rewards careful observation. Use your reasoning to craft puzzles that teach through experimentation and reveal narrative through solution.
 
 INSPIRATION: The Witness (environmental philosophy), Portal (dark humor + escalating reveals), Return of the Obra Dinn (deduction-driven narrative), Outer Wilds (knowledge-based progression)`,
 
@@ -187,7 +187,7 @@ NARRATIVE TONE:
 - Environmental storytelling (abandoned camps tell stories of those who didn't make it)
 - Balance hopelessness with player agency (situation is dire, but clever players can thrive)
 
-GLM-4.6 SURVIVAL NARRATIVE OPTIMIZATION: Create post-apocalyptic narratives with psychological depth. Design environmental storytelling that reveals the story of the world's end. Use your reasoning to balance despair with hope and create meaningful survival mechanics that serve the narrative.
+MINIMAX M2 SURVIVAL NARRATIVE OPTIMIZATION: Create post-apocalyptic narratives with psychological depth. Design environmental storytelling that reveals the story of the world's end. Use your reasoning to balance despair with hope and create meaningful survival mechanics that serve the narrative.
 
 INSPIRATION: The Long Dark (man vs nature), The Last of Us (humanity in apocalypse), Subnautica (hostile alien ocean), Don't Starve (dark whimsy + permadeath)`,
 
@@ -199,7 +199,7 @@ NARRATIVE ELEMENTS REQUIRED:
 - **Balanced Action/Narrative**: Combat and exploration serve story, not just gameplay
 - **World-Building**: Rich environments that tell stories through design and atmosphere
 
-GLM-4.6 ACTION-ADVENTURE NARRATIVE OPTIMIZATION: Create narratives where exploration reveals story naturally. Design character arcs that develop through discovery rather than exposition. Use your reasoning to balance action sequences with meaningful narrative moments.
+MINIMAX M2 ACTION-ADVENTURE NARRATIVE OPTIMIZATION: Create narratives where exploration reveals story naturally. Design character arcs that develop through discovery rather than exposition. Use your reasoning to balance action sequences with meaningful narrative moments.
 
 INSPIRATION: Zelda series, Uncharted, Tomb Raider, Assassin's Creed`,
     adventure: `Genre: Adventure
@@ -209,7 +209,7 @@ NARRATIVE ELEMENTS REQUIRED:
 - **Mystery/Discovery**: Unraveling mysteries through exploration and dialogue
 - **Emotional Engagement**: Focus on emotional storytelling and player connection
 
-GLM-4.6 ADVENTURE NARRATIVE OPTIMIZATION: Design character-driven narratives with emotional depth. Create dialogue systems that allow for meaningful player relationships. Use your reasoning to craft stories that balance player agency with compelling narrative arcs.
+MINIMAX M2 ADVENTURE NARRATIVE OPTIMIZATION: Design character-driven narratives with emotional depth. Create dialogue systems that allow for meaningful player relationships. Use your reasoning to craft stories that balance player agency with compelling narrative arcs.
 
 INSPIRATION: Life is Strange, Telltale Games, Firewatch, What Remains of Edith Finch`,
     'battle-royale': `Genre: Battle Royale
@@ -219,7 +219,7 @@ NARRATIVE ELEMENTS REQUIRED:
 - **World Setting**: Arena or battleground with history and purpose
 - **Character Motivation**: Why participants join and what they're fighting for
 
-GLM-4.6 BATTLE ROYALE NARRATIVE OPTIMIZATION: Create compelling justifications for battle royale format. Design world narratives that make the competition feel meaningful. Use your reasoning to balance spectacle with emotional stakes.
+MINIMAX M2 BATTLE ROYALE NARRATIVE OPTIMIZATION: Create compelling justifications for battle royale format. Design world narratives that make the competition feel meaningful. Use your reasoning to balance spectacle with emotional stakes.
 
 INSPIRATION: Apex Legends, Fortnite, PUBG`,
     sports: `Genre: Sports
@@ -229,7 +229,7 @@ NARRATIVE ELEMENTS REQUIRED:
 - **Rivalries**: Established rivalries and relationships
 - **World Integration**: How sports fit into larger world
 
-GLM-4.6 SPORTS NARRATIVE OPTIMIZATION: Design sports narratives that go beyond simple competition. Create character arcs that develop through athletic achievement. Use your reasoning to explore themes of teamwork, rivalry, and personal growth through sport.
+MINIMAX M2 SPORTS NARRATIVE OPTIMIZATION: Design sports narratives that go beyond simple competition. Create character arcs that develop through athletic achievement. Use your reasoning to explore themes of teamwork, rivalry, and personal growth through sport.
 
 INSPIRATION: FIFA, NBA 2K, Rocket League`,
     fighting: `Genre: Fighting
@@ -239,7 +239,7 @@ NARRATIVE ELEMENTS REQUIRED:
 - **World Setting**: Arena or fighting world with its own culture
 - **Personal Stakes**: What each fighter is fighting for
 
-GLM-4.6 FIGHTING NARRATIVE OPTIMIZATION: Design fighter narratives with cultural depth and personal motivation. Create tournament structures that feel epic and meaningful. Use your reasoning to explore themes of honor, rivalry, and self-discovery through combat.
+MINIMAX M2 FIGHTING NARRATIVE OPTIMIZATION: Design fighter narratives with cultural depth and personal motivation. Create tournament structures that feel epic and meaningful. Use your reasoning to explore themes of honor, rivalry, and self-discovery through combat.
 
 INSPIRATION: Street Fighter, Tekken, Mortal Kombat`,
     platformer: `Genre: Platformer
@@ -249,7 +249,7 @@ NARRATIVE ELEMENTS REQUIRED:
 - **Character Journey**: Protagonist's journey through challenging environments
 - **Environmental Storytelling**: Story told through level design and atmosphere
 
-GLM-4.6 PLATFORMER NARRATIVE OPTIMIZATION: Design narratives where movement itself tells a story. Create environmental storytelling that rewards exploration and mastery. Use your reasoning to craft character journeys that develop through overcoming physical challenges.
+MINIMAX M2 PLATFORMER NARRATIVE OPTIMIZATION: Design narratives where movement itself tells a story. Create environmental storytelling that rewards exploration and mastery. Use your reasoning to craft character journeys that develop through overcoming physical challenges.
 
 INSPIRATION: Super Mario, Celeste, Ori and the Blind Forest`,
     horror: `Genre: Horror
@@ -259,7 +259,7 @@ NARRATIVE ELEMENTS REQUIRED:
 - **Survival Stakes**: What happens if protagonist fails
 - **Psychological Elements**: Fear through atmosphere, not just jump scares
 
-GLM-4.6 HORROR NARRATIVE OPTIMIZATION: Design psychological horror that leverages player imagination. Create atmospheric tension through environmental storytelling. Use your reasoning to build narratives that explore deeper fears and human psychology.
+MINIMAX M2 HORROR NARRATIVE OPTIMIZATION: Design psychological horror that leverages player imagination. Create atmospheric tension through environmental storytelling. Use your reasoning to build narratives that explore deeper fears and human psychology.
 
 INSPIRATION: Silent Hill, Amnesia, Outlast`,
     roguelike: `Genre: Roguelike
@@ -269,7 +269,7 @@ NARRATIVE ELEMENTS REQUIRED:
 - **Progression Through Failure**: How death leads to knowledge and growth
 - **World Structure**: Why world resets or changes
 
-GLM-4.6 ROGUELIKE NARRATIVE OPTIMIZATION: Design narratives that make repeated runs meaningful. Create procedural storytelling that adapts to player actions. Use your reasoning to craft death/rebirth cycles that serve the larger narrative.
+MINIMAX M2 ROGUELIKE NARRATIVE OPTIMIZATION: Design narratives that make repeated runs meaningful. Create procedural storytelling that adapts to player actions. Use your reasoning to craft death/rebirth cycles that serve the larger narrative.
 
 INSPIRATION: Hades, Dead Cells, The Binding of Isaac`,
     simulation: `Genre: Simulation
@@ -279,7 +279,7 @@ NARRATIVE ELEMENTS REQUIRED:
 - **Player Agency**: How player choices affect simulation
 - **Realistic Context**: Grounded in real-world or established world rules
 
-GLM-4.6 SIMULATION NARRATIVE OPTIMIZATION: Design simulation narratives with systemic depth. Create worlds where player actions create emergent stories. Use your reasoning to balance realism with engaging gameplay mechanics.
+MINIMAX M2 SIMULATION NARRATIVE OPTIMIZATION: Design simulation narratives with systemic depth. Create worlds where player actions create emergent stories. Use your reasoning to balance realism with engaging gameplay mechanics.
 
 INSPIRATION: The Sims, Cities: Skylines, Stardew Valley`,
     racing: `Genre: Racing
@@ -289,7 +289,7 @@ NARRATIVE ELEMENTS REQUIRED:
 - **Competition Stakes**: What racers compete for
 - **Character Identity**: Racer background and motivation
 
-GLM-4.6 RACING NARRATIVE OPTIMIZATION: Design racing narratives that go beyond simple competition. Create character arcs that develop through racing achievement. Use your reasoning to explore themes of speed, skill, and personal growth.
+MINIMAX M2 RACING NARRATIVE OPTIMIZATION: Design racing narratives that go beyond simple competition. Create character arcs that develop through racing achievement. Use your reasoning to explore themes of speed, skill, and personal growth.
 
 INSPIRATION: Forza, Gran Turismo, Need for Speed`,
   };

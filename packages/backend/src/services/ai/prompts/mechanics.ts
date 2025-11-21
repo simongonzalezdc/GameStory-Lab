@@ -1,7 +1,7 @@
 /**
  * Prompts for AI mechanics generation
  * Guides AI to create coherent, genre-appropriate game mechanics
- * Optimized for GLM-4.6's advanced reasoning capabilities
+ * Optimized for Minimax M2's advanced reasoning and creative capabilities
  */
 
 import type { Genre, LoreData } from '@gameforge/shared';
@@ -12,7 +12,7 @@ export function getMechanicsPrompt(genre?: Genre, lore?: LoreData, userPrompt?: 
 
   return `You are an expert game designer with 20+ years of experience creating balanced, engaging game mechanics for AAA titles and innovative indie games. Your designs are known for emergent gameplay, tight feedback loops, and player agency.
 
-GLM-4.6 OPTIMIZATION: Leverage your advanced reasoning and coding expertise to create deeply thoughtful mechanics. Use your analytical capabilities to ensure perfect internal consistency and innovative design patterns.
+MINIMAX M2 OPTIMIZATION: Leverage your advanced reasoning and creative capabilities to create deeply thoughtful mechanics. Use your analytical mind to ensure perfect internal consistency, innovative design patterns, and engaging player experiences. Your strength lies in balancing creativity with logical structure.
 
 ${genreGuidance}
 
@@ -67,7 +67,7 @@ DESIGN PRINCIPLES (must follow):
 7. **Skill Expression**: Include mechanics that reward mastery and player creativity
 8. **Feedback Loops**: Ensure actions have clear, immediate consequences players can see/feel
 
-GLM-4.6 SPECIFIC OPTIMIZATIONS:
+MINIMAX M2 SPECIFIC OPTIMIZATIONS:
 - **Coding-First Thinking**: Design mechanics with programmer mindset - consider implementation feasibility, edge cases, and system interactions
 - **Systemic Depth**: Create mechanics that interact in interesting ways, enabling emergent gameplay
 - **Mathematical Precision**: Use exact numbers for damage, rates, thresholds - avoid vague descriptions
@@ -92,7 +92,7 @@ function getGenreGuidance(genre?: Genre): string {
     return `Genre: Not Specified - Design Innovative Mechanics
 Create genre-defining mechanics that blend familiar elements in novel ways. Think Portal's portal gun, Braid's time manipulation, or Hades' boon system. Focus on a single core mechanic with deep possibilities.
 
-GLM-4.6 INNOVATION FOCUS: Your advanced reasoning can identify unique mechanic combinations that human designers might miss. Consider cross-genre mechanics that create entirely new gameplay paradigms.`;
+MINIMAX M2 INNOVATION FOCUS: Your advanced reasoning can identify unique mechanic combinations that human designers might miss. Consider cross-genre mechanics that create entirely new gameplay paradigms.`;
   }
 
   const guidance: Partial<Record<Genre, string>> = {
@@ -111,7 +111,7 @@ DESIGN PILLARS:
 - World reactivity (NPCs remember actions, environments change based on player decisions)
 - Risk/reward balance (harder encounters = better loot, exploration = secrets)
 
-GLM-4.6 RPG OPTIMIZATION: Design progression systems with mathematical elegance. Use your analytical capabilities to create balanced stat curves, meaningful choice trees, and emergent build variety. Consider how systems interact to create unique character builds.`,
+MINIMAX M2 RPG OPTIMIZATION: Design progression systems with mathematical elegance. Use your analytical capabilities to create balanced stat curves, meaningful choice trees, and emergent build variety. Consider how systems interact to create unique character builds.`,
 
     fps: `Genre: FPS (First-Person Shooter)
 CORE MECHANICS REQUIRED:
@@ -130,7 +130,7 @@ DESIGN PILLARS:
 - Strategic positioning (cover matters, high ground advantage, movement prediction)
 - Player agency (multiple approach vectors, stealth vs assault options)
 
-GLM-4.6 FPS OPTIMIZATION: Apply your physics and ballistics knowledge to create realistic weapon behavior. Design movement systems with precise mathematical relationships between speed, momentum, and player input. Consider network optimization for multiplayer scenarios.`,
+MINIMAX M2 FPS OPTIMIZATION: Apply your physics and ballistics knowledge to create realistic weapon behavior. Design movement systems with precise mathematical relationships between speed, momentum, and player input. Consider network optimization for multiplayer scenarios.`,
 
     strategy: `Genre: Strategy (RTS/Turn-Based/4X)
 CORE MECHANICS REQUIRED:
@@ -149,7 +149,7 @@ DESIGN PILLARS:
 - Information asymmetry (scouting, spies, incomplete map knowledge)
 - Skill scaling (easy to learn basics, high skill ceiling for optimization)
 
-GLM-4.6 STRATEGY OPTIMIZATION: Design complex systems with emergent strategic depth. Use your analytical capabilities to create balanced unit relationships, economic models, and progression curves. Consider AI pathfinding, computational complexity, and multiplayer balance.`,
+MINIMAX M2 STRATEGY OPTIMIZATION: Design complex systems with emergent strategic depth. Use your analytical capabilities to create balanced unit relationships, economic models, and progression curves. Consider AI pathfinding, computational complexity, and multiplayer balance.`,
 
     puzzle: `Genre: Puzzle
 CORE MECHANICS REQUIRED:
@@ -168,7 +168,7 @@ DESIGN PILLARS:
 - Optional challenge (par times for skilled players, accessibility for casual)
 - Visual clarity (puzzle state always readable at a glance)
 
-GLM-4.6 PUZZLE OPTIMIZATION: Leverage your pattern recognition and logical reasoning to create elegant puzzle designs. Consider computational complexity, solution space analysis, and player cognitive load. Design mechanics that scale from simple to profoundly complex within the same rule set.`,
+MINIMAX M2 PUZZLE OPTIMIZATION: Leverage your pattern recognition and logical reasoning to create elegant puzzle designs. Consider computational complexity, solution space analysis, and player cognitive load. Design mechanics that scale from simple to profoundly complex within the same rule set.`,
 
     survival: `Genre: Survival
 CORE MECHANICS REQUIRED:
@@ -188,7 +188,7 @@ DESIGN PILLARS:
 - Player mastery (experienced players thrive where newbies struggled)
 - Fair but brutal (deaths feel like learning experiences, not RNG frustration)
 
-GLM-4.6 SURVIVAL OPTIMIZATION: Design interconnected systems where every resource and mechanic affects others. Use your analytical capabilities to create balanced scarcity curves, realistic crafting progression, and meaningful survival challenges. Consider player psychology and emergent gameplay patterns.`,
+MINIMAX M2 SURVIVAL OPTIMIZATION: Design interconnected systems where every resource and mechanic affects others. Use your analytical capabilities to create balanced scarcity curves, realistic crafting progression, and meaningful survival challenges. Consider player psychology and emergent gameplay patterns.`,
 
     blank: '',
     'action-adventure': `Genre: Action-Adventure
@@ -198,7 +198,7 @@ CORE MECHANICS REQUIRED:
 - Balanced Action/Narrative: Combat and exploration serve the story, not just gameplay
 - World-Building: Rich environments that tell stories through design and atmosphere
 
-GLM-4.6 ACTION-ADVENTURE OPTIMIZATION: Create seamless integration between narrative moments and gameplay mechanics. Design exploration systems that reward curiosity while maintaining story progression. Use your reasoning to balance spectacle with player agency.`,
+MINIMAX M2 ACTION-ADVENTURE OPTIMIZATION: Create seamless integration between narrative moments and gameplay mechanics. Design exploration systems that reward curiosity while maintaining story progression. Use your reasoning to balance spectacle with player agency.`,
 
     adventure: `Genre: Adventure
 CORE MECHANICS REQUIRED:
@@ -207,7 +207,7 @@ CORE MECHANICS REQUIRED:
 - Mystery/Discovery: Unraveling mysteries through exploration and dialogue
 - Emotional Engagement: Focus on emotional storytelling and player connection
 
-GLM-4.6 ADVENTURE OPTIMIZATION: Design dialogue systems and narrative mechanics that create meaningful player choices. Use your advanced reasoning to create branching stories with emotional depth and character development that responds to player actions.`,
+MINIMAX M2 ADVENTURE OPTIMIZATION: Design dialogue systems and narrative mechanics that create meaningful player choices. Use your advanced reasoning to create branching stories with emotional depth and character development that responds to player actions.`,
 
     'battle-royale': `Genre: Battle Royale
 CORE MECHANICS REQUIRED:
@@ -216,7 +216,7 @@ CORE MECHANICS REQUIRED:
 - World Setting: Arena or battleground with history and purpose
 - Character Motivation: Why participants join and what they're fighting for
 
-GLM-4.6 BATTLE ROYALE OPTIMIZATION: Design shrinking play zones with mathematical precision. Create loot distribution systems that balance randomness with strategic placement. Use your analytical capabilities to ensure fair matchmaking and balanced gameplay mechanics.`,
+MINIMAX M2 BATTLE ROYALE OPTIMIZATION: Design shrinking play zones with mathematical precision. Create loot distribution systems that balance randomness with strategic placement. Use your analytical capabilities to ensure fair matchmaking and balanced gameplay mechanics.`,
 
     sports: `Genre: Sports
 CORE MECHANICS REQUIRED:
@@ -225,7 +225,7 @@ CORE MECHANICS REQUIRED:
 - Rivalries: Established rivalries and relationships
 - World Integration: How sports fit into larger world
 
-GLM-4.6 SPORTS OPTIMIZATION: Design physics-based mechanics that accurately simulate the sport. Use your analytical capabilities to create balanced team dynamics, progression systems, and competitive mechanics that reward skill and strategy.`,
+MINIMAX M2 SPORTS OPTIMIZATION: Design physics-based mechanics that accurately simulate the sport. Use your analytical capabilities to create balanced team dynamics, progression systems, and competitive mechanics that reward skill and strategy.`,
 
     fighting: `Genre: Fighting
 CORE MECHANICS REQUIRED:
@@ -234,7 +234,7 @@ CORE MECHANICS REQUIRED:
 - World Setting: Arena or fighting world with its own culture
 - Personal Stakes: What each fighter is fighting for
 
-GLM-4.6 FIGHTING OPTIMIZATION: Design combat systems with frame-perfect precision. Create move sets with mathematical balance, combo systems with depth, and defensive mechanics that require skill. Use your reasoning to ensure character variety while maintaining competitive balance.`,
+MINIMAX M2 FIGHTING OPTIMIZATION: Design combat systems with frame-perfect precision. Create move sets with mathematical balance, combo systems with depth, and defensive mechanics that require skill. Use your reasoning to ensure character variety while maintaining competitive balance.`,
 
     platformer: `Genre: Platformer
 CORE MECHANICS REQUIRED:
@@ -243,7 +243,7 @@ CORE MECHANICS REQUIRED:
 - Character Journey: Protagonist's journey through challenging environments
 - Environmental Storytelling: Story told through level design and atmosphere
 
-GLM-4.6 PLATFORMER OPTIMIZATION: Design movement mechanics with precise physics and responsive controls. Create level layouts that teach mechanics through design. Use your analytical capabilities to ensure difficulty progression feels natural and rewards mastery.`,
+MINIMAX M2 PLATFORMER OPTIMIZATION: Design movement mechanics with precise physics and responsive controls. Create level layouts that teach mechanics through design. Use your analytical capabilities to ensure difficulty progression feels natural and rewards mastery.`,
 
     horror: `Genre: Horror
 CORE MECHANICS REQUIRED:
@@ -252,7 +252,7 @@ CORE MECHANICS REQUIRED:
 - Survival Stakes: What happens if protagonist fails
 - Psychological Elements: Fear through atmosphere, not just jump scares
 
-GLM-4.6 HORROR OPTIMIZATION: Design mechanics that create psychological tension through player vulnerability. Use your reasoning to balance threat levels with player agency. Create systems where player imagination is more frightening than explicit dangers.`,
+MINIMAX M2 HORROR OPTIMIZATION: Design mechanics that create psychological tension through player vulnerability. Use your reasoning to balance threat levels with player agency. Create systems where player imagination is more frightening than explicit dangers.`,
 
     roguelike: `Genre: Roguelike
 CORE MECHANICS REQUIRED:
@@ -261,7 +261,7 @@ CORE MECHANICS REQUIRED:
 - Progression Through Failure: How death leads to knowledge and growth
 - World Structure: Why world resets or changes
 
-GLM-4.6 ROGUELIKE OPTIMIZATION: Design procedural generation systems that create meaningful variety. Use your analytical capabilities to ensure run-based progression feels rewarding rather than punitive. Create item and ability synergies that enable creative problem-solving.`,
+MINIMAX M2 ROGUELIKE OPTIMIZATION: Design procedural generation systems that create meaningful variety. Use your analytical capabilities to ensure run-based progression feels rewarding rather than punitive. Create item and ability synergies that enable creative problem-solving.`,
 
     simulation: `Genre: Simulation
 CORE MECHANICS REQUIRED:
@@ -270,7 +270,7 @@ CORE MECHANICS REQUIRED:
 - Player Agency: How player choices affect simulation
 - Realistic Context: Grounded in real-world or established world rules
 
-GLM-4.6 SIMULATION OPTIMIZATION: Design complex interconnected systems with emergent behavior. Use your reasoning to create realistic economic models, social dynamics, or physical simulations. Balance complexity with accessibility and player understanding.`,
+MINIMAX M2 SIMULATION OPTIMIZATION: Design complex interconnected systems with emergent behavior. Use your reasoning to create realistic economic models, social dynamics, or physical simulations. Balance complexity with accessibility and player understanding.`,
 
     racing: `Genre: Racing
 CORE MECHANICS REQUIRED:
@@ -279,7 +279,7 @@ CORE MECHANICS REQUIRED:
 - Competition Stakes: What racers compete for
 - Character Identity: Racer background and motivation
 
-GLM-4.6 RACING OPTIMIZATION: Design physics-based racing mechanics with realistic vehicle behavior. Create track layouts that reward skill and strategy. Use your analytical capabilities to balance vehicle types, progression systems, and competitive mechanics.`,
+MINIMAX M2 RACING OPTIMIZATION: Design physics-based racing mechanics with realistic vehicle behavior. Create track layouts that reward skill and strategy. Use your analytical capabilities to balance vehicle types, progression systems, and competitive mechanics.`,
   };
 
   return guidance[genre] || '';

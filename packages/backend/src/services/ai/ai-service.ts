@@ -39,6 +39,7 @@ function getAIOrchestrator(): AIOrchestrator {
       openrouterApiKey: process.env.OPENROUTER_API_KEY,
       googleApiKey: process.env.GOOGLE_API_KEY,
       glmApiKey: process.env.GLM_API_KEY,
+      minimaxApiKey: process.env.MINIMAX_API_KEY,
       ollamaBaseUrl: process.env.OLLAMA_BASE_URL,
       costLimitPerHourUsd: 5.0, // $5/hour limit
     });
