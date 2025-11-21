@@ -57,7 +57,7 @@ return (
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border-subtle bg-[rgba(17,16,21,0.82)] backdrop-blur-2xl shadow-[0_20px_60px_rgba(11,8,15,0.75)]">
-        <div className="absolute inset-0 pointer-events-none opacity-70" style={{ background: 'radial-gradient(circle at 20% -10%, color-mix(in srgb, var(--jewel-garnet) 25%, transparent) 0%, transparent 45%), radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--jewel-topaz) 20%, transparent) 0%, transparent 50%)' }} />
+        <div className="absolute inset-0 pointer-events-none opacity-70" style={{ background: 'radial-gradient(circle at 20% -10%, color-mix(in srgb, var(--jewel-garnet) 25%, transparent) 0%, transparent 45%), radial-gradient(circle at 50% -5%, color-mix(in srgb, var(--jewel-fireopal) 15%, transparent) 0%, transparent 40%), radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--jewel-topaz) 20%, transparent) 0%, transparent 50%)' }} />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo */}

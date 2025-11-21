@@ -141,7 +141,11 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
             {mechanics.resourceSystems.map((resource: any, index: number) => (
               <div
                 key={index}
-                className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-800"
+                className="p-4 rounded-lg border border-border-subtle"
+                style={{
+                  background: 'linear-gradient(to bottom right, color-mix(in srgb, var(--jewel-fireopal) 8%, var(--color-surface-card)), color-mix(in srgb, var(--jewel-topaz) 12%, var(--color-surface-elevated)))',
+                  borderColor: 'color-mix(in srgb, var(--jewel-topaz) 30%, var(--color-border-subtle))',
+                }}
               >
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-primary">{safeString((resource as any).name, 'Resource')}</h4>

@@ -390,7 +390,7 @@ export function TemplateBrowserPage() {
     <div className="space-y-8">
       {/* Hero */}
       <section className="glass-card relative overflow-hidden px-6 py-8 lg:px-10 lg:py-12">
-        <div className="absolute inset-0 opacity-60" style={{ background: 'radial-gradient(circle at 15% -10%, color-mix(in srgb, var(--jewel-garnet) 35%, transparent) 0%, transparent 45%), radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--jewel-topaz) 25%, transparent) 0%, transparent 55%)' }} />
+        <div className="absolute inset-0 opacity-60" style={{ background: 'radial-gradient(circle at 15% -10%, color-mix(in srgb, var(--jewel-garnet) 35%, transparent) 0%, transparent 45%), radial-gradient(circle at 50% -5%, color-mix(in srgb, var(--jewel-fireopal) 20%, transparent) 0%, transparent 40%), radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--jewel-topaz) 25%, transparent) 0%, transparent 55%)' }} />
         <div className="relative z-10 space-y-6">
           <div className="flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-[0.35em] text-tertiary">
             <span className="signal-pill signal-pill--accent">Template Forge</span>

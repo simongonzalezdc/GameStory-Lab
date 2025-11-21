@@ -36,7 +36,7 @@ export function CursorGlow() {
         <motion.div
           className="fixed inset-0 pointer-events-none z-0"
           style={{
-            background: `radial-gradient(circle 200px at ${springX}px ${springY}px, color-mix(in srgb, var(--jewel-topaz) 3%, transparent), color-mix(in srgb, var(--jewel-garnet) 2%, transparent), transparent 70%)`,
+            background: `radial-gradient(circle 200px at ${springX}px ${springY}px, color-mix(in srgb, var(--jewel-garnet) 3%, transparent), color-mix(in srgb, var(--jewel-fireopal) 2%, transparent), color-mix(in srgb, var(--jewel-topaz) 2%, transparent), transparent 70%)`,
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

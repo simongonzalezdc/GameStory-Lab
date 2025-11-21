@@ -51,7 +51,7 @@ export function ThinkingIndicator({ className = '' }: ThinkingIndicatorProps) {
             <span 
               className="text-sm font-medium"
               style={{
-                background: 'linear-gradient(135deg, var(--jewel-garnet-light), var(--jewel-amethyst-light), var(--jewel-garnet-light))',
+                background: 'linear-gradient(135deg, var(--jewel-garnet), var(--jewel-amethyst), var(--jewel-sapphire), var(--jewel-amethyst), var(--jewel-garnet))',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',

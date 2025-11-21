@@ -121,11 +121,11 @@
      * 4. NEVER use hardcoded hex colors or rgba() values directly
      */
     /* Brand gradients (Garnet + Topaz) */
-    --gradient-brand-primary: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 50%, var(--brand-secondary) 100%);
-    --gradient-brand-secondary: linear-gradient(135deg, var(--brand-secondary) 0%, var(--brand-primary-hover) 100%);
+    --gradient-brand-primary: linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-fireopal) 50%, var(--jewel-topaz) 100%);
+    --gradient-brand-secondary: linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-fireopal) 50%, var(--jewel-topaz) 100%);
     --gradient-brand-soft: linear-gradient(135deg, var(--brand-primary-soft) 0%, var(--brand-secondary-soft) 100%);
-    --gradient-brand-to-br: linear-gradient(to bottom right, var(--brand-primary) 0%, var(--brand-secondary) 100%);
-    --gradient-brand-radial: radial-gradient(circle, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+    --gradient-brand-to-br: linear-gradient(to bottom right, var(--jewel-garnet) 0%, var(--jewel-fireopal) 50%, var(--jewel-topaz) 100%);
+    --gradient-brand-radial: radial-gradient(circle, var(--jewel-garnet) 0%, var(--jewel-fireopal) 50%, var(--jewel-topaz) 100%);
     
     /* Jewel tone gradients - Primary combinations */
     --gradient-garnet-fireopal: linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-fireopal) 100%);
@@ -152,15 +152,15 @@
     /* Radial gradients for overlays (using jewel colors with opacity) */
     --gradient-radial-garnet: radial-gradient(circle, color-mix(in srgb, var(--jewel-garnet) 15%, transparent) 0%, transparent 70%);
     --gradient-radial-topaz: radial-gradient(circle, color-mix(in srgb, var(--jewel-topaz) 15%, transparent) 0%, transparent 70%);
-    --gradient-radial-brand: radial-gradient(circle, color-mix(in srgb, var(--brand-primary) 8%, transparent) 0%, color-mix(in srgb, var(--brand-secondary) 5%, transparent) 30%, transparent 70%);
+    --gradient-radial-brand: radial-gradient(circle, color-mix(in srgb, var(--jewel-garnet) 8%, transparent) 0%, color-mix(in srgb, var(--jewel-fireopal) 6%, transparent) 20%, color-mix(in srgb, var(--jewel-topaz) 5%, transparent) 40%, transparent 70%);
     --gradient-radial-surface: radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--color-bg-secondary) 80%, transparent) 0%, transparent 50%);
     
     /* Text gradients (using jewel colors) */
-    --gradient-text-brand: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+    --gradient-text-brand: linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-fireopal) 50%, var(--jewel-topaz) 100%);
     --gradient-text-garnet-topaz: linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-topaz) 100%);
     
     /* Border gradients (using jewel colors with opacity) */
-    --gradient-border-brand: linear-gradient(135deg, color-mix(in srgb, var(--brand-primary) 20%, transparent), color-mix(in srgb, var(--brand-secondary) 20%, transparent));
+    --gradient-border-brand: linear-gradient(135deg, color-mix(in srgb, var(--jewel-garnet) 20%, transparent), color-mix(in srgb, var(--jewel-fireopal) 20%, transparent), color-mix(in srgb, var(--jewel-topaz) 20%, transparent));
     
     /* Chat Window Design System */
     --chat-container-height: calc(100vh - 4rem);
@@ -1662,11 +1662,12 @@
     position: absolute;
     inset: -4px;
     border: 2px solid transparent;
-    border-top-color: var(--jewel-amethyst-light);
-    border-bottom-color: var(--jewel-garnet-light);
+    border-top-color: var(--jewel-amethyst);
+    border-right-color: var(--jewel-sapphire);
+    border-bottom-color: var(--jewel-garnet);
     border-radius: 50%;
     animation: jewel-spin 2s linear infinite reverse;
-    opacity: 0.6;
+    opacity: 0.5;
     z-index: 0;
   }
 
@@ -1678,27 +1679,27 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: radial-gradient(circle, white 0%, rgba(255, 255, 255, 0.8) 100%);
+    background: radial-gradient(circle, var(--jewel-sapphire) 0%, rgba(52, 70, 118, 0.8) 100%);
     border-radius: 50%;
     z-index: 2;
     animation: jewel-pulse 2s ease-in-out infinite;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 15px rgba(52, 70, 118, 0.5);
   }
 
   /* Sparkle particles around the jewel */
   .jewel-spinner .sparkle {
     position: absolute;
-    width: 5px;
-    height: 5px;
-    background: radial-gradient(circle, var(--jewel-amethyst-light, #8a7ca8) 0%, var(--jewel-garnet-light, #AE5D37) 100%);
+    width: 3px;
+    height: 3px;
+    background: radial-gradient(circle, var(--jewel-garnet) 0%, var(--jewel-amethyst) 50%, var(--jewel-sapphire) 100%);
     border-radius: 50%;
     animation: jewel-sparkle 2.5s ease-in-out infinite;
     z-index: 3;
-    opacity: 0.9;
+    opacity: 0.3;
     box-shadow: 
-      0 0 8px rgba(143, 62, 72, 0.7),
-      0 0 12px rgba(107, 93, 136, 0.5),
-      inset 0 0 3px rgba(255, 255, 255, 0.6);
+      0 0 4px rgba(143, 62, 72, 0.3),
+      0 0 6px rgba(107, 93, 136, 0.2),
+      inset 0 0 1px rgba(52, 70, 118, 0.05);
     transform-origin: center center;
     pointer-events: none;
   }

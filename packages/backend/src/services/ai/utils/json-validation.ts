@@ -16,12 +16,40 @@ export interface JSONValidationResult {
  * Attempt to extract JSON from a response that may contain markdown code fences or extra text
  */
 export function extractJSON(content: string): JSONValidationResult {
+  // FAST PATH: Try parsing the raw content directly first (handles most valid JSON responses)
+  const trimmed = content.trim();
+  if ((trimmed.startsWith('{') || trimmed.startsWith('['))) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      logger.debug('Successfully parsed JSON directly without extraction', {
+        contentLength: trimmed.length,
+        hasProposal: !!(parsed && typeof parsed === 'object' && parsed.proposal),
+      });
+      return {
+        isValid: true,
+        parsed,
+        reformatted: JSON.stringify(parsed, null, 2),
+      };
+    } catch (directParseError) {
+      // Not directly parseable, continue with extraction logic
+      logger.debug('Direct JSON parse failed, attempting extraction', {
+        error: directParseError instanceof Error ? directParseError.message : String(directParseError),
+        contentPreview: trimmed.substring(0, 200),
+      });
+    }
+  }
+
+  // FALLBACK: Use extraction logic for markdown-wrapped or partial JSON
   const candidates = gatherJSONCandidates(content);
   let lastError: string | undefined;
 
   for (const candidate of candidates) {
     const jsonSnippet = extractFirstJSONSegment(candidate);
     if (!jsonSnippet) {
+      logger.warn('Could not extract JSON segment from candidate', {
+        candidateLength: candidate.length,
+        candidatePreview: candidate.substring(0, 100),
+      });
       continue;
     }
 
@@ -34,6 +62,14 @@ export function extractJSON(content: string): JSONValidationResult {
       lastError = parseAttempt.error;
     }
   }
+
+  logger.error('All JSON extraction attempts failed', {
+    candidatesCount: candidates.length,
+    lastError,
+    contentLength: content.length,
+    startsWithBrace: trimmed.startsWith('{'),
+    endsWithBrace: trimmed.endsWith('}'),
+  });
 
   return {
     isValid: false,
@@ -123,9 +159,14 @@ function extractFirstJSONSegment(text: string): string | null {
   let depth = 0;
   let start = -1;
   let bracketType: '{' | '[' | null = null;
+  
+  // Safety limit to prevent infinite loops on malformed input
+  const maxLength = Math.min(text.length, 1000000); // 1MB max
 
-  for (let i = 0; i < text.length; i++) {
+  for (let i = 0; i < maxLength; i++) {
     const char = text[i];
+    
+    // Handle escape sequences
     if (escapeNext) {
       escapeNext = false;
       continue;
@@ -136,28 +177,53 @@ function extractFirstJSONSegment(text: string): string | null {
       continue;
     }
 
-    if (char === '"') {
+    // Track string boundaries - only toggle if not escaped
+    if (char === '"' && !escapeNext) {
       inString = !inString;
       continue;
     }
 
+    // Ignore all characters inside strings
     if (inString) {
       continue;
     }
 
+    // Track bracket depth
     if (char === '{' || char === '[') {
       if (depth === 0) {
         start = i;
         bracketType = char === '{' ? '{' : '[';
       }
       depth++;
-    } else if ((char === '}' && bracketType === '{') || (char === ']' && bracketType === '[')) {
-      depth--;
-      if (depth === 0 && start !== -1) {
-        return text.substring(start, i + 1).trim();
+    } else if (char === '}' || char === ']') {
+      // Only decrement if bracket type matches
+      const isMatchingCloseBracket = 
+        (char === '}' && bracketType === '{') || 
+        (char === ']' && bracketType === '[');
+      
+      if (isMatchingCloseBracket) {
+        depth--;
+        if (depth === 0 && start !== -1) {
+          const extracted = text.substring(start, i + 1);
+          logger.debug('Extracted JSON segment', {
+            length: extracted.length,
+            start,
+            end: i + 1,
+            preview: extracted.substring(0, 100),
+          });
+          return extracted.trim();
+        }
       }
     }
   }
+
+  logger.warn('Failed to extract complete JSON segment', {
+    textLength: text.length,
+    finalDepth: depth,
+    hadStart: start !== -1,
+    inString: inString,
+    bracketType,
+  });
 
   return null;
 }

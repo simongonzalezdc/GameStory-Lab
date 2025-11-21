@@ -708,7 +708,7 @@ export function ConceptEditorPage() {
               ←
           </button>
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <h2 className="text-xl font-bold text-primary truncate" style={{ background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{project.name}</h2>
+              <h2 className="text-xl font-bold text-primary truncate" style={{ background: 'linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-fireopal) 50%, var(--jewel-topaz) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{project.name}</h2>
               {versions.length > 1 ? (
               <select
                 value={currentVersion?.id || ''}
