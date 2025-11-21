@@ -302,10 +302,15 @@ export const assistantAPI = {
       timeout: 30000, // 30 seconds for session start
     } as any),
 
-  sendMessage: (sessionId: string, content: string, mode?: 'concept' | 'architect' | 'auto') =>
+  sendMessage: (
+    sessionId: string,
+    content: string,
+    mode?: 'concept' | 'architect' | 'auto',
+    quickActionId?: string
+  ) =>
     request<{ message: any; proposal?: any }>(`/api/assistant/session/${sessionId}/message`, {
       method: 'POST',
-      body: JSON.stringify({ content, mode }),
+      body: JSON.stringify({ content, mode, quickActionId }),
       timeout: 300000, // 5 minutes for AI response
     } as any),
 

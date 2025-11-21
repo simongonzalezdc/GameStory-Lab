@@ -222,7 +222,7 @@ export function ProjectsPage() {
                 onClick={() => setShowAssistant(!showAssistant)}
                 className={`btn transition-all duration-200 ${
                   showAssistant 
-                    ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-lg' 
+                    ? 'btn-primary shadow-lg' 
                     : 'btn-secondary'
                 }`}
                 title="Toggle AI Assistant"

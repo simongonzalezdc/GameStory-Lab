@@ -371,8 +371,9 @@
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, var(--color-accent), color-mix(in srgb, var(--color-accent), var(--brand-secondary) 40%));
+    background: var(--brand-primary);
     color: white;
+    border: 1px solid transparent;
     box-shadow: var(--shadow-sm);
   }
 
@@ -381,7 +382,7 @@
   }
 
   .btn-primary:hover {
-    background: var(--color-accent-hover);
+    background: var(--brand-primary-hover);
   }
 
   .btn-secondary {
@@ -412,6 +413,66 @@
   .btn-ghost:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
+  }
+
+  .btn-danger {
+    background: var(--color-danger);
+    color: white;
+    border: 1px solid transparent;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-danger:active {
+    transform: scale(0.98);
+  }
+
+  .btn-danger:hover {
+    background: color-mix(in srgb, var(--color-danger) 90%, black);
+  }
+
+  .btn-success {
+    background: var(--color-success);
+    color: white;
+    border: 1px solid transparent;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-success:active {
+    transform: scale(0.98);
+  }
+
+  .btn-success:hover {
+    background: color-mix(in srgb, var(--color-success) 90%, black);
+  }
+
+  .btn-info {
+    background: var(--color-info);
+    color: white;
+    border: 1px solid transparent;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-info:active {
+    transform: scale(0.98);
+  }
+
+  .btn-info:hover {
+    background: color-mix(in srgb, var(--color-info) 90%, black);
+  }
+
+  .btn-accent {
+    background: var(--brand-secondary);
+    color: white;
+    border: 1px solid transparent;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-accent:active {
+    transform: scale(0.98);
+  }
+
+  .btn-accent:hover {
+    background: color-mix(in srgb, var(--brand-secondary) 90%, black);
   }
 
   /* Input components - Consistent corner radii */
@@ -483,6 +544,76 @@
     font-weight: 600;
   }
 
+  /* Badge variants using jewel theme tokens */
+  .badge-error {
+    background: color-mix(in srgb, var(--color-danger) 24%, transparent);
+    color: color-mix(in srgb, var(--color-danger) 90%, white);
+    border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+  }
+
+  .badge-warning {
+    background: color-mix(in srgb, var(--color-warning) 24%, transparent);
+    color: color-mix(in srgb, var(--color-warning) 90%, white);
+    border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+  }
+
+  .badge-info {
+    background: color-mix(in srgb, var(--color-info) 24%, transparent);
+    color: color-mix(in srgb, var(--color-info) 90%, white);
+    border: 1px solid color-mix(in srgb, var(--color-info) 40%, transparent);
+  }
+
+  .badge-success {
+    background: color-mix(in srgb, var(--color-success) 24%, transparent);
+    color: color-mix(in srgb, var(--color-success) 90%, white);
+    border: 1px solid color-mix(in srgb, var(--color-success) 40%, transparent);
+  }
+
+  /* Validation UI component classes */
+  .validation-error {
+    background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-primary);
+  }
+
+  .validation-error .text-muted {
+    color: color-mix(in srgb, var(--color-danger) 80%, var(--color-text-secondary));
+  }
+
+  .validation-warning {
+    background: color-mix(in srgb, var(--color-warning) 20%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-primary);
+  }
+
+  .validation-warning .text-muted {
+    color: color-mix(in srgb, var(--color-warning) 80%, var(--color-text-secondary));
+  }
+
+  .validation-info {
+    background: color-mix(in srgb, var(--color-info) 20%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-info) 40%, transparent);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-primary);
+  }
+
+  .validation-info .text-muted {
+    color: color-mix(in srgb, var(--color-info) 80%, var(--color-text-secondary));
+  }
+
+  .validation-success {
+    background: color-mix(in srgb, var(--color-success) 20%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-success) 40%, transparent);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-primary);
+  }
+
+  .validation-success .text-muted {
+    color: color-mix(in srgb, var(--color-success) 80%, var(--color-text-secondary));
+  }
+
   /* Modal and dialog components - Consistent corner radii */
   .modal {
     border-radius: var(--radius-xl);
@@ -527,7 +658,17 @@
     flex-direction: row;
     width: 100%;
     height: 100%;
+    min-height: 0;
     min-width: 0;
+    max-height: var(--chat-container-max-height);
+    overflow: hidden;
+  }
+
+  .chat-container > .assistant-card-glow {
+    height: 100%;
+    min-height: 0;
+    max-height: var(--chat-container-max-height);
+    overflow: hidden;
   }
 
   .chat-header {
@@ -543,8 +684,10 @@
     flex: 1;
     min-height: 0;
     min-width: 0;
+    max-height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
+    overscroll-behavior: contain;
     padding: var(--chat-spacing-section);
     display: flex;
     flex-direction: column;

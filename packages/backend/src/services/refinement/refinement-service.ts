@@ -335,10 +335,24 @@ export class RefinementService {
 
     switch (focus) {
       case 'deepen-mechanics':
-        focusInstruction = 'Add more depth and complexity to the gameplay mechanics. Consider edge cases, balancing, and advanced systems.';
+        focusInstruction = `DEEPEN MECHANICS:
+
+1. Expand the gameplay model with advanced systems (economy loops, risk/reward layers, failure states, scaling difficulty).
+2. Tie every mechanical addition back to the existing lore so abilities, technology level, and motivations remain believable.
+3. Use any validation issues provided (especially balance, clarity, or pacing warnings) as the checklist for what must be improved.
+4. Within the mechanics JSON, add the detail needed to show readiness improvements (balancing notes, system gates, scaling rules, resource caps).
+5. Preserve proven mechanics; enhance weak areas with concrete details such as numerical ranges, system triggers, and player feedback loops.
+6. Output fully fleshed JSON—no placeholders.`;
         break;
       case 'enrich-lore':
-        focusInstruction = 'Expand and enrich the narrative and worldbuilding. Add character depth, backstory, and thematic elements.';
+        focusInstruction = `ENRICH LORE:
+
+1. Deepen the narrative scaffolding: characters, factions, conflict stakes, and world rules.
+2. Ensure every mechanical system has a lore justification (technology level, magic system, socio-political reason, etc.).
+3. Leverage the validation issues (especially motivation, theme, or conflict warnings) to decide which sections need expansion.
+4. Add sensory details, historical context, and cause-effect links so the world feels playable and supports the mechanics; embed these additions directly into the lore structure (setting, themes, worldRules, character bios).
+5. Make sure the strengthened sections clearly resolve the validation gaps (motivation, stakes, genre expectations) via the JSON fields themselves.
+6. Return the complete lore object—never partial snippets.`;
         break;
       case 'improve-consistency':
         if (validationIssues && validationIssues.length > 0) {

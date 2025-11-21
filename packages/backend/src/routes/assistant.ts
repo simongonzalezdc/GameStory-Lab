@@ -95,7 +95,7 @@ router.post('/session/:sessionId/mode', async (req: Request, res: Response) => {
 });
 
 router.post('/session/:sessionId/message', async (req: Request, res: Response) => {
-  const { content, mode } = req.body;
+  const { content, mode, quickActionId } = req.body;
   if (!content) {
     return res.status(400).json({ error: 'content is required' });
   }
@@ -107,7 +107,9 @@ router.post('/session/:sessionId/message', async (req: Request, res: Response) =
       await service.updateSessionMode(req.params.sessionId, mode);
     }
     
-    const response = await service.sendMessage(req.params.sessionId, content);
+    const response = await service.sendMessage(req.params.sessionId, content, {
+      quickActionId,
+    });
     res.json(response);
   } catch (error: any) {
     const errorMessage = error instanceof Error ? error.message : String(error);

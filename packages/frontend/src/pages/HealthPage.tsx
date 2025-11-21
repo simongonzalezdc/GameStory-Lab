@@ -65,7 +65,7 @@ export function HealthPage() {
         <button
           onClick={loadHealth}
           disabled={loading}
-          className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-brand-primary-hover transition text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+          className="btn btn-primary px-4 py-2 text-sm font-medium disabled:opacity-50 flex items-center gap-2"
         >
           {loading ? (
             <>
@@ -96,7 +96,7 @@ export function HealthPage() {
         <button
           onClick={loadHealth}
           disabled={loading}
-          className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-brand-primary-hover transition text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+          className="btn btn-primary px-4 py-2 text-sm font-medium disabled:opacity-50 flex items-center gap-2"
         >
           {loading ? (
             <>

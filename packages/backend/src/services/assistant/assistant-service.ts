@@ -47,6 +47,13 @@ interface AssistantContext {
     };
   };
   mode?: AssistantMode;
+  metrics?: {
+    consistencyScore?: number;
+    rawConsistencyScore?: number;
+    lastValidatedAt?: string;
+    complexityScore?: number;
+    complexityLabel?: string;
+  };
 }
 
 interface AssistantModelResponse {
@@ -169,7 +176,7 @@ export class AssistantService {
     if (!session) {
       throw new Error('Session not found');
     }
-    
+
     return this.prisma.chatSession.update({
       where: { id: sessionId },
       data: {
@@ -181,12 +188,18 @@ export class AssistantService {
     });
   }
 
-  async sendMessage(sessionId: string, content: string) {
+  async sendMessage(
+    sessionId: string,
+    content: string,
+    options?: { quickActionId?: string }
+  ) {
     try {
     const session = await this.getSession(sessionId);
     if (!session) {
       throw new Error('Session not found');
     }
+
+    const quickActionId = options?.quickActionId;
 
     // Extract mode from session metadata or default to auto
     const currentMode = (session.metadata?.mode as AssistantMode) || 'auto';
@@ -199,6 +212,7 @@ export class AssistantService {
         content,
         metadata: {
           mode: currentMode,
+          quickActionId,
         },
       },
     });
@@ -241,53 +255,62 @@ export class AssistantService {
               validationIssues: context.validationIssues,
               architect: context.architect,
               mode: currentMode,
+              metrics: context.metrics,
             };
+            const instructionBlocks = [
+              'Respond using the required JSON schema: { "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }',
+              '',
+              'CRITICAL PROPOSAL REQUIREMENT:',
+              'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", "implement", "apply", "approve", or anything they can approve, you MUST include a proposal object with actual data.',
+              '',
+              'The proposal object MUST contain:',
+              '- "explanation": A string describing what the proposal does',
+              '- "mechanics": A complete mechanics object (if proposing mechanics changes) - MUST be a full object with actual data, not {}',
+              '- "lore": A complete lore object (if proposing lore changes) - MUST be a full object with actual data, not {}',
+              '- "architectDocuments": Array of document objects (if proposing documentation changes)',
+              '',
+              'DO NOT:',
+              '- Return {proposal: null} or {proposal: {}} or {proposal: {explanation: "..."}}',
+              '- Just say "I will create..." or "I\'ve created..." without actually including the proposal data',
+              '- Include only an explanation without mechanics/lore/architectDocuments objects',
+              '- Return empty objects {} for mechanics or lore',
+              '',
+              'DO:',
+              '- Include the full, complete mechanics and/or lore objects in the proposal',
+              '- For documentation proposals: Keep architectDocuments concise - include key sections and structure, not full verbose content',
+              '- Make sure proposal.mechanics and proposal.lore contain actual JSON data with properties, not empty objects',
+              '- If proposing multiple types of changes, include all applicable objects',
+              '- ALWAYS include the actual data structures, not just descriptions',
+              '- Keep proposals focused and concise to avoid response truncation',
+              '',
+              'EXAMPLE VALID PROPOSAL:',
+              '{',
+              '  "reply": "I\'ve created a proposal that...",',
+              '  "proposal": {',
+              '    "explanation": "This proposal updates...",',
+              '    "mechanics": {',
+              '      "coreLoop": "...",',
+              '      "playerActions": [...],',
+              '      "resources": {...}',
+              '    },',
+              '    "lore": {',
+              '      "setting": "...",',
+              '      "characters": {...}',
+              '    }',
+              '  }',
+              '}',
+            ];
+
+            const quickActionGuidance = this.getQuickActionInstructions(quickActionId, context);
+            if (quickActionGuidance.length > 0) {
+              instructionBlocks.push('', ...quickActionGuidance);
+            }
+
             return JSON.stringify({
               userMessage: content,
               context: safeContext,
-              instructions: [
-                'Respond using the required JSON schema: { "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }',
-                '',
-                'CRITICAL PROPOSAL REQUIREMENT:',
-                'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", "implement", "apply", "approve", or anything they can approve, you MUST include a proposal object with actual data.',
-                '',
-                'The proposal object MUST contain:',
-                '- "explanation": A string describing what the proposal does',
-                '- "mechanics": A complete mechanics object (if proposing mechanics changes) - MUST be a full object with actual data, not {}',
-                '- "lore": A complete lore object (if proposing lore changes) - MUST be a full object with actual data, not {}',
-                '- "architectDocuments": Array of document objects (if proposing documentation changes)',
-                '',
-                'DO NOT:',
-                '- Return {proposal: null} or {proposal: {}} or {proposal: {explanation: "..."}}',
-                '- Just say "I will create..." or "I\'ve created..." without actually including the proposal data',
-                '- Include only an explanation without mechanics/lore/architectDocuments objects',
-                '- Return empty objects {} for mechanics or lore',
-                '',
-                'DO:',
-                '- Include the full, complete mechanics and/or lore objects in the proposal',
-                '- For documentation proposals: Keep architectDocuments concise - include key sections and structure, not full verbose content',
-                '- Make sure proposal.mechanics and proposal.lore contain actual JSON data with properties, not empty objects',
-                '- If proposing multiple types of changes, include all applicable objects',
-                '- ALWAYS include the actual data structures, not just descriptions',
-                '- Keep proposals focused and concise to avoid response truncation',
-                '',
-                'EXAMPLE VALID PROPOSAL:',
-                '{',
-                '  "reply": "I\'ve created a proposal that...",',
-                '  "proposal": {',
-                '    "explanation": "This proposal updates...",',
-                '    "mechanics": {',
-                '      "coreLoop": "...",',
-                '      "playerActions": [...],',
-                '      "resources": {...}',
-                '    },',
-                '    "lore": {',
-                '      "setting": "...",',
-                '      "characters": {...}',
-                '    }',
-                '  }',
-                '}',
-              ].join('\n'),
+              quickActionId,
+              instructions: instructionBlocks.join('\n'),
             });
           } catch (serializeError) {
             logger.error('Failed to serialize context for AI message', {
@@ -295,14 +318,20 @@ export class AssistantService {
               sessionId,
             });
             // Fallback: send just the user message without full context
+            const fallbackInstructions = [
+              'Respond using the required JSON schema: { "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }',
+              '',
+              'CRITICAL PROPOSAL REQUIREMENT:',
+              'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", or anything they can approve, you MUST include a proposal object with actual data.',
+            ];
+            const quickActionGuidance = this.getQuickActionInstructions(quickActionId, context);
+            if (quickActionGuidance.length > 0) {
+              fallbackInstructions.push('', ...quickActionGuidance);
+            }
             return JSON.stringify({
               userMessage: content,
-              instructions: [
-                'Respond using the required JSON schema: { "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }',
-                '',
-                'CRITICAL PROPOSAL REQUIREMENT:',
-                'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", or anything they can approve, you MUST include a proposal object with actual data.',
-              ].join('\n'),
+              quickActionId,
+              instructions: fallbackInstructions.join('\n'),
             });
           }
         })(),
@@ -365,11 +394,16 @@ export class AssistantService {
     let createdProposal: Awaited<ReturnType<typeof this.prisma.assistantProposal.create>> | null = null;
     
     // Check if user is requesting a proposal/action
-    const userWantsProposal = /(do it|go ahead|create|make changes|generate|implement|apply|proposal|approve|please make)/i.test(content);
+    const quickActionForcesProposal = quickActionId === 'propose-improvements';
+    const userExplicitlyRequestsProposal = /(do it|go ahead|create|make changes|generate|implement|apply|proposal|approve|please make)/i.test(
+      content
+    );
+    const userWantsProposal = quickActionForcesProposal || userExplicitlyRequestsProposal;
     
     // Log what we got from parsing
     logger.info('Parsed assistant response', {
       sessionId,
+      quickActionId,
       hasProposal: !!parsed.proposal,
       proposalType: typeof parsed.proposal,
       proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
@@ -688,7 +722,7 @@ export class AssistantService {
     }
 
     const latestVersion = await this.getLatestVersion(session.projectId);
-    const validationIssues = latestVersion
+    const validationResults = latestVersion
       ? await this.prisma.validationResult.findMany({
           where: { conceptId: latestVersion.id, dismissed: false },
           orderBy: [
@@ -698,6 +732,25 @@ export class AssistantService {
           take: 10,
         })
       : [];
+    
+    const metrics: AssistantContext['metrics'] = {};
+    const versionMetadata = (latestVersion?.metadata as Record<string, any>) || {};
+    if (typeof versionMetadata.consistencyScore === 'number' && !Number.isNaN(versionMetadata.consistencyScore)) {
+      metrics.rawConsistencyScore = versionMetadata.consistencyScore;
+      metrics.consistencyScore = Math.round(versionMetadata.consistencyScore * 100);
+    }
+    if (typeof versionMetadata.lastValidated === 'string') {
+      metrics.lastValidatedAt = versionMetadata.lastValidated;
+    }
+    const complexityIssue = validationResults.find((issue) => issue.ruleName === 'complexity-estimate');
+    if (complexityIssue) {
+      const match = complexityIssue.message.match(/score:\s*(\d+(\.\d+)?)/i);
+      if (match) {
+        metrics.complexityScore = Number(match[1]);
+      }
+      metrics.complexityLabel = complexityIssue.message;
+    }
+    const hasMetrics = Object.values(metrics).some((value) => value !== undefined && value !== null);
 
     // Extract mode from session metadata
     const currentMode = (session.metadata?.mode as AssistantMode) || 'auto';
@@ -763,13 +816,14 @@ export class AssistantService {
             lore: latestVersion.lore as LoreData,
           }
         : undefined,
-      validationIssues: validationIssues.map((issue) => ({
+      validationIssues: validationResults.map((issue) => ({
         rule: issue.ruleName,
         severity: issue.severity,
         message: issue.message,
       })),
       architect: architectData,
       mode: currentMode,
+      metrics: hasMetrics ? metrics : undefined,
     };
   }
 
@@ -962,6 +1016,54 @@ export class AssistantService {
     }
 
     return unifiedInstructions.join('\n');
+  }
+
+  private getQuickActionInstructions(actionId?: string, context?: AssistantContext) {
+    if (!actionId) {
+      return [];
+    }
+
+    const metricLines: string[] = [];
+    if (context?.metrics?.consistencyScore !== undefined) {
+      metricLines.push(
+        `OFFICIAL CONSISTENCY SCORE: ${context.metrics.consistencyScore}% (from the validation engine). You MUST reuse this exact number in any scorecard or readiness discussion—never invent or change it.`
+      );
+    }
+    if (context?.metrics?.complexityScore !== undefined) {
+      const complexityDescriptor = context.metrics.complexityLabel
+        ? ` ${context.metrics.complexityLabel}`
+        : '';
+      metricLines.push(
+        `OFFICIAL COMPLEXITY SCORE: ${context.metrics.complexityScore}${complexityDescriptor ? ` (${complexityDescriptor})` : ''}. Reference this score directly instead of estimating complexity yourself.`
+      );
+    }
+
+    switch (actionId) {
+      case 'summarize-analyze':
+        return [
+          'QUICK ACTION: SUMMARIZE & ANALYZE',
+          'Provide a structured summary of the current mechanics and lore. Use bullet lists or numbered sections so the user can scan quickly.',
+          'After the summary, run a validation-style assessment using the available validation data.',
+          'Include a mini scorecard with percentage scores (0-100) for Consistency, Genre Fit, Completeness, and Clarity. Reference actual issues from validationIssues when possible.',
+          'Highlight the top three blockers preventing production readiness and explain their impact.',
+          'Offer next steps the user can take (which may include running a refinement) rather than making direct changes yourself.',
+          'Do NOT generate a proposal unless the user explicitly approves or requests it—this action is diagnostic.',
+          ...metricLines,
+        ];
+      case 'propose-improvements':
+        return [
+          'QUICK ACTION: PROPOSE IMPROVEMENTS',
+          'Generate a focused proposal whose goal is to push the overall validation readiness score as close to 100% as possible.',
+          'Prioritize addressing the most severe validation issues first. Reference them explicitly so the user can understand the fixes.',
+          'Include concrete mechanics and/or lore updates that resolve those issues. If both domains are affected, update both.',
+          'Explain how each change improves the validation metrics (consistency, completeness, genre fit, etc.).',
+          'Estimate the new readiness score after the proposal is applied.',
+          'Ensure the proposal object is complete and ready for the user to accept.',
+          ...metricLines,
+        ];
+      default:
+        return [];
+    }
   }
 
   /**

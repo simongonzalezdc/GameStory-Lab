@@ -161,7 +161,7 @@ export function ProjectArchitectPage() {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-surface w-full max-w-none">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden bg-surface w-full max-w-none">
       {/* Compact Header */}
       <div className="flex-shrink-0 px-4 py-3 border-b border-subtle bg-surface-card">
         <div className="flex items-center justify-between">
@@ -190,7 +190,7 @@ export function ProjectArchitectPage() {
       {/* Main Content - Split Layout 50/50 */}
       <div className="flex-1 min-h-0 overflow-hidden flex">
         {/* Left Side - Chat Panel */}
-        <div className="flex-1 min-w-0 overflow-hidden border-r border-subtle">
+        <div className="flex-1 min-w-0 min-h-0 overflow-hidden border-r border-subtle flex flex-col">
           {projectId && (
             <ProjectAssistantPanel 
               projectId={projectId} 
@@ -213,7 +213,7 @@ export function ProjectArchitectPage() {
             {generatedDocs && generatedDocs.documents.length > 0 && (
               <button
                 onClick={downloadAllDocuments}
-                className="px-3 py-1.5 text-xs bg-accent hover:bg-brand-primary-hover text-white rounded-lg transition font-medium"
+                className="btn btn-primary px-3 py-1.5 text-xs font-medium"
                 title="Download all documents"
               >
                 📦 All
@@ -280,7 +280,7 @@ export function ProjectArchitectPage() {
                 <div className="flex gap-1 ml-2">
                   <button
                     onClick={() => downloadDocument(previewDoc.name)}
-                    className="px-2 py-1 text-xs bg-accent hover:bg-brand-primary-hover text-white rounded transition"
+                    className="btn btn-primary px-2 py-1 text-xs"
                     title="Download"
                   >
                     📥
@@ -290,7 +290,7 @@ export function ProjectArchitectPage() {
                       setPreviewDoc(null);
                       setSelectedDocIndex(null);
                     }}
-                    className="px-2 py-1 text-xs bg-surface-strong hover:bg-surface-muted text-secondary rounded transition"
+                    className="btn btn-secondary px-2 py-1 text-xs"
                     title="Close preview"
                   >
                     ✕

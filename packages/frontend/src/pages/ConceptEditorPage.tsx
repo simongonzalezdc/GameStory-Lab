@@ -694,7 +694,7 @@ export function ConceptEditorPage() {
   }
 
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full min-h-0 overflow-hidden">
       {/* Compact Sticky Header Bar */}
       <div className="sticky top-0 z-30 surface-card border-b border-subtle shadow-sm flex-shrink-0">
         <div className="flex items-center justify-between gap-4 py-2.5">
@@ -804,7 +804,7 @@ export function ConceptEditorPage() {
                 <button
                   onClick={handleMergeVersions}
                   disabled={merging || loading}
-                  className="px-2.5 py-1.5 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition text-xs font-medium disabled:opacity-50 flex items-center gap-1.5"
+                  className="btn btn-primary px-2.5 py-1.5 text-xs font-medium disabled:opacity-50 flex items-center gap-1.5"
                   title={`Merge all ${versions.length} versions`}
                 >
                   {merging ? (
@@ -823,14 +823,14 @@ export function ConceptEditorPage() {
           <button
             onClick={() => handleExport('gdd')}
             disabled={exporting}
-                className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition text-xs font-medium disabled:opacity-50"
+                className="btn btn-secondary px-2.5 py-1.5 text-xs font-medium disabled:opacity-50"
             title="Export as GDD"
           >
                 📄
           </button>
           <button
             onClick={() => navigate(`/projects/${projectId}/architect`)}
-                className="px-2.5 py-1.5 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition text-xs font-medium"
+                className="btn btn-primary px-2.5 py-1.5 text-xs font-medium"
                 title="Open Project Architect"
             >
                 🏗️
@@ -929,7 +929,7 @@ export function ConceptEditorPage() {
                   <h3 className="text-xl font-semibold text-primary">Game Mechanics</h3>
                   <button
                     onClick={() => setShowRawJsonMechanics(!showRawJsonMechanics)}
-                    className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                    className="btn btn-secondary text-xs"
                   >
                     {showRawJsonMechanics ? '📄 View Formatted' : '🔧 View JSON'}
                   </button>
@@ -971,7 +971,7 @@ export function ConceptEditorPage() {
                       <h3 className="text-xl font-semibold text-primary">Game Lore</h3>
                       <button
                         onClick={() => setShowRawJsonLore(!showRawJsonLore)}
-                        className="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                        className="btn btn-secondary text-xs"
                       >
                         {showRawJsonLore ? '📄 View Formatted' : '🔧 View JSON'}
                       </button>
@@ -1032,15 +1032,15 @@ export function ConceptEditorPage() {
                 {(validationError || validationStatus) && (
                   <div className="space-y-2 mb-3 flex-shrink-0">
                     {validationError && (
-                      <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-200">
+                      <div className="validation-error px-4 py-3 text-sm">
                         <strong>Validation issue:</strong> {validationError}
                       </div>
                     )}
                     {validationStatus && (
-                      <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-4 py-3 text-sm text-blue-700 dark:text-blue-200 flex items-center justify-between">
+                      <div className="validation-info px-4 py-3 text-sm flex items-center justify-between">
                         <span>{validationStatus}</span>
                         {lastValidationSource && lastValidatedAt && (
-                          <span className="text-xs text-blue-600 dark:text-blue-300">
+                          <span className="text-xs text-muted">
                             Trigger: {lastValidationSource} • {new Date(lastValidatedAt).toLocaleTimeString()}
                           </span>
                         )}
@@ -1061,7 +1061,7 @@ export function ConceptEditorPage() {
                               console.error('Failed to copy validation summary', err);
                             }
                           }}
-                          className="px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                          className="btn btn-secondary text-xs"
                         >
                           {copiedPrompt ? 'Copied!' : 'Copy for Assistant'}
                         </button>
@@ -1071,43 +1071,43 @@ export function ConceptEditorPage() {
                 )}
 
                 {validationIssues.length === 0 ? (
-                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-8 text-center flex-shrink-0">
+                  <div className="validation-success p-8 text-center flex-shrink-0">
                     <div className="text-4xl mb-2">✅</div>
-                    <h4 className="font-semibold text-green-800 dark:text-green-200 mb-1">All Clear!</h4>
-                    <p className="text-green-600 dark:text-green-300">No validation issues found</p>
+                    <h4 className="font-semibold mb-1">All Clear!</h4>
+                    <p className="text-muted">No validation issues found</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 overflow-y-auto flex-1 min-h-0">
                     {validationIssues.map((issue, index) => (
                       <div
                         key={index}
-                        className={`p-4 rounded-lg border ${
+                        className={`p-4 ${
                           issue.severity === 'error'
-                            ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                            ? 'validation-error'
                             : issue.severity === 'warning'
-                            ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
-                            : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                            ? 'validation-warning'
+                            : 'validation-info'
                         }`}
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span
-                                className={`px-2 py-1 rounded text-xs font-medium ${
+                                className={`badge ${
                                   issue.severity === 'error'
-                                    ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                                    ? 'badge-error'
                                     : issue.severity === 'warning'
-                                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200'
-                                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200'
+                                    ? 'badge-warning'
+                                    : 'badge-info'
                                 }`}
                               >
                                 {issue.severity.toUpperCase()}
                               </span>
-                              <span className="text-sm text-gray-600 dark:text-gray-300">{issue.category}</span>
+                              <span className="text-sm text-secondary">{issue.category}</span>
                             </div>
-                            <p className="text-gray-900 dark:text-gray-100">{issue.message}</p>
+                            <p className="text-primary">{issue.message}</p>
                             {issue.field && (
-                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Field: {issue.field}</p>
+                              <p className="text-sm text-muted mt-1">Field: {issue.field}</p>
                             )}
                           </div>
                         </div>

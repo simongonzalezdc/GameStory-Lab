@@ -542,7 +542,7 @@ export function TemplateBrowserPage() {
               {selectedGenres.length > 1 && (
                 <button
                   onClick={blendGenres}
-                  className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition font-medium"
+                  className="btn btn-primary px-3 py-1.5 text-sm font-medium"
                 >
                   Blend {selectedGenres.length}
                 </button>
@@ -795,11 +795,7 @@ export function TemplateBrowserPage() {
                 {/* Action Button */}
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className={`w-full px-4 py-3 text-white rounded-lg transition font-medium mt-6 ${
-                    isBlended
-                      ? 'bg-purple-600 hover:bg-purple-700'
-                      : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
+                  className="btn btn-primary w-full px-4 py-3 font-medium mt-6"
                 >
                   {isBlended ? '✨ Create Project from Blended Template' : '🚀 Create Project from Template'}
                 </button>
@@ -863,18 +859,14 @@ export function TemplateBrowserPage() {
                     setShowCreateModal(false);
                     setProjectName('');
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-600 text-slate-200 rounded-lg hover:bg-gray-500 transition font-medium"
+                  className="btn btn-secondary flex-1 px-4 py-2 font-medium"
                   disabled={creating}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className={`flex-1 px-4 py-2 text-white rounded-lg transition font-medium disabled:opacity-50 ${
-                    isBlended
-                      ? 'bg-purple-600 hover:bg-purple-700'
-                      : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
+                  className="btn btn-primary flex-1 px-4 py-2 font-medium disabled:opacity-50"
                   disabled={creating || !projectName.trim()}
                 >
                   {creating ? 'Creating...' : 'Create'}

@@ -16,6 +16,9 @@ interface ChatMessage {
   content: string;
   createdAt?: string;
   debug?: any;
+  metadata?: {
+    quickActionId?: string;
+  };
 }
 
 interface AssistantProposal {
@@ -36,6 +39,13 @@ interface AssistantProposal {
   createdAt: string;
 }
 
+type QuickAction = {
+  id: string;
+  label: string;
+  type: 'message' | 'refine';
+  focus?: 'deepen-mechanics' | 'enrich-lore';
+};
+
 export function ProjectAssistantPanel({
   projectId,
   type = 'concept',
@@ -44,6 +54,40 @@ export function ProjectAssistantPanel({
   refining = false,
   onProposalAccepted,
 }: ProjectAssistantPanelProps) {
+  const quickActions = useMemo<QuickAction[]>(() => {
+    const base: QuickAction[] = [
+      {
+        id: 'summarize-analyze',
+        label: '📊 Summarize & Analyze',
+        type: 'message' as const,
+      },
+      {
+        id: 'propose-improvements',
+        label: '🛠️ Propose Improvements',
+        type: 'message' as const,
+      },
+    ];
+
+    if (onRefine) {
+      base.push(
+        {
+          id: 'deepen-mechanics',
+          label: '⚙️ Deepen Mechanics',
+          type: 'refine',
+          focus: 'deepen-mechanics',
+        },
+        {
+          id: 'enrich-lore',
+          label: '📖 Enrich Lore',
+          type: 'refine',
+          focus: 'enrich-lore',
+        }
+      );
+    }
+
+    return base;
+  }, [onRefine]);
+
   const userBubbleStyle = useMemo(
     () => ({
       background: [
@@ -303,12 +347,21 @@ export function ProjectAssistantPanel({
     }
   }, [input]);
 
-  const handleSend = async () => {
-    if (!session?.id || !input.trim()) return;
-    const userMessage = input.trim();
+  const handleSend = async (
+    overrideMessage?: string,
+    options?: { quickActionId?: string; modeOverride?: 'concept' | 'architect' | 'auto' }
+  ) => {
+    if (loading) return;
+    if (!session?.id) return;
+
+    const userMessage = (overrideMessage ?? input).trim();
+    if (!userMessage) return;
+
     setLoading(true);
     setError(null);
-    setInput('');
+    if (!overrideMessage) {
+      setInput('');
+    }
     
     // Add user message immediately for better UX
     const tempUserMessage = {
@@ -316,12 +369,24 @@ export function ProjectAssistantPanel({
       role: 'user' as const,
       content: userMessage,
       createdAt: new Date().toISOString(),
+      metadata: options?.quickActionId ? { quickActionId: options.quickActionId } : undefined,
     };
     setMessages((prev) => [...prev, tempUserMessage]);
     
     try {
-      console.log('[Assistant] Sending message:', { sessionId: session.id, message: userMessage, mode: currentMode });
-      const response: any = await assistantAPI.sendMessage(session.id, userMessage, currentMode);
+      const modeToUse = options?.modeOverride || currentMode;
+      console.log('[Assistant] Sending message:', {
+        sessionId: session.id,
+        message: userMessage,
+        mode: modeToUse,
+        quickActionId: options?.quickActionId,
+      });
+      const response: any = await assistantAPI.sendMessage(
+        session.id,
+        userMessage,
+        modeToUse,
+        options?.quickActionId
+      );
       console.log('[Assistant] Received response:', response);
       
       // Log debug info if available
@@ -363,30 +428,51 @@ export function ProjectAssistantPanel({
 
   const handleQuickAction = (action: string) => {
     const prompts: Record<string, string> = {
-      'summarize': `Summarize the current version and check its consistency:
+      'summarize-analyze': `Summarize the current mechanics and lore, then run a full validation-style analysis:
 
-1. Provide a comprehensive summary of the mechanics and lore
-2. Analyze the consistency between mechanics and lore
-3. Highlight any alignment issues or validation concerns
-4. Give an overall assessment of the version's coherence
+1. Summarize the mechanics and lore in your own words.
+2. Evaluate structure, balance, and completeness for both.
+3. Provide a scoring-style assessment (0-100) with justification.
+4. Call out blockers, inconsistencies, or missing elements explicitly.
 
-This helps me understand the current state and identify any consistency problems.`,
-      'suggest-tweaks': `Analyze this version comprehensively and suggest improvements across all dimensions:
+Return the summary followed by the analysis with the score and recommendations.`,
+      'propose-improvements': `Your goal is to improve the current concept so that validation scores move closer to 100%.
 
-1. **Mechanics Depth**: What opportunities exist to deepen gameplay mechanics? Consider edge cases, balancing, advanced systems, and complexity.
+1. Identify the biggest issues that keep this concept from being production-ready.
+2. Propose concrete lore and mechanic updates that address those issues.
+3. Explain how the updates improve validation metrics (consistency, genre fit, completeness).
+4. Prepare a concise change-list that could be turned into a proposal.
 
-2. **Lore Enrichment**: How could the narrative and worldbuilding be expanded? Think about character depth, backstory, thematic elements, and world rules.
-
-3. **Consistency Issues**: What inconsistencies exist between mechanics and lore? What validation issues need addressing?
-
-4. **Genre Fit**: How well does this align with genre conventions? What genre-specific elements could be enhanced?
-
-For each category, provide specific, actionable suggestions. Help me understand what improvements are possible before I decide which refinement to apply.`,
+Focus on actionable improvements that meaningfully tighten the concept.`,
     };
     if (prompts[action]) {
-      setInput(prompts[action]);
-      textareaRef.current?.focus();
+      void handleSend(prompts[action], { quickActionId: action });
     }
+  };
+
+  const handleQuickActionTrigger = (action: QuickAction) => {
+    if (action.type === 'message') {
+      handleQuickAction(action.id);
+      return;
+    }
+    if (action.type === 'refine' && action.focus && onRefine) {
+      onRefine(action.focus);
+    }
+  };
+
+  const isActionDisabled = (action: QuickAction) => {
+    if (action.type === 'refine') {
+      return refining || !onRefine;
+    }
+    return loading;
+  };
+
+  const getActionClassName = (action: QuickAction) => {
+    const base = 'quick-action-pill flex-shrink-0 whitespace-nowrap transition';
+    if (action.type === 'refine') {
+      return `${base} border border-brand-800/60 bg-brand-900/30 text-brand-100 hover:bg-brand-900/50`;
+    }
+    return base;
   };
 
   const formatTime = (timestamp?: string) => {
@@ -532,7 +618,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
   }, [currentMode]);
 
   return (
-    <div className="chat-container relative cq-panel w-full h-full">
+    <div className="chat-container relative cq-panel w-full h-full flex flex-col min-h-0">
       {/* Full-height Assistant Card */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-surface chat-container assistant-card-glow assistant-transition shadow-lg">
         {/* Rich Header */}
@@ -581,10 +667,10 @@ For each category, provide specific, actionable suggestions. Help me understand 
               {proposals.length > 0 && (
                 <button
                   onClick={() => setShowProposals(!showProposals)}
-                  className={`relative px-3 py-1.5 btn transition text-xs font-medium flex items-center gap-1.5 ${
+                  className={`relative px-3 py-1.5 btn text-xs font-medium flex items-center gap-1.5 ${
                     showProposals
-                      ? 'bg-brand-600 text-white'
-                      : 'bg-brand-500 text-white hover:bg-brand-600 animate-pulse'
+                      ? 'btn-primary'
+                      : 'btn-primary animate-pulse'
                   }`}
                   title={`${proposals.length} proposal${proposals.length > 1 ? 's' : ''} ready for review`}
                 >
@@ -719,7 +805,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                                         return next;
                                       });
                                     }}
-                                    className="text-xs px-2 py-1 btn border border-border-subtle bg-surface-strong hover:border-brand-300 transition"
+                                    className="text-xs px-2 py-1 btn btn-secondary"
                                   >
                                     {isExpanded ? 'Collapse' : 'Expand'}
                                   </button>
@@ -780,54 +866,19 @@ For each category, provide specific, actionable suggestions. Help me understand 
               
               {/* Quick Actions */}
               <div className="px-4 pt-2 pb-1.5">
-                <div className="flex flex-wrap gap-2">
-                  {/* Quick Chat Actions */}
-                  <button
-                    onClick={() => handleQuickAction('summarize')}
-                    className="quick-action-pill focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
-                  >
-                    📋 Summarize & Check Consistency
-                  </button>
-                  <button
-                    onClick={() => handleQuickAction('suggest-tweaks')}
-                    className="quick-action-pill focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
-                  >
-                    ✨ Suggest Tweaks
-                  </button>
-                  
-                  {/* Refinement Actions */}
-                  {onRefine && (
-                    <>
-                      <button
-                        onClick={() => onRefine('deepen-mechanics')}
-                        disabled={refining}
-                        className="quick-action-pill bg-brand-900/25 text-brand-200 hover:bg-brand-900/40 disabled:opacity-50 border border-brand-800/70 focus-visible:outline-2 focus-visible:outline focus-visible:outline-brand-500"
-                      >
-                        ⚙️ Deepen Mechanics
-                      </button>
-                      <button
-                        onClick={() => onRefine('enrich-lore')}
-                        disabled={refining}
-                        className="quick-action-pill bg-mint-500/20 text-mint-300 hover:bg-mint-500/30 disabled:opacity-50 border border-mint-500/40 focus-visible:outline-2 focus-visible:outline focus-visible:outline-mint-500/70"
-                      >
-                        📖 Enrich Lore
-                      </button>
-                      <button
-                        onClick={() => onRefine('improve-consistency')}
-                        disabled={refining}
-                        className="quick-action-pill bg-surface-strong text-emerald-200 hover:border-emerald-400 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline focus-visible:outline-emerald-500/80"
-                      >
-                        ♻️ Improve Consistency
-                      </button>
-                      <button
-                        onClick={() => onRefine('enhance-genre-fit')}
-                        disabled={refining}
-                        className="quick-action-pill bg-amber-900/30 text-amber-200 hover:bg-amber-900/50 disabled:opacity-50 border border-amber-800/70 focus-visible:outline-2 focus-visible:outline focus-visible:outline-amber-500/80"
-                      >
-                        🎯 Enhance Genre Fit
-                      </button>
-                    </>
-                  )}
+                <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                  {quickActions.map((action) => (
+                    <button
+                      key={action.id}
+                      onClick={() => handleQuickActionTrigger(action)}
+                      disabled={isActionDisabled(action)}
+                      className={`${getActionClassName(action)} ${
+                        isActionDisabled(action) ? 'opacity-60 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -835,7 +886,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
               <div className="px-4 pb-3">
                 <div className="flex gap-2 items-end">
                   <button
-                    className="btn flex-shrink-0 w-10 h-10 border border-border-subtle bg-surface-strong text-slate-300 hover:bg-surface-elevated transition opacity-50 cursor-not-allowed"
+                    className="btn btn-secondary flex-shrink-0 w-10 h-10 opacity-50 cursor-not-allowed"
                     title="Attach file"
                     disabled
                   >
@@ -848,7 +899,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        handleSend();
+                        void handleSend();
                       }
                     }}
                     placeholder="Ask for help..."
@@ -856,9 +907,9 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     className="input flex-1 resize-none border border-border-subtle px-4 py-2.5 text-sm bg-surface-elevated text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent max-h-[120px]"
                   />
                   <button
-                    onClick={handleSend}
+                    onClick={() => void handleSend()}
                     disabled={!input.trim() || loading}
-                    className="btn flex-shrink-0 px-6 py-2.5 bg-brand-500 text-white hover:bg-brand-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="btn btn-primary flex-shrink-0 px-6 py-2.5 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     <span>Send</span>
                     <span>→</span>
@@ -982,13 +1033,13 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     <div className="flex gap-2 mt-4">
                       <button
                         onClick={() => handleAccept(proposal.id)}
-                        className="flex-1 px-3 py-2 btn bg-brand-500 text-white hover:bg-brand-600 transition text-xs font-medium"
+                        className="flex-1 px-3 py-2 btn btn-primary text-xs font-medium"
                       >
                         ✅ Accept
                       </button>
                       <button
                         onClick={() => handleReject(proposal.id)}
-                        className="px-3 py-2 btn bg-slate-700 text-slate-300 hover:bg-slate-600 transition text-xs font-medium"
+                        className="px-3 py-2 btn btn-secondary text-xs font-medium"
                       >
                         ❌
                       </button>
