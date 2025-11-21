@@ -65,6 +65,9 @@ interface AssistantModelResponse {
     mechanics?: MechanicsData;
     lore?: LoreData;
     architectDocuments?: Array<{ name: string; content: string }>;
+    title?: string;
+    fileName?: string;
+    markdownContent?: string;
   };
 }
 
@@ -279,6 +282,9 @@ export class AssistantService {
           instructionBlocks.push('You MUST respond with PURE JSON ONLY - NO tool calls, NO markdown, NO wrapper formats!');
           instructionBlocks.push('Return ONLY valid JSON using this EXACT nested schema:');
           instructionBlocks.push('{ "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }');
+          instructionBlocks.push('');
+          instructionBlocks.push('You must output a JSON object containing exactly these keys: title (string), fileName (string ending in .md), and markdownContent (string). Do not invent other keys like "mechanics" or "explanation".');
+          instructionBlocks.push('When creating documents, the content values (like "mechanics" or "lore") MUST be formatted as valid Markdown (use # headers, - lists, bold). Do not return plain text blocks.');
           instructionBlocks.push('');
           instructionBlocks.push('❌ FORBIDDEN FORMATS:');
           instructionBlocks.push('DO NOT use: [TOOL_CALL], json_build_output, --reply, --proposal, or ANY tool calling syntax');
@@ -1532,47 +1538,32 @@ export class AssistantService {
       
       const parsed = jsonResult.parsed;
       
-      // Log what we extracted
-      logger.debug('Successfully parsed assistant response', {
-        hasReply: !!parsed.reply,
-        hasProposal: !!parsed.proposal,
-        proposalType: typeof parsed.proposal,
-        proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
-        originalContentLength: content.length,
-      });
-      
       // Validate that we got meaningful content
       if (!parsed || (typeof parsed === 'object' && Object.keys(parsed).length === 0)) {
         logger.error('Empty or invalid content in assistant response', {
           parsed,
-          contentPreview: content.substring(0, 500)
+          contentPreview: content.substring(0, 500),
         });
         // Return fallback response with cleaned content as reply
         return {
           reply: this.extractTextFromResponse(content),
         };
       }
-      
-      // Check if the response might be truncated
-      const mightBeTruncated = !content.trim().endsWith('}') && content.includes('"proposal"');
-      if (mightBeTruncated) {
-        logger.warn('Response might be truncated - JSON may be incomplete', {
-          contentLength: content.length,
-          lastChars: content.substring(Math.max(0, content.length - 100)),
-          hasProposalKey: content.includes('"proposal"'),
-        });
-      }
-      
-      // Handle case where model returns only reply field without proposal
-      // Sometimes models return {reply: "..."} instead of {reply: "...", proposal: {...}}
-      if (parsed.proposal === undefined || parsed.proposal === null) {
-        // Check if the original content has a proposal but it wasn't parsed
-        const hasProposalInContent = content.includes('"proposal"') && (content.includes('"mechanics"') || content.includes('"lore"') || content.includes('"architectDocuments"'));
+
+      const reply = this.extractReplyFromParsed(parsed, content);
+      const proposal = this.buildNormalizedProposal(parsed);
+
+      if (!proposal) {
+        const hasProposalInContent =
+          content.includes('"proposal"') &&
+          (content.includes('"mechanics"') || content.includes('"lore"') || content.includes('"architectDocuments"') || content.includes('"markdownContent"'));
+
         if (hasProposalInContent) {
           logger.error('Proposal exists in content but was not parsed correctly - likely truncated JSON', {
             keys: Object.keys(parsed),
             hasReply: !!parsed.reply,
             contentHasProposal: content.includes('"proposal"'),
+            contentHasMarkdownContent: content.includes('"markdownContent"'),
             contentHasMechanics: content.includes('"mechanics"'),
             contentHasLore: content.includes('"lore"'),
             contentHasArchitectDocuments: content.includes('"architectDocuments"'),
@@ -1582,8 +1573,7 @@ export class AssistantService {
             parsedPreview: JSON.stringify(parsed).substring(0, 500),
             last500Chars: content.substring(Math.max(0, content.length - 500)),
           });
-          
-          // Try to extract partial proposal if possible
+
           const proposalMatch = content.match(/"proposal"\s*:\s*(\{[\s\S]*)/);
           if (proposalMatch) {
             logger.warn('Found proposal start in content but JSON parsing failed - response likely truncated', {
@@ -1598,48 +1588,28 @@ export class AssistantService {
             fullParsed: JSON.stringify(parsed).substring(0, 500),
           });
         }
-        
-        // Return just the reply without proposal
+
         return {
-          reply: parsed.reply || this.extractTextFromResponse(content),
+          reply,
           proposal: undefined,
         };
       }
-      
-      // Ensure reply is a string - if it's not, try to extract it from the parsed object or fallback
-      let reply: string;
-      if (typeof parsed.reply === 'string' && parsed.reply.length > 0) {
-        reply = parsed.reply;
-      } else if (parsed.reply && typeof parsed.reply === 'object') {
-        // Sometimes reply might be an object, try to stringify it nicely
-        reply = JSON.stringify(parsed.reply, null, 2);
-      } else {
-        // Fallback: extract text from the original content
-        reply = this.extractTextFromResponse(content);
-        // If we still have raw JSON, try to extract just the reply field value
-        if (reply.includes('"reply"') && reply.includes('{')) {
-          const replyValueMatch = reply.match(/"reply"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
-          if (replyValueMatch && replyValueMatch[1]) {
-            reply = replyValueMatch[1]
-              .replace(/\\"/g, '"')
-              .replace(/\\n/g, '\n')
-              .replace(/\\t/g, '\t')
-              .replace(/\\\\/g, '\\');
-          }
-        }
-      }
-      
-      // Ensure proposal is an object (even if empty)
-      const proposal = typeof parsed.proposal === 'object' && parsed.proposal !== null
-        ? parsed.proposal
-        : {};
-      
-      // Check if proposal appears truncated (has explanation but incomplete mechanics/lore)
-      const proposalIsTruncated = proposal && typeof proposal === 'object' && 
-        proposal.explanation && 
-        !proposal.mechanics && !proposal.lore && !proposal.architectDocuments &&
+
+      logger.debug('Successfully parsed assistant response', {
+        hasReply: !!reply,
+        hasProposal: !!proposal,
+        proposalType: typeof proposal,
+        proposalKeys: Object.keys(proposal),
+        originalContentLength: content.length,
+      });
+
+      const proposalIsTruncated =
+        proposal.explanation &&
+        !proposal.mechanics &&
+        !proposal.lore &&
+        !proposal.architectDocuments &&
         (content.includes('"mechanics"') || content.includes('"lore"') || content.includes('"architectDocuments"'));
-      
+
       if (proposalIsTruncated) {
         logger.error('Proposal appears to be truncated - has explanation but missing mechanics/lore/architectDocuments', {
           proposalKeys: Object.keys(proposal),
@@ -1652,24 +1622,23 @@ export class AssistantService {
           last200Chars: content.substring(Math.max(0, content.length - 200)),
         });
       }
-      
-      // Log what we're returning
+
       logger.info('Parsed response result', {
         hasReply: !!reply,
         replyLength: reply?.length || 0,
         hasProposal: !!proposal,
         proposalType: typeof proposal,
-        proposalKeys: proposal && typeof proposal === 'object' ? Object.keys(proposal) : [],
-        hasMechanics: !!(proposal && typeof proposal === 'object' && proposal.mechanics),
-        hasLore: !!(proposal && typeof proposal === 'object' && proposal.lore),
-        hasArchitectDocuments: !!(proposal && typeof proposal === 'object' && proposal.architectDocuments),
+        proposalKeys: Object.keys(proposal),
+        hasMechanics: !!proposal.mechanics,
+        hasLore: !!proposal.lore,
+        hasArchitectDocuments: !!proposal.architectDocuments,
         proposalIsTruncated,
-        proposalPreview: proposal && typeof proposal === 'object' ? JSON.stringify(proposal).substring(0, 1000) : String(proposal),
+        proposalPreview: JSON.stringify(proposal).substring(0, 1000),
       });
-      
+
       return {
-        reply: reply,
-        proposal: proposal,
+        reply,
+        proposal,
       };
     } catch (error) {
       logger.error('Failed to parse AI response in assistant service', {
@@ -1792,6 +1761,157 @@ export class AssistantService {
     }
     
     return cleaned;
+  }
+
+  private extractReplyFromParsed(parsed: any, content: string): string {
+    if (typeof parsed.reply === 'string' && parsed.reply.length > 0) {
+      return parsed.reply;
+    }
+    if (parsed.reply && typeof parsed.reply === 'object') {
+      return JSON.stringify(parsed.reply, null, 2);
+    }
+
+    let reply = this.extractTextFromResponse(content);
+    if (reply.includes('"reply"') && reply.includes('{')) {
+      const replyValueMatch = reply.match(/"reply"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+      if (replyValueMatch && replyValueMatch[1]) {
+        reply = replyValueMatch[1]
+          .replace(/\\"/g, '"')
+          .replace(/\\n/g, '\n')
+          .replace(/\\t/g, '\t')
+          .replace(/\\\\/g, '\\');
+      }
+    }
+
+    return reply;
+  }
+
+  private buildNormalizedProposal(parsed: any): AssistantModelResponse['proposal'] | null {
+    const rawProposal = parsed && typeof parsed.proposal === 'object' && parsed.proposal !== null
+      ? { ...parsed.proposal }
+      : {};
+
+    const fallbackDocument = this.buildDocumentFromParsed(rawProposal || parsed);
+    const hasArchitectDocuments = Array.isArray(rawProposal.architectDocuments) && rawProposal.architectDocuments.length > 0;
+
+    if (!hasArchitectDocuments && fallbackDocument) {
+      rawProposal.architectDocuments = [fallbackDocument];
+    }
+
+    if (!Object.keys(rawProposal).length) {
+      return null;
+    }
+
+    return rawProposal;
+  }
+
+  private buildDocumentFromParsed(parsed: any): { name: string; content: string } | null {
+    const markdownContent =
+      typeof parsed.markdownContent === 'string' && parsed.markdownContent.trim().length > 0
+        ? parsed.markdownContent.trim()
+        : this.composeMarkdownFromParsedFields(parsed);
+
+    if (!markdownContent) {
+      return null;
+    }
+
+    const fileName = this.ensureMdFileName(parsed.fileName, parsed.title);
+
+    return {
+      name: fileName,
+      content: markdownContent,
+    };
+  }
+
+  private composeMarkdownFromParsedFields(parsed: any): string | null {
+    if (!parsed || typeof parsed !== 'object') {
+      return null;
+    }
+
+    const sections: string[] = [];
+
+    if (parsed.title) {
+      const title = this.stringifyField(parsed.title);
+      if (title) {
+        sections.push(`# ${title}`);
+      }
+    }
+
+    if (parsed.explanation) {
+      const explanation = this.stringifyField(parsed.explanation);
+      if (explanation) {
+        sections.push(`## Explanation\n${explanation}`);
+      }
+    }
+
+    if (parsed.mechanics) {
+      const mechanics = this.stringifyField(parsed.mechanics);
+      if (mechanics) {
+        sections.push(`## Mechanics\n${mechanics}`);
+      }
+    }
+
+    if (parsed.lore) {
+      const lore = this.stringifyField(parsed.lore);
+      if (lore) {
+        sections.push(`## Lore\n${lore}`);
+      }
+    }
+
+    if (parsed.architectDocuments && Array.isArray(parsed.architectDocuments)) {
+      const docs = parsed.architectDocuments
+        .map((doc: any, index: number) => {
+          const docContent =
+            typeof doc.content === 'string'
+              ? doc.content
+              : this.stringifyField(doc);
+          return docContent ? `### Document ${index + 1}\n${docContent}` : '';
+        })
+        .filter(Boolean);
+
+      if (docs.length > 0) {
+        sections.push(docs.join('\n\n'));
+      }
+    }
+
+    if (sections.length === 0 && parsed.content) {
+      const fallbackContent = this.stringifyField(parsed.content);
+      if (fallbackContent) {
+        sections.push(fallbackContent);
+      }
+    }
+
+    return sections.length > 0 ? sections.join('\n\n') : null;
+  }
+
+  private ensureMdFileName(fileName?: string, title?: string): string {
+    const base = (fileName && fileName.trim()) || (title && title.trim()) || 'assistant-document';
+    const slug = base
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\-_.]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^\-+|\-+$/g, '');
+
+    const normalized = slug || 'assistant-document';
+    return normalized.endsWith('.md') ? normalized : `${normalized}.md`;
+  }
+
+  private stringifyField(value: unknown): string {
+    if (typeof value === 'string') {
+      return value.trim();
+    }
+    if (value === null || value === undefined) {
+      return '';
+    }
+    if (typeof value === 'object') {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return String(value);
+      }
+    }
+    return String(value);
   }
 
   private async createProposal(
