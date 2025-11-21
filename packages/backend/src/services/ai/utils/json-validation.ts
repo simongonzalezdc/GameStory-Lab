@@ -16,66 +16,29 @@ export interface JSONValidationResult {
  * Attempt to extract JSON from a response that may contain markdown code fences or extra text
  */
 export function extractJSON(content: string): JSONValidationResult {
-  // Remove markdown code fences if present
-  let cleaned = content.trim();
-  
-  // Remove ```json or ``` code fences
-  cleaned = cleaned.replace(/^```(?:json)?\s*\n?/gm, '');
-  cleaned = cleaned.replace(/\n?```\s*$/gm, '');
-  cleaned = cleaned.trim();
+  const candidates = gatherJSONCandidates(content);
+  let lastError: string | undefined;
 
-  // Try to find JSON object/array boundaries
-  const jsonStart = cleaned.indexOf('{');
-  const jsonArrayStart = cleaned.indexOf('[');
-  
-  let jsonContent = cleaned;
-  if (jsonStart !== -1 && (jsonArrayStart === -1 || jsonStart < jsonArrayStart)) {
-    // Find matching closing brace
-    const lastBrace = cleaned.lastIndexOf('}');
-    if (lastBrace > jsonStart) {
-      jsonContent = cleaned.substring(jsonStart, lastBrace + 1);
+  for (const candidate of candidates) {
+    const jsonSnippet = extractFirstJSONSegment(candidate);
+    if (!jsonSnippet) {
+      continue;
     }
-  } else if (jsonArrayStart !== -1) {
-    // Find matching closing bracket
-    const lastBracket = cleaned.lastIndexOf(']');
-    if (lastBracket > jsonArrayStart) {
-      jsonContent = cleaned.substring(jsonArrayStart, lastBracket + 1);
+
+    const parseAttempt = tryParseJSONString(jsonSnippet, content);
+    if (parseAttempt.success && parseAttempt.result) {
+      return parseAttempt.result;
+    }
+
+    if (parseAttempt.error) {
+      lastError = parseAttempt.error;
     }
   }
 
-  // Try to parse as JSON
-  try {
-    const parsed = JSON.parse(jsonContent);
-    return {
-      isValid: true,
-      parsed,
-      reformatted: JSON.stringify(parsed, null, 2),
-    };
-  } catch (error) {
-    // Try to fix common JSON issues
-    const fixed = attemptJSONFix(jsonContent);
-    if (fixed) {
-      try {
-        const parsed = JSON.parse(fixed);
-        logger.warn('JSON response required reformatting', {
-          originalLength: content.length,
-          fixedLength: fixed.length,
-        });
-        return {
-          isValid: true,
-          parsed,
-          reformatted: JSON.stringify(parsed, null, 2),
-        };
-      } catch (fixError) {
-        // Fix attempt failed
-      }
-    }
-
-    return {
-      isValid: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
+  return {
+    isValid: false,
+    error: lastError || 'Failed to extract valid JSON from the AI response',
+  };
 }
 
 /**
@@ -104,6 +67,143 @@ function attemptJSONFix(json: string): string | null {
   fixed = fixed.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
 
   return fixed !== json ? fixed : null;
+}
+
+interface JSONParseAttempt {
+  success: boolean;
+  result?: JSONValidationResult;
+  error?: string;
+}
+
+function gatherJSONCandidates(content: string): string[] {
+  const candidates: string[] = [];
+  const seen = new Set<string>();
+
+  // Handle [TOOL_CALL] format: [TOOL_CALL] {tool => "json_build_output", args => { --reply "..." --proposal {...} }}
+  const toolCallMatch = content.match(/\[TOOL_CALL\][\s\S]*?--proposal\s+(\{[\s\S]*)/i);
+  if (toolCallMatch) {
+    logger.info('Detected [TOOL_CALL] format in response, extracting --proposal JSON');
+    const proposalStart = toolCallMatch[1];
+    // Extract the JSON object after --proposal
+    const jsonSnippet = extractFirstJSONSegment(proposalStart);
+    if (jsonSnippet && !seen.has(jsonSnippet)) {
+      seen.add(jsonSnippet);
+      candidates.push(jsonSnippet);
+      logger.info('Extracted proposal JSON from tool call', {
+        length: jsonSnippet.length,
+        preview: jsonSnippet.substring(0, 200),
+      });
+    }
+  }
+
+  // Handle markdown code fences
+  const fenceRegex = /```(?:json)?\s*([\s\S]*?)\s*```/gi;
+  let match: RegExpExecArray | null;
+  while ((match = fenceRegex.exec(content)) !== null) {
+    const inner = match[1].trim();
+    if (inner && !seen.has(inner)) {
+      seen.add(inner);
+      candidates.push(inner);
+    }
+  }
+
+  // Try the raw trimmed content last
+  const trimmed = content.trim();
+  if (trimmed && !seen.has(trimmed)) {
+    candidates.push(trimmed);
+    seen.add(trimmed);
+  }
+
+  return candidates;
+}
+
+function extractFirstJSONSegment(text: string): string | null {
+  let inString = false;
+  let escapeNext = false;
+  let depth = 0;
+  let start = -1;
+  let bracketType: '{' | '[' | null = null;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
+    }
+
+    if (char === '\\') {
+      escapeNext = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) {
+      continue;
+    }
+
+    if (char === '{' || char === '[') {
+      if (depth === 0) {
+        start = i;
+        bracketType = char === '{' ? '{' : '[';
+      }
+      depth++;
+    } else if ((char === '}' && bracketType === '{') || (char === ']' && bracketType === '[')) {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        return text.substring(start, i + 1).trim();
+      }
+    }
+  }
+
+  return null;
+}
+
+function tryParseJSONString(jsonSnippet: string, originalContent: string): JSONParseAttempt {
+  try {
+    const parsed = JSON.parse(jsonSnippet);
+    return {
+      success: true,
+      result: {
+        isValid: true,
+        parsed,
+        reformatted: JSON.stringify(parsed, null, 2),
+      },
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const fixed = attemptJSONFix(jsonSnippet);
+    if (fixed) {
+      try {
+        const parsed = JSON.parse(fixed);
+        logger.warn('JSON response required reformatting', {
+          originalLength: originalContent.length,
+          fixedLength: fixed.length,
+        });
+        return {
+          success: true,
+          result: {
+            isValid: true,
+            parsed,
+            reformatted: JSON.stringify(parsed, null, 2),
+          },
+        };
+      } catch (fixError) {
+        return {
+          success: false,
+          error: fixError instanceof Error ? fixError.message : String(fixError),
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
 }
 
 /**

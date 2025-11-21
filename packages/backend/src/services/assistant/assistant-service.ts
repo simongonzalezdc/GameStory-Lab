@@ -276,8 +276,21 @@ export class AssistantService {
           
           // Add critical proposal requirements
           instructionBlocks.push('🚨 CRITICAL RESPONSE FORMAT:');
-          instructionBlocks.push('You MUST respond with valid JSON using this exact schema:');
+          instructionBlocks.push('You MUST respond with PURE JSON ONLY - NO tool calls, NO markdown, NO wrapper formats!');
+          instructionBlocks.push('Return ONLY valid JSON using this EXACT nested schema:');
           instructionBlocks.push('{ "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }');
+          instructionBlocks.push('');
+          instructionBlocks.push('❌ FORBIDDEN FORMATS:');
+          instructionBlocks.push('DO NOT use: [TOOL_CALL], json_build_output, --reply, --proposal, or ANY tool calling syntax');
+          instructionBlocks.push('DO NOT wrap in: ```json```, markdown, or any other format');
+          instructionBlocks.push('ONLY return raw JSON object starting with { and ending with }');
+          instructionBlocks.push('');
+          instructionBlocks.push('⚠️ STRUCTURE REQUIREMENT - CRITICAL:');
+          instructionBlocks.push('The "proposal" object MUST be NESTED under a "proposal" key at the top level.');
+          instructionBlocks.push('CORRECT: { "reply": "...", "proposal": { "mechanics": {...}, "lore": {...} } }');
+          instructionBlocks.push('WRONG:   { "reply": "...", "mechanics": {...}, "lore": {...} }  ← This will FAIL!');
+          instructionBlocks.push('WRONG:   { "reply": "...", "explanation": "...", "mechanics": {...} }  ← This will FAIL!');
+          instructionBlocks.push('WRONG:   [TOOL_CALL] {tool => "json_build_output"...}  ← This will FAIL!');
           instructionBlocks.push('');
           instructionBlocks.push('🚨 CRITICAL PROPOSAL REQUIREMENT:');
           instructionBlocks.push('If the user asks for ANY of these, you MUST include a proposal object with actual data:');
@@ -288,10 +301,11 @@ export class AssistantService {
           instructionBlocks.push('');
           instructionBlocks.push('⚠️ PROPOSAL VALIDATION CHECKLIST (check before responding):');
           instructionBlocks.push('1. Does user want something actionable? → MUST include proposal');
-          instructionBlocks.push('2. Is proposal.mechanics empty {}? → ERROR - include full mechanics object');
-          instructionBlocks.push('3. Is proposal.lore empty {}? → ERROR - include full lore object if proposing lore changes');
-          instructionBlocks.push('4. Is proposal.architectDocuments empty []? → ERROR - include documents if proposing docs');
-          instructionBlocks.push('5. Does proposal only have explanation? → ERROR - must include actual data objects');
+          instructionBlocks.push('2. Is the proposal nested under "proposal" key? → MUST be {reply: "...", proposal: {...}}');
+          instructionBlocks.push('3. Is proposal.mechanics empty {}? → ERROR - include full mechanics object');
+          instructionBlocks.push('4. Is proposal.lore empty {}? → ERROR - include full lore object if proposing lore changes');
+          instructionBlocks.push('5. Is proposal.architectDocuments empty []? → ERROR - include documents if proposing docs');
+          instructionBlocks.push('6. Does proposal only have explanation? → ERROR - must include actual data objects');
           instructionBlocks.push('');
           instructionBlocks.push('✅ The proposal object MUST contain:');
           instructionBlocks.push('- "explanation": A string describing what the proposal does');
@@ -300,6 +314,7 @@ export class AssistantService {
           instructionBlocks.push('- "architectDocuments": Array of document objects with "name" and "content" fields - NOT []');
           instructionBlocks.push('');
           instructionBlocks.push('❌ DO NOT:');
+          instructionBlocks.push('- Return flat structure: {reply: "...", mechanics: {...}} ← WRONG! Must nest under proposal');
           instructionBlocks.push('- Return {proposal: null} or {proposal: {}} or {proposal: {explanation: "..."}}');
           instructionBlocks.push('- Say "I will create..." without including the proposal data');
           instructionBlocks.push('- Include only explanation without mechanics/lore/architectDocuments');
@@ -307,6 +322,7 @@ export class AssistantService {
           instructionBlocks.push('- Skip the proposal if user asks for documents/changes');
           instructionBlocks.push('');
           instructionBlocks.push('✅ DO:');
+          instructionBlocks.push('- ALWAYS nest proposal data under "proposal" key: {reply: "...", proposal: {...}}');
           instructionBlocks.push('- Include FULL, COMPLETE mechanics and/or lore objects in the proposal');
           instructionBlocks.push('- For documentation: Include architectDocuments with actual document content');
           instructionBlocks.push('- Make sure proposal.mechanics and proposal.lore contain REAL data, not empty objects');
@@ -338,8 +354,9 @@ export class AssistantService {
       aiMessages,
       'auto', // Will use MiniMax M2 if available, otherwise falls back
       { 
-        maxTokens: 20000, // Increased to allow for full mechanics/lore objects in proposals without truncation
+        maxTokens: 35000, // Increased significantly to prevent truncation of large proposals with full mechanics/lore objects
         // DO NOT set response_format for assistant - it needs to return {reply, proposal} structure
+        // Disable tool calling for assistant mode - we want pure JSON responses
       }
     );
     
@@ -379,6 +396,41 @@ export class AssistantService {
     });
 
     const parsed = this.parseAssistantResponse(aiResponse.content);
+    
+    // DEBUG: Log the full parsed structure to diagnose proposal detection issues
+    logger.info('RECEIVED DATA KEYS:', {
+      sessionId,
+      parsedKeys: Object.keys(parsed),
+      parsedStructure: JSON.stringify(parsed, null, 2).substring(0, 2000),
+      hasProposalKey: 'proposal' in parsed,
+      hasMechanicsAtTopLevel: 'mechanics' in parsed,
+      hasLoreAtTopLevel: 'lore' in parsed,
+      hasArchitectDocumentsAtTopLevel: 'architectDocuments' in parsed,
+      hasExplanationAtTopLevel: 'explanation' in parsed,
+    });
+    
+    // Normalize structure: Handle case where AI returns flat structure instead of nested proposal
+    if (!parsed.proposal && (parsed.mechanics || parsed.lore || parsed.architectDocuments)) {
+      logger.warn('AI returned flat structure - normalizing to nested proposal format', {
+        sessionId,
+        hasMechanics: !!parsed.mechanics,
+        hasLore: !!parsed.lore,
+        hasArchitectDocuments: !!parsed.architectDocuments,
+        hasExplanation: !!parsed.explanation,
+      });
+      parsed.proposal = {
+        explanation: parsed.explanation || 'Proposal generated by AI assistant',
+        ...(parsed.mechanics && { mechanics: parsed.mechanics }),
+        ...(parsed.lore && { lore: parsed.lore }),
+        ...(parsed.architectDocuments && { architectDocuments: parsed.architectDocuments }),
+      };
+      // Remove top-level keys to avoid confusion
+      delete (parsed as any).mechanics;
+      delete (parsed as any).lore;
+      delete (parsed as any).architectDocuments;
+      delete (parsed as any).explanation;
+    }
+    
     const assistantMessage = await this.prisma.chatMessage.create({
       data: {
         sessionId,
@@ -399,7 +451,7 @@ export class AssistantService {
 
     let createdProposal: Awaited<ReturnType<typeof this.prisma.assistantProposal.create>> | null = null;
     
-    // Log what we got from parsing
+    // Log what we got from parsing (after normalization)
     logger.info('Parsed assistant response', {
       sessionId,
       quickActionId,
@@ -1445,6 +1497,20 @@ export class AssistantService {
 
   private parseAssistantResponse(content: string): AssistantModelResponse {
     try {
+      // Detect response truncation before parsing
+      const isTruncated = this.detectTruncation(content);
+      if (isTruncated) {
+        logger.error('AI response appears to be truncated!', {
+          contentLength: content.length,
+          last200Chars: content.substring(Math.max(0, content.length - 200)),
+          hasProposalStart: content.includes('"proposal"'),
+          hasMechanicsStart: content.includes('"mechanics"'),
+          hasToolCallFormat: content.includes('[TOOL_CALL]'),
+          endsProperlyWithBrace: content.trim().endsWith('}'),
+          endsProperlyWithBracket: content.trim().endsWith(']'),
+        });
+      }
+      
       // Use the extractJSON utility which handles markdown, thinking blocks, and common JSON issues
       const jsonResult = extractJSON(content);
       
@@ -1454,6 +1520,8 @@ export class AssistantService {
           contentPreview: content.substring(0, 500),
           hasReply: content.includes('"reply"'),
           hasProposal: content.includes('"proposal"'),
+          isTruncated,
+          suggestedAction: isTruncated ? 'Response was truncated - increase maxTokens or simplify prompt' : 'Invalid JSON format',
         });
         
         // Return fallback response with cleaned content as reply
@@ -1614,6 +1682,42 @@ export class AssistantService {
         reply: this.extractTextFromResponse(content),
       };
     }
+  }
+
+  /**
+   * Detect if an AI response was truncated mid-generation
+   */
+  private detectTruncation(content: string): boolean {
+    const trimmed = content.trim();
+    const last50 = trimmed.substring(Math.max(0, trimmed.length - 50));
+    
+    // Check for incomplete JSON structures
+    const endsWithOpenBrace = /[{,]\s*$/.test(trimmed);
+    const endsWithOpenBracket = /\[\s*$/.test(trimmed);
+    const endsWithColon = /:\s*$/.test(trimmed);
+    const endsWithComma = /,\s*$/.test(trimmed);
+    const endsWithQuote = /"$/.test(trimmed);
+    const endsWithIncompleteString = /"[^"]{0,20}$/.test(trimmed);
+    const endsWithPartialWord = /\b\w{3,}$/.test(last50);
+    
+    // Check if it looks like JSON was started but not completed
+    const hasProposalKeyword = content.includes('"proposal"');
+    const hasMechanicsKeyword = content.includes('"mechanics"');
+    const endsWithProperBrace = trimmed.endsWith('}') || trimmed.endsWith(']}') || trimmed.endsWith('}}');
+    
+    // If it has proposal/mechanics but doesn't end properly, likely truncated
+    const likelyTruncated = (hasProposalKeyword || hasMechanicsKeyword) && !endsWithProperBrace;
+    
+    // Check for obvious truncation markers
+    const hasTruncationMarkers = 
+      endsWithOpenBrace || 
+      endsWithOpenBracket || 
+      endsWithColon || 
+      endsWithComma ||
+      endsWithIncompleteString ||
+      (endsWithPartialWord && !endsWithProperBrace);
+    
+    return likelyTruncated || hasTruncationMarkers;
   }
 
   /**

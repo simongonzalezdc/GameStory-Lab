@@ -35,6 +35,7 @@ export function ProjectArchitectPage() {
   // Track which projectIds have already been checked to prevent duplicate calls in Strict Mode
   const checkedProjects = useRef<Set<string>>(new Set());
   const missingDocsLogged = useRef<Set<string>>(new Set());
+  const previousProjectId = useRef<string | undefined>(undefined);
 
   // Check if documentation exists and load it
   const checkDocumentation = async (options?: { force?: boolean }) => {
@@ -127,10 +128,15 @@ export function ProjectArchitectPage() {
 
   // Check for existing documentation on mount
   useEffect(() => {
-    // Clear checked projects when projectId changes
-    checkedProjects.current.clear();
-    missingDocsLogged.current.clear();
+    // Only clear refs when projectId actually changes (not on Strict Mode re-runs)
+    if (previousProjectId.current !== projectId) {
+      checkedProjects.current.clear();
+      missingDocsLogged.current.clear();
+      previousProjectId.current = projectId;
+    }
+    
     // Call without force flag - second Strict Mode invocation will be skipped
+    // because the projectId hasn't changed, so checkedProjects still contains it
     checkDocumentation();
   }, [projectId]);
 

@@ -1595,12 +1595,20 @@
 
   @keyframes jewel-sparkle {
     0%, 100% {
-      opacity: 0;
-      transform: scale(0) rotate(0deg);
+      opacity: 0.3;
+      transform: scale(0.8) rotate(0deg) translateY(0);
+    }
+    25% {
+      opacity: 0.8;
+      transform: scale(1.2) rotate(90deg) translateY(-2px);
     }
     50% {
       opacity: 1;
-      transform: scale(1) rotate(180deg);
+      transform: scale(1.4) rotate(180deg) translateY(-4px);
+    }
+    75% {
+      opacity: 0.8;
+      transform: scale(1.2) rotate(270deg) translateY(-2px);
     }
   }
 
@@ -1680,37 +1688,78 @@
   /* Sparkle particles around the jewel */
   .jewel-spinner .sparkle {
     position: absolute;
-    width: 3px;
-    height: 3px;
-    background: white;
+    width: 5px;
+    height: 5px;
+    background: radial-gradient(circle, var(--jewel-amethyst-light, #8a7ca8) 0%, var(--jewel-garnet-light, #AE5D37) 100%);
     border-radius: 50%;
-    animation: jewel-sparkle 2s ease-in-out infinite;
+    animation: jewel-sparkle 2.5s ease-in-out infinite;
     z-index: 3;
-    box-shadow: 0 0 4px white;
+    opacity: 0.9;
+    box-shadow: 
+      0 0 8px rgba(143, 62, 72, 0.7),
+      0 0 12px rgba(107, 93, 136, 0.5),
+      inset 0 0 3px rgba(255, 255, 255, 0.6);
+    transform-origin: center center;
+    pointer-events: none;
   }
 
-  .jewel-spinner .sparkle:nth-child(1) {
-    top: -10%;
+  /* Fix selectors: core is child 1, sparkles are children 2-5 */
+  /* Using nth-child to target specific sparkle positions */
+  .jewel-spinner .sparkle:nth-child(2) {
+    top: -10px;
     left: 50%;
+    transform: translateX(-50%);
     animation-delay: 0s;
   }
 
-  .jewel-spinner .sparkle:nth-child(2) {
-    top: 50%;
-    right: -10%;
-    animation-delay: 0.5s;
-  }
-
   .jewel-spinner .sparkle:nth-child(3) {
-    bottom: -10%;
-    left: 50%;
-    animation-delay: 1s;
+    top: 50%;
+    right: -10px;
+    transform: translateY(-50%);
+    animation-delay: 0.625s;
   }
 
   .jewel-spinner .sparkle:nth-child(4) {
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 1.25s;
+  }
+
+  .jewel-spinner .sparkle:nth-child(5) {
     top: 50%;
-    left: -10%;
-    animation-delay: 1.5s;
+    left: -10px;
+    transform: translateY(-50%);
+    animation-delay: 1.875s;
+  }
+  
+  /* Alternative selector using data attributes for more reliable targeting */
+  .jewel-spinner .sparkle[data-sparkle-index="0"] {
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 0s;
+  }
+
+  .jewel-spinner .sparkle[data-sparkle-index="1"] {
+    top: 50%;
+    right: -10px;
+    transform: translateY(-50%);
+    animation-delay: 0.625s;
+  }
+
+  .jewel-spinner .sparkle[data-sparkle-index="2"] {
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 1.25s;
+  }
+
+  .jewel-spinner .sparkle[data-sparkle-index="3"] {
+    top: 50%;
+    left: -10px;
+    transform: translateY(-50%);
+    animation-delay: 1.875s;
   }
 
   /* Shimmering Skeleton Effect */

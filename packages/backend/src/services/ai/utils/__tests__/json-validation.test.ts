@@ -28,6 +28,13 @@ describe('extractJSON', () => {
     expect(result.parsed).toEqual({ key: 'value' });
   });
 
+  it('should extract JSON even when fences are wrapped in chatty text', () => {
+    const content = 'Here is what I found:\n```json\n{"key": "value"}\n```\nLet me know if you need more.';
+    const result = extractJSON(content);
+    expect(result.isValid).toBe(true);
+    expect(result.parsed).toEqual({ key: 'value' });
+  });
+
   it('should extract JSON with extra text before/after', () => {
     const content = 'Here is the JSON:\n{"key": "value"}\nThat was the JSON.';
     const result = extractJSON(content);

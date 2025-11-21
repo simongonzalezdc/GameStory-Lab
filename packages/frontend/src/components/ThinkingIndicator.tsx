@@ -31,10 +31,10 @@ export function ThinkingIndicator({ className = '' }: ThinkingIndicatorProps) {
       {/* Awesome Morphing Spinner */}
       <div className="jewel-spinner">
         <div className="jewel-spinner-core" />
-        <div className="sparkle" />
-        <div className="sparkle" />
-        <div className="sparkle" />
-        <div className="sparkle" />
+        <div className="sparkle" data-sparkle-index="0" />
+        <div className="sparkle" data-sparkle-index="1" />
+        <div className="sparkle" data-sparkle-index="2" />
+        <div className="sparkle" data-sparkle-index="3" />
       </div>
       
       {/* Cycling Status Text */}
