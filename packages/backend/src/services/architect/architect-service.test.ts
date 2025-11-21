@@ -4,6 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ArchitectService } from './architect-service.js';
+import { DOCUMENT_TYPES } from './prompts/document-prompts.js';
 
 // Mock the dependencies - vitest v4 compatible syntax
 vi.mock('./interview-manager.js', () => {
@@ -53,15 +54,15 @@ vi.mock('./document-generator.js', () => {
     this.generateDocumentation = vi.fn().mockResolvedValue({
       projectId: 'project-123',
       sessionId: 'test-session-123',
+      context: {} as any,
       generatedAt: new Date(),
+      generationStatus: 'completed',
       documents: [
-        {
-          type: 'game-design-doc',
-          title: 'Game Design Document',
-          content: 'Test GDD content',
-          format: 'markdown',
-          generatedAt: new Date(),
-        },
+        { templateName: 'executive-summary', content: '# Exec', generatedAt: new Date(), status: 'completed' },
+        { templateName: 'technical-specification', content: '# Tech', generatedAt: new Date(), status: 'completed' },
+        { templateName: 'product-requirements', content: '# Product', generatedAt: new Date(), status: 'completed' },
+        { templateName: 'roadmap', content: '# Roadmap', generatedAt: new Date(), status: 'completed' },
+        { templateName: 'launch-checklist', content: '# Launch', generatedAt: new Date(), status: 'completed' },
       ],
     });
     return this;
@@ -69,6 +70,62 @@ vi.mock('./document-generator.js', () => {
 
   return {
     DocumentGenerator: MockDocumentGenerator,
+  };
+});
+
+vi.mock('./ai-document-generator.js', () => {
+  const mockDocuments = [
+    {
+      documentType: DOCUMENT_TYPES.EXECUTIVE_SUMMARY,
+      content: '# Executive Summary\nGenerated content',
+      tokensUsed: 150,
+      generationTimeMs: 120,
+      success: true,
+    },
+    {
+      documentType: DOCUMENT_TYPES.TECHNICAL_SPECIFICATION,
+      content: '# Technical Specification\nGenerated content',
+      tokensUsed: 200,
+      generationTimeMs: 140,
+      success: true,
+    },
+    {
+      documentType: DOCUMENT_TYPES.PRODUCT_REQUIREMENTS,
+      content: '# Product Requirements\nGenerated content',
+      tokensUsed: 180,
+      generationTimeMs: 130,
+      success: true,
+    },
+    {
+      documentType: DOCUMENT_TYPES.ROADMAP,
+      content: '# Roadmap\nGenerated content',
+      tokensUsed: 160,
+      generationTimeMs: 110,
+      success: true,
+    },
+    {
+      documentType: DOCUMENT_TYPES.LAUNCH_CHECKLIST,
+      content: '# Launch Checklist\nGenerated content',
+      tokensUsed: 170,
+      generationTimeMs: 90,
+      success: true,
+    },
+  ];
+
+  const MockAIDocumentGenerator = vi.fn(function() {
+    this.generateAllDocuments = vi.fn().mockResolvedValue({
+      documents: mockDocuments,
+      totalTokensUsed: mockDocuments.reduce((sum, doc) => sum + doc.tokensUsed, 0),
+      totalTimeMs: mockDocuments.reduce((sum, doc) => sum + doc.generationTimeMs, 0),
+      success: true,
+      failedDocuments: [],
+    });
+    this.setInterviewManager = vi.fn();
+    return this;
+  });
+
+  return {
+    AIDocumentGenerator: MockAIDocumentGenerator,
   };
 });
 
@@ -133,48 +190,30 @@ describe('ArchitectService', () => {
   });
 
   describe('Documentation Generation', () => {
-    it('should generate complete documentation package', async () => {
+    it('should start generation and store documents after completion', async () => {
       const result = await service.generateDocumentation('project-123', 'test-session-123');
 
-      expect(result).toHaveProperty('projectId');
-      expect(result).toHaveProperty('sessionId');
-      expect(result).toHaveProperty('generatedAt');
-      expect(result).toHaveProperty('documents');
-      expect(result.projectId).toBe('project-123');
-      expect(result.sessionId).toBe('test-session-123');
-      expect(Array.isArray(result.documents)).toBe(true);
-      expect(result.documents.length).toBeGreaterThan(0);
-    });
+      expect(result.status).toBe('accepted');
+      expect(result.message).toMatch(/Documentation generation started/);
 
-    it('should store generated documentation', async () => {
-      await service.generateDocumentation('project-123', 'test-session-123');
+      await new Promise((resolve) => setImmediate(resolve));
 
       const retrieved = service.getDocumentation('project-123');
 
       expect(retrieved).toBeDefined();
-      expect(retrieved).toHaveProperty('projectId');
       expect(retrieved?.projectId).toBe('project-123');
+      expect(retrieved?.generationStatus).toBe('completed');
+      expect(retrieved?.documents.length).toBe(5);
+      retrieved?.documents.forEach((doc) => {
+        expect(doc.content).toContain('#');
+        expect(['completed', 'generating', 'failed']).toContain(doc.status);
+      });
     });
 
     it('should return null for non-existent documentation', () => {
       const result = service.getDocumentation('non-existent-project');
 
       expect(result).toBeNull();
-    });
-
-    it('should include proper document structure', async () => {
-      const result = await service.generateDocumentation('project-123', 'test-session-123');
-
-      expect(result.documents.length).toBeGreaterThan(0);
-      const doc = result.documents[0];
-
-      expect(doc).toHaveProperty('type');
-      expect(doc).toHaveProperty('title');
-      expect(doc).toHaveProperty('content');
-      expect(doc).toHaveProperty('format');
-      expect(doc).toHaveProperty('generatedAt');
-      expect(doc.type).toBe('game-design-doc');
-      expect(doc.format).toBe('markdown');
     });
   });
 
@@ -196,32 +235,37 @@ describe('ArchitectService', () => {
       const progress = service.getSessionProgress(startResult.sessionId);
       expect(progress).toBeDefined();
 
-      // Generate documentation
-      const docs = await service.generateDocumentation(
+      // Generate documentation (async)
+      const result = await service.generateDocumentation(
         'project-123',
         startResult.sessionId
       );
-      expect(docs.documents.length).toBeGreaterThan(0);
+      expect(result.status).toBe('accepted');
 
-      // Retrieve documentation
+      await new Promise((resolve) => setImmediate(resolve));
+
+      const docs = service.getDocumentation('project-123');
+      expect(docs).toBeDefined();
+      expect(docs?.projectId).toBe('project-123');
+
       const retrieved = service.getDocumentation('project-123');
       expect(retrieved).toEqual(docs);
     });
 
     it('should handle multiple concurrent projects', async () => {
-      // The mock always returns 'project-123' so we verify they're stored separately
-      // by checking that each call stores its own documentation
       const session1 = service.startInterview('project-1');
-      const docs1 = await service.generateDocumentation('project-1', session1.sessionId);
-      expect(service.getDocumentation('project-1')).toEqual(docs1);
+      const result1 = await service.generateDocumentation('project-1', session1.sessionId);
+      expect(result1.status).toBe('accepted');
+      await new Promise((resolve) => setImmediate(resolve));
 
       const session2 = service.startInterview('project-2');
-      const docs2 = await service.generateDocumentation('project-2', session2.sessionId);
-      expect(service.getDocumentation('project-2')).toEqual(docs2);
+      const result2 = await service.generateDocumentation('project-2', session2.sessionId);
+      expect(result2.status).toBe('accepted');
+      await new Promise((resolve) => setImmediate(resolve));
 
-      // Verify both are stored
       expect(service.getDocumentation('project-1')).toBeDefined();
       expect(service.getDocumentation('project-2')).toBeDefined();
+      expect(service.getDocumentation('project-1')).not.toBe(service.getDocumentation('project-2'));
     });
   });
 });

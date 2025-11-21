@@ -284,11 +284,11 @@ export function ProjectsPage() {
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-bold text-primary">Projects</h1>
           <span className="text-sm text-tertiary">({projects.length})</span>
-        </div>
+            </div>
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          <button
+              <button
             type="button"
-            onClick={() => setShowCreateModal(true)}
+                onClick={() => setShowCreateModal(true)}
             className="px-3 py-1.5 text-xs font-medium bg-[var(--brand-primary)] text-white rounded-lg hover:bg-[var(--brand-primary-hover)] transition h-8 flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={creating}
           >
@@ -304,16 +304,16 @@ export function ProjectsPage() {
             <Download className={`w-3.5 h-3.5 ${importing ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">{importing ? 'Importing…' : 'Import'}</span>
             <span className="sm:hidden">Import</span>
-          </button>
-          <Link
-            to="/templates"
+              </button>
+              <Link
+                to="/templates"
             className="px-3 py-1.5 text-xs font-medium border border-[var(--color-border-subtle)] rounded-lg text-secondary hover:text-primary hover:border-[var(--brand-primary)]/40 transition h-8 flex items-center gap-1.5"
-          >
+              >
             <FileText className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Templates</span>
-          </Link>
-        </div>
-      </div>
+              </Link>
+            </div>
+          </div>
 
       {/* Error Message */}
       {error && (
@@ -361,15 +361,15 @@ export function ProjectsPage() {
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search projects..."
                 className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface-card)] text-primary placeholder:text-tertiary focus:border-[var(--brand-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)]/30 transition h-8"
-              />
-            </div>
-            <button
+            />
+          </div>
+              <button
               onClick={() => {
                 const modes: SortMode[] = ['recent', 'alphabetical', 'versions'];
                 const currentIndex = modes.indexOf(sortMode);
@@ -382,11 +382,11 @@ export function ProjectsPage() {
                 {sortMode === 'recent' ? 'Recent' : sortMode === 'alphabetical' ? 'A-Z' : 'Versions'}
               </span>
             </button>
-          </div>
+        </div>
 
           {/* Projects Table */}
           <div className="border border-[var(--color-border-subtle)] rounded-lg overflow-hidden bg-[var(--color-surface-card)]">
-            {filteredProjects.length === 0 ? (
+          {filteredProjects.length === 0 ? (
               <div className="p-12 text-center">
                 <div className="text-tertiary mb-4">
                   {/* Messy desk/lab ASCII illustration */}
@@ -404,10 +404,10 @@ export function ProjectsPage() {
                 <FolderKanban className="w-8 h-8 mx-auto mb-2 opacity-50 text-tertiary" />
                 <p className="text-sm font-medium text-primary mb-1">No projects found</p>
                 <p className="text-xs text-secondary mb-4">
-                  {searchQuery
+                {searchQuery 
                     ? `No projects match "${searchQuery}"`
                     : 'Get started by creating your first project'}
-                </p>
+              </p>
                 {!searchQuery && (
                   <button
                     onClick={() => setShowCreateModal(true)}
@@ -452,7 +452,7 @@ export function ProjectsPage() {
                       onDelete={() => handleDeleteProject(project.id, project.name)}
                       delay={index * 0.02}
                     />
-                  ))}
+                ))}
                 </tbody>
               </table>
             )}
@@ -462,7 +462,7 @@ export function ProjectsPage() {
 
       {/* Create Project Modal */}
       {showCreateModal && (
-        <div
+        <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           onClick={(e) => {
             if (e.target === e.currentTarget) {

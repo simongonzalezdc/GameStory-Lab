@@ -5,12 +5,7 @@
 
 import { AIService } from '../ai/ai-service.js';
 import { ContextBuilder } from './context-builder.js';
-import {
-  DOCUMENT_TYPES,
-  DOCUMENT_GENERATION_ORDER,
-  getDocumentPrompt,
-  requiresOpenSource,
-} from './prompts/document-prompts.js';
+import { DOCUMENT_TYPES, getDocumentPrompt } from './prompts/document-prompts.js';
 import { ProjectContext } from './types.js';
 import { logger } from '../../utils/logger.js';
 
@@ -44,12 +39,7 @@ export class AIDocumentGenerator {
   }
 
   /**
-   * Generate all documents for a project using parallelized dependency groups
-   * 
-   * Group 1 (Foundation): Executive Summary - Must run first
-   * Group 2 (Technical): Technical Specification - Depends on Group 1 completion
-   * Group 3 (Parallel Extensions): Product Requirements, Roadmap, Monetization Audit - Run in parallel after Group 2
-   * Group 4 (Final): Launch Checklist - Depends on Roadmap from Group 3
+   * Generate all documents for a project using dependency-aware phases
    */
   async generateAllDocuments(
     sessionId: string,
@@ -60,7 +50,7 @@ export class AIDocumentGenerator {
     const failedDocuments: DOCUMENT_TYPES[] = [];
     let totalTokensUsed = 0;
 
-    // Build base context ONCE and cache it (optimization)
+    // Build base context once per session
     let baseContext: string;
     try {
       baseContext = this.contextBuilder.buildPromptContext(sessionId);
@@ -77,18 +67,16 @@ export class AIDocumentGenerator {
       throw new Error(`Failed to build prompt context: ${errorMessage}`);
     }
 
-    const context = projectContext || {} as ProjectContext;
-
-    // Track summaries for dependency injection
+    const context = projectContext || ({} as ProjectContext);
     const summaries: Record<string, string> = {};
 
-    logger.info('[AIDocumentGenerator] Starting parallelized generation', {
+    logger.info('[AIDocumentGenerator] Starting document generation pipeline', {
       sessionId,
       baseContextLength: baseContext.length,
     });
 
-    // ===== GROUP 1: Foundation (Executive Summary) =====
-    logger.info('[AIDocumentGenerator] Group 1: Generating Executive Summary', { sessionId });
+    // Group 1: Executive Summary
+    logger.info('[AIDocumentGenerator] Generating Executive Summary', { sessionId });
     const execSummaryResult = await this.generateDocumentWithRetry(
       DOCUMENT_TYPES.EXECUTIVE_SUMMARY,
       baseContext,
@@ -102,8 +90,8 @@ export class AIDocumentGenerator {
       failedDocuments.push(DOCUMENT_TYPES.EXECUTIVE_SUMMARY);
     }
 
-    // ===== GROUP 2: Technical (Technical Specification) =====
-    logger.info('[AIDocumentGenerator] Group 2: Generating Technical Specification', { sessionId });
+    // Group 2: Technical Specification
+    logger.info('[AIDocumentGenerator] Generating Technical Specification', { sessionId });
     const techSpecResult = await this.generateDocumentWithRetry(
       DOCUMENT_TYPES.TECHNICAL_SPECIFICATION,
       baseContext,
@@ -116,23 +104,16 @@ export class AIDocumentGenerator {
     if (!techSpecResult.success) {
       failedDocuments.push(DOCUMENT_TYPES.TECHNICAL_SPECIFICATION);
     } else {
-      // Extract summary for Group 3 dependencies
       summaries.techSpecSummary = this.extractSummary(techSpecResult.content);
     }
 
-    // ===== GROUP 3: Parallel Extensions (max 3 concurrent) =====
-    logger.info('[AIDocumentGenerator] Group 3: Generating parallel documents', { sessionId });
+    // Group 3: Product Requirements + Roadmap (parallel)
+    logger.info('[AIDocumentGenerator] Generating Product Requirements and Roadmap', { sessionId });
     const group3Documents: DOCUMENT_TYPES[] = [
       DOCUMENT_TYPES.PRODUCT_REQUIREMENTS,
       DOCUMENT_TYPES.ROADMAP,
     ];
 
-    // Add open source documents if applicable
-    if (context.isOpenSource) {
-      group3Documents.push(DOCUMENT_TYPES.MONETIZATION_AUDIT);
-    }
-
-    // Generate Group 3 documents in parallel (max 3 concurrent)
     const group3Promises = group3Documents.map(docType => 
       this.generateDocumentWithRetry(docType, baseContext, summaries, sessionId, context)
     );
@@ -141,7 +122,6 @@ export class AIDocumentGenerator {
     
     group3Results.forEach((settled, index) => {
       const docType = group3Documents[index];
-      
       if (settled.status === 'fulfilled') {
         const result = settled.value;
         results.push(result);
@@ -150,14 +130,12 @@ export class AIDocumentGenerator {
         if (!result.success) {
           failedDocuments.push(docType);
         } else {
-          // Extract summaries for Group 4 dependencies
           const summaryKey = this.getSummaryKey(docType);
           if (summaryKey) {
             summaries[summaryKey] = this.extractSummary(result.content);
           }
         }
       } else {
-        // Promise rejected
         const errorMessage = settled.reason instanceof Error ? settled.reason.message : String(settled.reason);
         logger.error(`[AIDocumentGenerator] Promise rejected for ${docType}`, {
           sessionId,
@@ -175,9 +153,13 @@ export class AIDocumentGenerator {
       }
     });
 
-    // ===== GROUP 4: Final (Launch Checklist - depends on Roadmap) =====
-    if (context.isOpenSource && summaries.roadmapSummary) {
-      logger.info('[AIDocumentGenerator] Group 4: Generating Launch Checklist', { sessionId });
+    // Group 4: Launch Checklist (final document)
+    logger.info('[AIDocumentGenerator] Generating Launch Checklist', { sessionId });
+    if (!summaries.roadmapSummary) {
+      logger.warn('[AIDocumentGenerator] Roadmap summary missing, launch checklist will still run', {
+        sessionId,
+      });
+    }
       const launchChecklistResult = await this.generateDocumentWithRetry(
         DOCUMENT_TYPES.LAUNCH_CHECKLIST,
         baseContext,
@@ -189,15 +171,12 @@ export class AIDocumentGenerator {
       totalTokensUsed += launchChecklistResult.tokensUsed;
       if (!launchChecklistResult.success) {
         failedDocuments.push(DOCUMENT_TYPES.LAUNCH_CHECKLIST);
-      }
-    } else if (context.isOpenSource && !summaries.roadmapSummary) {
-      logger.warn('[AIDocumentGenerator] Skipping Launch Checklist - Roadmap summary not available', { sessionId });
     }
 
     const totalTime = Date.now() - startTime;
     const success = failedDocuments.length === 0;
 
-    logger.info('[AIDocumentGenerator] Parallelized generation completed', {
+    logger.info('[AIDocumentGenerator] Document generation completed', {
       sessionId,
       totalDocuments: results.length,
       failedDocuments: failedDocuments.length,
@@ -228,21 +207,6 @@ export class AIDocumentGenerator {
     const docStartTime = Date.now();
     
     try {
-      // Skip open source documents if not applicable
-      const context = projectContext || {} as ProjectContext;
-      if (requiresOpenSource(documentType) && !context.isOpenSource) {
-        logger.info(`[AIDocumentGenerator] Skipping ${documentType} - not open source project`, { sessionId });
-        return {
-          documentType,
-          content: '',
-          tokensUsed: 0,
-          generationTimeMs: 0,
-          success: false,
-          error: 'Not applicable - project is not open source',
-        };
-      }
-
-      // Generate document with dependencies
       const prompt = getDocumentPrompt(documentType, baseContext, summaries);
       const result = await this.generateSingleDocument(documentType, prompt);
 
@@ -296,6 +260,9 @@ export class AIDocumentGenerator {
         });
 
         const content = this.parseDocumentContent(response.content);
+        if (!content) {
+          throw new Error(`Parsed content for ${documentType} was empty`);
+        }
 
         return {
           documentType,
@@ -362,12 +329,11 @@ export class AIDocumentGenerator {
    */
   private getSummaryKey(documentType: DOCUMENT_TYPES): string | null {
     const keyMap: Record<DOCUMENT_TYPES, string | null> = {
-      [DOCUMENT_TYPES.EXECUTIVE_SUMMARY]: null, // No dependencies on this
+      [DOCUMENT_TYPES.EXECUTIVE_SUMMARY]: null,
       [DOCUMENT_TYPES.TECHNICAL_SPECIFICATION]: 'techSpecSummary',
       [DOCUMENT_TYPES.PRODUCT_REQUIREMENTS]: 'productReqSummary',
       [DOCUMENT_TYPES.ROADMAP]: 'roadmapSummary',
-      [DOCUMENT_TYPES.MONETIZATION_AUDIT]: null, // No dependencies on this
-      [DOCUMENT_TYPES.LAUNCH_CHECKLIST]: null, // Last document, no dependencies
+      [DOCUMENT_TYPES.LAUNCH_CHECKLIST]: null,
     };
     return keyMap[documentType] || null;
   }

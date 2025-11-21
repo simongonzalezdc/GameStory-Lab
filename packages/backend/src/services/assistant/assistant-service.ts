@@ -1549,7 +1549,7 @@ export class AssistantService {
           reply: this.extractTextFromResponse(content),
         };
       }
-
+      
       const reply = this.extractReplyFromParsed(parsed, content);
       const proposal = this.buildNormalizedProposal(parsed);
 
@@ -1573,7 +1573,7 @@ export class AssistantService {
             parsedPreview: JSON.stringify(parsed).substring(0, 500),
             last500Chars: content.substring(Math.max(0, content.length - 500)),
           });
-
+          
           const proposalMatch = content.match(/"proposal"\s*:\s*(\{[\s\S]*)/);
           if (proposalMatch) {
             logger.warn('Found proposal start in content but JSON parsing failed - response likely truncated', {
@@ -1588,13 +1588,13 @@ export class AssistantService {
             fullParsed: JSON.stringify(parsed).substring(0, 500),
           });
         }
-
+        
         return {
           reply,
           proposal: undefined,
         };
       }
-
+      
       logger.debug('Successfully parsed assistant response', {
         hasReply: !!reply,
         hasProposal: !!proposal,
@@ -1604,12 +1604,12 @@ export class AssistantService {
       });
 
       const proposalIsTruncated =
-        proposal.explanation &&
+        proposal.explanation && 
         !proposal.mechanics &&
         !proposal.lore &&
         !proposal.architectDocuments &&
         (content.includes('"mechanics"') || content.includes('"lore"') || content.includes('"architectDocuments"'));
-
+      
       if (proposalIsTruncated) {
         logger.error('Proposal appears to be truncated - has explanation but missing mechanics/lore/architectDocuments', {
           proposalKeys: Object.keys(proposal),
@@ -1622,7 +1622,7 @@ export class AssistantService {
           last200Chars: content.substring(Math.max(0, content.length - 200)),
         });
       }
-
+      
       logger.info('Parsed response result', {
         hasReply: !!reply,
         replyLength: reply?.length || 0,
@@ -1635,7 +1635,7 @@ export class AssistantService {
         proposalIsTruncated,
         proposalPreview: JSON.stringify(proposal).substring(0, 1000),
       });
-
+      
       return {
         reply,
         proposal,
@@ -1791,6 +1791,11 @@ export class AssistantService {
       ? { ...parsed.proposal }
       : {};
 
+    const normalizedDocs = this.normalizeArchitectDocuments(parsed, rawProposal);
+    if (normalizedDocs.length > 0) {
+      rawProposal.architectDocuments = normalizedDocs;
+    }
+
     const fallbackDocument = this.buildDocumentFromParsed(rawProposal || parsed);
     const hasArchitectDocuments = Array.isArray(rawProposal.architectDocuments) && rawProposal.architectDocuments.length > 0;
 
@@ -1803,6 +1808,48 @@ export class AssistantService {
     }
 
     return rawProposal;
+  }
+
+  private normalizeArchitectDocuments(originalParsed: any, rawProposal: any): Array<{ name: string; content: string }> {
+    const documents: Array<{ name: string; content: string }> = [];
+    const rawDocs = Array.isArray(rawProposal.architectDocuments)
+      ? rawProposal.architectDocuments
+      : Array.isArray(originalParsed.architectDocuments)
+        ? originalParsed.architectDocuments
+        : [];
+
+    for (let index = 0; index < rawDocs.length; index += 1) {
+      const entry = rawDocs[index];
+      if (!entry) continue;
+
+      const parsedEntry = typeof entry === 'object' ? entry : { title: String(entry) };
+      const normalized = this.buildDocumentFromParsed(parsedEntry);
+      if (normalized) {
+        documents.push(normalized);
+        continue;
+      }
+
+      const fallbackContent =
+        this.stringifyField(parsedEntry.content) ||
+        this.stringifyField(parsedEntry.markdownContent) ||
+        this.stringifyField(parsedEntry.explanation);
+
+      if (!fallbackContent) {
+        continue;
+      }
+
+      const fileName = this.ensureMdFileName(
+        this.stringifyField(parsedEntry.fileName) || this.stringifyField(parsedEntry.name),
+        this.stringifyField(parsedEntry.title) || `assistant-document-${index + 1}`
+      );
+
+      documents.push({
+        name: fileName,
+        content: fallbackContent,
+      });
+    }
+
+    return documents;
   }
 
   private buildDocumentFromParsed(parsed: any): { name: string; content: string } | null {

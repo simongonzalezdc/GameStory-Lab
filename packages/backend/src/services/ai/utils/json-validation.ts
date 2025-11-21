@@ -159,7 +159,7 @@ function extractFirstJSONSegment(text: string): string | null {
   let depth = 0;
   let start = -1;
   let bracketType: '{' | '[' | null = null;
-  
+
   // Safety limit to prevent infinite loops on malformed input
   const maxLength = Math.min(text.length, 1000000); // 1MB max
 
@@ -202,8 +202,8 @@ function extractFirstJSONSegment(text: string): string | null {
         (char === ']' && bracketType === '[');
       
       if (isMatchingCloseBracket) {
-        depth--;
-        if (depth === 0 && start !== -1) {
+      depth--;
+      if (depth === 0 && start !== -1) {
           const extracted = text.substring(start, i + 1);
           logger.debug('Extracted JSON segment', {
             length: extracted.length,
@@ -212,9 +212,9 @@ function extractFirstJSONSegment(text: string): string | null {
             preview: extracted.substring(0, 100),
           });
           return extracted.trim();
-        }
       }
     }
+  }
   }
 
   logger.warn('Failed to extract complete JSON segment', {

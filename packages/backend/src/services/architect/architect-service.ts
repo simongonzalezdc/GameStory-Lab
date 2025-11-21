@@ -13,6 +13,7 @@ import {
   DOCUMENT_TEMPLATES,
 } from './types.js';
 import { INTERVIEW_QUESTIONS } from './interview-questions.js';
+import { logger } from '../../utils/logger.js';
 
 export class ArchitectService {
   private interviewManager: InterviewManager;
@@ -169,7 +170,9 @@ export class ArchitectService {
     projectId: string,
     updates: Array<{ name: string; content: string }>
   ): DocumentationPackage | null {
-    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+    const sanitizedUpdates = this.normalizeDocumentUpdates(updates);
+
+    if (!sanitizedUpdates.length) {
       console.warn('[ArchitectService] applyAssistantUpdates called with empty updates', { projectId });
       return null;
     }
@@ -186,9 +189,9 @@ export class ArchitectService {
     // If no package exists, create a new one with the assistant's documents
     if (!pkg) {
       console.log('[ArchitectService] Creating new documentation package', { projectId });
-      const newDocuments: GeneratedDocument[] = updates.map((update) => ({
-        templateName: update.name.endsWith('.md') ? update.name : `${update.name}.md`,
-        content: update.content || '',
+      const newDocuments: GeneratedDocument[] = sanitizedUpdates.map((update) => ({
+        templateName: update.name,
+        content: update.content,
         generatedAt: new Date(),
         status: 'completed' as const,
       }));
@@ -213,7 +216,9 @@ export class ArchitectService {
 
     // Update existing documents
     const updatedDocuments = pkg.documents.map((doc) => {
-      const update = updates.find((u) => u.name === doc.templateName || u.name === doc.templateName.replace('.md', ''));
+      const update = sanitizedUpdates.find(
+        (u) => u.name === doc.templateName || u.name === doc.templateName.replace('.md', '')
+      );
       if (update) {
         return {
           ...doc,
@@ -226,8 +231,8 @@ export class ArchitectService {
 
     // Add any new documents that don't exist yet
     const existingNames = new Set(pkg.documents.map(d => d.templateName));
-    updates.forEach((update) => {
-      const docName = update.name.endsWith('.md') ? update.name : `${update.name}.md`;
+    sanitizedUpdates.forEach((update) => {
+      const docName = update.name;
       if (!existingNames.has(docName)) {
         updatedDocuments.push({
           templateName: docName,
@@ -245,6 +250,38 @@ export class ArchitectService {
     };
     this.documentationPackages.set(projectId, updatedPackage);
     return updatedPackage;
+  }
+
+  private normalizeDocumentUpdates(updates: Array<{ name: string; content: string }>): Array<{ name: string; content: string }> {
+    return updates
+      .map((update, index) => {
+        if (!update) return null;
+        const rawName = typeof update.name === 'string' ? update.name.trim() : '';
+        const name = this.ensureMdFileName(rawName || `assistant-document-${index + 1}`);
+        const content = typeof update.content === 'string' ? update.content.trim() : '';
+        if (!content) {
+          logger.warn('Dropping document update with empty content', { providedName: update.name });
+          return null;
+        }
+        return { name, content };
+      })
+      .filter(Boolean) as Array<{ name: string; content: string }>;
+  }
+
+  /**
+   * Ensure a filename ends with .md extension and is properly formatted
+   */
+  private ensureMdFileName(fileName?: string, title?: string): string {
+    const base = (fileName && fileName.trim()) || (title && title.trim()) || 'assistant-document';
+    const slug = base
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\-_.]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^\-+|\-+$/g, '');
+
+    const normalized = slug || 'assistant-document';
+    return normalized.endsWith('.md') ? normalized : `${normalized}.md`;
   }
 
   /**

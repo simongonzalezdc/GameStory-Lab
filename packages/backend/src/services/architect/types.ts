@@ -101,16 +101,10 @@ export const DOCUMENT_TEMPLATES: DocumentTemplate[] = [
     required: true,
   },
   {
-    name: 'Monetization Audit',
-    filename: 'monetization-audit.md',
-    description: 'Revenue strategy (for open source projects)',
-    required: false,
-  },
-  {
     name: 'Launch Checklist',
     filename: 'launch-checklist.md',
-    description: 'Go-to-market plan (for open source projects)',
-    required: false,
+    description: 'Go-to-market plan and readiness checklist',
+    required: true,
   },
 ];
 
