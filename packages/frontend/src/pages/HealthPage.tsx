@@ -183,10 +183,10 @@ export function HealthPage() {
           {/* Header */}
           <div className="flex-shrink-0 px-4 py-3 border-b border-border-subtle bg-surface-card">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">AI Assistant</h3>
+              <h3 className="font-semibold text-primary">AI Assistant</h3>
               <button
                 onClick={() => setShowAssistant(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+                className="text-secondary hover:text-primary transition"
                 title="Close assistant"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,16 +209,16 @@ export function HealthPage() {
               />
             ) : (
               <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-16 h-16 bg-brand-100 dark:bg-brand-900 rounded-full flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-brand-500/15 rounded-full flex items-center justify-center mb-4">
                   <span className="text-2xl">📊</span>
                 </div>
-                <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                <h4 className="text-lg font-semibold text-primary mb-2">
                   Health Assistant
                 </h4>
-                <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                <p className="text-sm text-secondary mb-4">
                   Need help interpreting health metrics or troubleshooting issues? Chat with the AI assistant.
                 </p>
-                <div className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+                <div className="space-y-2 text-xs text-tertiary">
                   <p>• Understand system status</p>
                   <p>• Troubleshoot AI provider issues</p>
                   <p>• Get optimization suggestions</p>
@@ -231,3 +231,4 @@ export function HealthPage() {
     )}
     </>
   );
+}

@@ -1,57 +1,49 @@
-<!-- aa8ceafd-20bb-47f8-9bb3-b79a2e8bb8c2 5857f8fa-650b-41fb-8366-33be370b6239 -->
-# Frontend Aesthetics Redesign Plan: "Cozy Creator Lab"
+<!-- aa8ceafd-20bb-47f8-9bb3-b79a2e8bb8c2 5bb5bd15-4934-4081-be5b-9975efce5026 -->
+# Frontend Redesign: Utilitarian "Jewel" App Shell
 
-## 1. Core Aesthetics & Theming
+## 1. Core Architecture: The "App Shell"
 
-- **Goal**: Enhance the "Jewel Engine" theme with tactile, cozy textures and modern "glass" effects.
-- **Actions**:
-    - **Noise Texture**: Add a subtle SVG noise overlay to the background to reduce digital harshness.
-    - **Refined Glassmorphism**: Update `.glass-card` in `index.css` with sophisticated `backdrop-filter`, `box-shadow` layers, and a subtle border gradient to simulate depth.
-    - **Typography**: Scale up `Space Grotesk` headings for impact. Use `text-balance` for better readability.
-    - **Gradients**: Replace linear background gradients with softer, organic radial gradients (mesh-like) using CSS.
+- **Goal**: Shift from "Website" (Header + Page) to "Professional Tool" (Sidebar + Workspace).
+- **New Layout Structure**:
+    - **Left Sidebar (Fixed)**: Navigation, User Profile, Global Settings.
+    - **Top Bar (Contextual)**: Breadcrumbs, Project Status, Search/Command Trigger.
+    - **Main Workspace**: Scrollable content area with high information density.
+    - **Right Panel (Collapsible)**: The AI Assistant/Inspector (already exists, but needs integration into the shell).
 
-## 2. Library Additions (High Impact / Low Weight)
+## 2. Aesthetics: "Functional Jewel"
 
-- **`lucide-react`**: Standard, consistent, tree-shakeable icons to replace inline SVGs.
-- **`framer-motion`**: Essential for "cutting edge" feel. Enables:
-    - Smooth page transitions.
-    - "Springy" micro-interactions on buttons/cards.
-    - Layout animations (e.g., when deleting a project or filtering).
-- **`clsx` & `tailwind-merge`**: For cleaner class composition.
+- **Style**: Keep the `Dev Docs/jewel-engine-theme-lowcontrast-garnet-topaz.css` colors but apply them functionally.
+- **Refinements**:
+    - **Glassmorphism**: Use it for *panels* and *overlays*, not general page backgrounds.
+    - **Density**: Reduce padding on lists and cards. Use strict grid alignments.
+    - **Typography**: Keep `Plus Jakarta Sans` for UI text but tighten tracking. Use `Space Grotesk` only for top-level headers.
+    - **Borders**: Use subtle 1px borders with `border-subtle` color to define panes (classic "IDE" look).
 
-## 3. Component Redesign
+## 3. Library Additions
 
-- **Icons System**: Create a centralized `Icon` wrapper or direct usage of Lucide for consistency.
-- **Buttons**: Update `.btn` classes to have a "tactile" feel (subtle inner shadow, smooth scale on press).
-- **Inputs**: Add a "glow" focus state using the specific jewel color (Garnet/Topaz).
+- **`lucide-react`**: For crisp, consistent, professional UI icons.
+- **`framer-motion`**: For subtle, "expensive-feeling" layout transitions (e.g., sidebar collapse, list reordering).
+- **`clsx` & `tailwind-merge`**: For robust class management.
 
-## 4. Page Overhaul: `ProjectsPage` (The Showcase)
+## 4. Page Overhaul: `ProjectsPage` -> "Dashboard"
 
-- **Hero Section**: Transform into a **Bento Grid** layout.
-    - **Cell 1 (Large)**: Welcome / "Create Project" call to action with a 3D-like abstract jewel illustration (CSS only).
-    - **Cell 2**: Recent Activity stream.
-    - **Cell 3**: Quick stats.
-- **Project Cards**:
-    - Implement a "Spotlight" hover effect (cursor-following glow).
-    - Add a visual "spine" or "notebook" edge to the cards to reinforce the "Creator Lab" / "Story" vibe.
+- **Remove**: The large "Hero" / Welcome section.
+- **Add**:
+    - **Quick Actions Bar**: Row of compact buttons (Create, Template, Import).
+    - **Recent Files Grid**: A high-density grid of recently accessed projects with "last edited" metadata prominent.
+    - **All Projects Table/List**: A sortable, filterable list view (more utilitarian than big cards).
+- **Visuals**: "Notebook" spine effect on project thumbnails to keep the "Story" vibe but in a grid format.
 
-## 5. Layout & Navigation
+## 5. Component Updates
 
-- **Sidebar/Header**: Make the navigation feel more like a "cockpit" or "workbench".
-- **Transitions**: Add subtle fade/slide transitions between routes using `AnimatePresence` (if `framer-motion` is approved).
-
-## 6. Cutting Edge Touch
-
-- **Cursor Glow**: A subtle ambient light that follows the mouse on the background (optional, toggleable for performance).
+- **Navigation**: Vertical Sidebar component with active state indicators (Garnet glow).
+- **Search**: A "Command Bar" aesthetic (CMD+K style visual) in the Top Bar.
+- **Buttons**: "Tactile" feel but more compact (`h-9` or `h-8` standard height).
 
 ## Implementation Steps
 
-1.  Install `framer-motion`, `lucide-react`, `clsx`, `tailwind-merge`.
-2.  Update `index.css` with new utility classes (noise, spotlight, refined glass).
-3.  Refactor `Layout.tsx` to use the new structure and icons.
-4.  Redesign `ProjectsPage.tsx` with the Bento grid layout and new card components.
-5.  Audit and update `App.tsx` for routing transitions.
-
-### To-dos
-
-- [ ] 
+1.  **Setup**: Install `lucide-react`, `framer-motion`, `clsx`, `tailwind-merge`.
+2.  **Theme Tweak**: Update `index.css` to support "App Shell" variables (sidebar width, top bar height).
+3.  **Layout Refactor**: Create `AppShell.tsx` (replacing current Layout) with Sidebar + TopBar structure.
+4.  **Dashboard Implementation**: Rewrite `ProjectsPage.tsx` to be a density-focused dashboard.
+5.  **Component Polish**: Update buttons and inputs to match the new utilitarian density.

@@ -56,8 +56,9 @@ return (
       <CursorGlow />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border-subtle bg-white dark:bg-[rgba(12,18,36,0.94)] backdrop-blur-md shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-50 border-b border-border-subtle bg-[rgba(17,16,21,0.82)] backdrop-blur-2xl shadow-[0_20px_60px_rgba(11,8,15,0.75)]">
+        <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_20%_-10%,rgba(143,62,72,0.25),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(181,147,60,0.2),transparent_50%)]" />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo */}
             <Link 
@@ -101,7 +102,7 @@ return (
                         aria-haspopup="menu"
                       >
                         <span className={`avatar avatar-sm flex items-center justify-center ${showSettingsMenu ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
-                          <Icon className="w-4 h-4" />
+                          <Icon className="w-4 h-4" strokeWidth={1.75} />
                         </span>
                         <span>{item.label}</span>
                       </button>
@@ -181,7 +182,7 @@ return (
                     aria-current={isActive ? 'page' : undefined}
                   >
                     <span className={`avatar avatar-sm flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
-                      <Icon className="w-4 h-4" />
+                      <Icon className="w-4 h-4" strokeWidth={1.75} />
                     </span>
                     <span>{item.label}</span>
                   </Link>
@@ -207,6 +208,18 @@ return (
                   🏗️ <span>Project Architect</span>
                 </Link>
               )}
+            </div>
+          </div>
+
+          <div className="hidden lg:flex items-center justify-between border-t border-border-subtle/60 pt-3 mt-3 text-xs text-tertiary">
+            <div className="flex items-center gap-3">
+              <span className="signal-pill signal-pill--accent">Workspace cockpit</span>
+              <span className="signal-pill">Build · Garnet 0.7</span>
+              <span className="signal-pill">Latency · 42ms</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="signal-pill">AI providers · stable</span>
+              <span className="signal-pill">Cursor Glow enabled</span>
             </div>
           </div>
         </div>

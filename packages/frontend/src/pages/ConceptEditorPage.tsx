@@ -392,7 +392,7 @@ export function ConceptEditorPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 dark:text-gray-400">Loading project...</div>
+        <div className="text-secondary">Loading project...</div>
       </div>
     );
   }
@@ -727,19 +727,19 @@ export function ConceptEditorPage() {
                 ))}
               </select>
               ) : (
-                <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">v{currentVersion.version}</span>
+                <span className="text-xs text-secondary flex-shrink-0">v{currentVersion.version}</span>
           )}
           {versions.length > 1 && (
                 <div className="relative group flex-shrink-0">
               <button
-                    className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition"
-                    title={`${versions.length} versions`}
+                className="px-2 py-1 text-xs bg-surface-muted text-primary rounded hover:bg-surface-elevated transition"
+                title={`${versions.length} versions`}
               >
                     📋 {versions.length}
               </button>
                   <div className="absolute left-0 mt-2 w-72 bg-[var(--color-surface-card)] rounded-lg shadow-lg border border-[var(--color-border-subtle)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-20 max-h-96 overflow-y-auto">
                 <div className="p-2">
-                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-2 py-1 mb-1">
+                  <div className="text-xs font-semibold text-secondary uppercase tracking-wider px-2 py-1 mb-1">
                     All Versions
                   </div>
                   {versions.map((v) => (
@@ -870,7 +870,9 @@ export function ConceptEditorPage() {
         {/* Left Column: Assistant (60%) */}
         <div
           ref={assistantRef}
-          className={`flex flex-col min-h-0 overflow-hidden flex-[3] ${highlightAssistant ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-slate-100 dark:ring-offset-slate-900 rounded-xl transition' : ''}`}
+          className={`flex flex-col min-h-0 overflow-hidden flex-[3] ${
+            highlightAssistant ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-[var(--color-surface-card)] rounded-xl transition' : ''
+          }`}
         >
           {project?.id && (
             <ProjectAssistantPanel
@@ -898,16 +900,16 @@ export function ConceptEditorPage() {
         {/* Right Column: Validation/Results (40%) */}
         <div className="flex flex-col space-y-3 min-h-0 overflow-hidden flex-[2] min-w-0">
           {/* Tabs */}
-          <div className="border-b border-gray-200 dark:border-gray-700 mb-3 flex-shrink-0">
-            <nav className="flex space-x-4">
+          <div className="bg-[var(--color-surface-card)]/80 border border-border-subtle rounded-xl p-2 flex-shrink-0">
+            <nav className="flex flex-wrap gap-2">
               {(['mechanics', 'lore', 'validation'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`pb-3 px-1 border-b-2 font-medium text-sm transition ${
+                  className={`px-3 py-1.5 rounded-lg font-semibold text-sm transition ${
                     activeTab === tab
-                      ? 'border-[var(--brand-primary)] text-[var(--brand-primary)]'
-                      : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border-subtle)]'
+                      ? 'bg-[var(--brand-primary)] text-white shadow-glow'
+                      : 'text-secondary hover:text-primary border border-transparent hover:border-border-subtle'
                   }`}
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -922,7 +924,7 @@ export function ConceptEditorPage() {
           </div>
 
           {/* Tab Content */}
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 flex-1 min-h-0 overflow-hidden flex flex-col">
+          <div className="glass-card flex-1 min-h-0 overflow-hidden flex flex-col p-6">
             {activeTab === 'mechanics' && (
               <div className="flex flex-col h-full min-h-0">
                 <div className="flex items-center justify-between mb-6 flex-shrink-0">
@@ -936,7 +938,7 @@ export function ConceptEditorPage() {
                 </div>
                 <div className="flex-1 min-h-0 overflow-y-auto">
                   {showRawJsonMechanics ? (
-                    <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 h-full">
+                    <pre className="bg-surface-muted p-4 rounded-lg overflow-auto text-sm text-primary h-full">
                   {JSON.stringify(currentVersion.mechanics, null, 2)}
                 </pre>
                   ) : (
@@ -978,7 +980,7 @@ export function ConceptEditorPage() {
                     </div>
                     <div className="flex-1 min-h-0 overflow-y-auto">
                       {showRawJsonLore ? (
-                        <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 h-full">
+                        <pre className="bg-surface-muted p-4 rounded-lg overflow-auto text-sm text-primary h-full">
                     {JSON.stringify(currentVersion.lore, null, 2)}
                   </pre>
                       ) : (
@@ -1041,7 +1043,7 @@ export function ConceptEditorPage() {
                         <div className="validation-info px-4 py-3 text-sm flex items-center justify-between">
                           <span>{validationStatus}</span>
                           {lastValidationSource && lastValidatedAt && (
-                            <span className="text-xs text-muted">
+                            <span className="text-xs text-tertiary">
                               Trigger: {lastValidationSource} • {new Date(lastValidatedAt).toLocaleTimeString()}
                             </span>
                           )}
@@ -1075,7 +1077,7 @@ export function ConceptEditorPage() {
                     <div className="validation-success p-8 text-center flex-shrink-0">
                       <div className="text-4xl mb-2">✅</div>
                       <h4 className="font-semibold mb-1">All Clear!</h4>
-                      <p className="text-muted">No validation issues found</p>
+                      <p className="text-tertiary">No validation issues found</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -1108,7 +1110,7 @@ export function ConceptEditorPage() {
                               </div>
                               <p className="text-primary">{issue.message}</p>
                               {issue.field && (
-                                <p className="text-sm text-muted mt-1">Field: {issue.field}</p>
+                                <p className="text-sm text-tertiary mt-1">Field: {issue.field}</p>
                               )}
                             </div>
                           </div>

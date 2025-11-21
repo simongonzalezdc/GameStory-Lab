@@ -6,7 +6,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Layout } from './components/Layout';
+import { AppShell } from './components/AppShell';
 
 // Lazy load page components for code splitting
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
@@ -84,11 +84,11 @@ function AnimatedRoutes() {
 function App() {
   return (
     <Router>
-      <Layout>
+      <AppShell>
         <Suspense fallback={<LoadingFallback />}>
           <AnimatedRoutes />
         </Suspense>
-      </Layout>
+      </AppShell>
     </Router>
   );
 }

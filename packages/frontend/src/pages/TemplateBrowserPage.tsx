@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { templatesAPI } from '../services/api';
 import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
+import { cn } from '../lib/utils';
 
 interface GenreInfo {
   id: string;
@@ -14,25 +15,25 @@ interface GenreInfo {
   description: string;
 }
 
-// Genre color mapping using actual jewel theme colors with logical groupings
+// Genre color mapping using CSS variables - Strict theme compliance
 const genreColors: Record<string, { gradient: string; border: string; shadow: string; icon: string; intensity: 'low' | 'medium' | 'high' }> = {
   // ACTION/COMBAT - Garnet variations (Intense, fast-paced, aggressive)
   'fps': {
-    gradient: 'linear-gradient(135deg, #5B2B33 0%, #8F3E48 50%, #AE5D37 100%)', // Garnet family from theme
+    gradient: 'linear-gradient(135deg, var(--jewel-garnet-dark) 0%, var(--jewel-garnet) 50%, var(--jewel-garnet-light) 100%)',
     border: 'rgba(143, 62, 72, 0.8)',
     shadow: '0 4px 20px -6px rgba(143, 62, 72, 0.5)',
     icon: '🎯',
     intensity: 'high'
   },
   'fighting': {
-    gradient: 'linear-gradient(135deg, #8F3E48 0%, #AE5D37 50%, #B5933C 100%)', // Garnet to Fire Opal
+    gradient: 'linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-garnet-light) 50%, var(--jewel-fireopal) 100%)',
     border: 'rgba(174, 93, 55, 0.8)',
     shadow: '0 4px 20px -6px rgba(174, 93, 55, 0.5)',
     icon: '🥊',
     intensity: 'high'
   },
   'action-adventure': {
-    gradient: 'linear-gradient(135deg, #AE5D37 0%, #B5933C 50%, #c9a85a 100%)', // Fire Opal to Topaz
+    gradient: 'linear-gradient(135deg, var(--jewel-fireopal) 0%, var(--jewel-topaz) 50%, var(--jewel-topaz-light) 100%)',
     border: 'rgba(181, 147, 60, 0.8)',
     shadow: '0 4px 20px -6px rgba(181, 147, 60, 0.5)',
     icon: '🗡️',
@@ -41,21 +42,21 @@ const genreColors: Record<string, { gradient: string; border: string; shadow: st
 
   // ADVENTURE/HEROIC - Topaz variations (Story-driven, exploration, heroic)
   'rpg': {
-    gradient: 'linear-gradient(135deg, #7F6530 0%, #B5933C 50%, #c9a85a 100%)', // Topaz variations
+    gradient: 'linear-gradient(135deg, var(--jewel-topaz-dark) 0%, var(--jewel-topaz) 50%, var(--jewel-topaz-light) 100%)',
     border: 'rgba(181, 147, 60, 0.8)',
     shadow: '0 4px 20px -6px rgba(181, 147, 60, 0.5)',
     icon: '⚔️',
     intensity: 'medium'
   },
   'adventure': {
-    gradient: 'linear-gradient(135deg, #B5933C 0%, #c9a85a 50%, #d4a3ab 100%)', // Lighter Topaz
+    gradient: 'linear-gradient(135deg, var(--jewel-topaz) 0%, var(--jewel-topaz-light) 50%, var(--jewel-garnet-light) 100%)',
     border: 'rgba(201, 168, 90, 0.8)',
     shadow: '0 4px 20px -6px rgba(201, 168, 90, 0.5)',
     icon: '🗺️',
     intensity: 'low'
   },
   'platformer': {
-    gradient: 'linear-gradient(135deg, #c9a85a 0%, #d4a3ab 50%, #e0b5c2 100%)', // Very light Topaz
+    gradient: 'linear-gradient(135deg, var(--jewel-topaz-light) 0%, var(--jewel-garnet-light) 50%, var(--jewel-garnet-light) 100%)',
     border: 'rgba(212, 163, 171, 0.8)',
     shadow: '0 4px 20px -6px rgba(212, 163, 171, 0.5)',
     icon: '🪜',
@@ -64,14 +65,14 @@ const genreColors: Record<string, { gradient: string; border: string; shadow: st
 
   // PUZZLE/TACTICAL - Amethyst variations (Cerebral, tactical, methodical)
   'puzzle': {
-    gradient: 'linear-gradient(135deg, #4a3a6a 0%, #6B5D88 50%, #8a7ca8 100%)', // Amethyst family
+    gradient: 'linear-gradient(135deg, var(--jewel-amethyst-dark) 0%, var(--jewel-amethyst) 50%, var(--jewel-amethyst-light) 100%)',
     border: 'rgba(107, 93, 136, 0.8)',
     shadow: '0 4px 20px -6px rgba(107, 93, 136, 0.5)',
     icon: '🧩',
     intensity: 'medium'
   },
   'strategy': {
-    gradient: 'linear-gradient(135deg, #6B5D88 0%, #8a7ca8 50%, #a99cc8 100%)', // Lighter Amethyst
+    gradient: 'linear-gradient(135deg, var(--jewel-amethyst) 0%, var(--jewel-amethyst-light) 50%, var(--jewel-amethyst-light) 100%)',
     border: 'rgba(138, 124, 168, 0.8)',
     shadow: '0 4px 20px -6px rgba(138, 124, 168, 0.5)',
     icon: '♟️',
@@ -80,7 +81,7 @@ const genreColors: Record<string, { gradient: string; border: string; shadow: st
 
   // CREATIVE/BUILDING - Turquoise variations (Creative, innovative, technical)
   'simulation': {
-    gradient: 'linear-gradient(135deg, #2a5a52 0%, #346C68 50%, #4a7a74 100%)', // Turquoise from theme
+    gradient: 'linear-gradient(135deg, var(--jewel-turquoise-dark) 0%, var(--jewel-turquoise) 50%, var(--jewel-turquoise-light) 100%)',
     border: 'rgba(52, 108, 104, 0.8)',
     shadow: '0 4px 20px -6px rgba(52, 108, 104, 0.5)',
     icon: '🏗️',
@@ -89,7 +90,7 @@ const genreColors: Record<string, { gradient: string; border: string; shadow: st
 
   // SPORTS/OUTDOOR - Emerald variations (Grass, fields, competitive outdoors)
   'sports': {
-    gradient: 'linear-gradient(135deg, #3d5639 0%, #5A7850 50%, #6a8861 100%)', // Emerald from theme
+    gradient: 'linear-gradient(135deg, var(--jewel-emerald-dark) 0%, var(--jewel-emerald) 50%, var(--jewel-emerald-light) 100%)',
     border: 'rgba(90, 120, 80, 0.8)',
     shadow: '0 4px 20px -6px rgba(90, 120, 80, 0.5)',
     icon: '⚽',
@@ -98,21 +99,21 @@ const genreColors: Record<string, { gradient: string; border: string; shadow: st
 
   // SURVIVAL/HORROR - Fire Opal variations (Intense, dangerous, survival)
   'horror': {
-    gradient: 'linear-gradient(135deg, #3d2019 0%, #5B2B33 50%, #7a343c 100%)', // Dark Fire Opal
+    gradient: 'linear-gradient(135deg, var(--jewel-fireopal-dark) 0%, var(--jewel-garnet-dark) 50%, var(--jewel-garnet) 100%)',
     border: 'rgba(91, 43, 51, 0.8)',
     shadow: '0 4px 20px -6px rgba(91, 43, 51, 0.5)',
     icon: '👻',
     intensity: 'high'
   },
   'survival': {
-    gradient: 'linear-gradient(135deg, #5B2B33 0%, #AE5D37 50%, #c07581 100%)', // Fire Opal from theme
+    gradient: 'linear-gradient(135deg, var(--jewel-garnet-dark) 0%, var(--jewel-fireopal) 50%, var(--jewel-fireopal-light) 100%)',
     border: 'rgba(174, 93, 55, 0.8)',
     shadow: '0 4px 20px -6px rgba(174, 93, 55, 0.5)',
     icon: '🏕️',
     intensity: 'medium'
   },
   'roguelike': {
-    gradient: 'linear-gradient(135deg, #AE5D37 0%, #c07581 50%, #d4a3ab 100%)', // Lighter Fire Opal
+    gradient: 'linear-gradient(135deg, var(--jewel-fireopal) 0%, var(--jewel-fireopal-light) 50%, var(--jewel-garnet-light) 100%)',
     border: 'rgba(192, 117, 129, 0.8)',
     shadow: '0 4px 20px -6px rgba(192, 117, 129, 0.5)',
     icon: '🎲',
@@ -121,14 +122,14 @@ const genreColors: Record<string, { gradient: string; border: string; shadow: st
 
   // RACING/SPEED - Sapphire variations (Fast, competitive, high-speed)
   'racing': {
-    gradient: 'linear-gradient(135deg, #2a3a5a 0%, #344676 50%, #4a5688 100%)', // Sapphire from theme
+    gradient: 'linear-gradient(135deg, var(--jewel-sapphire-dark) 0%, var(--jewel-sapphire) 50%, var(--jewel-sapphire-light) 100%)',
     border: 'rgba(52, 70, 118, 0.8)',
     shadow: '0 4px 20px -6px rgba(52, 70, 118, 0.5)',
     icon: '🏎️',
     intensity: 'high'
   },
   'battle-royale': {
-    gradient: 'linear-gradient(135deg, #344676 0%, #4a5688 50%, #5e6a99 100%)', // Lighter Sapphire
+    gradient: 'linear-gradient(135deg, var(--jewel-sapphire) 0%, var(--jewel-sapphire-light) 50%, var(--jewel-sapphire-light) 100%)',
     border: 'rgba(74, 86, 136, 0.8)',
     shadow: '0 4px 20px -6px rgba(74, 86, 136, 0.5)',
     icon: '👑',
@@ -209,14 +210,23 @@ export function TemplateBrowserPage() {
   } | null>(null);
   
   const [blendStrategy, setBlendStrategy] = useState<string>('');
-  const [blendReasoning, setBlendReasoning] = useState<string>('');
+
+  const templateFocusAreas = ['Mechanics kitbashing', 'Lore weaving', 'Conflict tuning', 'Export rituals'];
+  const selectionSummary =
+    selectedGenres.length === 0
+      ? 'Pick a foundation genre or start blending to craft something new.'
+      : selectedGenres.length === 1
+        ? `Working from ${genres.find((g) => g.id === selectedGenres[0].genre)?.name}.`
+        : `Blending ${selectedGenres.length} genres with conflict-safe AI guidance.`;
+
+  const selectionModeLabel = selectedGenres.length <= 1 ? 'Single genre' : `${selectedGenres.length} genres`;
 
   // Assistant panel state
   const [showAssistant, setShowAssistant] = useState(() => {
     // Load visibility preference from localStorage
     return localStorage.getItem('assistantVisible') !== 'false';
   });
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedProjectId] = useState<string | null>(null);
 
   // Save assistant visibility preference
   useEffect(() => {
@@ -331,7 +341,6 @@ export function TemplateBrowserPage() {
       // Store analysis data for UI display
       setBlendAnalysis(response.analysis);
       setBlendStrategy(response.blend_strategy);
-      setBlendReasoning(response.reasoning);
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to blend genres');
@@ -372,190 +381,167 @@ export function TemplateBrowserPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-slate-400 text-lg">Loading templates...</div>
+      <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
+        <div className="w-14 h-14 border-4 border-border-subtle border-t-brand-500 rounded-full animate-spin" />
+        <p className="text-primary text-lg font-semibold">Preparing the Template Forge...</p>
+        <p className="text-secondary text-sm max-w-md">
+          Loading genres, blending heuristics, and Cozy Creator Lab presets.
+        </p>
       </div>
     );
   }
 
   return (
     <>
-    <div className="min-h-screen p-4 lg:p-6">
-      {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-3xl font-bold text-slate-100 mb-2">Genre Templates</h1>
-        <p className="text-slate-400">
-          {selectedGenres.length === 0 
-            ? 'Select a genre to get started, or choose multiple to blend custom templates'
-            : selectedGenres.length === 1 
-              ? `Selected: ${genres.find(g => g.id === selectedGenres[0].genre)?.name}`
-              : `Blending ${selectedGenres.length} genres`
-          }
-        </p>
-      </div>
+    <div className="space-y-8">
+      {/* Hero */}
+      <section className="glass-card relative overflow-hidden px-6 py-8 lg:px-10 lg:py-12">
+        <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_15%_-10%,rgba(143,62,72,0.35),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(181,147,60,0.25),transparent_55%)]" />
+        <div className="relative z-10 space-y-6">
+          <div className="flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-[0.35em] text-tertiary">
+            <span className="signal-pill signal-pill--accent">Template Forge</span>
+            <span className="signal-pill">Unified assistant</span>
+            <span className="signal-pill">{selectionModeLabel}</span>
+          </div>
+          <div className="space-y-4">
+            <h1 className="text-4xl md:text-5xl font-[700] text-primary" style={{ fontFamily: 'var(--font-display)' }}>
+              Craft & Blend Genre Templates
+            </h1>
+            <p className="text-lg text-secondary max-w-3xl">{selectionSummary}</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              disabled={!selectedGenre && !isBlended}
+              className="btn btn-primary shadow-glow disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <span className="text-lg">✨</span>
+              <span>{isBlended ? 'Create blended project' : 'Create from template'}</span>
+            </button>
+            {selectedGenres.length > 1 && (
+              <button onClick={blendGenres} className="btn btn-secondary border border-brand-400/50 text-primary">
+                Blend {selectedGenres.length} genres
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowAssistant((prev) => !prev)}
+              className="btn btn-secondary"
+            >
+              {showAssistant ? 'Hide Assistant' : 'Open Assistant'}
+            </button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="stat-chip">
+              <p className="stat-chip__label">Selection</p>
+              <p className="stat-chip__value">{selectedGenres.length}</p>
+              <p className="stat-chip__meta">{selectionModeLabel}</p>
+            </div>
+            <div className="stat-chip">
+              <p className="stat-chip__label">Template status</p>
+              <p className="stat-chip__value">{template ? 'Ready' : 'Idle'}</p>
+              <p className="stat-chip__meta">{template ? 'Preview loaded' : 'Awaiting selection'}</p>
+            </div>
+            <div className="stat-chip">
+              <p className="stat-chip__label">Blend mode</p>
+              <p className="stat-chip__value">{isBlended ? 'AI' : 'Solo'}</p>
+              <p className="stat-chip__meta">{isBlended ? 'Conflict-safe' : 'Single genre'}</p>
+            </div>
+            <div className="stat-chip">
+              <p className="stat-chip__label">Coherence</p>
+              <p className="stat-chip__value">{blendAnalysis ? `${blendAnalysis.coherence_score}%` : '--'}</p>
+              <p className="stat-chip__meta">{blendAnalysis ? 'AI analysis' : 'Awaiting blend'}</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {templateFocusAreas.map((area) => (
+              <span key={area} className="chip chip-muted">
+                {area}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {error && (
-        <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p className="text-red-700 dark:text-red-300">{error}</p>
+        <div className="validation-error border border-danger/40 rounded-xl p-4">
+          <p className="font-medium">{error}</p>
         </div>
       )}
 
-      {/* Thin Horizontal Settings Strip */}
-      <div className="mb-6 bg-[var(--color-surface-strong)] border border-border-subtle rounded-lg p-3">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-sm font-semibold text-slate-200">Quick Settings</h3>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <span className="px-2 py-1 bg-[var(--color-surface-card)] rounded border border-border-subtle">
-              {selectedGenres.length === 1 ? 'Single Genre' : `${selectedGenres.length} Genres`}
-            </span>
+      <section className="surface-panel p-5 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.35em] text-tertiary">Design toggles</p>
+            <p className="text-sm text-secondary">
+              Tune tone, session length, camera, and delivery before generating.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-secondary flex-wrap">
+            <span className="chip chip-muted">{selectionModeLabel}</span>
+            <span className="chip chip-muted">{designOptions.platform}</span>
+            <span className="chip chip-muted">{designOptions.multiplayer}</span>
           </div>
         </div>
-        
-        <div className="grid grid-cols-4 lg:grid-cols-8 gap-2">
-          {/* Row 1: Core Experience Settings */}
-          <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-medium">Tone</label>
-            <select
-              className="input w-full rounded border border-border-subtle bg-[var(--color-surface-card)] text-slate-200 p-1.5 text-xs"
-              value={designOptions.tone}
-              onChange={(e) => setDesignOptions((o) => ({ ...o, tone: e.target.value }))}
-            >
-              <option value="dark intrigue">Dark</option>
-              <option value="hopeful adventure">Hopeful</option>
-              <option value="cozy">Cozy</option>
-              <option value="high-tension">Tense</option>
-              <option value="whimsical">Whimsy</option>
-            </select>
-          </div>
-          
-          <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-medium">Session</label>
-            <select
-              className="input w-full rounded border border-border-subtle bg-[var(--color-surface-card)] text-slate-200 p-1.5 text-xs"
-              value={designOptions.sessionLength}
-              onChange={(e) => setDesignOptions((o) => ({ ...o, sessionLength: e.target.value }))}
-            >
-              <option value="5-10m">5-10m</option>
-              <option value="20-40m">20-40m</option>
-              <option value="60m+">60m+</option>
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-medium">Complexity</label>
-            <select
-              className="input w-full rounded border border-border-subtle bg-[var(--color-surface-card)] text-slate-200 p-1.5 text-xs"
-              value={designOptions.complexity}
-              onChange={(e) => setDesignOptions((o) => ({ ...o, complexity: e.target.value }))}
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-medium">Camera</label>
-            <select
-              className="input w-full rounded border border-border-subtle bg-[var(--color-surface-card)] text-slate-200 p-1.5 text-xs"
-              value={designOptions.camera}
-              onChange={(e) => setDesignOptions((o) => ({ ...o, camera: e.target.value }))}
-            >
-              <option value="isometric">Iso</option>
-              <option value="side">Side</option>
-              <option value="first">1st</option>
-              <option value="third">3rd</option>
-              <option value="top-down">Top</option>
-            </select>
-          </div>
-
-          {/* Row 2: Platform & Delivery Settings */}
-          <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-medium">Platform</label>
-            <select
-              className="input w-full rounded border border-border-subtle bg-[var(--color-surface-card)] text-slate-200 p-1.5 text-xs"
-              value={designOptions.platform}
-              onChange={(e) => setDesignOptions((o) => ({ ...o, platform: e.target.value }))}
-            >
-              <option value="PC">PC</option>
-              <option value="Console">Console</option>
-              <option value="Mobile">Mobile</option>
-              <option value="Web">Web</option>
-              <option value="VR">VR</option>
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-medium">Multiplayer</label>
-            <select
-              className="input w-full rounded border border-border-subtle bg-[var(--color-surface-card)] text-slate-200 p-1.5 text-xs"
-              value={designOptions.multiplayer}
-              onChange={(e) => setDesignOptions((o) => ({ ...o, multiplayer: e.target.value }))}
-            >
-              <option value="solo">Solo</option>
-              <option value="co-op">Co-op</option>
-              <option value="pvp">PvP</option>
-              <option value="pvevp">PvEvP</option>
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-medium">Art Style</label>
-            <select
-              className="input w-full rounded border border-border-subtle bg-[var(--color-surface-card)] text-slate-200 p-1.5 text-xs"
-              value={designOptions.artDirection}
-              onChange={(e) => setDesignOptions((o) => ({ ...o, artDirection: e.target.value }))}
-            >
-              <option value="stylized minimal HUD">Minimal</option>
-              <option value="bold neon UI">Neon</option>
-              <option value="painterly low-sat">Painterly</option>
-              <option value="gritty realistic">Gritty</option>
-              <option value="diegetic ui">Diegetic</option>
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-medium">Monetization</label>
-            <select
-              className="input w-full rounded border border-border-subtle bg-[var(--color-surface-card)] text-slate-200 p-1.5 text-xs"
-              value={designOptions.monetization}
-              onChange={(e) => setDesignOptions((o) => ({ ...o, monetization: e.target.value }))}
-            >
-              <option value="premium">Premium</option>
-              <option value="cosmetic-pass">Seasonal</option>
-              <option value="free-ipa">Free+</option>
-              <option value="none">Free</option>
-            </select>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+          {[
+            { label: 'Tone', value: designOptions.tone, options: ['dark intrigue', 'hopeful adventure', 'cozy', 'high-tension', 'whimsical'], key: 'tone' },
+            { label: 'Session', value: designOptions.sessionLength, options: ['5-10m', '20-40m', '60m+'], key: 'sessionLength' },
+            { label: 'Complexity', value: designOptions.complexity, options: ['low', 'medium', 'high'], key: 'complexity' },
+            { label: 'Camera', value: designOptions.camera, options: ['isometric', 'side', 'first', 'third', 'top-down'], key: 'camera' },
+            { label: 'Platform', value: designOptions.platform, options: ['PC', 'Console', 'Mobile', 'Web', 'VR'], key: 'platform' },
+            { label: 'Multiplayer', value: designOptions.multiplayer, options: ['solo', 'co-op', 'pvp', 'pvevp'], key: 'multiplayer' },
+            { label: 'Art style', value: designOptions.artDirection, options: ['stylized minimal HUD', 'bold neon UI', 'painterly low-sat', 'gritty realistic', 'diegetic ui'], key: 'artDirection' },
+            { label: 'Monetization', value: designOptions.monetization, options: ['premium', 'cosmetic-pass', 'free-ipa', 'none'], key: 'monetization' },
+          ].map((control) => (
+            <label key={control.key} className="text-xs text-secondary font-semibold tracking-wide space-y-1 uppercase">
+              {control.label}
+              <select
+                className="input w-full py-2 text-sm bg-surface-card border-border-subtle text-primary"
+                value={control.value}
+                onChange={(e) =>
+                  setDesignOptions((prev) => ({
+                    ...prev,
+                    [control.key]: e.target.value,
+                  }))
+                }
+              >
+                {control.options.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
         </div>
-      </div>
+      </section>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-12 gap-6 h-[calc(100vh-16rem)]">
+      <section className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* Left: Genre Selection Grid */}
-        <div className="col-span-12 lg:col-span-7">
-          <div className="h-full flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-slate-200">
-                Choose Your Genres
-              </h3>
-              {selectedGenres.length > 1 && (
-                <button
-                  onClick={blendGenres}
-                  className="btn btn-primary px-3 py-1.5 text-sm font-medium"
-                >
-                  Blend {selectedGenres.length}
-                </button>
-              )}
+        <div className="xl:col-span-7 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-semibold text-primary">Choose your genres</h3>
+              <p className="text-sm text-secondary">
+                Tap to add or remove. Adjust weights when blending multiple genres.
+              </p>
             </div>
+            {selectedGenres.length > 1 && (
+              <button onClick={blendGenres} className="btn btn-secondary">
+                Blend {selectedGenres.length}
+              </button>
+            )}
+          </div>
             
-            {/* Larger Genre Grid with Descriptions - No Scrolling */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1 overflow-hidden">
+            {/* Larger Genre Grid with Descriptions */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
               {genres.map((genre) => {
                 const isSelected = selectedGenres.some(g => g.genre === genre.id);
                 const genreWeight = selectedGenres.find(g => g.genre === genre.id)?.weight || 0;
                 const colorScheme = genreColors[genre.id] || {
-                  gradient: 'linear-gradient(135deg, #374151 0%, #4b5563 50%, #6b7280 100%)',
+                  gradient: 'linear-gradient(135deg, var(--color-surface-strong) 0%, var(--color-border) 50%, var(--color-border-subtle) 100%)',
                   border: 'rgba(107, 114, 128, 0.8)',
                   shadow: '0 4px 20px -6px rgba(107, 114, 128, 0.5)',
                   icon: '🎮',
@@ -566,34 +552,28 @@ export function TemplateBrowserPage() {
                   <div key={genre.id} className="relative">
                     <button
                       onClick={() => toggleGenreSelection(genre.id)}
-                      className={`w-full h-32 text-left p-4 rounded-lg border-2 transition-all duration-200 transform hover:scale-[1.02] ${
+                      className={cn(
+                        'w-full h-36 rounded-2xl p-4 text-left transition-all duration-300 border focus-visible:outline focus-visible:outline-brand-500 focus-visible:outline-offset-2',
                         isSelected
-                          ? 'border-purple-400 bg-purple-900/30 shadow-lg'
-                          : 'border-gray-600 hover:border-gray-500'
-                      }`}
-                      style={!isSelected ? {
-                        background: colorScheme.gradient,
-                        borderColor: colorScheme.border,
-                        boxShadow: colorScheme.shadow,
-                      } : undefined}
+                          ? 'bg-surface border-brand-400/70 ring-2 ring-brand-400/40 shadow-glow'
+                          : 'border-transparent hover:shadow-lg'
+                      )}
+                      style={
+                        !isSelected
+                          ? {
+                              background: colorScheme.gradient,
+                              boxShadow: colorScheme.shadow,
+                            }
+                          : undefined
+                      }
                     >
                       <div className="flex flex-col h-full justify-between">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
                             <span className="text-xl">{colorScheme.icon}</span>
-                            <h4 className={`font-bold text-sm leading-tight ${
-                              isSelected 
-                                ? 'text-slate-100' 
-                                : 'text-white drop-shadow-sm'
-                            }`}>
-                              {genre.name}
-                            </h4>
+                            <h4 className="font-bold text-sm text-primary">{genre.name}</h4>
                           </div>
-                          <p className={`text-xs leading-relaxed ${
-                            isSelected 
-                              ? 'text-slate-300' 
-                              : 'text-slate-100/90 drop-shadow-sm'
-                          }`}>
+                          <p className="text-xs text-primary/80 leading-relaxed">
                             {genre.description}
                           </p>
                         </div>
@@ -606,7 +586,7 @@ export function TemplateBrowserPage() {
                                 style={{ width: `${genreWeight * 100}%` }}
                               />
                             </div>
-                            <span className="text-xs text-white/90 font-medium">
+                            <span className="text-xs text-primary font-medium">
                               {Math.round(genreWeight * 100)}%
                             </span>
                           </div>
@@ -616,7 +596,7 @@ export function TemplateBrowserPage() {
                     
                     {/* Weight slider for blended genres */}
                     {isSelected && selectedGenres.length > 1 && (
-                      <div className="absolute -bottom-2 left-0 right-0 px-1 z-10">
+                      <div className="absolute -bottom-3 left-0 right-0 px-3 z-10">
                         <input
                           type="range"
                           min="0"
@@ -626,7 +606,7 @@ export function TemplateBrowserPage() {
                           onChange={(e) => updateGenreWeight(genre.id, parseInt(e.target.value) / 100)}
                           onMouseUp={normalizeWeights}
                           onTouchEnd={normalizeWeights}
-                          className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                          className="w-full accent-brand-500"
                         />
                       </div>
                     )}
@@ -634,13 +614,12 @@ export function TemplateBrowserPage() {
                 );
               })}
             </div>
-          </div>
         </div>
 
         {/* Right: Template Preview */}
-        <div className="col-span-12 lg:col-span-5">
-          <div className="h-full bg-[var(--color-surface-card)] border border-border-subtle rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-slate-200 mb-4">Template Preview</h3>
+        <div className="xl:col-span-5">
+          <div className="glass-card h-full p-6">
+            <h3 className="text-lg font-semibold text-primary mb-4">Template Preview</h3>
             
             {loadingTemplate ? (
               <div className="flex flex-col items-center justify-center h-64">
@@ -651,10 +630,10 @@ export function TemplateBrowserPage() {
                   </div>
                 </div>
                 <div className="mt-4 text-center">
-                  <p className="text-slate-300 font-medium">
+                  <p className="text-secondary font-medium">
                     {selectedGenres.length > 1 ? 'AI analyzing and blending genres...' : 'Loading template...'}
                   </p>
-                  <p className="text-slate-500 text-sm mt-1">
+                  <p className="text-tertiary text-sm mt-1">
                     {selectedGenres.length > 1 
                       ? 'Resolving conflicts and creating coherent synergy'
                       : 'Fetching template details'
@@ -669,19 +648,19 @@ export function TemplateBrowserPage() {
                   <div className="border-b border-border-subtle pb-3">
                     {isBlended && (
                       <div className="space-y-3">
-                        <div className="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold rounded mb-2">
+                        <div className="inline-block px-3 py-1 bg-brand-500/15 text-primary text-xs font-bold rounded mb-2 border border-brand-500/30">
                           🤖 AI-ENHANCED BLENDED TEMPLATE
                         </div>
                         
                         {/* AI Analysis Summary */}
                         {blendAnalysis && (
-                          <div className="bg-slate-800/50 rounded-lg p-3 space-y-2">
+                          <div className="bg-surface-muted/60 rounded-lg p-3 space-y-2 border border-border-subtle">
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-medium text-slate-300">AI Analysis</span>
+                              <span className="text-xs font-medium text-secondary">AI Analysis</span>
                               <div className="flex items-center gap-2">
-                                <span className="text-xs text-slate-400">Coherence:</span>
+                                <span className="text-xs text-secondary">Coherence:</span>
                                 <div className="flex items-center gap-1">
-                                  <div className="w-16 h-2 bg-slate-700 rounded-full overflow-hidden">
+                                  <div className="w-16 h-2 bg-surface rounded-full overflow-hidden">
                                     <div 
                                       className={`h-full transition-all duration-500 ${
                                         blendAnalysis.coherence_score >= 80 ? 'bg-green-500' :
@@ -690,7 +669,7 @@ export function TemplateBrowserPage() {
                                       style={{ width: `${blendAnalysis.coherence_score}%` }}
                                     />
                                   </div>
-                                  <span className="text-xs text-slate-300 font-mono">
+                                  <span className="text-xs text-secondary font-mono">
                                     {blendAnalysis.coherence_score}%
                                   </span>
                                 </div>
@@ -699,7 +678,7 @@ export function TemplateBrowserPage() {
                             
                             {blendAnalysis.conflicts.length > 0 && (
                               <div>
-                                <span className="text-xs text-slate-400 font-medium">Conflicts Resolved:</span>
+                                <span className="text-xs text-secondary font-medium">Conflicts Resolved:</span>
                                 <div className="mt-1 space-y-1">
                                   {blendAnalysis.conflicts.slice(0, 3).map((conflict, i) => (
                                     <div key={i} className="flex items-start gap-2 text-xs">
@@ -708,8 +687,8 @@ export function TemplateBrowserPage() {
                                         conflict.severity === 'medium' ? 'bg-yellow-400' : 'bg-blue-400'
                                       }`} />
                                       <div>
-                                        <span className="text-slate-300 font-medium">{conflict.type}:</span>
-                                        <span className="text-slate-400 ml-1">{conflict.resolution}</span>
+                                        <span className="text-secondary font-medium">{conflict.type}:</span>
+                                        <span className="text-secondary ml-1">{conflict.resolution}</span>
                                       </div>
                                     </div>
                                   ))}
@@ -723,31 +702,31 @@ export function TemplateBrowserPage() {
                             )}
                             
                             {blendStrategy && (
-                              <div className="pt-2 border-t border-slate-700">
-                                <span className="text-xs text-slate-400 font-medium">Strategy:</span>
-                                <p className="text-xs text-slate-300 mt-1 leading-relaxed">{blendStrategy}</p>
+                              <div className="pt-2 border-t border-border-subtle">
+                                <span className="text-xs text-secondary font-medium">Strategy:</span>
+                                <p className="text-xs text-secondary mt-1 leading-relaxed">{blendStrategy}</p>
                               </div>
                             )}
                           </div>
                         )}
                       </div>
                     )}
-                    <h4 className="text-xl font-bold text-slate-100">{template.name}</h4>
+                    <h4 className="text-xl font-bold text-primary">{template.name}</h4>
                     {template.description && (
-                      <p className="text-sm text-slate-400 mt-1">{template.description}</p>
+                      <p className="text-sm text-secondary mt-1">{template.description}</p>
                     )}
                   </div>
                 )}
 
                 {/* Mechanics */}
                 <div>
-                  <h5 className="font-semibold text-slate-200 mb-2 text-sm">Core Loop</h5>
-                  <p className="text-sm text-slate-400 mb-3">{template.mechanics.coreLoop}</p>
+                  <h5 className="font-semibold text-primary mb-2 text-sm">Core Loop</h5>
+                  <p className="text-sm text-secondary mb-3">{template.mechanics.coreLoop}</p>
                   
                   {template.mechanics.playerActions && template.mechanics.playerActions.length > 0 && (
                     <div>
-                      <h6 className="text-xs font-medium text-slate-300 mb-2">Player Actions</h6>
-                      <div className="grid grid-cols-1 gap-1 text-xs text-slate-500">
+                      <h6 className="text-xs font-medium text-secondary mb-2">Player Actions</h6>
+                      <div className="grid grid-cols-1 gap-1 text-xs text-tertiary">
                         {template.mechanics.playerActions.slice(0, 6).map((action, i) => (
                           <div key={i} className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 bg-purple-400 rounded-full flex-shrink-0"></span>
@@ -766,22 +745,22 @@ export function TemplateBrowserPage() {
 
                 {/* Lore Preview */}
                 <div>
-                  <h5 className="font-semibold text-slate-200 mb-2 text-sm">Setting & Conflict</h5>
-                  <div className="space-y-2 text-xs text-slate-500">
+                  <h5 className="font-semibold text-primary mb-2 text-sm">Setting & Conflict</h5>
+                  <div className="space-y-2 text-xs text-tertiary">
                     {template.lore.setting?.location && (
-                      <div><span className="text-slate-400 font-medium">World:</span> {template.lore.setting.location}</div>
+                      <div><span className="text-secondary font-medium">World:</span> {template.lore.setting.location}</div>
                     )}
                     {template.lore.conflict?.primary && (
-                      <div><span className="text-slate-400 font-medium">Challenge:</span> {template.lore.conflict.primary}</div>
+                      <div><span className="text-secondary font-medium">Challenge:</span> {template.lore.conflict.primary}</div>
                     )}
                     {template.lore.themes && template.lore.themes.length > 0 && (
                       <div>
-                        <span className="text-slate-400 font-medium">Themes:</span>
+                        <span className="text-secondary font-medium">Themes:</span>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {template.lore.themes.slice(0, 3).map((theme, i) => (
                             <span
                               key={i}
-                              className="px-2 py-0.5 bg-slate-700 text-slate-300 rounded-full text-xs"
+                              className="px-2 py-0.5 bg-surface-strong text-secondary rounded-full text-xs"
                             >
                               {theme}
                             </span>
@@ -801,7 +780,7 @@ export function TemplateBrowserPage() {
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+              <div className="flex flex-col items-center justify-center h-64 text-tertiary">
                 <div className="text-5xl mb-4">🎮</div>
                 <p className="text-lg font-medium mb-3 text-center">
                   {selectedGenres.length === 0 
@@ -823,13 +802,13 @@ export function TemplateBrowserPage() {
             )}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Create Project Modal */}
       {showCreateModal && (selectedGenre || isBlended) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="modal max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-slate-100 mb-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="glass-card max-w-lg w-full p-6 space-y-4">
+            <h3 className="text-xl font-bold text-primary">
               {isBlended
                 ? 'Create Project from Blended Template'
                 : `Create Project from ${genres.find((g) => g.id === selectedGenre)?.name} Template`}
@@ -837,16 +816,16 @@ export function TemplateBrowserPage() {
             {isBlended && template?.name && (
               <p className="text-sm text-purple-400 mb-4">{template.name}</p>
             )}
-            <form onSubmit={handleCreateProject}>
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+            <form onSubmit={handleCreateProject} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-primary mb-2">
                   Project Name *
                 </label>
                 <input
                   type="text"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
-                  className="input w-full px-3 py-2 border border-gray-600 bg-[var(--color-surface-card)] text-slate-100 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="input w-full"
                   placeholder="My Game Project"
                   required
                   autoFocus
@@ -859,14 +838,14 @@ export function TemplateBrowserPage() {
                     setShowCreateModal(false);
                     setProjectName('');
                   }}
-                  className="btn btn-secondary flex-1 px-4 py-2 font-medium"
+                  className="btn btn-secondary flex-1"
                   disabled={creating}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-primary flex-1 px-4 py-2 font-medium disabled:opacity-50"
+                  className="btn btn-primary flex-1 disabled:opacity-50"
                   disabled={creating || !projectName.trim()}
                 >
                   {creating ? 'Creating...' : 'Create'}
@@ -885,10 +864,10 @@ export function TemplateBrowserPage() {
           {/* Header */}
           <div className="flex-shrink-0 px-4 py-3 border-b border-border-subtle bg-surface-card">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">AI Assistant</h3>
+              <h3 className="font-semibold text-primary">AI Assistant</h3>
               <button
                 onClick={() => setShowAssistant(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+                className="text-secondary hover:text-primary transition"
                 title="Close assistant"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -905,25 +884,23 @@ export function TemplateBrowserPage() {
                 projectId={selectedProjectId}
                 type="concept"
                 onProposalAccepted={async () => {
-                  // Refresh template browser state if needed
-                  if (template) {
-                    // Reload template to reflect any changes
-                    await loadTemplate(selectedGenre!);
+                  if (selectedGenre) {
+                    await loadTemplate(selectedGenre);
                   }
                 }}
               />
             ) : (
               <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-16 h-16 bg-brand-100 dark:bg-brand-900 rounded-full flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-brand-500/15 border border-brand-500/30 rounded-full flex items-center justify-center mb-4">
                   <span className="text-2xl">🤖</span>
                 </div>
-                <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                <h4 className="text-lg font-semibold text-primary mb-2">
                   Template Assistant
                 </h4>
-                <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                <p className="text-sm text-secondary mb-4">
                   Need help choosing or blending templates? Chat with the AI assistant for guidance on game design decisions.
                 </p>
-                <div className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+                <div className="space-y-2 text-xs text-tertiary">
                   <p>• Get help choosing genre combinations</p>
                   <p>• Understand template mechanics and lore</p>
                   <p>• Learn about game design patterns</p>

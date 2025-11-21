@@ -652,8 +652,8 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                 AI
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-100">{headerLabel}</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="text-lg font-bold text-primary">{headerLabel}</h3>
+                <p className="text-xs text-secondary">
                   {session ? `Session ${session.id.slice(0, 8)}` : 'Connecting...'}
                 </p>
               </div>
@@ -670,7 +670,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     assistantAPI.updateSessionMode(session.id, newMode).catch(console.error);
                   }
                 }}
-                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-secondary focus:outline-none focus:ring-2 focus:ring-brand-500"
                 title="Switch assistant mode"
               >
                 <option value="auto">🤖 Auto</option>
@@ -681,7 +681,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
               <select
                 value={quickMode}
                 onChange={(e) => setQuickMode(e.target.value as 'standard' | 'concise' | 'detailed')}
-                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-secondary focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="standard">Standard</option>
                 <option value="concise">Concise</option>
@@ -719,10 +719,10 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                   <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white mb-3 shadow-lg animate-pulse" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     AI
                   </div>
-                  <h4 className="text-base font-semibold text-slate-100 mb-1.5">
+                  <h4 className="text-base font-semibold text-primary mb-1.5">
                     Initializing assistant...
                   </h4>
-                  <p className="text-xs text-slate-400 max-w-md">
+                  <p className="text-xs text-secondary max-w-md">
                     Setting up your session. This should only take a moment.
                   </p>
                 </div>
@@ -754,10 +754,10 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                   <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     AI
                   </div>
-                  <h4 className="text-base font-semibold text-slate-100 mb-1.5">
+                  <h4 className="text-base font-semibold text-primary mb-1.5">
                     Start a conversation
                   </h4>
-                  <p className="text-xs text-slate-400 max-w-md">
+                  <p className="text-xs text-secondary max-w-md">
                     {projectId 
                       ? "Ask me anything about your project. I can help refine mechanics, expand lore, check consistency, and more."
                       : "I'm here to help with game design, templates, workflows, and best practices. Ask me anything!"}
@@ -773,7 +773,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     <div className={`chat-avatar ${
                       msg.role === 'assistant'
                         ? 'bg-gradient-to-br from-brand-500 to-mint-500 text-white'
-                        : 'bg-gradient-to-br from-slate-400 to-slate-600 text-white'
+                        : 'bg-gradient-to-br from-secondary to-tertiary text-white'
                     }`}>
                       {getInitials(msg.role)}
                     </div>
@@ -782,7 +782,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                       <div
                         className={`chat-message-bubble relative shadow-sm ${
                           msg.role === 'assistant'
-                            ? 'chat-message-assistant text-slate-100'
+                            ? 'chat-message-assistant text-primary'
                             : 'chat-message-user text-white'
                         }`}
                         style={msg.role === 'user' ? userBubbleStyle : assistantBubbleStyle}
@@ -839,7 +839,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                         })()}
                       </div>
                       {msg.createdAt && (
-                        <div className={`text-xs text-slate-400 mt-0.5 px-1 ${
+                        <div className={`text-xs text-secondary mt-0.5 px-1 ${
                           msg.role === 'user' ? 'text-right' : ''
                         }`}>
                           {formatTime(msg.createdAt)}
@@ -927,7 +927,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     }}
                     placeholder="Ask for help..."
                     rows={1}
-                    className="input flex-1 resize-none border border-border-subtle px-4 py-2.5 text-sm bg-surface-elevated text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent max-h-[120px]"
+                    className="input flex-1 resize-none border border-border-subtle px-4 py-2.5 text-sm bg-surface-elevated text-primary placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent max-h-[120px]"
                   />
                   <button
                     onClick={() => void handleSend()}
@@ -946,12 +946,12 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
           {showProposals && proposals.length > 0 && (
             <div className="chat-proposal-panel panel-slide-in">
               <div className="chat-header flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-slate-100">
+                <h4 className="text-sm font-semibold text-primary">
                   Proposals ({proposals.length})
                 </h4>
                 <button
                   onClick={() => setShowProposals(false)}
-                  className="text-slate-400 hover:text-slate-200"
+                  className="text-secondary hover:text-primary"
                 >
                   ✕
                 </button>
@@ -971,7 +971,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                         ⭐ Most Recent Proposal
                       </div>
                     )}
-                    <p className="font-medium text-slate-100 mb-2">
+                    <p className="font-medium text-primary mb-2">
                       {proposal.proposalType === 'architect-document' ? '📄 Document Update' : '🎮 Mechanics & Lore Update'}
                     </p>
                     
@@ -1036,9 +1036,9 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
 
                     {proposal.changeLog?.length > 0 && (
                       <div className="mb-3 space-y-1">
-                        <p className="text-xs font-semibold text-slate-300 mb-1">Changes:</p>
-                        {proposal.changeLog.slice(0, 3).map((change) => (
-                          <div key={change.field} className="text-xs text-slate-300 flex items-start gap-1">
+                        <p className="text-xs font-semibold text-secondary mb-1">Changes:</p>
+                          {proposal.changeLog.slice(0, 3).map((change) => (
+                          <div key={change.field} className="text-xs text-secondary flex items-start gap-1">
                             <span>
                               {change.changeType === 'added' ? '➕' :
                                change.changeType === 'modified' ? '✏️' :
@@ -1048,7 +1048,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                           </div>
                         ))}
                         {proposal.changeLog.length > 3 && (
-                          <p className="text-xs text-slate-500">+{proposal.changeLog.length - 3} more</p>
+                          <p className="text-xs text-tertiary">+{proposal.changeLog.length - 3} more</p>
                         )}
                       </div>
                     )}

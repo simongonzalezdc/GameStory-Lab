@@ -168,7 +168,7 @@ export function ProjectArchitectPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate(`/projects/${projectId}`)}
-              className="text-accent hover:text-brand-primary-hover transition text-sm font-medium"
+              className="text-brand-500 hover:text-brand-400 transition text-sm font-medium"
             >
               ← Back to Project
             </button>
@@ -246,7 +246,7 @@ export function ProjectArchitectPage() {
                       }}
                       className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
                         isSelected
-                          ? 'bg-accent/20 border border-accent/40 text-primary'
+                          ? 'bg-brand-500/20 border border-brand-500/40 text-primary'
                           : 'hover:bg-surface-elevated text-secondary hover:text-primary'
                       }`}
                     >
@@ -307,7 +307,7 @@ export function ProjectArchitectPage() {
                 ) : (
                   <div className="flex items-center justify-center h-full text-tertiary">
                     <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-2"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-2"></div>
                       <p className="text-sm">Loading document...</p>
                     </div>
                   </div>
