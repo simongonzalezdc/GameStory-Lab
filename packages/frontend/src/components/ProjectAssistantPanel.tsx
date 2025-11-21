@@ -172,13 +172,13 @@ export function ProjectAssistantPanel({
         );
       } else if (match[7]) {
         parts.push(
-          <strong key={`${keyPrefix}-${idx++}`} className="text-slate-50">
+          <strong key={`${keyPrefix}-${idx++}`} className="text-primary font-semibold">
             {match[7]}
           </strong>
         );
       } else if (match[9]) {
         parts.push(
-          <em key={`${keyPrefix}-${idx++}`} className="text-slate-200">
+          <em key={`${keyPrefix}-${idx++}`} className="text-primary">
             {match[9]}
           </em>
         );
@@ -197,12 +197,12 @@ export function ProjectAssistantPanel({
     if (calloutMatch) {
       const level = calloutMatch[1].toLowerCase();
       const body = calloutMatch[2] || '';
-      const bg =
-        level.startsWith('err') ? 'bg-red-900/25 border-red-700 text-red-100' :
-        level.startsWith('warn') ? 'bg-amber-900/25 border-amber-700 text-amber-100' :
-        'bg-brand-900/20 border-brand-700 text-brand-100';
+      const bgClass =
+        level.startsWith('err') ? 'validation-error' :
+        level.startsWith('warn') ? 'validation-warning' :
+        'validation-info';
       return (
-        <div key={`${keyPrefix}-callout`} className={`rounded-md border px-3 py-2 text-sm ${bg}`}>
+        <div key={`${keyPrefix}-callout`} className={`rounded-md border px-3 py-2 text-sm ${bgClass}`}>
           <div className="font-semibold mb-1 uppercase tracking-wide text-xs">{calloutMatch[1]}</div>
           <div className="leading-relaxed">{renderInline(body, `${keyPrefix}-c`)}</div>
         </div>
@@ -216,7 +216,7 @@ export function ProjectAssistantPanel({
     const flushBullets = () => {
       if (bulletBuffer.length) {
         nodes.push(
-          <ul key={`${keyPrefix}-ul-${nodes.length}`} className="list-disc list-inside space-y-1 text-slate-200">
+          <ul key={`${keyPrefix}-ul-${nodes.length}`} className="list-disc list-inside space-y-1 text-primary">
             {bulletBuffer.map((item, idx) => (
               <li key={`${keyPrefix}-li-${idx}`}>{renderInline(item.trim(), `${keyPrefix}-li-${idx}`)}</li>
             ))}
@@ -234,7 +234,7 @@ export function ProjectAssistantPanel({
       } else {
         flushBullets();
         nodes.push(
-          <p key={`${keyPrefix}-p-${idx}`} className="text-slate-200 leading-relaxed">
+          <p key={`${keyPrefix}-p-${idx}`} className="text-primary leading-relaxed">
             {renderInline(line, `${keyPrefix}-p-${idx}`)}
           </p>
         );
@@ -244,7 +244,7 @@ export function ProjectAssistantPanel({
 
     if (!nodes.length) {
       return (
-        <p key={`${keyPrefix}-plain`} className="text-slate-200 leading-relaxed">
+        <p key={`${keyPrefix}-plain`} className="text-primary leading-relaxed">
           {renderInline(text, `${keyPrefix}-plain`)}
         </p>
       );
@@ -629,8 +629,8 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                 AI
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-100">{headerLabel}</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="text-lg font-bold text-primary">{headerLabel}</h3>
+                <p className="text-xs text-secondary">
                   {session ? `Session ${session.id.slice(0, 8)}` : 'Connecting...'}
                 </p>
               </div>
@@ -647,7 +647,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     assistantAPI.updateSessionMode(session.id, newMode).catch(console.error);
                   }
                 }}
-                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-primary focus:outline-none focus:ring-2 focus:ring-brand-500"
                 title="Switch assistant mode"
               >
                 <option value="auto">🤖 Auto</option>
@@ -658,7 +658,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
               <select
                 value={quickMode}
                 onChange={(e) => setQuickMode(e.target.value as 'standard' | 'concise' | 'detailed')}
-                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-primary focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="standard">Standard</option>
                 <option value="concise">Concise</option>
@@ -676,7 +676,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                 >
                   <span>💡</span>
                   <span>Proposals</span>
-                  <span className="notification-badge bg-red-500 -top-1 -right-1">
+                  <span className="notification-badge bg-danger -top-1 -right-1">
                     {proposals.length}
                   </span>
                 </button>
@@ -696,22 +696,22 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                   <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white mb-3 shadow-lg animate-pulse" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     AI
                   </div>
-                  <h4 className="text-base font-semibold text-slate-100 mb-1.5">
+                  <h4 className="text-base font-semibold text-primary mb-1.5">
                     Initializing assistant...
                   </h4>
-                  <p className="text-xs text-slate-400 max-w-md">
+                  <p className="text-xs text-secondary max-w-md">
                     Setting up your session. This should only take a moment.
                   </p>
                 </div>
               ) : error && messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                  <div className="chat-avatar bg-red-500 text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
+                  <div className="chat-avatar bg-danger text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     ⚠
                   </div>
-                  <h4 className="text-base font-semibold text-red-400 mb-1.5">
+                  <h4 className="text-base font-semibold text-danger mb-1.5">
                     Failed to start session
                   </h4>
-                  <p className="text-xs text-red-300 max-w-md mb-3">
+                  <p className="text-xs text-secondary max-w-md mb-3">
                     {error}
                   </p>
                   <button
@@ -721,7 +721,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                       // Trigger re-initialization by updating a dependency
                       setCurrentMode(currentMode);
                     }}
-                    className="px-4 py-2 text-sm bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg border border-red-500/50 transition-colors"
+                    className="btn btn-danger px-4 py-2 text-sm"
                   >
                     Retry
                   </button>
@@ -731,10 +731,10 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                   <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     AI
                   </div>
-                  <h4 className="text-base font-semibold text-slate-100 mb-1.5">
+                  <h4 className="text-base font-semibold text-primary mb-1.5">
                     Start a conversation
                   </h4>
-                  <p className="text-xs text-slate-400 max-w-md">
+                  <p className="text-xs text-secondary max-w-md">
                     {projectId 
                       ? "Ask me anything about your project. I can help refine mechanics, expand lore, check consistency, and more."
                       : "I'm here to help with game design, templates, workflows, and best practices. Ask me anything!"}
@@ -759,8 +759,8 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                       <div
                         className={`chat-message-bubble relative shadow-sm ${
                           msg.role === 'assistant'
-                            ? 'chat-message-assistant text-slate-100'
-                            : 'chat-message-user text-white'
+                            ? 'chat-message-assistant text-primary'
+                            : 'chat-message-user text-primary'
                         }`}
                         style={msg.role === 'user' ? userBubbleStyle : assistantBubbleStyle}
                       >
@@ -777,9 +777,9 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                                   segment.type === 'code' ? (
                                     <pre
                                       key={`${msg.id}-code-${idx}`}
-                                      className="code-block text-slate-100 overflow-auto"
+                                      className="code-block text-primary bg-surface-strong p-3 rounded-lg overflow-auto border border-subtle"
                                     >
-                                      <code className="whitespace-pre">{segment.content}</code>
+                                      <code className="whitespace-pre font-mono text-sm">{segment.content}</code>
                                     </pre>
                                   ) : (
                                     <div key={`${msg.id}-text-${idx}`} className="space-y-2">
@@ -816,7 +816,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                         })()}
                       </div>
                       {msg.createdAt && (
-                        <div className={`text-xs text-slate-400 mt-0.5 px-1 ${
+                        <div className={`text-xs text-secondary mt-0.5 px-1 ${
                           msg.role === 'user' ? 'text-right' : ''
                         }`}>
                           {formatTime(msg.createdAt)}
@@ -847,15 +847,15 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
             <div className="chat-input-area shadow-lg">
               {error && (
                 <div className="px-4 pt-2">
-                  <div className="text-sm text-red-400 bg-red-900/20 border border-red-800 rounded-md px-3 py-2 flex items-start justify-between gap-2">
+                  <div className="validation-error rounded-md px-3 py-2 flex items-start justify-between gap-2">
                     <div className="flex-1">
                       <p className="font-semibold mb-1">Error sending message</p>
                       <p className="text-xs">{error}</p>
-                      <p className="text-xs mt-1 opacity-75">Check the browser console (F12) for more details.</p>
+                      <p className="text-xs mt-1 text-muted">Check the browser console (F12) for more details.</p>
                     </div>
                     <button
                       onClick={() => setError(null)}
-                      className="text-red-400 hover:text-red-300 flex-shrink-0"
+                      className="text-danger hover:opacity-75 flex-shrink-0"
                       title="Dismiss error"
                     >
                       ✕
@@ -904,7 +904,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     }}
                     placeholder="Ask for help..."
                     rows={1}
-                    className="input flex-1 resize-none border border-border-subtle px-4 py-2.5 text-sm bg-surface-elevated text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent max-h-[120px]"
+                    className="input flex-1 resize-none border border-border-subtle px-4 py-2.5 text-sm bg-surface-elevated text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent max-h-[120px]"
                   />
                   <button
                     onClick={() => void handleSend()}
@@ -923,12 +923,12 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
           {showProposals && proposals.length > 0 && (
             <div className="chat-proposal-panel panel-slide-in">
               <div className="chat-header flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-slate-100">
+                <h4 className="text-sm font-semibold text-primary">
                   Proposals ({proposals.length})
                 </h4>
                 <button
                   onClick={() => setShowProposals(false)}
-                  className="text-slate-400 hover:text-slate-200"
+                  className="text-secondary hover:text-primary"
                 >
                   ✕
                 </button>

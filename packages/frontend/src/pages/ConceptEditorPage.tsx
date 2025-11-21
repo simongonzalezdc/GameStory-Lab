@@ -392,16 +392,16 @@ export function ConceptEditorPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 dark:text-gray-400">Loading project...</div>
+        <div className="text-secondary">Loading project...</div>
       </div>
     );
   }
 
   if (error || !project) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-8 text-center">
-        <h3 className="text-xl font-semibold text-red-800 dark:text-red-200 mb-2">Error Loading Project</h3>
-        <p className="text-red-600 dark:text-red-300 mb-4">{error || 'Project not found'}</p>
+      <div className="validation-error rounded-lg p-8 text-center">
+        <h3 className="text-xl font-semibold mb-2">Error Loading Project</h3>
+        <p className="mb-4">{error || 'Project not found'}</p>
         <button
           onClick={() => navigate('/projects')}
           className="btn btn-primary"
@@ -583,21 +583,21 @@ export function ConceptEditorPage() {
               </div>
 
               {error && (
-                <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+                <div className="validation-error px-4 py-3 text-sm">
                   <strong>Error:</strong> {error}
-                  <div className="mt-2 text-xs">
+                  <div className="mt-2 text-xs text-muted">
                     Check the browser console (F12) for more details.
                   </div>
                 </div>
               )}
 
               {generating && generationStep && (
-                <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-4 py-3 text-sm text-blue-700 dark:text-blue-300">
+                <div className="validation-info px-4 py-3 text-sm">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-blue-600/30 border-t-blue-600 dark:border-blue-400/30 dark:border-t-blue-400 rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-info/30 border-t-info rounded-full animate-spin" />
                     <span><strong>Status:</strong> {generationStep}</span>
                   </div>
-                  <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                  <div className="mt-2 text-xs text-muted">
                     This may take 30-120 seconds depending on the AI model. Check the browser console (F12) for detailed logs.
                   </div>
                 </div>
@@ -696,13 +696,13 @@ export function ConceptEditorPage() {
   return (
     <div className="flex flex-col h-full w-full min-h-0 overflow-hidden">
       {/* Compact Sticky Header Bar */}
-      <div className="sticky top-0 z-30 surface-card border-b border-subtle shadow-sm flex-shrink-0">
-        <div className="flex items-center justify-between gap-4 py-2.5">
+      <div className="sticky top-0 z-30 surface-card border-b border-subtle shadow-sm flex-shrink-0 bg-gradient-to-r from-surface-card via-surface-elevated to-surface-card">
+        <div className="flex items-center justify-between gap-4 py-2.5 px-4">
           {/* Left: Project Info & Navigation */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
           <button
             onClick={() => navigate('/projects')}
-              className="flex-shrink-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
+              className="flex-shrink-0 text-brand-primary hover:text-brand-primary-hover text-sm font-medium transition-colors"
               title="Back to Projects"
           >
               ←
@@ -718,7 +718,7 @@ export function ConceptEditorPage() {
                     setCurrentVersion(selected);
                   }
                 }}
-                  className="px-2.5 py-1 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-xs text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
+                  className="px-2.5 py-1 bg-surface-elevated border border-subtle rounded-lg text-xs text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary flex-shrink-0"
               >
                 {versions.map((v) => (
                   <option key={v.id} value={v.id}>
@@ -727,19 +727,19 @@ export function ConceptEditorPage() {
                 ))}
               </select>
               ) : (
-                <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">v{currentVersion.version}</span>
+                <span className="text-xs text-secondary flex-shrink-0">v{currentVersion.version}</span>
           )}
           {versions.length > 1 && (
                 <div className="relative group flex-shrink-0">
               <button
-                    className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+                    className="btn btn-secondary px-2 py-1 text-xs"
                     title={`${versions.length} versions`}
               >
                     📋 {versions.length}
               </button>
-                  <div className="absolute left-0 mt-2 w-72 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-20 max-h-96 overflow-y-auto">
+                  <div className="absolute left-0 mt-2 w-72 surface-card rounded-lg shadow-lg border border-subtle opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-20 max-h-96 overflow-y-auto">
                 <div className="p-2">
-                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-2 py-1 mb-1">
+                  <div className="text-xs font-semibold text-tertiary uppercase tracking-wider px-2 py-1 mb-1">
                     All Versions
                   </div>
                   {versions.map((v) => (
@@ -748,14 +748,14 @@ export function ConceptEditorPage() {
                       onClick={() => setCurrentVersion(v)}
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
                         currentVersion?.id === v.id
-                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100'
-                          : 'hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100'
+                          ? 'bg-brand-primary-soft text-brand-primary border border-brand-primary'
+                          : 'hover:bg-surface-elevated text-primary'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-medium">Version {v.version}</span>
                         {v.version === versions[0].version && (
-                          <span className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded">
+                          <span className="badge badge-info text-xs">
                             Latest
                           </span>
                         )}
@@ -774,23 +774,23 @@ export function ConceptEditorPage() {
             {/* Consistency Score - Compact */}
             {consistencyScore !== null && (
               <div className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 ${
-                consistencyScore >= 80 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' :
-                consistencyScore >= 60 ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' :
-                'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                consistencyScore >= 80 ? 'validation-success' :
+                consistencyScore >= 60 ? 'validation-warning' :
+                'validation-error'
               }`}>
                 <span className={`text-sm font-bold ${
-                  consistencyScore >= 80 ? 'text-green-700 dark:text-green-300' :
-                  consistencyScore >= 60 ? 'text-yellow-700 dark:text-yellow-300' :
-                  'text-red-700 dark:text-red-300'
+                  consistencyScore >= 80 ? 'text-success' :
+                  consistencyScore >= 60 ? 'text-warning' :
+                  'text-danger'
                 }`}>
                   {consistencyScore}%
                 </span>
-                <div className="w-16 bg-white dark:bg-slate-700 rounded-full h-1.5">
+                <div className="w-16 bg-surface-strong rounded-full h-1.5">
                   <div
                     className={`h-1.5 rounded-full transition-all ${
-                      consistencyScore >= 80 ? 'bg-green-600 dark:bg-green-500' :
-                      consistencyScore >= 60 ? 'bg-yellow-600 dark:bg-yellow-500' :
-                      'bg-red-600 dark:bg-red-500'
+                      consistencyScore >= 80 ? 'bg-success' :
+                      consistencyScore >= 60 ? 'bg-warning' :
+                      'bg-danger'
                     }`}
                     style={{ width: `${Math.min(100, Math.max(0, consistencyScore))}%` }}
                   />
@@ -898,7 +898,7 @@ export function ConceptEditorPage() {
         {/* Right Column: Validation/Results (40%) */}
         <div className="flex flex-col space-y-3 min-h-0 overflow-hidden flex-[2] min-w-0">
           {/* Tabs */}
-          <div className="border-b border-gray-200 dark:border-gray-700 mb-3 flex-shrink-0">
+          <div className="border-b border-subtle mb-3 flex-shrink-0 pt-2">
             <nav className="flex space-x-4">
               {(['mechanics', 'lore', 'validation'] as const).map((tab) => (
                 <button
@@ -906,13 +906,13 @@ export function ConceptEditorPage() {
                   onClick={() => setActiveTab(tab)}
                   className={`pb-3 px-1 border-b-2 font-medium text-sm transition ${
                     activeTab === tab
-                      ? 'border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
+                      ? 'border-brand-primary text-brand-primary'
+                      : 'border-transparent text-secondary hover:text-primary hover:border-subtle'
                   }`}
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}
                   {tab === 'validation' && validationIssues.length > 0 && (
-                    <span className="ml-2 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs">
+                    <span className="ml-2 badge badge-error text-xs">
                       {validationIssues.length}
                     </span>
                   )}
@@ -922,7 +922,7 @@ export function ConceptEditorPage() {
           </div>
 
           {/* Tab Content */}
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 flex-1 min-h-0 overflow-hidden flex flex-col">
+          <div className="surface-card rounded-lg shadow-sm border border-subtle p-4 sm:p-6 flex-1 min-h-0 overflow-hidden flex flex-col">
             {activeTab === 'mechanics' && (
               <div className="flex flex-col h-full min-h-0 overflow-y-auto">
                 <div className="flex items-center justify-between mb-6 flex-shrink-0">
@@ -934,9 +934,9 @@ export function ConceptEditorPage() {
                     {showRawJsonMechanics ? '📄 View Formatted' : '🔧 View JSON'}
                   </button>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-h-0">
                   {showRawJsonMechanics ? (
-                    <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 h-full">
+                    <pre className="bg-surface-strong p-4 rounded-lg overflow-auto text-sm text-primary h-full">
                   {JSON.stringify(currentVersion.mechanics, null, 2)}
                 </pre>
                   ) : (
@@ -949,10 +949,10 @@ export function ConceptEditorPage() {
             {activeTab === 'lore' && (
               <div className="flex flex-col h-full min-h-0 overflow-y-auto">
                 {!currentVersion.lore || Object.keys(currentVersion.lore).length === 0 ? (
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-8 text-center flex-shrink-0">
+                  <div className="validation-warning p-8 text-center flex-shrink-0">
                     <div className="text-4xl mb-2">📖</div>
-                    <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">No Lore Generated</h4>
-                    <p className="text-yellow-600 dark:text-yellow-300 mb-4">
+                    <h4 className="font-semibold mb-1">No Lore Generated</h4>
+                    <p className="text-muted mb-4">
                       This version doesn't have any lore yet. Generate lore using the "Generate Version" button or refine the version.
                     </p>
                     <button
@@ -976,9 +976,9 @@ export function ConceptEditorPage() {
                         {showRawJsonLore ? '📄 View Formatted' : '🔧 View JSON'}
                       </button>
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-h-0">
                       {showRawJsonLore ? (
-                        <pre className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg overflow-auto text-sm text-gray-900 dark:text-gray-100 h-full">
+                        <pre className="bg-surface-strong p-4 rounded-lg overflow-auto text-sm text-primary h-full">
                     {JSON.stringify(currentVersion.lore, null, 2)}
                   </pre>
                       ) : (
@@ -991,8 +991,8 @@ export function ConceptEditorPage() {
             )}
 
             {activeTab === 'validation' && (
-              <div className="flex flex-col h-full min-h-0">
-                <div className="flex justify-between items-center mb-4 flex-shrink-0">
+              <div className="flex flex-col h-full min-h-0 overflow-y-auto">
+                <div className="flex items-center justify-between mb-6 flex-shrink-0">
                   <h3 className="text-xl font-semibold text-primary">Validation Results</h3>
                   <button
                     onClick={async () => {
@@ -1029,92 +1029,94 @@ export function ConceptEditorPage() {
                   </button>
                 </div>
 
-                {(validationError || validationStatus) && (
-                  <div className="space-y-2 mb-3 flex-shrink-0">
-                    {validationError && (
-                      <div className="validation-error px-4 py-3 text-sm">
-                        <strong>Validation issue:</strong> {validationError}
-                      </div>
-                    )}
-                    {validationStatus && (
-                      <div className="validation-info px-4 py-3 text-sm flex items-center justify-between">
-                        <span>{validationStatus}</span>
-                        {lastValidationSource && lastValidatedAt && (
-                          <span className="text-xs text-muted">
-                            Trigger: {lastValidationSource} • {new Date(lastValidatedAt).toLocaleTimeString()}
+                <div className="flex-1 min-h-0 flex flex-col">
+                  {(validationError || validationStatus) && (
+                    <div className="space-y-2 mb-3 flex-shrink-0">
+                      {validationError && (
+                        <div className="validation-error px-4 py-3 text-sm">
+                          <strong>Validation issue:</strong> {validationError}
+                        </div>
+                      )}
+                      {validationStatus && (
+                        <div className="validation-info px-4 py-3 text-sm flex items-center justify-between">
+                          <span>{validationStatus}</span>
+                          {lastValidationSource && lastValidatedAt && (
+                            <span className="text-xs text-muted">
+                              Trigger: {lastValidationSource} • {new Date(lastValidatedAt).toLocaleTimeString()}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {validationIssues.length > 0 && (
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <span className="text-xs text-secondary">
+                            Copy the full validation context into the Project Assistant to auto-fix.
                           </span>
-                        )}
-                      </div>
-                    )}
-                    {validationIssues.length > 0 && (
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <span className="text-xs text-secondary">
-                          Copy the full validation context into the Project Assistant to auto-fix.
-                        </span>
-                        <button
-                          onClick={async () => {
-                            try {
-                              await window.navigator.clipboard.writeText(buildAssistantPrompt());
-                              setCopiedPrompt(true);
-                              setTimeout(() => setCopiedPrompt(false), 1500);
-                            } catch (err) {
-                              console.error('Failed to copy validation summary', err);
-                            }
-                          }}
-                          className="btn btn-secondary text-xs"
-                        >
-                          {copiedPrompt ? 'Copied!' : 'Copy for Assistant'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                          <button
+                            onClick={async () => {
+                              try {
+                                await window.navigator.clipboard.writeText(buildAssistantPrompt());
+                                setCopiedPrompt(true);
+                                setTimeout(() => setCopiedPrompt(false), 1500);
+                              } catch (err) {
+                                console.error('Failed to copy validation summary', err);
+                              }
+                            }}
+                            className="btn btn-secondary text-xs"
+                          >
+                            {copiedPrompt ? 'Copied!' : 'Copy for Assistant'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                {validationIssues.length === 0 ? (
-                  <div className="validation-success p-8 text-center flex-shrink-0">
-                    <div className="text-4xl mb-2">✅</div>
-                    <h4 className="font-semibold mb-1">All Clear!</h4>
-                    <p className="text-muted">No validation issues found</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 overflow-y-auto flex-1 min-h-0">
-                    {validationIssues.map((issue, index) => (
-                      <div
-                        key={index}
-                        className={`p-4 ${
-                          issue.severity === 'error'
-                            ? 'validation-error'
-                            : issue.severity === 'warning'
-                            ? 'validation-warning'
-                            : 'validation-info'
-                        }`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span
-                                className={`badge ${
-                                  issue.severity === 'error'
-                                    ? 'badge-error'
-                                    : issue.severity === 'warning'
-                                    ? 'badge-warning'
-                                    : 'badge-info'
-                                }`}
-                              >
-                                {issue.severity.toUpperCase()}
-                              </span>
-                              <span className="text-sm text-secondary">{issue.category}</span>
+                  {validationIssues.length === 0 ? (
+                    <div className="validation-success p-8 text-center flex-shrink-0">
+                      <div className="text-4xl mb-2">✅</div>
+                      <h4 className="font-semibold mb-1">All Clear!</h4>
+                      <p className="text-muted">No validation issues found</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0 overflow-y-auto">
+                      {validationIssues.map((issue, index) => (
+                        <div
+                          key={index}
+                          className={`p-4 ${
+                            issue.severity === 'error'
+                              ? 'validation-error'
+                              : issue.severity === 'warning'
+                              ? 'validation-warning'
+                              : 'validation-info'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span
+                                  className={`badge ${
+                                    issue.severity === 'error'
+                                      ? 'badge-error'
+                                      : issue.severity === 'warning'
+                                      ? 'badge-warning'
+                                      : 'badge-info'
+                                  }`}
+                                >
+                                  {issue.severity.toUpperCase()}
+                                </span>
+                                <span className="text-sm text-secondary">{issue.category}</span>
+                              </div>
+                              <p className="text-primary">{issue.message}</p>
+                              {issue.field && (
+                                <p className="text-sm text-muted mt-1">Field: {issue.field}</p>
+                              )}
                             </div>
-                            <p className="text-primary">{issue.message}</p>
-                            {issue.field && (
-                              <p className="text-sm text-muted mt-1">Field: {issue.field}</p>
-                            )}
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

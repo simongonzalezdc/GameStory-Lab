@@ -312,6 +312,16 @@
   .dark .border-slate-600, .dark .border-gray-600 { border-color: var(--color-border) !important; }
   .dark .border-slate-700, .dark .border-gray-700 { border-color: var(--color-border) !important; }
   .dark .border-slate-800, .dark .border-gray-800 { border-color: var(--color-border-strong) !important; }
+
+  /* Jewel theme semantic color utilities */
+  .text-success { color: var(--color-success) !important; }
+  .text-warning { color: var(--color-warning) !important; }
+  .text-danger { color: var(--color-danger) !important; }
+  .text-info { color: var(--color-info) !important; }
+  .bg-success { background-color: var(--color-success) !important; }
+  .bg-warning { background-color: var(--color-warning) !important; }
+  .bg-danger { background-color: var(--color-danger) !important; }
+  .bg-info { background-color: var(--color-info) !important; }
 }
 
 @layer components {
@@ -710,6 +720,23 @@
     writing-mode: horizontal-tb;
     text-orientation: mixed;
     border-radius: var(--chat-bubble-radius) !important; /* Ensure unified corner radius */
+    font-size: 0.9375rem; /* 15px - slightly larger for better readability */
+    font-weight: 400;
+    line-height: 1.6; /* Improved line height for readability */
+  }
+
+  .chat-message-bubble p {
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  .chat-message-bubble code {
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+
+  .chat-message-bubble strong {
+    font-weight: 600;
   }
 
   .chat-message-bubble * {
