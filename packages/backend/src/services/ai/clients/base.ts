@@ -46,6 +46,7 @@ export interface AICompletionResponse {
     provider: string;
     costUsd?: number;
     durationMs: number;
+    thinking?: string;
   };
 }
 

@@ -139,16 +139,19 @@ export class AssistantService {
     }
 
     // Update mode hint if provided
-    if (modeHint && existing.metadata?.mode !== modeHint) {
-      existing = await this.prisma.chatSession.update({
-        where: { id: existing.id },
-        data: {
-          metadata: {
-            ...existing.metadata,
-            mode: modeHint,
+    if (modeHint) {
+      const currentMetadata = existing.metadata as Record<string, any> | null;
+      if (currentMetadata?.mode !== modeHint) {
+        existing = await this.prisma.chatSession.update({
+          where: { id: existing.id },
+          data: {
+            metadata: {
+              ...(currentMetadata || {}),
+              mode: modeHint,
+            },
           },
-        },
-      });
+        });
+      }
     }
 
     return existing;
@@ -178,11 +181,12 @@ export class AssistantService {
       throw new Error('Session not found');
     }
 
+    const currentMetadata = session.metadata as Record<string, any> | null;
     return this.prisma.chatSession.update({
       where: { id: sessionId },
       data: {
         metadata: {
-          ...session.metadata,
+          ...(currentMetadata || {}),
           mode,
         },
       },
@@ -203,7 +207,8 @@ export class AssistantService {
     const quickActionId = options?.quickActionId;
 
     // Extract mode from session metadata or default to auto
-    const currentMode = (session.metadata?.mode as AssistantMode) || 'auto';
+    const sessionMetadata = session.metadata as Record<string, any> | null;
+    const currentMode = (sessionMetadata?.mode as AssistantMode) || 'auto';
 
     // Store user message with mode context
     await this.prisma.chatMessage.create({
@@ -323,9 +328,10 @@ export class AssistantService {
         messageCount: aiMessages.length,
       });
 
-    // Determine if user wants a proposal
-    const userWantsProposal = quickActionId === 'propose-improvements' || 
-      /(do it|go ahead|create|make changes|generate|implement|apply|proposal|approve|please make|produce|build)/i.test(content);
+    // Determine if user wants a proposal (before AI call for logging)
+    const quickActionForcesProposal = quickActionId === 'propose-improvements';
+    const userExplicitlyRequestsProposal = /(do it|go ahead|create|make changes|generate|implement|apply|proposal|approve|please make|produce|build)/i.test(content);
+    const userWantsProposal = quickActionForcesProposal || userExplicitlyRequestsProposal;
     
     const aiResponse = await this.aiOrchestrator.generate(
       'assistant',
@@ -392,13 +398,6 @@ export class AssistantService {
       }
 
     let createdProposal: Awaited<ReturnType<typeof this.prisma.assistantProposal.create>> | null = null;
-    
-    // Check if user is requesting a proposal/action
-    const quickActionForcesProposal = quickActionId === 'propose-improvements';
-    const userExplicitlyRequestsProposal = /(do it|go ahead|create|make changes|generate|implement|apply|proposal|approve|please make)/i.test(
-      content
-    );
-    const userWantsProposal = quickActionForcesProposal || userExplicitlyRequestsProposal;
     
     // Log what we got from parsing
     logger.info('Parsed assistant response', {
@@ -783,7 +782,7 @@ export class AssistantService {
         interviewComplete: !!documentation && completionPercentage >= 100,
         documents: documentation
           ? documentation.documents.map((doc) => ({
-              name: doc.name,
+              name: doc.templateName,
               snippet: doc.content.substring(0, 200) + '...',
             }))
           : [],
@@ -1500,24 +1499,24 @@ export class AssistantService {
       // Sometimes models return {reply: "..."} instead of {reply: "...", proposal: {...}}
       if (parsed.proposal === undefined || parsed.proposal === null) {
         // Check if the original content has a proposal but it wasn't parsed
-        const hasProposalInContent = cleanedContent.includes('"proposal"') && (cleanedContent.includes('"mechanics"') || cleanedContent.includes('"lore"') || cleanedContent.includes('"architectDocuments"'));
+        const hasProposalInContent = content.includes('"proposal"') && (content.includes('"mechanics"') || content.includes('"lore"') || content.includes('"architectDocuments"'));
         if (hasProposalInContent) {
           logger.error('Proposal exists in content but was not parsed correctly - likely truncated JSON', {
             keys: Object.keys(parsed),
             hasReply: !!parsed.reply,
-            contentHasProposal: cleanedContent.includes('"proposal"'),
-            contentHasMechanics: cleanedContent.includes('"mechanics"'),
-            contentHasLore: cleanedContent.includes('"lore"'),
-            contentHasArchitectDocuments: cleanedContent.includes('"architectDocuments"'),
-            contentLength: cleanedContent.length,
-            contentEndsWithBrace: cleanedContent.trim().endsWith('}'),
-            contentPreview: cleanedContent.substring(0, 3000),
+            contentHasProposal: content.includes('"proposal"'),
+            contentHasMechanics: content.includes('"mechanics"'),
+            contentHasLore: content.includes('"lore"'),
+            contentHasArchitectDocuments: content.includes('"architectDocuments"'),
+            contentLength: content.length,
+            contentEndsWithBrace: content.trim().endsWith('}'),
+            contentPreview: content.substring(0, 3000),
             parsedPreview: JSON.stringify(parsed).substring(0, 500),
-            last500Chars: cleanedContent.substring(Math.max(0, cleanedContent.length - 500)),
+            last500Chars: content.substring(Math.max(0, content.length - 500)),
           });
           
           // Try to extract partial proposal if possible
-          const proposalMatch = cleanedContent.match(/"proposal"\s*:\s*(\{[\s\S]*)/);
+          const proposalMatch = content.match(/"proposal"\s*:\s*(\{[\s\S]*)/);
           if (proposalMatch) {
             logger.warn('Found proposal start in content but JSON parsing failed - response likely truncated', {
               proposalStart: proposalMatch[1].substring(0, 500),
@@ -1571,18 +1570,18 @@ export class AssistantService {
       const proposalIsTruncated = proposal && typeof proposal === 'object' && 
         proposal.explanation && 
         !proposal.mechanics && !proposal.lore && !proposal.architectDocuments &&
-        (cleanedContent.includes('"mechanics"') || cleanedContent.includes('"lore"') || cleanedContent.includes('"architectDocuments"'));
+        (content.includes('"mechanics"') || content.includes('"lore"') || content.includes('"architectDocuments"'));
       
       if (proposalIsTruncated) {
         logger.error('Proposal appears to be truncated - has explanation but missing mechanics/lore/architectDocuments', {
           proposalKeys: Object.keys(proposal),
           hasExplanation: !!proposal.explanation,
-          contentHasMechanics: cleanedContent.includes('"mechanics"'),
-          contentHasLore: cleanedContent.includes('"lore"'),
-          contentHasArchitectDocuments: cleanedContent.includes('"architectDocuments"'),
-          contentLength: cleanedContent.length,
-          contentEndsWithBrace: cleanedContent.trim().endsWith('}'),
-          last200Chars: cleanedContent.substring(Math.max(0, cleanedContent.length - 200)),
+          contentHasMechanics: content.includes('"mechanics"'),
+          contentHasLore: content.includes('"lore"'),
+          contentHasArchitectDocuments: content.includes('"architectDocuments"'),
+          contentLength: content.length,
+          contentEndsWithBrace: content.trim().endsWith('}'),
+          last200Chars: content.substring(Math.max(0, content.length - 200)),
         });
       }
       
