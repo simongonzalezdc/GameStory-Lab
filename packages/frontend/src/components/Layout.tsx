@@ -34,7 +34,6 @@ const IconSpark = () => (
 // Navigation items constant (defined outside component to prevent recreation)
 const NAV_ITEMS = [
   { path: '/', label: 'Projects', icon: IconProjects },
-  { path: '/projects#assistant', label: 'Assistant', icon: IconSpark },
   { path: '/settings', label: 'Settings', icon: IconSettings },
 ] as const;
 
@@ -106,7 +105,6 @@ return (
                 const isActive = location.pathname === normalizedPath || location.pathname + location.hash === item.path;
                 const Icon = item.icon;
                 const isSettings = item.path === '/settings';
-                const isAssistant = item.path.includes('#assistant');
 
                 if (isSettings) {
                   return (
@@ -177,33 +175,6 @@ return (
                         </div>
                       )}
                     </div>
-                  );
-                }
-
-                if (isAssistant) {
-                  return (
-                    <button
-                      key="assistant-nav"
-                      type="button"
-                      onClick={() => {
-                        // Jump to an active project assistant if available; otherwise go to projects list
-                        if (activeProjectId) {
-                          navigate(`/projects/${activeProjectId}`, { state: { focusAssistant: true } });
-                        } else {
-                          navigate('/projects', { state: { focusAssistant: true } });
-                        }
-                      }}
-                      className={`flex items-center gap-2 nav-button text-sm font-semibold transition-all duration-200 border ${
-                        isActive
-                          ? 'bg-surface-card text-primary border-brand-400 shadow-md'
-                          : 'text-secondary border-transparent hover:border-subtle hover:bg-surface-elevated'
-                      }`}
-                    >
-                      <span className={`avatar avatar-sm flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
-                        <Icon />
-                      </span>
-                      <span>Assistant</span>
-                    </button>
                   );
                 }
 

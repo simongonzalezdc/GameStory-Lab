@@ -151,7 +151,7 @@
     --chat-message-padding-x: 16px;
     --chat-message-padding-y: 12px;
     --chat-avatar-size: 32px;
-    --chat-bubble-radius: 12px;
+    --chat-bubble-radius: var(--radius-lg); /* Use consistent design system */
     --chat-spacing-message: 12px;
     --chat-spacing-section: 16px;
     --chat-proposal-panel-width: 320px;
@@ -566,6 +566,7 @@
     white-space: normal;
     writing-mode: horizontal-tb;
     text-orientation: mixed;
+    border-radius: var(--chat-bubble-radius) !important; /* Ensure unified corner radius */
   }
 
   .chat-message-bubble * {
@@ -869,6 +870,144 @@
 
   .chat-proposal-panel {
     border-radius: var(--radius-lg);
+  }
+
+  /* Jewel-themed spinner animations */
+  @keyframes jewel-spin {
+    0% {
+      transform: rotate(0deg) scale(1);
+      opacity: 0.85;
+    }
+    25% {
+      transform: rotate(90deg) scale(1.05);
+      opacity: 1;
+    }
+    50% {
+      transform: rotate(180deg) scale(1.1);
+      opacity: 0.95;
+    }
+    75% {
+      transform: rotate(270deg) scale(1.05);
+      opacity: 1;
+    }
+    100% {
+      transform: rotate(360deg) scale(1);
+      opacity: 0.85;
+    }
+  }
+
+  @keyframes jewel-pulse {
+    0%, 100% {
+      opacity: 0.7;
+      transform: scale(0.95);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+  }
+
+  @keyframes jewel-glow {
+    0%, 100% {
+      box-shadow: 
+        0 0 8px rgba(143, 62, 72, 0.5),
+        0 0 12px rgba(174, 93, 55, 0.4),
+        0 0 10px rgba(181, 147, 60, 0.3),
+        inset 0 0 8px rgba(255, 255, 255, 0.15);
+    }
+    50% {
+      box-shadow: 
+        0 0 16px rgba(143, 62, 72, 0.7),
+        0 0 20px rgba(174, 93, 55, 0.6),
+        0 0 24px rgba(181, 147, 60, 0.5),
+        inset 0 0 12px rgba(255, 255, 255, 0.25);
+    }
+  }
+
+  @keyframes jewel-sparkle {
+    0%, 100% {
+      opacity: 0;
+      transform: scale(0) rotate(0deg);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1) rotate(180deg);
+    }
+  }
+
+  .jewel-spinner {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .jewel-spinner::before {
+    content: '';
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #8F3E48 0%, #AE5D37 50%, #B5933C 100%);
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    animation: jewel-spin 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite, jewel-glow 2s ease-in-out infinite;
+    box-shadow: 
+      0 0 12px rgba(143, 62, 72, 0.6),
+      0 0 20px rgba(174, 93, 55, 0.5),
+      0 0 16px rgba(181, 147, 60, 0.4),
+      inset 0 2px 8px rgba(255, 255, 255, 0.25),
+      inset 0 -2px 8px rgba(0, 0, 0, 0.2);
+    filter: brightness(1.1);
+  }
+
+  .jewel-spinner::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(181, 147, 60, 0.7) 70%, transparent 100%);
+    border-radius: 50%;
+    animation: jewel-pulse 1.8s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  }
+
+  /* Sparkle particles around the jewel */
+  .jewel-spinner .sparkle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    animation: jewel-sparkle 2s ease-in-out infinite;
+  }
+
+  .jewel-spinner .sparkle:nth-child(1) {
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 0s;
+  }
+
+  .jewel-spinner .sparkle:nth-child(2) {
+    top: 50%;
+    right: -4px;
+    transform: translateY(-50%);
+    animation-delay: 0.5s;
+  }
+
+  .jewel-spinner .sparkle:nth-child(3) {
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 1s;
+  }
+
+  .jewel-spinner .sparkle:nth-child(4) {
+    top: 50%;
+    left: -4px;
+    transform: translateY(-50%);
+    animation-delay: 1.5s;
   }
 
   .typing-indicator {

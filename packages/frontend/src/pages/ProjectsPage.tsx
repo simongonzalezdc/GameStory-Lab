@@ -540,7 +540,7 @@ export function ProjectsPage() {
 
       {/* Assistant Panel */}
       {showAssistant && (
-        <div className="fixed right-4 top-4 bottom-4 w-96 z-40 bg-surface rounded-2xl shadow-2xl border border-border-subtle overflow-hidden">
+        <div className="fixed right-4 top-20 bottom-28 w-96 z-40 bg-surface rounded-2xl shadow-2xl border border-border-subtle overflow-hidden">
           <div className="h-full flex flex-col">
             {/* Header */}
             <div className="flex-shrink-0 px-4 py-3 border-b border-border-subtle bg-surface-card">
@@ -560,33 +560,14 @@ export function ProjectsPage() {
             
             {/* Assistant Content */}
             <div className="flex-1 min-h-0">
-              {selectedProjectId ? (
-                <ProjectAssistantPanel
-                  projectId={selectedProjectId}
-                  type="concept"
-                  onProposalAccepted={async () => {
-                    // Refresh projects after proposal acceptance
-                    await loadProjects();
-                  }}
-                />
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-                  <div className="w-16 h-16 bg-brand-100 dark:bg-brand-900 rounded-full flex items-center justify-center mb-4">
-                    <span className="text-2xl">🤖</span>
-                  </div>
-                  <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                    Welcome to GameForge Studio
-                  </h4>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-                    Select a project to chat with the AI assistant about concept refinement, validation issues, and improvement suggestions.
-                  </p>
-                  <div className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
-                    <p>• Ask about game design best practices</p>
-                    <p>• Get help with project planning</p>
-                    <p>• Learn about templates and workflows</p>
-                  </div>
-                </div>
-              )}
+              <ProjectAssistantPanel
+                projectId={selectedProjectId || undefined}
+                type="concept"
+                onProposalAccepted={async () => {
+                  // Refresh projects after proposal acceptance
+                  await loadProjects();
+                }}
+              />
             </div>
           </div>
         </div>

@@ -3,9 +3,9 @@
  * Centralized API client for backend communication
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3006';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3007';
 
-class APIError extends Error {
+export class APIError extends Error {
   constructor(
     message: string,
     public status: number,
@@ -316,4 +316,18 @@ export const assistantAPI = {
     } as any),
 
   getMessages: (sessionId: string) =>
-    request<{ messages: any[] }>(`
+    request<{ messages: any[] }>(`/api/assistant/session/${sessionId}/messages`),
+
+  getProposals: (sessionId: string) =>
+    request<{ proposals: any[] }>(`/api/assistant/session/${sessionId}/proposals`),
+
+  acceptProposal: (sessionId: string, proposalId: string) =>
+    request<{ success: boolean; result: any }>(`/api/assistant/proposals/${proposalId}/accept`, {
+      method: 'POST',
+    } as any),
+
+  dismissProposal: (sessionId: string, proposalId: string) =>
+    request<{ success: boolean }>(`/api/assistant/proposals/${proposalId}/reject`, {
+      method: 'POST',
+    } as any),
+};

@@ -70,17 +70,36 @@ export class AssistantService {
   ) {}
 
   async getOrCreateSession(projectId: string, type: SessionType = 'concept', modeHint?: AssistantMode) {
+    // Handle 'general' projectId for workflow assistance without a specific project
+    // Create or find a special "General Workflow" project for general sessions
+    let effectiveProjectId = projectId;
+    if (projectId === 'general') {
+      // Find or create a special "General Workflow" project
+      let generalProject = await this.prisma.project.findFirst({
+        where: { name: 'General Workflow' },
+      });
+      if (!generalProject) {
+        generalProject = await this.prisma.project.create({
+          data: {
+            name: 'General Workflow',
+            genre: 'general',
+          },
+        });
+      }
+      effectiveProjectId = generalProject.id;
+    }
+    
     // Always use unified 'project' session type
     // Backfill any existing separate sessions by finding the most recent one
     let existing = await this.prisma.chatSession.findFirst({
-      where: { projectId, type: 'project' },
+      where: { projectId: effectiveProjectId, type: 'project' },
       orderBy: { createdAt: 'desc' },
     });
 
     if (!existing) {
       // No project session exists - check if there are legacy sessions to migrate
       const legacySession = await this.prisma.chatSession.findFirst({
-        where: { projectId },
+        where: { projectId: effectiveProjectId },
         orderBy: { createdAt: 'desc' },
       });
 
@@ -94,7 +113,7 @@ export class AssistantService {
         // Create new unified session
         existing = await this.prisma.chatSession.create({
           data: {
-            projectId,
+            projectId: effectiveProjectId,
             type: 'project',
             metadata: {
               mode: modeHint || 'auto',
@@ -230,24 +249,44 @@ export class AssistantService {
                 'Respond using the required JSON schema: { "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }',
                 '',
                 'CRITICAL PROPOSAL REQUIREMENT:',
-                'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", or anything they can approve, you MUST include a proposal object with actual data.',
+                'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", "implement", "apply", "approve", or anything they can approve, you MUST include a proposal object with actual data.',
                 '',
                 'The proposal object MUST contain:',
                 '- "explanation": A string describing what the proposal does',
-                '- "mechanics": A complete mechanics object (if proposing mechanics changes)',
-                '- "lore": A complete lore object (if proposing lore changes)',
+                '- "mechanics": A complete mechanics object (if proposing mechanics changes) - MUST be a full object with actual data, not {}',
+                '- "lore": A complete lore object (if proposing lore changes) - MUST be a full object with actual data, not {}',
                 '- "architectDocuments": Array of document objects (if proposing documentation changes)',
                 '',
                 'DO NOT:',
-                '- Return {proposal: null} or {proposal: {}}',
-                '- Just say "I will create..." without actually including the proposal',
+                '- Return {proposal: null} or {proposal: {}} or {proposal: {explanation: "..."}}',
+                '- Just say "I will create..." or "I\'ve created..." without actually including the proposal data',
                 '- Include only an explanation without mechanics/lore/architectDocuments objects',
+                '- Return empty objects {} for mechanics or lore',
                 '',
                 'DO:',
                 '- Include the full, complete mechanics and/or lore objects in the proposal',
-                '- Include architect document content when proposing documentation',
-                '- Make sure proposal.mechanics and proposal.lore contain actual JSON data, not empty objects',
+                '- For documentation proposals: Keep architectDocuments concise - include key sections and structure, not full verbose content',
+                '- Make sure proposal.mechanics and proposal.lore contain actual JSON data with properties, not empty objects',
                 '- If proposing multiple types of changes, include all applicable objects',
+                '- ALWAYS include the actual data structures, not just descriptions',
+                '- Keep proposals focused and concise to avoid response truncation',
+                '',
+                'EXAMPLE VALID PROPOSAL:',
+                '{',
+                '  "reply": "I\'ve created a proposal that...",',
+                '  "proposal": {',
+                '    "explanation": "This proposal updates...",',
+                '    "mechanics": {',
+                '      "coreLoop": "...",',
+                '      "playerActions": [...],',
+                '      "resources": {...}',
+                '    },',
+                '    "lore": {',
+                '      "setting": "...",',
+                '      "characters": {...}',
+                '    }',
+                '  }',
+                '}',
               ].join('\n'),
             });
           } catch (serializeError) {
@@ -281,7 +320,7 @@ export class AssistantService {
       'assistant',
       aiMessages,
       'auto', // Will use GLM 4.6 if available, otherwise falls back to Ollama
-      { maxTokens: 16000 } // Increased significantly to allow for full mechanics/lore objects in proposals
+      { maxTokens: 20000 } // Increased to allow for full mechanics/lore objects in proposals without truncation
     );
 
       logger.debug('AI response received', {
@@ -351,15 +390,43 @@ export class AssistantService {
       createdProposal = await this.createProposal(session, parsed.proposal);
     } else if (userWantsProposal) {
       // User asked for action but no proposal was generated
+      const responseMightBeTruncated = !aiResponse.content.trim().endsWith('}') && aiResponse.content.includes('"proposal"');
+      const isDocumentationRequest = /documentation|document|gdd|technical.*spec|implementation.*guide/i.test(content);
+      
       logger.warn('User requested proposal but AI did not generate one', {
         sessionId,
         userMessage: content,
         hasProposal: !!parsed.proposal,
         proposalType: typeof parsed.proposal,
         proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
-        aiResponsePreview: aiResponse.content.substring(0, 1000),
+        hasMechanics: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.mechanics),
+        hasLore: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.lore),
+        hasArchitectDocuments: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.architectDocuments),
+        proposalIsEmpty: parsed.proposal && typeof parsed.proposal === 'object' && Object.keys(parsed.proposal).length === 0,
+        aiResponsePreview: aiResponse.content.substring(0, 2000),
         parsedReplyPreview: parsed.reply?.substring(0, 500),
+        responseMightBeTruncated,
+        isDocumentationRequest,
       });
+      
+      // If the response mentions creating a proposal but doesn't include it, log this for debugging
+      if (parsed.reply && /created.*proposal|proposal.*created|I've.*proposal/i.test(parsed.reply)) {
+        logger.error('AI claimed to create proposal but proposal object is missing or empty', {
+          sessionId,
+          replyContainsProposalMention: true,
+          proposalExists: !!parsed.proposal,
+          proposalType: typeof parsed.proposal,
+          proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
+          fullResponse: aiResponse.content,
+          responseMightBeTruncated,
+          isDocumentationRequest,
+        });
+        
+        // If it's a documentation request and the response was truncated, update the reply to suggest using the architect service
+        if (isDocumentationRequest && responseMightBeTruncated) {
+          parsed.reply = (parsed.reply || '') + '\n\n⚠️ The response was too long and may have been truncated. For comprehensive documentation generation, please use the Project Architect feature, or try asking for a more specific document.';
+        }
+      }
     }
 
     // Include debug info in development mode
@@ -371,8 +438,14 @@ export class AssistantService {
         proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
         hasMechanics: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.mechanics),
         hasLore: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.lore),
-        aiResponsePreview: aiResponse.content.substring(0, 1000),
-        parsedProposalPreview: parsed.proposal && typeof parsed.proposal === 'object' ? JSON.stringify(parsed.proposal).substring(0, 500) : String(parsed.proposal),
+        hasArchitectDocuments: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.architectDocuments),
+        proposalIsEmpty: parsed.proposal && typeof parsed.proposal === 'object' && Object.keys(parsed.proposal).length === 0,
+        proposalHasOnlyExplanation: parsed.proposal && typeof parsed.proposal === 'object' && 
+          Object.keys(parsed.proposal).length === 1 && parsed.proposal.explanation,
+        aiResponseLength: aiResponse.content.length,
+        aiResponseEndsProperly: aiResponse.content.trim().endsWith('}'),
+        aiResponsePreview: aiResponse.content.substring(0, 2000),
+        parsedProposalPreview: parsed.proposal && typeof parsed.proposal === 'object' ? JSON.stringify(parsed.proposal).substring(0, 1000) : String(parsed.proposal),
       }
     } : {};
 
@@ -411,11 +484,15 @@ export class AssistantService {
       payloadKeys: Object.keys(payload),
       hasMechanics: !!payload.mechanics,
       hasLore: !!payload.lore,
+      hasArchitectDocuments: !!payload.architectDocuments,
+      architectDocumentsType: typeof payload.architectDocuments,
+      architectDocumentsIsArray: Array.isArray(payload.architectDocuments),
+      architectDocumentsLength: Array.isArray(payload.architectDocuments) ? payload.architectDocuments.length : 0,
       mechanicsType: typeof payload.mechanics,
       loreType: typeof payload.lore,
       mechanicsKeys: payload.mechanics && typeof payload.mechanics === 'object' ? Object.keys(payload.mechanics) : [],
       loreKeys: payload.lore && typeof payload.lore === 'object' ? Object.keys(payload.lore) : [],
-      payloadPreview: JSON.stringify(payload).substring(0, 500),
+      payloadPreview: JSON.stringify(payload).substring(0, 1000),
     });
 
     if (proposal.proposalType === 'concept-update') {
@@ -497,21 +574,69 @@ export class AssistantService {
       result = { newVersion };
 
       // Optionally apply architect documents alongside mechanics/lore changes
-      if (payload.architectDocuments) {
+      if (payload.architectDocuments && Array.isArray(payload.architectDocuments) && payload.architectDocuments.length > 0) {
+        logger.info('Applying architect documents from proposal', {
+          proposalId: proposal.id,
+          projectId: proposal.projectId,
+          documentCount: payload.architectDocuments.length,
+          documentNames: payload.architectDocuments.map((d: any) => d.name || 'unknown'),
+        });
+        try {
+          const updated = architectService.applyAssistantUpdates(
+            proposal.projectId,
+            payload.architectDocuments
+          );
+          result.documentation = updated;
+          logger.info('Architect documents applied successfully', {
+            proposalId: proposal.id,
+            projectId: proposal.projectId,
+            documentationPackage: updated ? {
+              documentCount: updated.documents.length,
+              documentNames: updated.documents.map(d => d.templateName),
+            } : null,
+          });
+        } catch (error) {
+          logger.error('Failed to apply architect documents', {
+            proposalId: proposal.id,
+            projectId: proposal.projectId,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+          });
+          // Don't throw - allow the proposal to be accepted even if documentation fails
+        }
+      }
+    }
+
+    if (proposal.proposalType === 'architect-document' && payload.architectDocuments && Array.isArray(payload.architectDocuments) && payload.architectDocuments.length > 0) {
+      logger.info('Applying architect-document proposal', {
+        proposalId: proposal.id,
+        projectId: proposal.projectId,
+        documentCount: payload.architectDocuments.length,
+        documentNames: payload.architectDocuments.map((d: any) => d.name || 'unknown'),
+      });
+      try {
         const updated = architectService.applyAssistantUpdates(
           proposal.projectId,
           payload.architectDocuments
         );
-        result.documentation = updated;
+        result = { documentation: updated };
+        logger.info('Architect-document proposal applied successfully', {
+          proposalId: proposal.id,
+          projectId: proposal.projectId,
+          documentationPackage: updated ? {
+            documentCount: updated.documents.length,
+            documentNames: updated.documents.map(d => d.templateName),
+          } : null,
+        });
+      } catch (error) {
+        logger.error('Failed to apply architect-document proposal', {
+          proposalId: proposal.id,
+          projectId: proposal.projectId,
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+        throw error; // Throw for architect-document proposals since that's the main purpose
       }
-    }
-
-    if (proposal.proposalType === 'architect-document' && payload.architectDocuments) {
-      const updated = architectService.applyAssistantUpdates(
-        proposal.projectId,
-        payload.architectDocuments
-      );
-      result = { documentation: updated };
     }
 
     await this.prisma.assistantProposal.update({
@@ -1561,16 +1686,29 @@ export class AssistantService {
       // Sometimes models return {reply: "..."} instead of {reply: "...", proposal: {...}}
       if (parsed.proposal === undefined || parsed.proposal === null) {
         // Check if the original content has a proposal but it wasn't parsed
-        const hasProposalInContent = content.includes('"proposal"') && content.includes('"mechanics"');
+        const hasProposalInContent = cleanedContent.includes('"proposal"') && (cleanedContent.includes('"mechanics"') || cleanedContent.includes('"lore"') || cleanedContent.includes('"architectDocuments"'));
         if (hasProposalInContent) {
-          logger.error('Proposal exists in content but was not parsed correctly', {
+          logger.error('Proposal exists in content but was not parsed correctly - likely truncated JSON', {
             keys: Object.keys(parsed),
             hasReply: !!parsed.reply,
-            contentHasProposal: content.includes('"proposal"'),
-            contentHasMechanics: content.includes('"mechanics"'),
-            contentPreview: content.substring(0, 2000),
+            contentHasProposal: cleanedContent.includes('"proposal"'),
+            contentHasMechanics: cleanedContent.includes('"mechanics"'),
+            contentHasLore: cleanedContent.includes('"lore"'),
+            contentHasArchitectDocuments: cleanedContent.includes('"architectDocuments"'),
+            contentLength: cleanedContent.length,
+            contentEndsWithBrace: cleanedContent.trim().endsWith('}'),
+            contentPreview: cleanedContent.substring(0, 3000),
             parsedPreview: JSON.stringify(parsed).substring(0, 500),
+            last500Chars: cleanedContent.substring(Math.max(0, cleanedContent.length - 500)),
           });
+          
+          // Try to extract partial proposal if possible
+          const proposalMatch = cleanedContent.match(/"proposal"\s*:\s*(\{[\s\S]*)/);
+          if (proposalMatch) {
+            logger.warn('Found proposal start in content but JSON parsing failed - response likely truncated', {
+              proposalStart: proposalMatch[1].substring(0, 500),
+            });
+          }
         } else {
           logger.warn('Model response missing proposal field', {
             keys: Object.keys(parsed),
@@ -1615,6 +1753,25 @@ export class AssistantService {
         ? parsed.proposal
         : {};
       
+      // Check if proposal appears truncated (has explanation but incomplete mechanics/lore)
+      const proposalIsTruncated = proposal && typeof proposal === 'object' && 
+        proposal.explanation && 
+        !proposal.mechanics && !proposal.lore && !proposal.architectDocuments &&
+        (cleanedContent.includes('"mechanics"') || cleanedContent.includes('"lore"') || cleanedContent.includes('"architectDocuments"'));
+      
+      if (proposalIsTruncated) {
+        logger.error('Proposal appears to be truncated - has explanation but missing mechanics/lore/architectDocuments', {
+          proposalKeys: Object.keys(proposal),
+          hasExplanation: !!proposal.explanation,
+          contentHasMechanics: cleanedContent.includes('"mechanics"'),
+          contentHasLore: cleanedContent.includes('"lore"'),
+          contentHasArchitectDocuments: cleanedContent.includes('"architectDocuments"'),
+          contentLength: cleanedContent.length,
+          contentEndsWithBrace: cleanedContent.trim().endsWith('}'),
+          last200Chars: cleanedContent.substring(Math.max(0, cleanedContent.length - 200)),
+        });
+      }
+      
       // Log what we're returning
       logger.info('Parsed response result', {
         hasReply: !!reply,
@@ -1624,7 +1781,9 @@ export class AssistantService {
         proposalKeys: proposal && typeof proposal === 'object' ? Object.keys(proposal) : [],
         hasMechanics: !!(proposal && typeof proposal === 'object' && proposal.mechanics),
         hasLore: !!(proposal && typeof proposal === 'object' && proposal.lore),
-        proposalPreview: proposal && typeof proposal === 'object' ? JSON.stringify(proposal).substring(0, 500) : String(proposal),
+        hasArchitectDocuments: !!(proposal && typeof proposal === 'object' && proposal.architectDocuments),
+        proposalIsTruncated,
+        proposalPreview: proposal && typeof proposal === 'object' ? JSON.stringify(proposal).substring(0, 1000) : String(proposal),
       });
       
       return {

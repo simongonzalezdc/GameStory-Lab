@@ -25,12 +25,15 @@ async function getService() {
 
 router.post('/session', async (req: Request, res: Response) => {
   const { projectId, type, mode } = req.body;
-  if (!projectId) {
+  // Allow 'general' as a special projectId for workflow assistance without a project
+  // Reject if projectId is not 'general' AND (it's falsy OR not a string)
+  if (projectId !== 'general' && (!projectId || typeof projectId !== 'string')) {
     return res.status(400).json({ error: 'projectId is required' });
   }
   try {
     const service = await getService();
     // Always use unified 'project' session type, but accept mode hints
+    // For 'general', we'll handle it specially in the service
     const session = await service.getOrCreateSession(projectId, 'project', mode);
     const messages = await service.getMessages(session.id);
     const proposals = await service.listPendingProposals(session.id);

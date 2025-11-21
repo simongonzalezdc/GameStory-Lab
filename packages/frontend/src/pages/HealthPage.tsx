@@ -84,6 +84,7 @@ export function HealthPage() {
   }
 
   return (
+    <>
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -177,7 +178,7 @@ export function HealthPage() {
 
     {/* Assistant Panel */}
     {showAssistant && (
-      <div className="fixed right-4 top-4 bottom-4 w-96 z-40 bg-surface rounded-2xl shadow-2xl border border-border-subtle overflow-hidden">
+      <div className="fixed right-4 top-20 bottom-28 w-96 z-40 bg-surface rounded-2xl shadow-2xl border border-border-subtle overflow-hidden">
         <div className="h-full flex flex-col">
           {/* Header */}
           <div className="flex-shrink-0 px-4 py-3 border-b border-border-subtle bg-surface-card">
@@ -228,4 +229,5 @@ export function HealthPage() {
         </div>
       </div>
     )}
-  </div>
+    </>
+  );

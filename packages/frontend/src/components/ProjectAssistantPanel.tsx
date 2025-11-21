@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { assistantAPI } from '../services/api';
 
 interface ProjectAssistantPanelProps {
-  projectId: string;
+  projectId?: string;
   type?: 'concept' | 'architect' | 'project';
   mode?: 'concept' | 'architect' | 'auto';
   onRefine?: (focus: 'deepen-mechanics' | 'enrich-lore' | 'improve-consistency' | 'enhance-genre-fit') => void;
@@ -49,9 +49,9 @@ export function ProjectAssistantPanel({
       background: [
         'radial-gradient(120% 140% at 22% 18%, rgba(255,255,255,0.09), rgba(255,255,255,0) 52%)',
         'radial-gradient(140% 160% at 82% 12%, rgba(255,255,255,0.07), rgba(255,255,255,0) 55%)',
-        'linear-gradient(145deg, #344676 0%, #4a5688 50%, #6B5D88 100%)', // sapphire to amethyst gradient
+        'linear-gradient(145deg, #5A7850 0%, #346C68 50%, #344676 100%)', // emerald to turquoise to sapphire gradient
       ].join(','),
-      border: '1px solid rgba(107, 93, 136, 0.65)', // amethyst border
+      border: '1px solid rgba(90, 120, 80, 0.65)', // emerald border
       color: 'var(--color-text-primary)',
       borderRadius: 'var(--chat-bubble-radius)',
       padding: 'var(--chat-message-padding-y) var(--chat-message-padding-x)',
@@ -61,7 +61,7 @@ export function ProjectAssistantPanel({
       maxWidth: 'var(--chat-message-max-width)',
       alignSelf: 'flex-end',
       marginLeft: 'auto',
-      boxShadow: '0 16px 36px -18px rgba(52, 70, 118, 0.7), 0 0 0 1px rgba(107, 93, 136, 0.28)',
+      boxShadow: '0 16px 36px -18px rgba(52, 70, 118, 0.7), 0 0 0 1px rgba(90, 120, 80, 0.28)',
     }),
     []
   );
@@ -71,9 +71,15 @@ export function ProjectAssistantPanel({
       background: [
         'radial-gradient(120% 140% at 18% 18%, rgba(255,255,255,0.07), rgba(255,255,255,0) 52%)',
         'radial-gradient(140% 160% at 82% 16%, rgba(255,255,255,0.05), rgba(255,255,255,0) 55%)',
-        'linear-gradient(155deg, #8F3E48 0%, #A85664 50%, #B5933C 100%)', // garnet to topaz brand gradient
+        'linear-gradient(155deg, #8F3E48 0%, #AE5D37 50%, #B5933C 100%)', // garnet to fire opal to topaz gradient
       ].join(', '),
       border: '1px solid rgba(143, 62, 72, 0.65)', // garnet border
+      borderRadius: 'var(--chat-bubble-radius)',
+      padding: 'var(--chat-message-padding-y) var(--chat-message-padding-x)',
+      fontSize: '0.875rem',
+      lineHeight: '1.5',
+      wordWrap: 'break-word' as const,
+      maxWidth: 'var(--chat-message-max-width)',
       boxShadow:
         '0 16px 36px -18px rgba(143, 62, 72, 0.7), 0 0 0 1px rgba(143, 62, 72, 0.28)',
     }),
@@ -207,6 +213,7 @@ export function ProjectAssistantPanel({
   const [proposals, setProposals] = useState<AssistantProposal[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showProposals, setShowProposals] = useState(false);
   const [quickMode, setQuickMode] = useState<'standard' | 'concise' | 'detailed'>('standard');
@@ -216,11 +223,18 @@ export function ProjectAssistantPanel({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
-    if (!projectId) return;
     setError(null);
-    console.log('[Assistant] Starting unified session:', { projectId, type: 'project', mode: currentMode });
+    setInitializing(true);
+    setSession(null);
+    setMessages([]);
+    setProposals([]);
+    
+    // Use a special "general" projectId when no project is selected
+    const effectiveProjectId = projectId || 'general';
+    
+    console.log('[Assistant] Starting unified session:', { projectId: effectiveProjectId, type: 'project', mode: currentMode });
     assistantAPI
-      .startSession({ projectId, type: 'project', mode: currentMode })
+      .startSession({ projectId: effectiveProjectId, type: 'project', mode: currentMode })
       .then((data) => {
         console.log('[Assistant] Session started:', data);
         setSession(data.session);
@@ -241,6 +255,8 @@ export function ProjectAssistantPanel({
         if (data.session?.metadata?.mode) {
           setCurrentMode(data.session.metadata.mode);
         }
+        
+        setInitializing(false);
         
         // For architect mode, automatically send a greeting to trigger the interview
         if ((currentMode === 'architect' || initialMode === 'architect') && data.messages.length === 0 && data.session?.id) {
@@ -268,9 +284,11 @@ export function ProjectAssistantPanel({
       })
       .catch((err) => {
         console.error('[Assistant] Failed to start session:', err);
-        setError(err instanceof Error ? err.message : 'Failed to start assistant');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to start assistant session. Please check your connection and try again.';
+        setError(errorMessage);
+        setInitializing(false);
       });
-  }, [projectId, currentMode]); // Reinitialize when mode changes
+  }, [projectId, currentMode, initialMode]); // Reinitialize when mode changes
 
   useEffect(() => {
     if (!listRef.current) return;
@@ -389,6 +407,14 @@ For each category, provide specific, actionable suggestions. Help me understand 
   };
 
   const handleAccept = async (proposalId: string) => {
+    if (!session?.id) {
+      setError('No active session. Please wait for the session to initialize.');
+      return;
+    }
+    if (!proposalId) {
+      setError('Proposal ID is missing.');
+      return;
+    }
     try {
       // Find the proposal to log its contents before accepting
       const proposal = proposals.find(p => p.id === proposalId);
@@ -405,7 +431,7 @@ For each category, provide specific, actionable suggestions. Help me understand 
       
       let response;
      try {
-       response = await assistantAPI.acceptProposal(proposalId) as any;
+       response = await assistantAPI.acceptProposal(session.id, proposalId) as any;
      } catch (err: any) {
        // Handle API errors (400, 500, etc.)
        console.error('[Assistant] Proposal acceptance failed:', err);
@@ -476,8 +502,16 @@ For each category, provide specific, actionable suggestions. Help me understand 
   };
 
   const handleReject = async (proposalId: string) => {
+    if (!session?.id) {
+      setError('No active session. Please wait for the session to initialize.');
+      return;
+    }
+    if (!proposalId) {
+      setError('Proposal ID is missing.');
+      return;
+    }
     try {
-      await assistantAPI.rejectProposal(proposalId);
+      await assistantAPI.dismissProposal(session.id, proposalId);
       setProposals((prev) => prev.filter((p) => p.id !== proposalId));
     } catch (err) {
       const msg = err instanceof Error ? err.message : (err as any)?.response?.data || 'Failed to reject proposal';
@@ -571,7 +605,42 @@ For each category, provide specific, actionable suggestions. Help me understand 
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* Messages */}
             <div ref={listRef} className="chat-messages-area">
-              {messages.length === 0 ? (
+              {initializing ? (
+                <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                  <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white mb-3 shadow-lg animate-pulse" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
+                    AI
+                  </div>
+                  <h4 className="text-base font-semibold text-slate-100 mb-1.5">
+                    Initializing assistant...
+                  </h4>
+                  <p className="text-xs text-slate-400 max-w-md">
+                    Setting up your session. This should only take a moment.
+                  </p>
+                </div>
+              ) : error && messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                  <div className="chat-avatar bg-red-500 text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
+                    ⚠
+                  </div>
+                  <h4 className="text-base font-semibold text-red-400 mb-1.5">
+                    Failed to start session
+                  </h4>
+                  <p className="text-xs text-red-300 max-w-md mb-3">
+                    {error}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setError(null);
+                      setInitializing(true);
+                      // Trigger re-initialization by updating a dependency
+                      setCurrentMode(currentMode);
+                    }}
+                    className="px-4 py-2 text-sm bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg border border-red-500/50 transition-colors"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
                   <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     AI
@@ -580,7 +649,9 @@ For each category, provide specific, actionable suggestions. Help me understand 
                     Start a conversation
                   </h4>
                   <p className="text-xs text-slate-400 max-w-md">
-                    Ask me anything about your project. I can help refine mechanics, expand lore, check consistency, and more.
+                    {projectId 
+                      ? "Ask me anything about your project. I can help refine mechanics, expand lore, check consistency, and more."
+                      : "I'm here to help with game design, templates, workflows, and best practices. Ask me anything!"}
                   </p>
                 </div>
               ) : (
@@ -674,10 +745,13 @@ For each category, provide specific, actionable suggestions. Help me understand 
                   <div className="chat-avatar bg-gradient-to-br from-brand-600 to-mint-500 text-white">
                     AI
                   </div>
-                  <div className="typing-indicator bg-surface-elevated border border-border-subtle">
-                    <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
-                    <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
-                    <div className="w-2 h-2 bg-brand-500 rounded-full typing-dot" />
+                  <div className="flex items-center">
+                    <div className="jewel-spinner">
+                      <span className="sparkle" />
+                      <span className="sparkle" />
+                      <span className="sparkle" />
+                      <span className="sparkle" />
+                    </div>
                   </div>
                 </div>
               )}

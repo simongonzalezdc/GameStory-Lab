@@ -115,13 +115,26 @@ export class ArchitectService {
     projectId: string,
     updates: Array<{ name: string; content: string }>
   ): DocumentationPackage | null {
+    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+      console.warn('[ArchitectService] applyAssistantUpdates called with empty updates', { projectId });
+      return null;
+    }
+
+    console.log('[ArchitectService] applyAssistantUpdates called', {
+      projectId,
+      updateCount: updates.length,
+      updateNames: updates.map(u => u.name),
+      updateSizes: updates.map(u => u.content?.length || 0),
+    });
+
     let pkg = this.documentationPackages.get(projectId);
     
     // If no package exists, create a new one with the assistant's documents
     if (!pkg) {
+      console.log('[ArchitectService] Creating new documentation package', { projectId });
       const newDocuments: GeneratedDocument[] = updates.map((update) => ({
         templateName: update.name.endsWith('.md') ? update.name : `${update.name}.md`,
-        content: update.content,
+        content: update.content || '',
         generatedAt: new Date(),
       }));
 
@@ -134,6 +147,11 @@ export class ArchitectService {
       };
       
       this.documentationPackages.set(projectId, newPackage);
+      console.log('[ArchitectService] New documentation package created', {
+        projectId,
+        documentCount: newPackage.documents.length,
+        documentNames: newPackage.documents.map(d => d.templateName),
+      });
       return newPackage;
     }
 
