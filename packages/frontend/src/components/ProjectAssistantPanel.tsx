@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { assistantAPI } from '../services/api';
+import { ThinkingIndicator } from './ThinkingIndicator';
 
 interface ProjectAssistantPanelProps {
   projectId?: string;
@@ -220,11 +221,64 @@ export function ProjectAssistantPanel({
     return parts;
   };
 
+  // Enhanced function to find and extract JSON from text (handles strings and nested structures)
+  const findJSONInText = (text: string): Array<{ start: number; end: number; json: string }> => {
+    const results: Array<{ start: number; end: number; json: string }> = [];
+    let depth = 0;
+    let start = -1;
+    let braceType: '{' | '[' | null = null;
+    let inString = false;
+    let escapeNext = false;
+    
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      
+      if (escapeNext) {
+        escapeNext = false;
+        continue;
+      }
+      
+      if (char === '\\') {
+        escapeNext = true;
+        continue;
+      }
+      
+      // Track string boundaries (don't count braces inside strings)
+      if (char === '"' && !escapeNext) {
+        inString = !inString;
+        continue;
+      }
+      
+      if (!inString) {
+        if (char === '{' || char === '[') {
+          if (depth === 0) {
+            start = i;
+            braceType = char as '{' | '[';
+          }
+          depth++;
+        } else if ((char === '}' && braceType === '{') || (char === ']' && braceType === '[')) {
+          depth--;
+          if (depth === 0 && start !== -1) {
+            const jsonCandidate = text.substring(start, i + 1);
+            // Validate it's actually valid JSON
+            if (isJSON(jsonCandidate)) {
+              results.push({ start, end: i + 1, json: jsonCandidate });
+            }
+            start = -1;
+            braceType = null;
+          }
+        }
+      }
+    }
+    
+    return results;
+  };
+
   const renderTextSegment = (text: string, keyPrefix: string) => {
     const trimmed = text.trim();
     
     // Check if the entire text segment is a JSON object/array (not in code blocks)
-    if (trimmed.startsWith('{') && trimmed.endsWith('}') || trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
       if (isJSON(trimmed)) {
         // Render as a formatted JSON code block
         return (
@@ -254,6 +308,69 @@ export function ProjectAssistantPanel({
       }
     }
     
+    // Check for JSON objects/arrays embedded within text
+    const jsonMatches = findJSONInText(text);
+    if (jsonMatches.length > 0) {
+      const parts: React.ReactNode[] = [];
+      let lastIndex = 0;
+      
+      jsonMatches.forEach((match, idx) => {
+        // Add text before JSON
+        if (match.start > lastIndex) {
+          const beforeText = text.substring(lastIndex, match.start);
+          if (beforeText.trim()) {
+            parts.push(
+              <span key={`${keyPrefix}-before-${idx}`} className="text-[var(--color-text-secondary)]">
+                {renderInline(beforeText, `${keyPrefix}-before-${idx}`)}
+              </span>
+            );
+          }
+        }
+        
+        // Add formatted JSON block
+        parts.push(
+          <div key={`${keyPrefix}-json-${idx}`} className="relative my-2">
+            <div className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
+              style={{ 
+                backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
+                color: 'var(--color-text-tertiary)',
+                borderBottom: '1px solid var(--color-border-subtle)'
+              }}
+            >
+              JSON
+            </div>
+            <pre
+              className="code-block text-[var(--color-text-primary)] overflow-auto font-mono text-sm leading-relaxed rounded-md rounded-tl-none"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 60%, transparent)',
+                border: '1px solid var(--color-border-subtle)',
+                padding: '0.75rem',
+                marginTop: '0',
+              }}
+            >
+              <code className="whitespace-pre-wrap break-words">{formatJSON(match.json)}</code>
+            </pre>
+          </div>
+        );
+        
+        lastIndex = match.end;
+      });
+      
+      // Add remaining text after last JSON
+      if (lastIndex < text.length) {
+        const afterText = text.substring(lastIndex);
+        if (afterText.trim()) {
+          parts.push(
+            <span key={`${keyPrefix}-after`} className="text-[var(--color-text-secondary)]">
+              {renderInline(afterText, `${keyPrefix}-after`)}
+            </span>
+          );
+        }
+      }
+      
+      return <div key={keyPrefix}>{parts}</div>;
+    }
+    
     const calloutMatch = trimmed.match(/^(INFO|WARNING|WARN|ERROR):?\s*(.*)$/i);
     if (calloutMatch) {
       const level = calloutMatch[1].toLowerCase();
@@ -273,13 +390,14 @@ export function ProjectAssistantPanel({
     const lines = text.split('\n');
     const nodes: React.ReactNode[] = [];
     let bulletBuffer: string[] = [];
+    let numberedBuffer: Array<{ num: string; text: string }> = [];
 
     const flushBullets = () => {
       if (bulletBuffer.length) {
         nodes.push(
-          <ul key={`${keyPrefix}-ul-${nodes.length}`} className="list-disc list-inside space-y-1 text-[var(--color-text-secondary)]">
+          <ul key={`${keyPrefix}-ul-${nodes.length}`} className="list-disc list-inside space-y-1.5 my-2 text-[var(--color-text-secondary)]">
             {bulletBuffer.map((item, idx) => (
-              <li key={`${keyPrefix}-li-${idx}`}>{renderInline(item.trim(), `${keyPrefix}-li-${idx}`)}</li>
+              <li key={`${keyPrefix}-li-${idx}`} className="leading-relaxed">{renderInline(item.trim(), `${keyPrefix}-li-${idx}`)}</li>
             ))}
           </ul>
         );
@@ -287,21 +405,80 @@ export function ProjectAssistantPanel({
       }
     };
 
-    lines.forEach((line, idx) => {
-      if (/^\s*[-*]\s+/.test(line)) {
-        bulletBuffer.push(line.replace(/^\s*[-*]\s+/, ''));
-      } else if (line.trim() === '') {
-        flushBullets();
-      } else {
-        flushBullets();
+    const flushNumbered = () => {
+      if (numberedBuffer.length) {
         nodes.push(
-          <p key={`${keyPrefix}-p-${idx}`} className="text-[var(--color-text-secondary)] leading-relaxed">
-            {renderInline(line, `${keyPrefix}-p-${idx}`)}
-          </p>
+          <ol key={`${keyPrefix}-ol-${nodes.length}`} className="list-decimal list-inside space-y-1.5 my-2 text-[var(--color-text-secondary)]">
+            {numberedBuffer.map((item, idx) => (
+              <li key={`${keyPrefix}-nli-${idx}`} className="leading-relaxed">{renderInline(item.text.trim(), `${keyPrefix}-nli-${idx}`)}</li>
+            ))}
+          </ol>
         );
+        numberedBuffer = [];
       }
+    };
+
+    lines.forEach((line, idx) => {
+      const trimmedLine = line.trim();
+      
+      // Check for headers (# ## ###)
+      const headerMatch = trimmedLine.match(/^(#{1,3})\s+(.+)$/);
+      if (headerMatch) {
+        flushBullets();
+        flushNumbered();
+        const level = headerMatch[1].length;
+        const text = headerMatch[2];
+        const HeadingTag = `h${Math.min(level + 2, 6)}` as keyof JSX.IntrinsicElements;
+        const sizeClass = level === 1 ? 'text-lg' : level === 2 ? 'text-base' : 'text-sm';
+        nodes.push(
+          <HeadingTag 
+            key={`${keyPrefix}-h-${idx}`} 
+            className={`${sizeClass} font-bold text-[var(--color-text-primary)] mt-3 mb-2 leading-tight`}
+          >
+            {renderInline(text, `${keyPrefix}-h-${idx}`)}
+          </HeadingTag>
+        );
+        return;
+      }
+      
+      // Check for numbered lists (1. 2. 3.)
+      const numberedMatch = trimmedLine.match(/^(\d+)\.\s+(.+)$/);
+      if (numberedMatch) {
+        flushBullets();
+        numberedBuffer.push({ num: numberedMatch[1], text: numberedMatch[2] });
+        return;
+      }
+      
+      // Check for bullet lists (- or *)
+      if (/^\s*[-*]\s+/.test(line)) {
+        flushNumbered();
+        bulletBuffer.push(line.replace(/^\s*[-*]\s+/, ''));
+        return;
+      }
+      
+      // Empty line - flush buffers and add spacing
+      if (trimmedLine === '') {
+        flushBullets();
+        flushNumbered();
+        // Add a small spacer for paragraph breaks
+        if (nodes.length > 0 && nodes[nodes.length - 1]) {
+          nodes.push(<div key={`${keyPrefix}-space-${idx}`} className="h-2" />);
+        }
+        return;
+      }
+      
+      // Regular text
+      flushBullets();
+      flushNumbered();
+      nodes.push(
+        <p key={`${keyPrefix}-p-${idx}`} className="text-[var(--color-text-secondary)] leading-relaxed mb-1">
+          {renderInline(line, `${keyPrefix}-p-${idx}`)}
+        </p>
+      );
     });
+    
     flushBullets();
+    flushNumbered();
 
     if (!nodes.length) {
       return (
@@ -1003,13 +1180,8 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                   <div className="chat-avatar gradient-brand-to-br text-white">
                     AI
                   </div>
-                  <div className="flex items-center">
-                    <div className="jewel-spinner">
-                      <span className="sparkle" />
-                      <span className="sparkle" />
-                      <span className="sparkle" />
-                      <span className="sparkle" />
-                    </div>
+                  <div className="flex-1">
+                    <ThinkingIndicator />
                   </div>
                 </div>
               )}

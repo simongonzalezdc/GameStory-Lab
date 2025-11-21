@@ -8,6 +8,7 @@ import type { MechanicsData, LoreData } from '@gameforge/shared';
 import { AIOrchestrator } from '../ai/orchestrator.js';
 import { architectService } from '../architect/architect-service.js';
 import { INTERVIEW_QUESTIONS, getNextQuestion } from '../architect/interview-questions.js';
+import { extractJSON } from '../ai/utils/json-validation.js';
 import { logger } from '../../utils/logger.js';
 
 type SessionType = 'project' | 'concept' | 'architect';
@@ -242,98 +243,75 @@ export class AssistantService {
       {
         role: 'user' as const,
         content: (() => {
-          try {
-            // Safely serialize context to avoid circular reference errors
-            const safeContext = {
-              project: context.project,
-              latestVersion: context.latestVersion ? {
-                id: context.latestVersion.id,
-                version: context.latestVersion.version,
-                mechanics: context.latestVersion.mechanics,
-                lore: context.latestVersion.lore,
-              } : undefined,
-              validationIssues: context.validationIssues,
-              architect: context.architect,
-              mode: currentMode,
-              metrics: context.metrics,
-            };
-            const instructionBlocks = [
-              'Respond using the required JSON schema: { "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }',
-              '',
-              'CRITICAL PROPOSAL REQUIREMENT:',
-              'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", "implement", "apply", "approve", or anything they can approve, you MUST include a proposal object with actual data.',
-              '',
-              'The proposal object MUST contain:',
-              '- "explanation": A string describing what the proposal does',
-              '- "mechanics": A complete mechanics object (if proposing mechanics changes) - MUST be a full object with actual data, not {}',
-              '- "lore": A complete lore object (if proposing lore changes) - MUST be a full object with actual data, not {}',
-              '- "architectDocuments": Array of document objects (if proposing documentation changes)',
-              '',
-              'DO NOT:',
-              '- Return {proposal: null} or {proposal: {}} or {proposal: {explanation: "..."}}',
-              '- Just say "I will create..." or "I\'ve created..." without actually including the proposal data',
-              '- Include only an explanation without mechanics/lore/architectDocuments objects',
-              '- Return empty objects {} for mechanics or lore',
-              '',
-              'DO:',
-              '- Include the full, complete mechanics and/or lore objects in the proposal',
-              '- For documentation proposals: Keep architectDocuments concise - include key sections and structure, not full verbose content',
-              '- Make sure proposal.mechanics and proposal.lore contain actual JSON data with properties, not empty objects',
-              '- If proposing multiple types of changes, include all applicable objects',
-              '- ALWAYS include the actual data structures, not just descriptions',
-              '- Keep proposals focused and concise to avoid response truncation',
-              '',
-              'EXAMPLE VALID PROPOSAL:',
-              '{',
-              '  "reply": "I\'ve created a proposal that...",',
-              '  "proposal": {',
-              '    "explanation": "This proposal updates...",',
-              '    "mechanics": {',
-              '      "coreLoop": "...",',
-              '      "playerActions": [...],',
-              '      "resources": {...}',
-              '    },',
-              '    "lore": {',
-              '      "setting": "...",',
-              '      "characters": {...}',
-              '    }',
-              '  }',
-              '}',
-            ];
-
-            const quickActionGuidance = this.getQuickActionInstructions(quickActionId, context);
-            if (quickActionGuidance.length > 0) {
-              instructionBlocks.push('', ...quickActionGuidance);
-            }
-
-            return JSON.stringify({
-              userMessage: content,
-              context: safeContext,
-              quickActionId,
-              instructions: instructionBlocks.join('\n'),
-            });
-          } catch (serializeError) {
-            logger.error('Failed to serialize context for AI message', {
-              error: serializeError instanceof Error ? serializeError.message : String(serializeError),
-              sessionId,
-            });
-            // Fallback: send just the user message without full context
-            const fallbackInstructions = [
-              'Respond using the required JSON schema: { "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }',
-              '',
-              'CRITICAL PROPOSAL REQUIREMENT:',
-              'If the user asks for a plan, implementation, "do it", "go ahead", "create", "make changes", "please make", "generate", or anything they can approve, you MUST include a proposal object with actual data.',
-            ];
-            const quickActionGuidance = this.getQuickActionInstructions(quickActionId, context);
-            if (quickActionGuidance.length > 0) {
-              fallbackInstructions.push('', ...quickActionGuidance);
-            }
-            return JSON.stringify({
-              userMessage: content,
-              quickActionId,
-              instructions: fallbackInstructions.join('\n'),
-            });
+          // Build instruction blocks
+          const instructionBlocks: string[] = [];
+          
+          // Add quick action guidance first if present
+          const quickActionGuidance = this.getQuickActionInstructions(quickActionId, context);
+          if (quickActionGuidance.length > 0) {
+            instructionBlocks.push(...quickActionGuidance);
+            instructionBlocks.push('');
           }
+          
+          // Add context information
+          if (context.latestVersion) {
+            instructionBlocks.push('CURRENT PROJECT DATA:');
+            instructionBlocks.push(`Mechanics: ${JSON.stringify(context.latestVersion.mechanics)}`);
+            instructionBlocks.push(`Lore: ${JSON.stringify(context.latestVersion.lore)}`);
+            instructionBlocks.push('');
+          }
+          
+          if (context.validationIssues.length > 0) {
+            instructionBlocks.push('VALIDATION ISSUES TO ADDRESS:');
+            context.validationIssues.forEach((issue, idx) => {
+              instructionBlocks.push(`${idx + 1}. [${issue.severity}] ${issue.rule}: ${issue.message}`);
+            });
+            instructionBlocks.push('');
+          }
+          
+          // Add critical proposal requirements
+          instructionBlocks.push('🚨 CRITICAL RESPONSE FORMAT:');
+          instructionBlocks.push('You MUST respond with valid JSON using this exact schema:');
+          instructionBlocks.push('{ "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] } }');
+          instructionBlocks.push('');
+          instructionBlocks.push('🚨 CRITICAL PROPOSAL REQUIREMENT:');
+          instructionBlocks.push('If the user asks for ANY of these, you MUST include a proposal object with actual data:');
+          instructionBlocks.push('- "produce", "create", "generate", "build", "make", "implement", "apply"');
+          instructionBlocks.push('- "documents", "documentation", "plan", "proposal", "improvements"');
+          instructionBlocks.push('- "do it", "go ahead", "ok", "yes", "please make"');
+          instructionBlocks.push('- ANY request where the user wants something they can approve');
+          instructionBlocks.push('');
+          instructionBlocks.push('⚠️ PROPOSAL VALIDATION CHECKLIST (check before responding):');
+          instructionBlocks.push('1. Does user want something actionable? → MUST include proposal');
+          instructionBlocks.push('2. Is proposal.mechanics empty {}? → ERROR - include full mechanics object');
+          instructionBlocks.push('3. Is proposal.lore empty {}? → ERROR - include full lore object if proposing lore changes');
+          instructionBlocks.push('4. Is proposal.architectDocuments empty []? → ERROR - include documents if proposing docs');
+          instructionBlocks.push('5. Does proposal only have explanation? → ERROR - must include actual data objects');
+          instructionBlocks.push('');
+          instructionBlocks.push('✅ The proposal object MUST contain:');
+          instructionBlocks.push('- "explanation": A string describing what the proposal does');
+          instructionBlocks.push('- "mechanics": A COMPLETE mechanics object with ALL fields (coreLoop, playerActions, progressionSystems, winConditions, failConditions, resourceSystems) - NOT {}');
+          instructionBlocks.push('- "lore": A COMPLETE lore object with ALL fields (setting, protagonist, conflict, worldRules, themes) - NOT {}');
+          instructionBlocks.push('- "architectDocuments": Array of document objects with "name" and "content" fields - NOT []');
+          instructionBlocks.push('');
+          instructionBlocks.push('❌ DO NOT:');
+          instructionBlocks.push('- Return {proposal: null} or {proposal: {}} or {proposal: {explanation: "..."}}');
+          instructionBlocks.push('- Say "I will create..." without including the proposal data');
+          instructionBlocks.push('- Include only explanation without mechanics/lore/architectDocuments');
+          instructionBlocks.push('- Return empty objects {} for mechanics or lore');
+          instructionBlocks.push('- Skip the proposal if user asks for documents/changes');
+          instructionBlocks.push('');
+          instructionBlocks.push('✅ DO:');
+          instructionBlocks.push('- Include FULL, COMPLETE mechanics and/or lore objects in the proposal');
+          instructionBlocks.push('- For documentation: Include architectDocuments with actual document content');
+          instructionBlocks.push('- Make sure proposal.mechanics and proposal.lore contain REAL data, not empty objects');
+          instructionBlocks.push('- If proposing multiple types, include all applicable objects');
+          instructionBlocks.push('- ALWAYS include actual data structures, not just descriptions');
+          instructionBlocks.push('');
+          instructionBlocks.push('USER MESSAGE:');
+          instructionBlocks.push(content);
+          
+          return instructionBlocks.join('\n');
         })(),
       },
     ];
@@ -345,12 +323,32 @@ export class AssistantService {
         messageCount: aiMessages.length,
       });
 
+    // Determine if user wants a proposal
+    const userWantsProposal = quickActionId === 'propose-improvements' || 
+      /(do it|go ahead|create|make changes|generate|implement|apply|proposal|approve|please make|produce|build)/i.test(content);
+    
     const aiResponse = await this.aiOrchestrator.generate(
       'assistant',
       aiMessages,
-      'auto', // Will use GLM 4.6 if available, otherwise falls back to Ollama
-      { maxTokens: 20000 } // Increased to allow for full mechanics/lore objects in proposals without truncation
+      'auto', // Will use MiniMax M2 if available, otherwise falls back
+      { 
+        maxTokens: 20000, // Increased to allow for full mechanics/lore objects in proposals without truncation
+        // DO NOT set response_format for assistant - it needs to return {reply, proposal} structure
+      }
     );
+    
+    // Log the raw response for debugging proposal issues
+    logger.debug('Raw AI response received', {
+      sessionId,
+      model: aiResponse.model,
+      contentLength: aiResponse.content.length,
+      contentEndsWithBrace: aiResponse.content.trim().endsWith('}'),
+      hasReply: aiResponse.content.includes('"reply"'),
+      hasProposal: aiResponse.content.includes('"proposal"'),
+      userWantsProposal,
+      contentPreview: aiResponse.content.substring(0, 1000),
+      contentEnd: aiResponse.content.substring(Math.max(0, aiResponse.content.length - 500)),
+    });
 
       logger.debug('AI response received', {
         sessionId,
@@ -833,7 +831,25 @@ export class AssistantService {
     const baseInstructions = [
       'You are the GameForge Studio unified project assistant.',
       'You help with both concept refinement (mechanics/lore) and architect documentation in a single conversation.',
-      'All replies must be JSON with the schema:',
+      '',
+      '📋 CRITICAL RESPONSE FORMAT RULES:',
+      '✓ BE CONCISE: Keep responses under 200 words when possible',
+      '✓ USE STRUCTURE: Break up long responses with bullet points, numbered lists, or short paragraphs',
+      '✓ SCANNABLE: Use bold for key points, headings for sections',
+      '✓ ACTIONABLE: Focus on specific next steps rather than lengthy explanations',
+      '✓ PROGRESSIVE: Ask questions or offer options before providing extensive details',
+      '✗ AVOID: Long walls of text, run-on sentences, excessive detail upfront',
+      '',
+      'Example good response:',
+      '"I see 3 main opportunities to improve your RPG concept:',
+      '',
+      '**1. Combat depth** - Add resource management (mana/stamina)',
+      '**2. Character progression** - Define skill tree structure',  
+      '**3. Conflict clarity** - Specify antagonist\'s motivation',
+      '',
+      'Which area would you like to explore first?"',
+      '',
+      'JSON Schema:',
       '{ "reply": "string", "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [{ "name": "", "content": "" }] } }',
       'If you suggest mechanics or lore changes, include the full updated objects.',
       'If you suggest documentation changes, include architectDocuments with full content.',
@@ -851,12 +867,19 @@ export class AssistantService {
       '- For documentation: Guide through interview questions and generate comprehensive project docs',
       '- Mix and match: You can propose both mechanics/lore changes AND documentation in the same response',
       '',
-      'CRITICAL PROPOSAL GENERATION RULES:',
-      '1. When users say "do it", "go ahead", "create", "make changes", "generate", "implement", "apply", "ok", "yes", "please make", or similar approval language, you MUST include a proposal.',
-      '2. When users ask for "a proposal", "plan", "implementation", or anything they can approve, you MUST include a proposal.',
+      '🚨 CRITICAL PROPOSAL GENERATION RULES (MANDATORY):',
+      '1. When users say "do it", "go ahead", "create", "make changes", "generate", "implement", "apply", "ok", "yes", "please make", "produce", "build", or similar approval language, you MUST include a proposal.',
+      '2. When users ask for "a proposal", "plan", "implementation", "documents", "documentation", or anything they can approve, you MUST include a proposal.',
       '3. The proposal MUST contain complete mechanics and/or lore JSON objects AND/OR architectDocuments - not just descriptions.',
       '4. Do not just say "I will create..." or "I\'ve created..." - you MUST actually include the proposal object in your JSON response.',
-      '5. NEVER return {reply: "...", proposal: null} or {reply: "...", proposal: {}} - if the user asks for a proposal, you MUST include the actual changes.',
+      '5. NEVER return {reply: "...", proposal: null} or {reply: "...", proposal: {}} or {reply: "...", proposal: {explanation: "..."}} - if the user asks for a proposal, you MUST include the actual changes.',
+      '6. If the user asks to "produce documents", "generate documentation", or similar, you MUST include architectDocuments array with actual document content.',
+      '7. If proposing mechanics/lore changes, include FULL objects (coreLoop, playerActions, setting, conflict, etc.) - not empty {} or just explanation.',
+      '',
+      '⚠️ VALIDATION: Before responding, check:',
+      '- Does the user want something they can approve? → MUST include proposal',
+      '- Is proposal object complete? → Must have mechanics/lore/architectDocuments with actual data',
+      '- Is proposal empty? → This is an error - include actual data',
       '',
       'REQUIRED JSON FORMAT WHEN USER ASKS FOR PROPOSAL:',
       '{',
@@ -1423,339 +1446,39 @@ export class AssistantService {
 
   private parseAssistantResponse(content: string): AssistantModelResponse {
     try {
-      // Clean the response (remove markdown code blocks if present)
-      let cleanedContent = content.trim();
+      // Use the extractJSON utility which handles markdown, thinking blocks, and common JSON issues
+      const jsonResult = extractJSON(content);
       
-      // For Qwen models, strip any chain-of-thought/reasoning patterns
-      // Qwen sometimes outputs thinking tags or reasoning blocks
-      cleanedContent = cleanedContent
-        .replace(/<think>[\s\S]*?<\/think>/gi, '') // Remove <think> tags
-        .replace(/\[REASONING\][\s\S]*?\[\/REASONING\]/gi, '') // Remove [REASONING] blocks
-        .replace(/Let me think[\s\S]*?(?=\{)/gi, '') // Remove "Let me think..." prefixes
-        .replace(/First, let me[\s\S]*?(?=\{)/gi, '') // Remove "First, let me..." prefixes
-        .trim();
-      
-      // Try to extract JSON from markdown code blocks first
-      // Handle both ```json and ``` formats
-      // Find code block markers and extract the JSON between them
-      let extractedJson: string | null = null;
-      
-      // Look for markdown code blocks
-      const codeBlockStart = content.indexOf('```');
-      if (codeBlockStart !== -1) {
-        const afterStart = content.substring(codeBlockStart + 3);
-        // Skip "json" if present
-        const jsonStart = afterStart.match(/^(?:json)?\s*(\{)/);
-        if (jsonStart) {
-          const jsonStartIndex = codeBlockStart + 3 + (jsonStart[0].length - 1);
-          // Find the matching closing ```
-          const codeBlockEnd = content.indexOf('```', jsonStartIndex);
-          if (codeBlockEnd !== -1) {
-            // Extract JSON between the braces, tracking depth
-            let jsonContent = '';
-            let depth = 0;
-            let inString = false;
-            let escapeNext = false;
-            
-            for (let i = jsonStartIndex; i < codeBlockEnd; i++) {
-              const char = content[i];
-              
-              if (escapeNext) {
-                jsonContent += char;
-                escapeNext = false;
-                continue;
-              }
-              
-              if (char === '\\') {
-                jsonContent += char;
-                escapeNext = true;
-                continue;
-              }
-              
-              if (char === '"' && !escapeNext) {
-                jsonContent += char;
-                inString = !inString;
-                continue;
-              }
-              
-              jsonContent += char;
-              
-              if (!inString) {
-                if (char === '{') depth++;
-                if (char === '}') {
-                  depth--;
-                  if (depth === 0) {
-                    // Found complete JSON object
-                    extractedJson = jsonContent;
-                    break;
-                  }
-                }
-              }
-            }
-            
-            if (extractedJson) {
-              logger.info('Extracted JSON from markdown code block', {
-                length: extractedJson.length,
-                hasReply: extractedJson.includes('"reply"'),
-                hasProposal: extractedJson.includes('"proposal"')
-              });
-            }
-          }
-        }
-      }
-      
-      // If we found JSON in a code block, use it
-      if (extractedJson) {
-        cleanedContent = extractedJson.trim();
-      } else {
-        // Remove markdown code blocks (handle both ```json and ```)
-        cleanedContent = cleanedContent.replace(/```json\n?/gi, '').replace(/```\n?/g, '');
-        
-        // Look for JSON object that contains both "reply" and "proposal" keys
-        // This handles cases where the model returns markdown with JSON embedded
-        const replyProposalJson = cleanedContent.match(/\{[^{]*"reply"[\s\S]*"proposal"[\s\S]*\}/);
-        if (replyProposalJson) {
-          cleanedContent = replyProposalJson[0];
-          logger.info('Extracted JSON object containing reply and proposal from markdown');
-        } else {
-          // Remove common explanatory prefixes that models sometimes add
-          // Look for patterns like "Based on your request..." or "Here is..." before JSON
-          cleanedContent = cleanedContent.replace(/^[^{]*?(?=\{[^{]*"reply"|"proposal")/i, '');
-        }
-      }
-      
-      // Try multiple strategies to find the correct JSON object
-      // Strategy 1: Look for the top-level object containing both "reply" and "proposal"
-      let jsonStart = -1;
-      let jsonEnd = -1;
-      
-      // First, try to find an object that contains both "reply" and "proposal" keys
-      const replyIndex = cleanedContent.indexOf('"reply"');
-      const proposalIndex = cleanedContent.indexOf('"proposal"');
-      
-      if (replyIndex !== -1 && proposalIndex !== -1) {
-        // Find the opening brace before the first of these keys
-        const firstKeyIndex = Math.min(replyIndex, proposalIndex);
-        jsonStart = cleanedContent.lastIndexOf('{', firstKeyIndex);
-        
-        if (jsonStart === -1) {
-          // If no brace before, look for the first brace in the content
-          jsonStart = cleanedContent.indexOf('{');
-        }
-      } else {
-        // Fallback: just find the first brace
-        jsonStart = cleanedContent.indexOf('{');
-      }
-      
-      if (jsonStart === -1) {
-        logger.error('No JSON found in assistant response', { content: content.substring(0, 500) });
-        // Return fallback response with cleaned content as reply
-        return {
-          reply: this.extractTextFromResponse(content),
-        };
-      }
-      
-      // Track bracket depth to find the matching closing brace
-      let depth = 0;
-      jsonEnd = jsonStart;
-      let inString = false;
-      let escapeNext = false;
-      
-      for (let i = jsonStart; i < cleanedContent.length; i++) {
-        const char = cleanedContent[i];
-        
-        if (escapeNext) {
-          escapeNext = false;
-          continue;
-        }
-        
-        if (char === '\\') {
-          escapeNext = true;
-          continue;
-        }
-        
-        if (char === '"' && !escapeNext) {
-          inString = !inString;
-          continue;
-        }
-        
-        if (!inString) {
-          if (char === '{') {
-            depth++;
-          } else if (char === '}') {
-            depth--;
-            if (depth === 0) {
-              jsonEnd = i + 1;
-              break;
-            }
-          }
-        }
-      }
-      
-      if (depth !== 0) {
-        logger.error('Incomplete JSON object in assistant response', { content: content.substring(0, 500) });
-        // Return fallback response with cleaned content as reply
-        return {
-          reply: this.extractTextFromResponse(content),
-        };
-      }
-      
-      cleanedContent = cleanedContent.substring(jsonStart, jsonEnd);
-      
-      // Clean up common JSON formatting issues before parsing
-      // First, ensure we only have the JSON object (remove any trailing text)
-      // Find the last closing brace that matches the first opening brace
-      const firstBrace = cleanedContent.indexOf('{');
-      const lastBrace = cleanedContent.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-        // Extract only the JSON portion
-        cleanedContent = cleanedContent.substring(firstBrace, lastBrace + 1);
-      }
-      
-      // Fix single quotes to double quotes for property names (but be careful with apostrophes in strings)
-      // Only replace single quotes around property names, not in string values
-      // This is more comprehensive and handles various cases
-      cleanedContent = cleanedContent
-        // Replace single quotes around property names (more robust pattern)
-        .replace(/([{,]\s*)'([^':\s]+)'(\s*:)/g, '$1"$2"$3')
-        // Replace single quotes around string values (but be careful with apostrophes)
-        .replace(/:\s*'([^']*?)'/g, ': "$1"')
-        // Handle escaped single quotes in strings
-        .replace(/\\'/g, "'");
-      // Fix trailing commas
-      cleanedContent = cleanedContent.replace(/,(\s*[}\]])/g, '$1');
-      // Remove comments (JSON doesn't support comments)
-      cleanedContent = cleanedContent.replace(/\/\/.*$/gm, '');
-      cleanedContent = cleanedContent.replace(/\/\*[\s\S]*?\*\//g, '');
-      // Remove any text after the closing brace
-      const closingBraceIndex = cleanedContent.lastIndexOf('}');
-      if (closingBraceIndex !== -1) {
-        cleanedContent = cleanedContent.substring(0, closingBraceIndex + 1);
-      }
-      
-      // Parse JSON
-      let parsed: any;
-      try {
-        parsed = JSON.parse(cleanedContent);
-      } catch (parseError) {
-        // If parsing fails, try to fix common issues and retry
-        logger.warn('Initial JSON parse failed, attempting to fix and retry', {
-          error: parseError instanceof Error ? parseError.message : String(parseError),
-          contentPreview: cleanedContent.substring(0, 500),
-          errorPosition: parseError instanceof SyntaxError ? (parseError as any).position : undefined
+      if (!jsonResult.isValid || !jsonResult.parsed) {
+        logger.warn('Failed to extract JSON from assistant response', {
+          error: jsonResult.error,
+          contentPreview: content.substring(0, 500),
+          hasReply: content.includes('"reply"'),
+          hasProposal: content.includes('"proposal"'),
         });
         
-        // Try to fix the specific error position if available
-        if (parseError instanceof SyntaxError) {
-          const errorMsg = parseError.message;
-          const positionMatch = errorMsg.match(/position (\d+)/);
-          if (positionMatch) {
-            const errorPos = parseInt(positionMatch[1], 10);
-            const beforeError = cleanedContent.substring(0, errorPos);
-            const atError = cleanedContent.substring(errorPos, Math.min(errorPos + 50, cleanedContent.length));
-            logger.debug('JSON error context', {
-              beforeError: beforeError.substring(Math.max(0, beforeError.length - 100)),
-              atError,
-              errorMessage: errorMsg
-            });
-          }
-        }
-        
-        // Try to find and extract a valid JSON object by tracking braces properly
-        // The regex approach doesn't work well for nested objects, so use brace tracking
-        let bestJson: string | null = null;
-        let jsonStartPos = cleanedContent.indexOf('{');
-        
-        while (jsonStartPos !== -1) {
-          let depth = 0;
-          let jsonEndPos = jsonStartPos;
-          let inString = false;
-          let escapeNext = false;
-          
-          for (let i = jsonStartPos; i < cleanedContent.length; i++) {
-            const char = cleanedContent[i];
-            
-            if (escapeNext) {
-              escapeNext = false;
-              continue;
-            }
-            
-            if (char === '\\') {
-              escapeNext = true;
-              continue;
-            }
-            
-            if (char === '"' && !escapeNext) {
-              inString = !inString;
-              continue;
-            }
-            
-            if (!inString) {
-              if (char === '{') depth++;
-              if (char === '}') {
-                depth--;
-                if (depth === 0) {
-                  jsonEndPos = i + 1;
-                  break;
-                }
-              }
-            }
-          }
-          
-          if (depth === 0 && jsonEndPos > jsonStartPos) {
-            const candidateJson = cleanedContent.substring(jsonStartPos, jsonEndPos);
-            try {
-              // Try to fix and parse
-              const fixed = candidateJson
-                // Replace single quotes around property names (more robust pattern)
-                .replace(/([{,]\s*)'([^':\s]+)'(\s*:)/g, '$1"$2"$3')
-                // Replace single quotes around string values (but be careful with apostrophes)
-                .replace(/:\s*'([^']*?)'/g, ': "$1"')
-                // Handle escaped single quotes in strings
-                .replace(/\\'/g, "'")
-                // Fix trailing commas
-                .replace(/,(\s*[}\]])/g, '$1');
-              const testParsed = JSON.parse(fixed);
-              if (testParsed.reply && (testParsed.proposal !== undefined || testParsed.proposal !== null)) {
-                bestJson = fixed;
-                parsed = testParsed;
-                logger.info('Found valid JSON with both reply and proposal using brace tracking');
-                break;
-              } else if (!bestJson) {
-                // Keep as fallback
-                bestJson = fixed;
-                parsed = testParsed;
-              }
-            } catch {
-              // Try next JSON object
-            }
-          }
-          
-          // Find next potential JSON start
-          jsonStartPos = cleanedContent.indexOf('{', jsonStartPos + 1);
-        }
-        
-        if (!parsed) {
-          // Log the problematic content for debugging
-          logger.error('Failed to parse JSON after all attempts', {
-            originalError: parseError instanceof Error ? parseError.message : String(parseError),
-            contentLength: cleanedContent.length,
-            contentPreview: cleanedContent.substring(0, 1000),
-            firstBrace: cleanedContent.indexOf('{'),
-            lastBrace: cleanedContent.lastIndexOf('}')
-          });
-          // Return fallback response with cleaned content as reply
-          return {
-            reply: this.extractTextFromResponse(content),
-          };
-        }
+        // Return fallback response with cleaned content as reply
+        return {
+          reply: this.extractTextFromResponse(content),
+        };
       }
+      
+      const parsed = jsonResult.parsed;
+      
+      // Log what we extracted
+      logger.debug('Successfully parsed assistant response', {
+        hasReply: !!parsed.reply,
+        hasProposal: !!parsed.proposal,
+        proposalType: typeof parsed.proposal,
+        proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
+        originalContentLength: content.length,
+      });
       
       // Validate that we got meaningful content
       if (!parsed || (typeof parsed === 'object' && Object.keys(parsed).length === 0)) {
         logger.error('Empty or invalid content in assistant response', {
           parsed,
-          contentPreview: cleanedContent.substring(0, 500)
+          contentPreview: content.substring(0, 500)
         });
         // Return fallback response with cleaned content as reply
         return {
@@ -1763,26 +1486,13 @@ export class AssistantService {
         };
       }
       
-      // Log what we actually got for debugging
-      logger.debug('Parsed assistant response', {
-        keys: Object.keys(parsed),
-        hasReply: !!parsed.reply,
-        hasProposal: !!parsed.proposal,
-        replyType: typeof parsed.reply,
-        proposalType: typeof parsed.proposal,
-        proposalValue: parsed.proposal,
-        originalContentLength: content.length,
-        cleanedContentLength: cleanedContent.length,
-      });
-      
       // Check if the response might be truncated
-      // If the cleaned content doesn't end with a closing brace, it might be truncated
-      const mightBeTruncated = !cleanedContent.trim().endsWith('}') && cleanedContent.includes('"proposal"');
+      const mightBeTruncated = !content.trim().endsWith('}') && content.includes('"proposal"');
       if (mightBeTruncated) {
         logger.warn('Response might be truncated - JSON may be incomplete', {
-          contentLength: cleanedContent.length,
-          lastChars: cleanedContent.substring(Math.max(0, cleanedContent.length - 100)),
-          hasProposalKey: cleanedContent.includes('"proposal"'),
+          contentLength: content.length,
+          lastChars: content.substring(Math.max(0, content.length - 100)),
+          hasProposalKey: content.includes('"proposal"'),
         });
       }
       

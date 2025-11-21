@@ -10,6 +10,7 @@ import { getMechanicsPrompt } from '../services/ai/prompts/mechanics.js';
 import { getLorePrompt } from '../services/ai/prompts/lore.js';
 import { getTitlePrompt } from '../services/ai/prompts/title.js';
 import { getRefinementPrompt } from '../services/ai/prompts/refinement.js';
+import { extractJSON } from '../services/ai/utils/json-validation.js';
 import { logger } from '../utils/logger.js';
 import type { PrismaClient } from '@prisma/client';
 import type { AIOrchestrator } from '../services/ai/orchestrator.js';
@@ -131,36 +132,17 @@ router.post('/', async (req, res, next) => {
       modelPreference || 'auto'
     );
 
-    // Parse AI response with improved error handling
+    // Parse AI response with improved error handling using extractJSON utility
     let generatedContent: any;
     try {
-      // Clean the response (remove markdown code blocks if present)
-      let cleanedContent = response.content.trim();
+      // Use the extractJSON utility which handles markdown, thinking blocks, and common JSON issues
+      const jsonResult = extractJSON(response.content);
       
-      // For Qwen models, strip any chain-of-thought/reasoning patterns
-      // Qwen sometimes outputs thinking tags or reasoning blocks
-      cleanedContent = cleanedContent
-        .replace(/<think>[\s\S]*?<\/think>/gi, '') // Remove <think> tags
-        .replace(/\[REASONING\][\s\S]*?\[\/REASONING\]/gi, '') // Remove [REASONING] blocks
-        .replace(/Let me think[\s\S]*?(?=\{)/gi, '') // Remove "Let me think..." prefixes
-        .replace(/First, let me[\s\S]*?(?=\{)/gi, '') // Remove "First, let me..." prefixes
-        .trim();
-      
-      // Remove markdown code blocks
-      if (cleanedContent.startsWith('```json')) {
-        cleanedContent = cleanedContent.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-      } else if (cleanedContent.startsWith('```')) {
-        cleanedContent = cleanedContent.replace(/```\n?/g, '');
+      if (!jsonResult.isValid || !jsonResult.parsed) {
+        throw new Error(jsonResult.error || 'Failed to extract valid JSON from AI response');
       }
       
-      // Try to extract JSON if wrapped in text
-      const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        cleanedContent = jsonMatch[0];
-      }
-      
-      // Parse JSON
-      generatedContent = JSON.parse(cleanedContent);
+      generatedContent = jsonResult.parsed;
       
       // Validate that we got meaningful content
       if (!generatedContent || (typeof generatedContent === 'object' && Object.keys(generatedContent).length === 0)) {
@@ -168,11 +150,12 @@ router.post('/', async (req, res, next) => {
       }
     } catch (error) {
       logger.error('Failed to parse AI response', {
-        error,
+        error: error instanceof Error ? error.message : String(error),
         taskType,
         model: response.model,
         responseLength: response.content.length,
-        responsePreview: response.content.substring(0, 200),
+        responsePreview: response.content.substring(0, 500),
+        hasThinking: response.metadata?.thinking ? 'yes' : 'no',
       });
       
       return res.status(500).json({
@@ -183,6 +166,7 @@ router.post('/', async (req, res, next) => {
             taskType,
             model: response.model,
             responsePreview: response.content.substring(0, 500),
+            errorMessage: error instanceof Error ? error.message : String(error),
             suggestion: 'Try regenerating or using a different AI model',
           },
         },

@@ -227,9 +227,45 @@ export function ProjectsPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-[var(--jewel-garnet)] border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-sm font-medium text-primary">Loading projects...</p>
+      <div className="space-y-8">
+        {/* Shimmering skeleton hero section */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+          <div className="lg:col-span-8 glass-card p-8 lg:p-12 min-h-[400px]">
+            <div className="skeleton-shimmer h-12 w-3/4 mb-4" />
+            <div className="skeleton-shimmer h-6 w-full mb-2" />
+            <div className="skeleton-shimmer h-6 w-5/6 mb-6" />
+            <div className="flex gap-3">
+              <div className="skeleton-shimmer h-10 w-32" />
+              <div className="skeleton-shimmer h-10 w-32" />
+            </div>
+          </div>
+          <div className="lg:col-span-2 glass-card p-6">
+            <div className="skeleton-shimmer h-20 w-full mb-4" />
+            <div className="skeleton-shimmer h-20 w-full" />
+          </div>
+          <div className="lg:col-span-2 glass-card p-6">
+            <div className="skeleton-shimmer h-6 w-24 mb-4" />
+            <div className="skeleton-shimmer h-16 w-full mb-2" />
+            <div className="skeleton-shimmer h-16 w-full mb-2" />
+            <div className="skeleton-shimmer h-16 w-full" />
+          </div>
+        </section>
+        
+        {/* Shimmering skeleton project cards */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="glass-card p-6">
+              <div className="skeleton-shimmer h-6 w-24 mb-4" />
+              <div className="skeleton-shimmer h-8 w-3/4 mb-2" />
+              <div className="skeleton-shimmer h-4 w-full mb-4" />
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="skeleton-shimmer h-16 w-full" />
+                <div className="skeleton-shimmer h-16 w-full" />
+              </div>
+              <div className="skeleton-shimmer h-2 w-full" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
