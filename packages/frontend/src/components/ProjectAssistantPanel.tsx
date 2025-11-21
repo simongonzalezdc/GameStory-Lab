@@ -55,15 +55,17 @@ export function ProjectAssistantPanel({
   onProposalAccepted,
 }: ProjectAssistantPanelProps) {
   const quickActions = useMemo<QuickAction[]>(() => {
+    const isGeneralMode = !projectId;
+
     const base: QuickAction[] = [
       {
         id: 'summarize-analyze',
-        label: '📊 Summarize & Analyze',
+        label: isGeneralMode ? '❓ How It Works' : '📊 Summarize & Analyze',
         type: 'message' as const,
       },
       {
         id: 'propose-improvements',
-        label: '🛠️ Propose Improvements',
+        label: isGeneralMode ? '🚀 Get Started' : '🛠️ Propose Improvements',
         type: 'message' as const,
       },
     ];
@@ -99,8 +101,9 @@ export function ProjectAssistantPanel({
       color: 'var(--color-text-primary)',
       borderRadius: 'var(--chat-bubble-radius)',
       padding: 'var(--chat-message-padding-y) var(--chat-message-padding-x)',
-      fontSize: '0.875rem',
-      lineHeight: '1.5',
+      fontSize: '0.9rem',
+      fontWeight: '500',
+      lineHeight: '1.6',
       wordWrap: 'break-word' as const,
       maxWidth: 'var(--chat-message-max-width)',
       alignSelf: 'flex-end',
@@ -120,8 +123,9 @@ export function ProjectAssistantPanel({
       border: '1px solid rgba(143, 62, 72, 0.65)', // garnet border
       borderRadius: 'var(--chat-bubble-radius)',
       padding: 'var(--chat-message-padding-y) var(--chat-message-padding-x)',
-      fontSize: '0.875rem',
-      lineHeight: '1.5',
+      fontSize: '0.9rem',
+      fontWeight: '500',
+      lineHeight: '1.6',
       wordWrap: 'break-word' as const,
       maxWidth: 'var(--chat-message-max-width)',
       boxShadow:
@@ -172,13 +176,13 @@ export function ProjectAssistantPanel({
         );
       } else if (match[7]) {
         parts.push(
-          <strong key={`${keyPrefix}-${idx++}`} className="text-primary font-semibold">
+          <strong key={`${keyPrefix}-${idx++}`} className="text-[var(--color-text-primary)]">
             {match[7]}
           </strong>
         );
       } else if (match[9]) {
         parts.push(
-          <em key={`${keyPrefix}-${idx++}`} className="text-primary">
+          <em key={`${keyPrefix}-${idx++}`} className="text-[var(--color-text-secondary)]">
             {match[9]}
           </em>
         );
@@ -197,12 +201,12 @@ export function ProjectAssistantPanel({
     if (calloutMatch) {
       const level = calloutMatch[1].toLowerCase();
       const body = calloutMatch[2] || '';
-      const bgClass =
+      const bg =
         level.startsWith('err') ? 'validation-error' :
         level.startsWith('warn') ? 'validation-warning' :
         'validation-info';
       return (
-        <div key={`${keyPrefix}-callout`} className={`rounded-md border px-3 py-2 text-sm ${bgClass}`}>
+        <div key={`${keyPrefix}-callout`} className={`rounded-md border px-3 py-2 text-sm ${bg}`}>
           <div className="font-semibold mb-1 uppercase tracking-wide text-xs">{calloutMatch[1]}</div>
           <div className="leading-relaxed">{renderInline(body, `${keyPrefix}-c`)}</div>
         </div>
@@ -216,7 +220,7 @@ export function ProjectAssistantPanel({
     const flushBullets = () => {
       if (bulletBuffer.length) {
         nodes.push(
-          <ul key={`${keyPrefix}-ul-${nodes.length}`} className="list-disc list-inside space-y-1 text-primary">
+          <ul key={`${keyPrefix}-ul-${nodes.length}`} className="list-disc list-inside space-y-1 text-[var(--color-text-secondary)]">
             {bulletBuffer.map((item, idx) => (
               <li key={`${keyPrefix}-li-${idx}`}>{renderInline(item.trim(), `${keyPrefix}-li-${idx}`)}</li>
             ))}
@@ -234,7 +238,7 @@ export function ProjectAssistantPanel({
       } else {
         flushBullets();
         nodes.push(
-          <p key={`${keyPrefix}-p-${idx}`} className="text-primary leading-relaxed">
+          <p key={`${keyPrefix}-p-${idx}`} className="text-[var(--color-text-secondary)] leading-relaxed">
             {renderInline(line, `${keyPrefix}-p-${idx}`)}
           </p>
         );
@@ -244,7 +248,7 @@ export function ProjectAssistantPanel({
 
     if (!nodes.length) {
       return (
-        <p key={`${keyPrefix}-plain`} className="text-primary leading-relaxed">
+        <p key={`${keyPrefix}-plain`} className="text-[var(--color-text-secondary)] leading-relaxed">
           {renderInline(text, `${keyPrefix}-plain`)}
         </p>
       );
@@ -427,7 +431,26 @@ export function ProjectAssistantPanel({
   };
 
   const handleQuickAction = (action: string) => {
-    const prompts: Record<string, string> = {
+    const isGeneralMode = !projectId;
+
+    const prompts: Record<string, string> = isGeneralMode ? {
+      'summarize-analyze': `Help me get started with GameStory Lab. Explain:
+
+1. What is the difference between mechanics and lore in game design?
+2. How does the validation system work?
+3. What's the typical workflow for creating a game concept?
+4. Give me an example of a simple game concept I could create.
+
+Provide clear, beginner-friendly explanations with examples.`,
+      'propose-improvements': `I'm new to GameStory Lab and want to understand how to create my first game concept. Can you:
+
+1. Walk me through the steps to create a project
+2. Explain the difference between using AI generation vs templates
+3. Give me tips for writing good prompts for AI generation
+4. Show me what a complete game concept looks like
+
+Make it practical and actionable for a beginner.`,
+    } : {
       'summarize-analyze': `Summarize the current mechanics and lore, then run a full validation-style analysis:
 
 1. Summarize the mechanics and lore in your own words.
@@ -629,8 +652,8 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                 AI
               </div>
               <div>
-                <h3 className="text-lg font-bold text-primary">{headerLabel}</h3>
-                <p className="text-xs text-secondary">
+                <h3 className="text-lg font-bold text-slate-100">{headerLabel}</h3>
+                <p className="text-xs text-slate-400">
                   {session ? `Session ${session.id.slice(0, 8)}` : 'Connecting...'}
                 </p>
               </div>
@@ -647,7 +670,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     assistantAPI.updateSessionMode(session.id, newMode).catch(console.error);
                   }
                 }}
-                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-primary focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 title="Switch assistant mode"
               >
                 <option value="auto">🤖 Auto</option>
@@ -658,7 +681,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
               <select
                 value={quickMode}
                 onChange={(e) => setQuickMode(e.target.value as 'standard' | 'concise' | 'detailed')}
-                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-primary focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="input text-xs px-2 py-1 bg-surface-strong border border-border-subtle text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="standard">Standard</option>
                 <option value="concise">Concise</option>
@@ -676,7 +699,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                 >
                   <span>💡</span>
                   <span>Proposals</span>
-                  <span className="notification-badge bg-danger -top-1 -right-1">
+                  <span className="notification-badge bg-[var(--color-danger)] -top-1 -right-1">
                     {proposals.length}
                   </span>
                 </button>
@@ -696,22 +719,22 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                   <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white mb-3 shadow-lg animate-pulse" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     AI
                   </div>
-                  <h4 className="text-base font-semibold text-primary mb-1.5">
+                  <h4 className="text-base font-semibold text-slate-100 mb-1.5">
                     Initializing assistant...
                   </h4>
-                  <p className="text-xs text-secondary max-w-md">
+                  <p className="text-xs text-slate-400 max-w-md">
                     Setting up your session. This should only take a moment.
                   </p>
                 </div>
               ) : error && messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                  <div className="chat-avatar bg-danger text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
+                  <div className="chat-avatar bg-[var(--color-danger)] text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     ⚠
                   </div>
-                  <h4 className="text-base font-semibold text-danger mb-1.5">
+                  <h4 className="text-base font-semibold text-[var(--color-danger)] mb-1.5">
                     Failed to start session
                   </h4>
-                  <p className="text-xs text-secondary max-w-md mb-3">
+                  <p className="text-xs text-[var(--color-danger)] max-w-md mb-3">
                     {error}
                   </p>
                   <button
@@ -721,7 +744,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                       // Trigger re-initialization by updating a dependency
                       setCurrentMode(currentMode);
                     }}
-                    className="btn btn-danger px-4 py-2 text-sm"
+                    className="px-4 py-2 text-sm bg-[var(--color-danger)]/20 hover:bg-[var(--color-danger)]/30 text-[var(--color-danger)] rounded-lg border border-[var(--color-danger)]/50 transition-colors"
                   >
                     Retry
                   </button>
@@ -731,10 +754,10 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                   <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     AI
                   </div>
-                  <h4 className="text-base font-semibold text-primary mb-1.5">
+                  <h4 className="text-base font-semibold text-slate-100 mb-1.5">
                     Start a conversation
                   </h4>
-                  <p className="text-xs text-secondary max-w-md">
+                  <p className="text-xs text-slate-400 max-w-md">
                     {projectId 
                       ? "Ask me anything about your project. I can help refine mechanics, expand lore, check consistency, and more."
                       : "I'm here to help with game design, templates, workflows, and best practices. Ask me anything!"}
@@ -759,8 +782,8 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                       <div
                         className={`chat-message-bubble relative shadow-sm ${
                           msg.role === 'assistant'
-                            ? 'chat-message-assistant text-primary'
-                            : 'chat-message-user text-primary'
+                            ? 'chat-message-assistant text-slate-100'
+                            : 'chat-message-user text-white'
                         }`}
                         style={msg.role === 'user' ? userBubbleStyle : assistantBubbleStyle}
                       >
@@ -777,9 +800,9 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                                   segment.type === 'code' ? (
                                     <pre
                                       key={`${msg.id}-code-${idx}`}
-                                      className="code-block text-primary bg-surface-strong p-3 rounded-lg overflow-auto border border-subtle"
+                                      className="code-block text-[var(--color-text-primary)] overflow-auto font-medium"
                                     >
-                                      <code className="whitespace-pre font-mono text-sm">{segment.content}</code>
+                                      <code className="whitespace-pre">{segment.content}</code>
                                     </pre>
                                   ) : (
                                     <div key={`${msg.id}-text-${idx}`} className="space-y-2">
@@ -805,7 +828,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                                         return next;
                                       });
                                     }}
-                                    className="text-xs px-2 py-1 btn btn-secondary"
+                                    className="btn btn-secondary btn-xs"
                                   >
                                     {isExpanded ? 'Collapse' : 'Expand'}
                                   </button>
@@ -816,7 +839,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                         })()}
                       </div>
                       {msg.createdAt && (
-                        <div className={`text-xs text-secondary mt-0.5 px-1 ${
+                        <div className={`text-xs text-slate-400 mt-0.5 px-1 ${
                           msg.role === 'user' ? 'text-right' : ''
                         }`}>
                           {formatTime(msg.createdAt)}
@@ -847,15 +870,15 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
             <div className="chat-input-area shadow-lg">
               {error && (
                 <div className="px-4 pt-2">
-                  <div className="validation-error rounded-md px-3 py-2 flex items-start justify-between gap-2">
+                  <div className="validation-error text-sm rounded-md px-3 py-2 flex items-start justify-between gap-2">
                     <div className="flex-1">
                       <p className="font-semibold mb-1">Error sending message</p>
                       <p className="text-xs">{error}</p>
-                      <p className="text-xs mt-1 text-muted">Check the browser console (F12) for more details.</p>
+                      <p className="text-xs mt-1 opacity-75">Check the browser console (F12) for more details.</p>
                     </div>
                     <button
                       onClick={() => setError(null)}
-                      className="text-danger hover:opacity-75 flex-shrink-0"
+                      className="text-[var(--color-danger)] hover:text-[var(--color-danger)]/80 flex-shrink-0"
                       title="Dismiss error"
                     >
                       ✕
@@ -904,7 +927,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     }}
                     placeholder="Ask for help..."
                     rows={1}
-                    className="input flex-1 resize-none border border-border-subtle px-4 py-2.5 text-sm bg-surface-elevated text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent max-h-[120px]"
+                    className="input flex-1 resize-none border border-border-subtle px-4 py-2.5 text-sm bg-surface-elevated text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent max-h-[120px]"
                   />
                   <button
                     onClick={() => void handleSend()}
@@ -923,12 +946,12 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
           {showProposals && proposals.length > 0 && (
             <div className="chat-proposal-panel panel-slide-in">
               <div className="chat-header flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-primary">
+                <h4 className="text-sm font-semibold text-slate-100">
                   Proposals ({proposals.length})
                 </h4>
                 <button
                   onClick={() => setShowProposals(false)}
-                  className="text-secondary hover:text-primary"
+                  className="text-slate-400 hover:text-slate-200"
                 >
                   ✕
                 </button>
@@ -965,9 +988,9 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
 
                     {/* Show preview of architect documents if present */}
                     {proposal.proposalType === 'architect-document' && proposal.payload?.architectDocuments && (
-                      <div className="mb-3 p-2 bg-purple-900/20 rounded border border-purple-800">
-                        <p className="text-xs font-semibold text-purple-200 mb-1">Documents to create/update:</p>
-                        <ul className="text-xs text-purple-300 space-y-1">
+                      <div className="mb-3 p-2 validation-info rounded">
+                        <p className="text-xs font-semibold text-[var(--color-text-primary)] mb-1">Documents to create/update:</p>
+                        <ul className="text-xs text-[var(--color-text-secondary)] space-y-1">
                           {proposal.payload.architectDocuments.map((doc: any, idx: number) => (
                             <li key={idx} className="flex items-start gap-1">
                               <span>📄</span>
@@ -980,15 +1003,15 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
 
                     {/* Show preview of mechanics/lore changes if present */}
                     {proposal.proposalType === 'concept-update' && (
-                      <div className="mb-3 p-2 bg-emerald-900/20 rounded border border-emerald-800">
-                        <p className="text-xs font-semibold text-emerald-200 mb-1">Will update:</p>
-                        <div className="text-xs text-emerald-300 space-y-1">
+                      <div className="mb-3 p-2 validation-success rounded">
+                        <p className="text-xs font-semibold text-[var(--color-text-primary)] mb-1">Will update:</p>
+                        <div className="text-xs text-[var(--color-text-secondary)] space-y-1">
                           {proposal.payload?.mechanics && (
                             <div className="flex items-center gap-1">
                               <span>⚙️</span>
                               <span>Mechanics ({Object.keys(proposal.payload.mechanics).length} fields)</span>
                               {Object.keys(proposal.payload.mechanics).length === 0 && (
-                                <span className="text-red-400 ml-2">⚠️ Empty!</span>
+                                <span className="text-[var(--color-danger)] ml-2">⚠️ Empty!</span>
                               )}
                             </div>
                           )}
@@ -997,13 +1020,13 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                               <span>📖</span>
                               <span>Lore ({Object.keys(proposal.payload.lore).length} fields)</span>
                               {Object.keys(proposal.payload.lore).length === 0 && (
-                                <span className="text-red-400 ml-2">⚠️ Empty!</span>
+                                <span className="text-[var(--color-danger)] ml-2">⚠️ Empty!</span>
                               )}
                             </div>
                           )}
                           {(!proposal.payload?.mechanics || Object.keys(proposal.payload.mechanics).length === 0) &&
                            (!proposal.payload?.lore || Object.keys(proposal.payload.lore).length === 0) && (
-                            <div className="text-red-400 font-semibold mt-2 p-2 bg-red-900/20 rounded border border-red-800">
+                            <div className="text-[var(--color-danger)] font-semibold mt-2 p-2 validation-error rounded">
                               ⚠️ WARNING: This proposal has no mechanics or lore content! Accepting it will not create a new version.
                             </div>
                           )}
@@ -1033,13 +1056,13 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     <div className="flex gap-2 mt-4">
                       <button
                         onClick={() => handleAccept(proposal.id)}
-                        className="flex-1 px-3 py-2 btn btn-primary text-xs font-medium"
+                        className="flex-1 btn btn-primary btn-xs font-medium"
                       >
                         ✅ Accept
                       </button>
                       <button
                         onClick={() => handleReject(proposal.id)}
-                        className="px-3 py-2 btn btn-secondary text-xs font-medium"
+                        className="btn btn-secondary btn-xs font-medium"
                       >
                         ❌
                       </button>

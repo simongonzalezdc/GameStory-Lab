@@ -25,7 +25,7 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
       {/* Core Loop - Full Width */}
       {mechanics.coreLoop && (
-        <section className="lg:col-span-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-blue-800">
+        <section className="lg:col-span-2 bg-[var(--color-surface-elevated)] rounded-xl p-4 sm:p-6 border border-[var(--color-border-subtle)]">
           <h3 className="text-lg font-bold text-primary mb-3 flex items-center gap-2">
             <span className="text-2xl">⚙️</span>
             <span>Core Gameplay Loop</span>
@@ -148,10 +148,10 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
                   {(resource as any).scarcity && (
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       (resource as any).scarcity === 'abundant'
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        ? 'validation-success'
                         : (resource as any).scarcity === 'balanced'
-                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                        ? 'validation-warning'
+                        : 'validation-error'
                     }`}>
                       {safeString((resource as any).scarcity)}
                     </span>
@@ -175,9 +175,9 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
             {mechanics.winConditions.map((condition: any, index: number) => (
               <li
                 key={index}
-                className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
+                className="flex items-start gap-3 p-3 validation-success rounded-lg"
               >
-                <span className="text-green-600 dark:text-green-400 font-bold mt-0.5">✓</span>
+                <span className="text-[var(--color-success)] font-bold mt-0.5">✓</span>
                 <span className="text-secondary flex-1">{condition}</span>
               </li>
             ))}
@@ -196,9 +196,9 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
             {mechanics.failConditions.map((condition: any, index: number) => (
               <li
                 key={index}
-                className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800"
+                className="flex items-start gap-3 p-3 validation-error rounded-lg"
               >
-                <span className="text-red-600 dark:text-red-400 font-bold mt-0.5">✗</span>
+                <span className="text-[var(--color-danger)] font-bold mt-0.5">✗</span>
                 <span className="text-secondary flex-1">{condition}</span>
               </li>
             ))}

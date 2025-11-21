@@ -66,8 +66,8 @@ export function ProjectsPage() {
     // Load visibility preference from localStorage
     return localStorage.getItem('assistantVisible') !== 'false';
   });
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const navigate = useNavigate();
+
 
   // Save assistant visibility preference
   useEffect(() => {
@@ -187,27 +187,23 @@ export function ProjectsPage() {
     <div className="space-y-8">
       {/* Hero Section */}
       <section className="hero-pane shadow-lg p-8 lg:p-12 space-y-10" style={{ border: '1px solid var(--color-border-subtle)' }}>
-        <div className="grid lg:grid-cols-[1.3fr_1fr] gap-8 relative z-10">
+        <div className="max-w-4xl mx-auto text-center">
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-100 rounded-full border border-brand-100/60 dark:border-brand-800/70 w-max">
-              <span className="h-2 w-2 rounded-full bg-mint-500 animate-pulse" />
-              Experience Design OS
-            </div>
             <div className="space-y-4">
               <h1 className="text-4xl md:text-5xl font-[700] text-slate-900 dark:text-white tracking-tight max-w-3xl" style={{ fontFamily: 'var(--font-display)' }}>
-                Command center for player-first concepts
+                Create Game Design Documents with AI
               </h1>
               <p className="text-lg leading-7 text-slate-800 dark:text-slate-300 max-w-2xl text-balance">
-                Curate, validate, and revive experiments with a clear signal on narrative and mechanics. Move from spark to shippable beats with decisive next steps.
+                Generate mechanics, write lore, validate consistency, export professional documentation.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap justify-center items-center gap-3">
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="btn btn-primary shadow-lg hover:shadow-xl"
               >
                 <span className="text-lg">+</span>
-                <span>Create Project</span>
+                <span>Create New Project</span>
               </button>
               <Link
                 to="/templates"
@@ -216,13 +212,11 @@ export function ProjectsPage() {
                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-surface-muted text-brand-700">🎨</span>
                 <span>Browse Templates</span>
               </Link>
-              
-              {/* Assistant Toggle */}
               <button
                 onClick={() => setShowAssistant(!showAssistant)}
                 className={`btn transition-all duration-200 ${
-                  showAssistant 
-                    ? 'btn-primary shadow-lg' 
+                  showAssistant
+                    ? 'btn-primary shadow-lg'
                     : 'btn-secondary'
                 }`}
                 title="Toggle AI Assistant"
@@ -231,70 +225,22 @@ export function ProjectsPage() {
                 <span>AI Assistant</span>
                 {showAssistant && <span className="text-xs ml-1">●</span>}
               </button>
-              
-              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/70 dark:bg-slate-900 border border-border-subtle">
-                  ⚡
-                </span>
-                <span>Live validation on save</span>
-              </div>
             </div>
           </div>
 
-          <div className="glass-card p-6 lg:p-7 space-y-4 border border-border-subtle">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="eyebrow mb-1">AI Assistant</p>
-                <p className="text-slate-900 dark:text-slate-100 font-semibold">Ready for your next build</p>
-              </div>
-              <span className="icon-badge text-sm font-semibold">AI</span>
-            </div>
-            <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-muted dark:bg-surface-strong border border-border-subtle">
-                <span className="pill bg-white dark:bg-surface-elevated border border-border-subtle text-brand-700 dark:text-brand-200">New</span>
-                <div>
-                  <p className="font-semibold text-slate-900 dark:text-slate-100">Proposal rail</p>
-                  <p>Capture playable beats, documentation, and consistency fixes in one review rail.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-muted dark:bg-surface-strong border border-border-subtle">
-                <span className="pill bg-mint-500/15 border border-mint-500/50 text-mint-500">Fast</span>
-                <div>
-                  <p className="font-semibold text-slate-900 dark:text-slate-100">Adaptive templates</p>
-                  <p>Blend genres, lock tone, and export to your preferred document format.</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="btn btn-primary w-full"
-              >
-                Start with the Assistant
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
           <div className="stat-card p-6">
             <div className="eyebrow mb-2">Projects</div>
             <div className="text-4xl font-bold text-primary">{stats.projectCount}</div>
-            <p className="text-sm text-secondary">active initiatives</p>
+            <p className="text-sm text-secondary">active projects</p>
           </div>
           <div className="stat-card p-6">
             <div className="eyebrow mb-2">Versions</div>
             <div className="text-4xl font-bold text-primary">{stats.totalVersions}</div>
-            <p className="text-sm text-secondary">documented beats</p>
-          </div>
-          <div className="stat-card p-6">
-            <div className="eyebrow mb-2">Last Touch</div>
-            <div className="text-2xl font-semibold text-primary">{stats.lastTouched}</div>
-            <p className="text-sm text-secondary">across all projects</p>
-          </div>
-          <div className="stat-card p-6">
-            <div className="eyebrow mb-2">Avg Depth</div>
-            <div className="text-4xl font-bold text-primary">{stats.averageVersions}</div>
-            <p className="text-sm text-secondary">versions per project</p>
+            <p className="text-sm text-secondary">total versions</p>
           </div>
         </div>
       </section>
@@ -513,65 +459,9 @@ export function ProjectsPage() {
             )}
           </div>
 
-          {/* Studio Principles */}
-          <div className="rounded-xl bg-gradient-to-br from-mint-500/10 via-brand-500/5 to-brand-500/10 dark:from-mint-500/15 dark:to-brand-500/15 border border-mint-500/30 shadow-sm p-6">
-            <h2 className="text-lg font-bold text-emerald-900 dark:text-emerald-200 mb-4">Studio Principles</h2>
-            <ul className="space-y-3 text-sm text-emerald-800 dark:text-emerald-200">
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-600 mt-0.5">•</span>
-                <span>Begin with the player's desired feeling</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-600 mt-0.5">•</span>
-                <span>Prototype narrative beats before polish</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-600 mt-0.5">•</span>
-                <span>Test pacing with micro-scenarios weekly</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-emerald-600 mt-0.5">•</span>
-                <span>Archive learnings at every milestone</span>
-              </li>
-            </ul>
-          </div>
         </aside>
       </div>
 
-      {/* Assistant Panel */}
-      {showAssistant && (
-        <div className="fixed right-4 top-20 bottom-28 w-96 z-40 bg-surface rounded-2xl shadow-2xl border border-border-subtle overflow-hidden">
-          <div className="h-full flex flex-col">
-            {/* Header */}
-            <div className="flex-shrink-0 px-4 py-3 border-b border-border-subtle bg-surface-card">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-slate-900 dark:text-slate-100">AI Assistant</h3>
-                <button
-                  onClick={() => setShowAssistant(false)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
-                  title="Close assistant"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            
-            {/* Assistant Content */}
-            <div className="flex-1 min-h-0">
-              <ProjectAssistantPanel
-                projectId={selectedProjectId || undefined}
-                type="concept"
-                onProposalAccepted={async () => {
-                  // Refresh projects after proposal acceptance
-                  await loadProjects();
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Create Project Modal */}
       {showCreateModal && (
@@ -653,6 +543,37 @@ export function ProjectsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assistant Panel */}
+      {showAssistant && (
+        <div className="fixed right-4 top-20 bottom-28 w-96 z-40 bg-surface rounded-2xl shadow-2xl border border-border-subtle overflow-hidden">
+          <div className="h-full flex flex-col">
+            {/* Header */}
+            <div className="flex-shrink-0 px-4 py-3 border-b border-border-subtle bg-surface-card">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">AI Assistant</h3>
+                <button
+                  onClick={() => setShowAssistant(false)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+                  title="Close assistant"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Assistant Content */}
+            <div className="flex-1 min-h-0">
+              <ProjectAssistantPanel
+                projectId={undefined}
+                type="concept"
+              />
             </div>
           </div>
         </div>

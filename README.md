@@ -1,8 +1,8 @@
-# GameForge Studio
+# GameStory Lab
 
-**AI-Powered Game Concept Generator for Indie Developers**
+**AI Game Design Document Generator**
 
-GameForge Studio helps indie game developers create cohesive, professional game concepts before development starts. Using AI orchestration and consistency validation, it ensures your mechanics and lore work together seamlessly.
+GameStory Lab helps indie game developers create professional game design documents with AI assistance. Generate mechanics, write lore, validate consistency, and export complete documentation packages.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
@@ -19,7 +19,6 @@ GameForge Studio helps indie game developers create cohesive, professional game 
 - **✅ Comprehensive Validation**: 26 validation rules across 6 categories with real-time feedback
 - **🎯 Genre Templates**: 15 professionally crafted templates covering all major genres (Nov 2025)
 - **🎨 Genre Blending**: Mix and match genres with weighted blending to create hybrid templates (Metroidvania, Action RPG, etc.)
-- **✨ Blended Project Creation**: Create projects directly from genre hybrids with full mechanics/lore integration
 - **🔄 Iterative Refinement**: Full version tracking and change comparison with 4 refinement focuses
 - **📝 Professional Export**: Generate GDD, pitch decks, or technical specs in markdown
 - **🏷️ Title Generation**: Advanced title suggestions with SEO analysis and market fit scoring
@@ -106,7 +105,7 @@ GameForge Studio helps indie game developers create cohesive, professional game 
 
 ## 🏗️ Architecture
 
-GameForge Studio uses a monorepo structure with npm workspaces:
+GameStory Lab uses a monorepo structure with npm workspaces:
 
 ```
 gameforge-studio/

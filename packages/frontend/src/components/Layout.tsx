@@ -89,11 +89,8 @@ return (
                 <div className="text-xs font-bold text-tertiary uppercase tracking-[0.12em]">
                   GameStory Lab
                 </div>
-                <div className="flex items-center gap-2 -mt-0.5">
-                  <h1 className="text-base font-semibold text-primary">Experience Design OS</h1>
-                  <span className="badge bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-200 border border-brand-100/60 dark:border-brand-800/70">
-                    Beta
-                  </span>
+                <div className="-mt-0.5">
+                  <h1 className="text-base font-semibold text-primary">AI Game Design Tool</h1>
                 </div>
               </div>
             </Link>
@@ -132,6 +129,17 @@ return (
                             <p className="text-xs text-tertiary">Tutorial & status live here now.</p>
                           </div>
                           <div className="flex flex-col">
+                            <Link
+                              to="/templates"
+                              className="flex items-start gap-3 px-4 py-3 text-sm hover:bg-surface-elevated transition"
+                              onClick={() => setShowSettingsMenu(false)}
+                            >
+                              <span className="mt-0.5 text-brand-600 dark:text-brand-300">🎨</span>
+                              <div>
+                                <p className="font-semibold text-primary">Browse Templates</p>
+                                <p className="text-xs text-tertiary">Start from pre-made game concepts.</p>
+                              </div>
+                            </Link>
                             <Link
                               to="/tutorial"
                               className="flex items-start gap-3 px-4 py-3 text-sm hover:bg-surface-elevated transition"
@@ -200,14 +208,6 @@ return (
 
             {/* Actions */}
             <div className="flex items-center gap-3">
-              <Link
-                to="/templates"
-                className="hidden sm:inline-flex items-center gap-2 btn bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
-                style={{ boxShadow: '0 10px 30px -12px rgba(63, 93, 168, 0.55)' }}
-              >
-                <span className="inline-flex h-6 w-6 items-center justify-center badge bg-white/20 text-white">★</span>
-                <span>Explore Templates</span>
-              </Link>
               {activeProjectId && (
                 <Link
                   to={`/projects/${activeProjectId}/architect`}
@@ -227,7 +227,7 @@ return (
           {children}
         </main>
       ) : (
-        <main className={`mx-auto ${isFullWidth ? 'max-w-full px-0' : 'max-w-7xl px-4 sm:px-6 lg:px-8'} py-6 lg:py-8 flex-1 flex flex-col min-h-0`}>
+        <main className={`mx-auto ${isFullWidth ? 'max-w-full px-0' : 'max-w-7xl px-4 sm:px-6 lg:px-8'} py-6 lg:py-8 pb-24 lg:pb-32 flex-1 flex flex-col min-h-0`}>
           {children}
         </main>
       )}

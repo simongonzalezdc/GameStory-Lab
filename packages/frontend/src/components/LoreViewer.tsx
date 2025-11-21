@@ -86,9 +86,9 @@ export function LoreViewer({ lore }: LoreViewerProps) {
                   {lore.protagonist.abilities.map((ability: any, index: number) => (
                     <li
                       key={index}
-                      className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
+                      className="flex items-start gap-3 p-3 bg-[var(--color-surface-elevated)] rounded-lg border border-[var(--color-border-subtle)]"
                     >
-                      <span className="text-blue-600 dark:text-blue-400 font-bold mt-0.5">✨</span>
+                      <span className="text-[var(--brand-primary)] font-bold mt-0.5">✨</span>
                       <span className="text-secondary flex-1">{ability}</span>
                     </li>
                   ))}
@@ -302,7 +302,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
             {Object.entries(lore.tutorialPhase as Record<string, unknown>).map(([key, value]) => {
               if (Array.isArray(value)) {
                 return (
-                  <div key={key} className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div key={key} className="p-4 bg-[var(--color-surface-elevated)] rounded-lg border border-[var(--color-border-subtle)]">
                     <h4 className="font-semibold text-primary mb-2 capitalize">
                       {key.replace(/([A-Z])/g, ' $1').trim()}
                     </h4>
@@ -318,7 +318,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
               }
               if (typeof value === 'object' && value !== null) {
                 return (
-                  <div key={key} className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div key={key} className="p-4 bg-[var(--color-surface-elevated)] rounded-lg border border-[var(--color-border-subtle)]">
                     <h4 className="font-semibold text-primary mb-2 capitalize">
                       {key.replace(/([A-Z])/g, ' $1').trim()}
                     </h4>
@@ -338,7 +338,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
                 );
               }
               return (
-                <div key={key} className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div key={key} className="p-4 bg-[var(--color-surface-elevated)] rounded-lg border border-[var(--color-border-subtle)]">
                   <h4 className="font-semibold text-primary mb-2 capitalize">
                     {key.replace(/([A-Z])/g, ' $1').trim()}
                   </h4>
@@ -363,7 +363,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
             {Object.entries(lore.primaryConflict as Record<string, unknown>).map(([key, value]) => {
               if (Array.isArray(value)) {
                 return (
-                  <div key={key} className="p-4 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                  <div key={key} className="p-4 bg-[var(--color-surface-elevated)] rounded-lg border border-[var(--color-border-subtle)]">
                     <h4 className="font-semibold text-primary mb-2 capitalize">
                       {key.replace(/([A-Z])/g, ' $1').trim()}
                     </h4>
@@ -379,7 +379,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
               }
               if (typeof value === 'object' && value !== null) {
                 return (
-                  <div key={key} className="p-4 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                  <div key={key} className="p-4 bg-[var(--color-surface-elevated)] rounded-lg border border-[var(--color-border-subtle)]">
                     <h4 className="font-semibold text-primary mb-2 capitalize">
                       {key.replace(/([A-Z])/g, ' $1').trim()}
                     </h4>
@@ -399,7 +399,7 @@ export function LoreViewer({ lore }: LoreViewerProps) {
                 );
               }
               return (
-                <div key={key} className="p-4 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                <div key={key} className="p-4 bg-[var(--color-surface-elevated)] rounded-lg border border-[var(--color-border-subtle)]">
                   <h4 className="font-semibold text-primary mb-2 capitalize">
                     {key.replace(/([A-Z])/g, ' $1').trim()}
                   </h4>
