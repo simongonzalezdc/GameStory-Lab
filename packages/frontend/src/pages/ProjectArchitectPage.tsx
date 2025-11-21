@@ -3,7 +3,7 @@
  * Chat-only interface for generating comprehensive project documentation
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
 import { MarkdownRenderer } from '../components/MarkdownRenderer';
@@ -32,9 +32,25 @@ export function ProjectArchitectPage() {
   const [selectedDocIndex, setSelectedDocIndex] = useState<number | null>(null);
   const [documentsContent, setDocumentsContent] = useState<Map<string, string>>(new Map());
 
+  // Track which projectIds have already been checked to prevent duplicate calls in Strict Mode
+  const checkedProjects = useRef<Set<string>>(new Set());
+  const missingDocsLogged = useRef<Set<string>>(new Set());
+
   // Check if documentation exists and load it
-  const checkDocumentation = async () => {
+  const checkDocumentation = async (options?: { force?: boolean }) => {
+    const force = options?.force ?? false;
     if (!projectId) return;
+
+    // Skip if already checked and not forcing (prevents duplicate calls in Strict Mode)
+    if (!force && checkedProjects.current.has(projectId)) {
+      return;
+    }
+
+    // Mark as checked before making the request
+    if (!force) {
+      checkedProjects.current.add(projectId);
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/architect/documentation/${projectId}`, {
         // Suppress console errors for expected 404s
@@ -43,7 +59,11 @@ export function ProjectArchitectPage() {
       
       if (response.status === 404) {
         // Documentation doesn't exist yet - this is expected and not an error
-        // Silently handle this case without logging
+        // Log only once per projectId to aid debugging
+        if (!missingDocsLogged.current.has(projectId)) {
+          console.debug(`[Architect] No documentation found for project ${projectId}`);
+          missingDocsLogged.current.add(projectId);
+        }
         setDocumentationGenerated(false);
         setGeneratedDocs(null);
         return;
@@ -107,6 +127,10 @@ export function ProjectArchitectPage() {
 
   // Check for existing documentation on mount
   useEffect(() => {
+    // Clear checked projects when projectId changes
+    checkedProjects.current.clear();
+    missingDocsLogged.current.clear();
+    // Call without force flag - second Strict Mode invocation will be skipped
     checkDocumentation();
   }, [projectId]);
 
@@ -196,8 +220,11 @@ export function ProjectArchitectPage() {
               projectId={projectId} 
               type="architect" 
               onProposalAccepted={async () => {
-                // Reload documentation after proposal is accepted
-                await checkDocumentation();
+                // Force refresh documentation after proposal is accepted
+                // Clear the checked flag so a fresh fetch occurs
+                checkedProjects.current.delete(projectId);
+                missingDocsLogged.current.delete(projectId);
+                await checkDocumentation({ force: true });
               }}
             />
           )}

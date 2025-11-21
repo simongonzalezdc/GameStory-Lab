@@ -1,49 +1,79 @@
 <!-- aa8ceafd-20bb-47f8-9bb3-b79a2e8bb8c2 5bb5bd15-4934-4081-be5b-9975efce5026 -->
-# Frontend Redesign: Utilitarian "Jewel" App Shell
+# Frontend Redesign Specification: Utilitarian Creator App
 
-## 1. Core Architecture: The "App Shell"
+## 1. Design Philosophy & Theme Strictness
+- **Visual Identity**: "Cozy Creator Lab" meets "Professional IDE".
+- **Strict Color Rule**: NO hardcoded hex values outside of `index.css` or `tailwind.config.js`. All colors must reference `jewel-engine-theme-lowcontrast-garnet-topaz.css` variables (e.g., `var(--jewel-garnet)`, `var(--bg-panel)`).
+- **Personality**: Achieved through "Notebook" textures, subtle jewel-tone gradients in icons/headers, and "tactile" interaction states (hover lifts, active glows), rather than loud background colors.
 
-- **Goal**: Shift from "Website" (Header + Page) to "Professional Tool" (Sidebar + Workspace).
-- **New Layout Structure**:
-    - **Left Sidebar (Fixed)**: Navigation, User Profile, Global Settings.
-    - **Top Bar (Contextual)**: Breadcrumbs, Project Status, Search/Command Trigger.
-    - **Main Workspace**: Scrollable content area with high information density.
-    - **Right Panel (Collapsible)**: The AI Assistant/Inspector (already exists, but needs integration into the shell).
+## 2. Core Architecture: The App Shell
+- **New Component**: `AppShell.tsx` (Replaces existing `Layout.tsx`).
+- **Layout Structure**:
+    - **Left Sidebar (Fixed, w-64)**:
+        - **Header**: "GameStory Lab" Logo (compact).
+        - **Nav**: Vertical list with `Lucide` icons. Active state = Left border strip (Garnet) + subtle background.
+        - **Footer**: User profile / Global Settings.
+    - **Top Bar (Contextual, h-14)**:
+        - **Left**: Breadcrumbs (e.g., "Projects / Tidal Cities").
+        - **Right**: Command Palette trigger (Cmd+K visual), Sync Status.
+    - **Main Workspace**: Scrollable, high-density area.
+    - **Right Panel (Collapsible)**: AI Assistant (existing component, integrated into shell).
 
-## 2. Aesthetics: "Functional Jewel"
+## 3. Page Overhaul: Dashboard (`ProjectsPage`)
+- **Layout**: "Bento Grid" Dashboard.
+- **Elements**:
+    1.  **Quick Actions Row**: Compact buttons for "New Project", "Import", "Templates".
+    2.  **"Recent" Spotlight**: Top 3 recently edited projects displayed as "Open Notebooks" (visual metaphor: spine on the left, subtle paper texture or glass effect).
+    3.  **Project List**: High-density table/grid for all other projects. Columns: Name, Genre (Pill), Last Edited, Version Count.
+- **Personality Injection**:
+    - Project icons are generated based on their genre color (Garnet for Action, Topaz for Adventure, etc.).
+    - "Empty State" uses a high-quality ASCII or SVG illustration of a messy desk/lab.
 
-- **Style**: Keep the `Dev Docs/jewel-engine-theme-lowcontrast-garnet-topaz.css` colors but apply them functionally.
-- **Refinements**:
-    - **Glassmorphism**: Use it for *panels* and *overlays*, not general page backgrounds.
-    - **Density**: Reduce padding on lists and cards. Use strict grid alignments.
-    - **Typography**: Keep `Plus Jakarta Sans` for UI text but tighten tracking. Use `Space Grotesk` only for top-level headers.
-    - **Borders**: Use subtle 1px borders with `border-subtle` color to define panes (classic "IDE" look).
+## 4. Correction: Template Browser Colors
+- **Problem**: `TemplateBrowserPage.tsx` currently has hardcoded hex values in `genreColors`.
+- **Fix**: Refactor `genreColors` object to use CSS variables.
+    - Example: Replace `'#5B2B33'` with `'var(--jewel-garnet)'`.
+    - Gradients: Use `linear-gradient(135deg, var(--jewel-garnet), var(--jewel-fireopal))`.
+- **Result**: Ensure the "rainbow" effect is replaced by the strictly defined "Jewel Tones" (Garnet, Topaz, Amethyst, Emerald, Sapphire, Turquoise, Fire Opal).
 
-## 3. Library Additions
+## 5. Library & Tech Stack
+- **Icons**: `lucide-react` (Install).
+- **Animation**: `framer-motion` (Install) for:
+    - Sidebar collapse/expand.
+    - List entry animations.
+    - "Spotlight" hover effects on Bento cards.
+- **Utils**: `clsx`, `tailwind-merge` (Install).
 
-- **`lucide-react`**: For crisp, consistent, professional UI icons.
-- **`framer-motion`**: For subtle, "expensive-feeling" layout transitions (e.g., sidebar collapse, list reordering).
-- **`clsx` & `tailwind-merge`**: For robust class management.
+## 6. Implementation Roadmap
+1.  **Dependencies**: `npm install lucide-react framer-motion clsx tailwind-merge`.
+2.  **Theme Audit**:
+    - Verify `index.css` has all `jewel-*` variables defined.
+    - Add `sidebar-width`, `topbar-height` variables.
+3.  **Shell Construction**:
+    - Create `src/components/AppShell.tsx`.
+    - Migrate `App.tsx` to use `AppShell`.
+4.  **Dashboard Redesign**:
+    - Rewrite `ProjectsPage.tsx`.
+    - Create `ProjectCard.tsx` (Bento style) and `ProjectRow.tsx` (List style).
+5.  **Template Color Fix**:
+    - Refactor `TemplateBrowserPage.tsx` color logic.
+6.  **UI Polish**:
+    - Update `Button` components to be `h-9` (compact) by default.
+    - Add "Command Bar" visual to Top Bar.
 
-## 4. Page Overhaul: `ProjectsPage` -> "Dashboard"
+## 7. Final Consistency Audit
+- [ ] **Navigation**: Does the Sidebar persist correctly across all routes?
+- [ ] **Colors**: Are there any "rogue" colors in the Template Browser?
+- [ ] **Responsiveness**: Does the Sidebar collapse on mobile?
+- [ ] **Functionality**: Do all links in the new Sidebar work?
+- [ ] **Aesthetics**: Does the Dashboard feel "Cozy" (Notebook vibes) yet "Utilitarian" (High density)?
 
-- **Remove**: The large "Hero" / Welcome section.
-- **Add**:
-    - **Quick Actions Bar**: Row of compact buttons (Create, Template, Import).
-    - **Recent Files Grid**: A high-density grid of recently accessed projects with "last edited" metadata prominent.
-    - **All Projects Table/List**: A sortable, filterable list view (more utilitarian than big cards).
-- **Visuals**: "Notebook" spine effect on project thumbnails to keep the "Story" vibe but in a grid format.
 
-## 5. Component Updates
+### To-dos
 
-- **Navigation**: Vertical Sidebar component with active state indicators (Garnet glow).
-- **Search**: A "Command Bar" aesthetic (CMD+K style visual) in the Top Bar.
-- **Buttons**: "Tactile" feel but more compact (`h-9` or `h-8` standard height).
-
-## Implementation Steps
-
-1.  **Setup**: Install `lucide-react`, `framer-motion`, `clsx`, `tailwind-merge`.
-2.  **Theme Tweak**: Update `index.css` to support "App Shell" variables (sidebar width, top bar height).
-3.  **Layout Refactor**: Create `AppShell.tsx` (replacing current Layout) with Sidebar + TopBar structure.
-4.  **Dashboard Implementation**: Rewrite `ProjectsPage.tsx` to be a density-focused dashboard.
-5.  **Component Polish**: Update buttons and inputs to match the new utilitarian density.
+- [ ] Install dependencies (lucide-react, framer-motion, clsx, tailwind-merge)
+- [ ] Update index.css with app shell variables and verify jewel tokens
+- [ ] Create AppShell component and update App.tsx
+- [ ] Redesign ProjectsPage.tsx (Dashboard) with Bento grid and list view
+- [ ] Refactor TemplateBrowserPage.tsx to use CSS variable jewel colors
+- [ ] Perform final consistency and functionality audit

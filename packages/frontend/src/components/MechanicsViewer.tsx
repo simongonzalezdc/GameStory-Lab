@@ -206,10 +206,80 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
         </section>
       )}
 
+      {/* Tutorial System - Special handling */}
+      {mechanics.tutorialSystem && typeof mechanics.tutorialSystem === 'object' && (
+        <section className="lg:col-span-2 jewel-card p-4 sm:p-6">
+          <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+            <span className="text-2xl">📚</span>
+            <span>Tutorial System</span>
+          </h3>
+          {mechanics.tutorialSystem.phases && Array.isArray(mechanics.tutorialSystem.phases) ? (
+            <div className="space-y-4">
+              {mechanics.tutorialSystem.phases.map((phase: any, index: number) => (
+                <div
+                  key={index}
+                  className="p-4 bg-[var(--color-surface-elevated)] rounded-lg border border-[var(--color-border-subtle)]"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-xl font-bold text-[var(--color-brand-primary)]">
+                      Run {phase.run || index + 1}
+                    </span>
+                    {phase.focus && (
+                      <span className="text-primary font-semibold">{phase.focus}</span>
+                    )}
+                  </div>
+                  {phase.unlockedActions && Array.isArray(phase.unlockedActions) && phase.unlockedActions.length > 0 && (
+                    <div className="mt-3">
+                      <h4 className="text-sm font-semibold text-secondary mb-2">Unlocked Actions:</h4>
+                      <ul className="space-y-1.5">
+                        {phase.unlockedActions.map((action: string, actionIndex: number) => (
+                          <li
+                            key={actionIndex}
+                            className="flex items-start gap-2 text-secondary"
+                          >
+                            <span className="text-[var(--color-brand-primary)] mt-0.5">•</span>
+                            <span>{action}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
+                style={{ 
+                  backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
+                  color: 'var(--color-text-tertiary)',
+                  borderBottom: '1px solid var(--color-border-subtle)'
+                }}
+              >
+                JSON
+              </div>
+              <pre
+                className="code-block text-[var(--color-text-primary)] overflow-auto font-mono text-sm leading-relaxed rounded-md rounded-tl-none"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 60%, transparent)',
+                  border: '1px solid var(--color-border-subtle)',
+                  padding: '0.75rem',
+                  marginTop: '0',
+                }}
+              >
+                <code className="whitespace-pre-wrap break-words">
+                  {JSON.stringify(mechanics.tutorialSystem, null, 2)}
+                </code>
+              </pre>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* Additional Fields */}
       {Object.entries(mechanics).map(([key, value]) => {
         // Skip already rendered fields
-        if (['coreLoop', 'playerActions', 'progressionSystems', 'progressionSystem', 'resourceSystems', 'winConditions', 'failConditions'].includes(key)) {
+        if (['coreLoop', 'playerActions', 'progressionSystems', 'progressionSystem', 'resourceSystems', 'winConditions', 'failConditions', 'tutorialSystem'].includes(key)) {
           return null;
         }
 
@@ -227,14 +297,62 @@ export function MechanicsViewer({ mechanics }: MechanicsViewerProps) {
               <ul className="space-y-2">
                 {value.map((item, index) => (
                   <li key={index} className="p-3 bg-surface-muted rounded-lg text-secondary">
-                    {typeof item === 'object' ? JSON.stringify(item, null, 2) : String(item)}
+                    {typeof item === 'object' ? (
+                      <div className="relative">
+                        <div className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
+                          style={{ 
+                            backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
+                            color: 'var(--color-text-tertiary)',
+                            borderBottom: '1px solid var(--color-border-subtle)'
+                          }}
+                        >
+                          JSON
+                        </div>
+                        <pre
+                          className="code-block text-[var(--color-text-primary)] overflow-auto font-mono text-xs leading-relaxed rounded-md rounded-tl-none"
+                          style={{
+                            backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 60%, transparent)',
+                            border: '1px solid var(--color-border-subtle)',
+                            padding: '0.5rem',
+                            marginTop: '0',
+                          }}
+                        >
+                          <code className="whitespace-pre-wrap break-words">
+                            {JSON.stringify(item, null, 2)}
+                          </code>
+                        </pre>
+                      </div>
+                    ) : (
+                      String(item)
+                    )}
                   </li>
                 ))}
               </ul>
             ) : typeof value === 'object' ? (
-              <pre className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg text-sm text-secondary overflow-x-auto">
-                {JSON.stringify(value, null, 2)}
-              </pre>
+              <div className="relative">
+                <div className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
+                  style={{ 
+                    backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
+                    color: 'var(--color-text-tertiary)',
+                    borderBottom: '1px solid var(--color-border-subtle)'
+                  }}
+                >
+                  JSON
+                </div>
+                <pre
+                  className="code-block text-[var(--color-text-primary)] overflow-auto font-mono text-sm leading-relaxed rounded-md rounded-tl-none"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 60%, transparent)',
+                    border: '1px solid var(--color-border-subtle)',
+                    padding: '0.75rem',
+                    marginTop: '0',
+                  }}
+                >
+                  <code className="whitespace-pre-wrap break-words">
+                    {JSON.stringify(value, null, 2)}
+                  </code>
+                </pre>
+              </div>
             ) : (
               <p className="text-secondary whitespace-pre-wrap">{String(value)}</p>
             )}
