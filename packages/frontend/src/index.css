@@ -97,6 +97,13 @@
     --jewel-fireopal: #AE5D37;
     --jewel-fireopal-dark: #3d2019;
     --jewel-fireopal-light: #c07581;
+    /* Extended jewel shades (color-mix variants for richer animation) */
+    --jewel-garnet-soft: color-mix(in srgb, var(--jewel-garnet) 70%, var(--color-bg-primary) 30%);
+    --jewel-garnet-rich: color-mix(in srgb, var(--jewel-garnet) 85%, var(--color-border) 15%);
+    --jewel-amethyst-soft: color-mix(in srgb, var(--jewel-amethyst) 68%, var(--color-bg-primary) 32%);
+    --jewel-amethyst-rich: color-mix(in srgb, var(--jewel-amethyst) 80%, var(--color-border) 20%);
+    --jewel-sapphire-soft: color-mix(in srgb, var(--jewel-sapphire) 70%, var(--color-bg-primary) 30%);
+    --jewel-sapphire-rich: color-mix(in srgb, var(--jewel-sapphire) 85%, var(--color-border) 15%);
     
     --color-assistant-bg: #211F26;
     --color-assistant-border-glow: rgba(181, 147, 60, 0.2); /* topaz glow - reduced opacity */
@@ -132,6 +139,7 @@
     --gradient-fireopal-topaz: linear-gradient(135deg, var(--jewel-fireopal) 0%, var(--jewel-topaz) 100%);
     --gradient-garnet-topaz: linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-topaz) 100%);
     --gradient-garnet-fireopal-topaz: linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-fireopal) 50%, var(--jewel-topaz) 100%);
+    --gradient-sapphire-amethyst-garnet: linear-gradient(135deg, var(--jewel-sapphire) 0%, var(--jewel-amethyst) 50%, var(--jewel-garnet) 100%);
     
     /* Jewel tone gradients - Secondary combinations */
     --gradient-emerald-turquoise: linear-gradient(135deg, var(--jewel-emerald) 0%, var(--jewel-turquoise) 100%);
@@ -1144,6 +1152,71 @@
     writing-mode: horizontal-tb;
     text-orientation: mixed;
     border-radius: var(--chat-bubble-radius) !important; /* Ensure unified corner radius */
+    transition: background-color 0.5s ease-out, border-color 0.5s ease-out, box-shadow 0.5s ease-out;
+  }
+
+  /* Token Mode - Dark charcoal background with jewel text */
+  .chat-message-bubble.token-mode {
+    background: #111015 !important; /* Warm Charcoal */
+    border-color: #3A343F !important;
+    box-shadow: none !important;
+  }
+
+  /* Content layer wrapper for cross-fade */
+  .chat-message-lens-layer {
+    position: relative;
+    min-height: 24px;
+  }
+
+  .chat-message-lens-layer .standard-content {
+    transition: opacity 0.3s ease-out;
+  }
+
+  .chat-message-lens-layer .standard-content.hidden {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .chat-message-lens-layer .token-content {
+    transition: opacity 0.3s ease-out;
+  }
+
+  .chat-message-lens-layer .token-content.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Toggle button styling */
+  .chat-message-token-toggle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+  }
+
+  .chat-message-token-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }
+
+  .chat-message-token-toggle:active {
+    transform: scale(0.95);
   }
 
   .chat-message-bubble * {
@@ -1619,6 +1692,15 @@
     75% { border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%; }
   }
 
+  @keyframes ring-morph {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.08);
+    }
+  }
+
   @keyframes shimmer {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
@@ -1627,6 +1709,17 @@
   @keyframes float-orb {
     0%, 100% { transform: translateY(0) scale(1); }
     50% { transform: translateY(-10px) scale(1.05); }
+  }
+
+  @keyframes sparkle-depth {
+    0%, 100% {
+      transform: scale(0.9) translateZ(0);
+      opacity: 0.2;
+    }
+    50% {
+      transform: scale(1.1) translateZ(0);
+      opacity: 0.35;
+    }
   }
 
   .jewel-spinner {
@@ -1644,7 +1737,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: var(--gradient-garnet-amethyst);
+    background: var(--gradient-sapphire-amethyst-garnet);
     animation: 
       jewel-spin 3s linear infinite, 
       morph-shape 4s ease-in-out infinite alternate;
@@ -1662,16 +1755,16 @@
     position: absolute;
     inset: -4px;
     border: 2px solid transparent;
-    border-top-color: var(--jewel-amethyst);
-    border-right-color: var(--jewel-sapphire);
+    border-top-color: var(--jewel-sapphire);
+    border-right-color: var(--jewel-amethyst);
     border-bottom-color: var(--jewel-garnet);
     border-radius: 50%;
-    animation: jewel-spin 2s linear infinite reverse;
+    animation: jewel-spin 2s linear infinite reverse, ring-morph 3.5s ease-in-out infinite alternate;
     opacity: 0.5;
     z-index: 0;
   }
 
-  /* Inner core pulse */
+  /* Core pulse mimics a sapphire heartbeat, suggesting the assistant is building energy before replying. */
   .jewel-spinner-core {
     position: absolute;
     width: 30%;
@@ -1679,11 +1772,11 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: radial-gradient(circle, var(--jewel-sapphire) 0%, rgba(52, 70, 118, 0.8) 100%);
+    background: radial-gradient(circle, var(--jewel-sapphire-rich) 0%, color-mix(in srgb, var(--jewel-sapphire) 75%, transparent) 100%);
     border-radius: 50%;
     z-index: 2;
     animation: jewel-pulse 2s ease-in-out infinite;
-    box-shadow: 0 0 15px rgba(52, 70, 118, 0.5);
+    box-shadow: 0 0 18px rgba(52, 70, 118, 0.5), 0 0 28px rgba(52, 70, 118, 0.25);
   }
 
   /* Sparkle particles around the jewel */
@@ -1691,17 +1784,21 @@
     position: absolute;
     width: 3px;
     height: 3px;
-    background: radial-gradient(circle, var(--jewel-garnet) 0%, var(--jewel-amethyst) 50%, var(--jewel-sapphire) 100%);
+    background: radial-gradient(circle, var(--jewel-sapphire-soft) 0%, var(--jewel-amethyst-soft) 60%, var(--jewel-garnet-soft) 100%);
     border-radius: 50%;
-    animation: jewel-sparkle 2.5s ease-in-out infinite;
+    animation: 
+      jewel-sparkle 2.5s ease-in-out infinite,
+      sparkle-depth 4s ease-in-out infinite alternate;
     z-index: 3;
     opacity: 0.3;
     box-shadow: 
-      0 0 4px rgba(143, 62, 72, 0.3),
-      0 0 6px rgba(107, 93, 136, 0.2),
-      inset 0 0 1px rgba(52, 70, 118, 0.05);
+      0 0 5px color-mix(in srgb, var(--jewel-amethyst-rich) 70%, transparent),
+      0 0 8px color-mix(in srgb, var(--jewel-garnet-rich) 45%, transparent),
+      inset 0 0 1px var(--jewel-sapphire-soft);
     transform-origin: center center;
     pointer-events: none;
+    transform: translateZ(0);
+    filter: drop-shadow(0 0 1px color-mix(in srgb, var(--jewel-sapphire) 60%, transparent));
   }
 
   /* Fix selectors: core is child 1, sparkles are children 2-5 */

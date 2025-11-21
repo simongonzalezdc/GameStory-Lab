@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { assistantAPI } from '../services/api';
 import { ThinkingIndicator } from './ThinkingIndicator';
+import { TokenPrism } from './ui/TokenPrism';
 
 interface ProjectAssistantPanelProps {
   projectId?: string;
@@ -499,6 +500,7 @@ export function ProjectAssistantPanel({
   const [error, setError] = useState<string | null>(null);
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
   const [expandedThinking, setExpandedThinking] = useState<Set<string>>(new Set());
+  const [tokenModeMessages, setTokenModeMessages] = useState<Set<string>>(new Set());
   const [showProposals, setShowProposals] = useState(false);
   const [quickMode, setQuickMode] = useState<'standard' | 'concise' | 'detailed'>('standard');
   const [currentMode, setCurrentMode] = useState<'concept' | 'architect' | 'auto'>(initialMode);
@@ -1019,77 +1021,121 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                           msg.role === 'assistant'
                             ? 'chat-message-assistant text-primary'
                             : 'chat-message-user text-white'
-                        }`}
-                        style={msg.role === 'user' ? userBubbleStyle : assistantBubbleStyle}
+                        } ${tokenModeMessages.has(msg.id) ? 'token-mode' : ''}`}
+                        style={msg.role === 'user' && !tokenModeMessages.has(msg.id) ? userBubbleStyle : tokenModeMessages.has(msg.id) ? {} : assistantBubbleStyle}
                       >
-                        {(() => {
-                          const segments = parseSegments(msg.content);
-                          const isLong = msg.content.length > 1200;
-                          const isExpanded = expandedMessages.has(msg.id);
-                          return (
-                            <>
-                              <div
-                                className={`space-y-2 ${isLong && !isExpanded ? 'max-h-[380px] overflow-hidden pr-1.5' : ''}`}
-                              >
-                                {segments.map((segment, idx) =>
-                                  segment.type === 'code' ? (
-                                    <div key={`${msg.id}-code-${idx}`} className="relative">
-                                      {segment.lang && (
-                                        <div className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
-                                          style={{ 
-                                            backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
-                                            color: 'var(--color-text-tertiary)',
-                                            borderBottom: '1px solid var(--color-border-subtle)'
-                                          }}
-                                        >
-                                          {segment.lang.toUpperCase()}
-                                        </div>
-                                      )}
-                                      <pre
-                                        className="code-block text-[var(--color-text-primary)] overflow-auto font-mono text-sm leading-relaxed rounded-md"
-                                        style={{
-                                          backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 60%, transparent)',
-                                          border: '1px solid var(--color-border-subtle)',
-                                          padding: segment.lang ? '0.75rem' : '0.75rem',
-                                          marginTop: segment.lang ? '0' : '0',
-                                        }}
-                                      >
-                                        <code className="whitespace-pre-wrap break-words">{segment.content}</code>
-                                      </pre>
-                                    </div>
-                                  ) : (
-                                    <div key={`${msg.id}-text-${idx}`} className="space-y-2">
-                                      {renderTextSegment(segment.content, `${msg.id}-t-${idx}`)}
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                              {isLong && !isExpanded && (
-                                <div className="absolute inset-x-0 bottom-0 h-20 pointer-events-none rounded-b-lg" style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--color-bg-primary) 50%, transparent) 0%, color-mix(in srgb, var(--color-bg-primary) 20%, transparent) 50%, transparent 100%)' }} />
-                              )}
-                              {isLong && (
-                                <div className="pt-2 flex justify-end">
-                                  <button
-                                    onClick={() => {
-                                      setExpandedMessages((prev) => {
-                                        const next = new Set(prev);
-                                        if (isExpanded) {
-                                          next.delete(msg.id);
-                                        } else {
-                                          next.add(msg.id);
-                                        }
-                                        return next;
-                                      });
-                                    }}
-                                    className="btn btn-secondary btn-xs"
+                        {/* Toggle Button */}
+                        <button
+                          onClick={() => {
+                            setTokenModeMessages((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(msg.id)) {
+                                next.delete(msg.id);
+                              } else {
+                                next.add(msg.id);
+                              }
+                              return next;
+                            });
+                          }}
+                          className="chat-message-token-toggle"
+                          title={tokenModeMessages.has(msg.id) ? 'Switch to standard view' : 'Switch to token view'}
+                        >
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke={tokenModeMessages.has(msg.id) ? '#5A7850' : 'currentColor'}
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M1 12s4-4 11-4 11 4 11 4-4 4-11 4-11-4-11-4z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        </button>
+
+                        {/* Content Wrapper - Handles the cross-fade */}
+                        <div className="chat-message-lens-layer">
+                          {(() => {
+                            const segments = parseSegments(msg.content);
+                            const isLong = msg.content.length > 1200;
+                            const isExpanded = expandedMessages.has(msg.id);
+                            const isTokenMode = tokenModeMessages.has(msg.id);
+                            
+                            return (
+                              <>
+                                {/* Layer 1: Standard Markdown (Fade out when Token Mode is active) */}
+                                <div className={`standard-content ${isTokenMode ? 'hidden' : ''}`}>
+                                  <div
+                                    className={`space-y-2 ${isLong && !isExpanded ? 'max-h-[380px] overflow-hidden pr-1.5' : ''}`}
                                   >
-                                    {isExpanded ? 'Collapse' : 'Expand'}
-                                  </button>
+                                    {segments.map((segment, idx) =>
+                                      segment.type === 'code' ? (
+                                        <div key={`${msg.id}-code-${idx}`} className="relative">
+                                          {segment.lang && (
+                                            <div className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
+                                              style={{ 
+                                                backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
+                                                color: 'var(--color-text-tertiary)',
+                                                borderBottom: '1px solid var(--color-border-subtle)'
+                                              }}
+                                            >
+                                              {segment.lang.toUpperCase()}
+                                            </div>
+                                          )}
+                                          <pre
+                                            className="code-block text-[var(--color-text-primary)] overflow-auto font-mono text-sm leading-relaxed rounded-md"
+                                            style={{
+                                              backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 60%, transparent)',
+                                              border: '1px solid var(--color-border-subtle)',
+                                              padding: segment.lang ? '0.75rem' : '0.75rem',
+                                              marginTop: segment.lang ? '0' : '0',
+                                            }}
+                                          >
+                                            <code className="whitespace-pre-wrap break-words">{segment.content}</code>
+                                          </pre>
+                                        </div>
+                                      ) : (
+                                        <div key={`${msg.id}-text-${idx}`} className="space-y-2">
+                                          {renderTextSegment(segment.content, `${msg.id}-t-${idx}`)}
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                  {isLong && !isExpanded && (
+                                    <div className="absolute inset-x-0 bottom-0 h-20 pointer-events-none rounded-b-lg" style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--color-bg-primary) 50%, transparent) 0%, color-mix(in srgb, var(--color-bg-primary) 20%, transparent) 50%, transparent 100%)' }} />
+                                  )}
+                                  {isLong && (
+                                    <div className="pt-2 flex justify-end">
+                                      <button
+                                        onClick={() => {
+                                          setExpandedMessages((prev) => {
+                                            const next = new Set(prev);
+                                            if (isExpanded) {
+                                              next.delete(msg.id);
+                                            } else {
+                                              next.add(msg.id);
+                                            }
+                                            return next;
+                                          });
+                                        }}
+                                        className="btn btn-secondary btn-xs"
+                                      >
+                                        {isExpanded ? 'Collapse' : 'Expand'}
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </>
-                          );
-                        })()}
+
+                                {/* Layer 2: Token Prism (Fade in when active) */}
+                                <div className={`token-content ${!isTokenMode ? 'hidden' : ''}`}>
+                                  <TokenPrism content={msg.content} isVisible={isTokenMode} />
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
                       </div>
                       {/* Thinking Block - Collapsible (only for assistant messages) */}
                       {msg.role === 'assistant' && msg.metadata?.thinking && (
@@ -1177,9 +1223,6 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
               )}
               {loading && (
                 <div className="flex gap-3">
-                  <div className="chat-avatar gradient-brand-to-br text-white">
-                    AI
-                  </div>
                   <div className="flex-1">
                     <ThinkingIndicator />
                   </div>
