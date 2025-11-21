@@ -116,7 +116,7 @@ router.get('/questions', async (_req: Request, res: Response) => {
 
 /**
  * POST /api/architect/generate
- * Generate complete documentation package
+ * Start async AI-powered documentation generation
  */
 router.post('/generate', async (req: Request, res: Response) => {
   try {
@@ -131,28 +131,18 @@ router.post('/generate', async (req: Request, res: Response) => {
       });
     }
 
-    logger.info({ message: 'Generating project documentation', projectId, sessionId });
+    logger.info({ message: 'Starting AI documentation generation', projectId, sessionId });
 
-    const documentation = await architectService.generateDocumentation(projectId, sessionId);
+    const result = await architectService.generateDocumentation(projectId, sessionId);
 
-    logger.info({
-      message: 'Documentation generated successfully',
-      projectId,
-      documentCount: documentation.documents.length,
-    });
-
-    res.json({
+    // Return 202 Accepted for async processing
+    res.status(202).json({
       success: true,
       data: {
-        projectId: documentation.projectId,
-        sessionId: documentation.sessionId,
-        documentCount: documentation.documents.length,
-        documents: documentation.documents.map((d) => ({
-          name: d.templateName,
-          generatedAt: d.generatedAt,
-          size: d.content.length,
-        })),
-        generatedAt: documentation.generatedAt,
+        status: 'accepted',
+        message: result.message,
+        projectId,
+        sessionId,
       },
     });
   } catch (error) {
@@ -182,7 +172,14 @@ router.get('/documentation/:projectId', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: documentation,
+      data: {
+        ...documentation,
+        documents: documentation.documents.map((d) => ({
+          ...d,
+          // Include status for UI feedback
+          status: d.status || 'completed',
+        })),
+      },
     });
   } catch (error) {
     const apiError = handleApiError(error);

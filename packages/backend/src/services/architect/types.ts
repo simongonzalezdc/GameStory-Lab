@@ -118,7 +118,11 @@ export interface GeneratedDocument {
   templateName: string;
   content: string;
   generatedAt: Date;
+  status: 'generating' | 'completed' | 'failed';
+  error?: string;
 }
+
+export type GenerationStatus = 'idle' | 'generating' | 'completed' | 'failed';
 
 export interface DocumentationPackage {
   projectId: string;
@@ -126,4 +130,7 @@ export interface DocumentationPackage {
   documents: GeneratedDocument[];
   context: ProjectContext;
   generatedAt: Date;
+  generationStatus: GenerationStatus;
+  generationStartedAt?: Date;
+  generationCompletedAt?: Date;
 }

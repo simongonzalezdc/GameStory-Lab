@@ -16,8 +16,13 @@ interface GeneratedDocsData {
     name: string;
     generatedAt: string;
     size: number;
+    status?: 'generating' | 'completed' | 'failed';
+    error?: string;
   }>;
   generatedAt: string;
+  generationStatus?: 'idle' | 'generating' | 'completed' | 'failed';
+  generationStartedAt?: string;
+  generationCompletedAt?: string;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3007';
@@ -31,11 +36,32 @@ export function ProjectArchitectPage() {
   const [previewDoc, setPreviewDoc] = useState<{ name: string; content: string } | null>(null);
   const [selectedDocIndex, setSelectedDocIndex] = useState<number | null>(null);
   const [documentsContent, setDocumentsContent] = useState<Map<string, string>>(new Map());
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationMessage, setGenerationMessage] = useState<string>('');
 
   // Track which projectIds have already been checked to prevent duplicate calls in Strict Mode
   const checkedProjects = useRef<Set<string>>(new Set());
   const missingDocsLogged = useRef<Set<string>>(new Set());
   const previousProjectId = useRef<string | undefined>(undefined);
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+
+  // Start polling for generation status
+  const startPolling = () => {
+    if (pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+    }
+    pollingInterval.current = setInterval(async () => {
+      await checkDocumentation({ force: true });
+    }, 3000); // Poll every 3 seconds
+  };
+
+  // Stop polling
+  const stopPolling = () => {
+    if (pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+      pollingInterval.current = null;
+    }
+  };
 
   // Check if documentation exists and load it
   const checkDocumentation = async (options?: { force?: boolean }) => {
@@ -74,6 +100,8 @@ export function ProjectArchitectPage() {
         const data = await response.json();
         if (data.success && data.data) {
           const docs = data.data;
+          const generationStatus = docs.generationStatus || 'completed';
+
           setGeneratedDocs({
             projectId: docs.projectId,
             sessionId: docs.sessionId,
@@ -82,14 +110,32 @@ export function ProjectArchitectPage() {
               name: doc.templateName || doc.name,
               generatedAt: doc.generatedAt || new Date().toISOString(),
               size: doc.size || doc.content?.length || 0,
+              status: doc.status || 'completed',
+              error: doc.error,
             })),
             generatedAt: docs.generatedAt || new Date().toISOString(),
+            generationStatus,
+            generationStartedAt: docs.generationStartedAt,
+            generationCompletedAt: docs.generationCompletedAt,
           });
-          setDocumentationGenerated(true);
-          // Load first document by default
-          if (docs.documents.length > 0) {
-            loadDocumentContent(docs.documents[0].templateName || docs.documents[0].name);
-            setSelectedDocIndex(0);
+
+          // Handle generation status
+          if (generationStatus === 'generating') {
+            setIsGenerating(true);
+            setGenerationMessage('AI is generating your documentation...');
+            setDocumentationGenerated(false);
+            startPolling();
+          } else {
+            setIsGenerating(false);
+            setGenerationMessage('');
+            setDocumentationGenerated(true);
+            stopPolling();
+
+            // Load first document by default if completed
+            if (docs.documents.length > 0 && generationStatus === 'completed') {
+              loadDocumentContent(docs.documents[0].templateName || docs.documents[0].name);
+              setSelectedDocIndex(0);
+            }
           }
         }
       } else {
@@ -133,11 +179,20 @@ export function ProjectArchitectPage() {
       checkedProjects.current.clear();
       missingDocsLogged.current.clear();
       previousProjectId.current = projectId;
+      // Stop any existing polling
+      stopPolling();
+      setIsGenerating(false);
+      setGenerationMessage('');
     }
-    
+
     // Call without force flag - second Strict Mode invocation will be skipped
     // because the projectId hasn't changed, so checkedProjects still contains it
     checkDocumentation();
+
+    // Cleanup polling on unmount
+    return () => {
+      stopPolling();
+    };
   }, [projectId]);
 
   // Update preview when document content loads
@@ -207,11 +262,20 @@ export function ProjectArchitectPage() {
               🏗️ AI Project Architect
             </h1>
           </div>
-          {documentationGenerated && generatedDocs && (
+          {(documentationGenerated || isGenerating) && generatedDocs && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-secondary">
-                {generatedDocs.documentCount} documents ready
-              </span>
+              {isGenerating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
+                  <span className="text-sm text-secondary">
+                    {generationMessage}
+                  </span>
+                </>
+              ) : (
+                <span className="text-sm text-secondary">
+                  {generatedDocs.documentCount} documents ready
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -262,11 +326,15 @@ export function ProjectArchitectPage() {
                   const docName = doc.templateName || doc.name;
                   const displayName = docName.replace(/-/g, ' ').replace('.md', '');
                   const isSelected = selectedDocIndex === index;
-                  
+                  const status = doc.status || 'completed';
+
                   return (
                     <button
                       key={docName}
                       onClick={async () => {
+                        // Only allow selection if document is completed
+                        if (status !== 'completed') return;
+
                         setSelectedDocIndex(index);
                         const content = documentsContent.get(docName);
                         if (content) {
@@ -278,18 +346,52 @@ export function ProjectArchitectPage() {
                         }
                       }}
                       className={`w-full text-left px-3 py-2 rounded-lg transition text-sm ${
-                        isSelected
-                          ? 'bg-brand-500/20 border border-brand-500/40 text-primary'
-                          : 'hover:bg-surface-elevated text-secondary hover:text-primary'
+                        status !== 'completed'
+                          ? 'opacity-60 cursor-not-allowed'
+                          : isSelected
+                            ? 'bg-brand-500/20 border border-brand-500/40 text-primary'
+                            : 'hover:bg-surface-elevated text-secondary hover:text-primary'
                       }`}
+                      disabled={status !== 'completed'}
                     >
-                      <div className="font-medium truncate">{displayName}</div>
-                      <div className="text-xs text-tertiary mt-0.5">
-                        {(doc.size / 1024).toFixed(1)} KB
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium truncate flex-1">{displayName}</div>
+                        <div className="flex items-center gap-1 ml-2">
+                          {status === 'generating' && (
+                            <div className="animate-spin rounded-full h-3 w-3 border-b border-brand-500"></div>
+                          )}
+                          {status === 'failed' && (
+                            <span className="text-red-500 text-xs">⚠️</span>
+                          )}
+                          {status === 'completed' && (
+                            <span className="text-green-500 text-xs">✓</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-xs text-tertiary mt-0.5 flex items-center justify-between">
+                        <span>
+                          {status === 'generating' ? 'Generating...' :
+                           status === 'failed' ? 'Failed' :
+                           `${(doc.size / 1024).toFixed(1)} KB`}
+                        </span>
+                        {doc.error && (
+                          <span className="text-red-400 text-xs truncate ml-2" title={doc.error}>
+                            {doc.error}
+                          </span>
+                        )}
                       </div>
                     </button>
                   );
                 })}
+              </div>
+            </div>
+          ) : isGenerating ? (
+            <div className="flex-1 flex items-center justify-center p-6 text-center">
+              <div className="text-tertiary">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
+                <p className="text-sm font-medium">Generating Documentation</p>
+                <p className="text-xs mt-1 text-tertiary">{generationMessage}</p>
+                <p className="text-xs mt-2 text-tertiary">This may take 30-60 seconds...</p>
               </div>
             </div>
           ) : (

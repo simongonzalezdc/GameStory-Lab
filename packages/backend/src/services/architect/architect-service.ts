@@ -5,6 +5,8 @@
 
 import { InterviewManager } from './interview-manager.js';
 import { DocumentGenerator } from './document-generator.js';
+import { AIDocumentGenerator } from './ai-document-generator.js';
+import { ContextBuilder } from './context-builder.js';
 import {
   DocumentationPackage,
   GeneratedDocument,
@@ -15,6 +17,7 @@ import { INTERVIEW_QUESTIONS } from './interview-questions.js';
 export class ArchitectService {
   private interviewManager: InterviewManager;
   private documentGenerator: DocumentGenerator;
+  private aiDocumentGenerator: AIDocumentGenerator;
 
   // Store documentation packages in memory (in production, use database)
   private documentationPackages: Map<string, DocumentationPackage> = new Map();
@@ -22,6 +25,9 @@ export class ArchitectService {
   constructor() {
     this.interviewManager = new InterviewManager();
     this.documentGenerator = new DocumentGenerator();
+    // Create ContextBuilder with InterviewManager and inject into AIDocumentGenerator
+    const contextBuilder = new ContextBuilder(this.interviewManager);
+    this.aiDocumentGenerator = new AIDocumentGenerator(undefined, contextBuilder);
   }
 
   /**
@@ -68,9 +74,57 @@ export class ArchitectService {
   }
 
   /**
-   * Generate complete documentation package
+   * Start async AI-powered documentation generation
+   * Returns immediately with 202 status, processes in background
    */
   async generateDocumentation(
+    projectId: string,
+    sessionId: string
+  ): Promise<{ status: 'accepted'; message: string }> {
+    // Check if generation is already in progress
+    const existingPackage = this.documentationPackages.get(projectId);
+    if (existingPackage?.generationStatus === 'generating') {
+      return {
+        status: 'accepted',
+        message: 'Documentation generation already in progress'
+      };
+    }
+
+    // Build context from interview answers
+    const context = this.interviewManager.buildProjectContext(sessionId);
+
+    // Initialize documentation package with generating status
+    const initialDocuments = this.createInitialDocuments();
+    const documentationPackage: DocumentationPackage = {
+      projectId,
+      sessionId,
+      documents: initialDocuments,
+      context,
+      generatedAt: new Date(),
+      generationStatus: 'generating',
+      generationStartedAt: new Date(),
+    };
+
+    // Store initial package
+    this.documentationPackages.set(projectId, documentationPackage);
+
+    // Start background generation
+    this.performAsyncGeneration(projectId, sessionId, context)
+      .catch(error => {
+        console.error('[ArchitectService] Background generation failed:', error);
+        this.updatePackageStatus(projectId, 'failed');
+      });
+
+    return {
+      status: 'accepted',
+      message: 'Documentation generation started. This may take 30-60 seconds.'
+    };
+  }
+
+  /**
+   * Generate documentation synchronously (fallback method)
+   */
+  async generateDocumentationSync(
     projectId: string,
     sessionId: string
   ): Promise<DocumentationPackage> {
@@ -136,6 +190,7 @@ export class ArchitectService {
         templateName: update.name.endsWith('.md') ? update.name : `${update.name}.md`,
         content: update.content || '',
         generatedAt: new Date(),
+        status: 'completed' as const,
       }));
 
       const newPackage: DocumentationPackage = {
@@ -144,6 +199,7 @@ export class ArchitectService {
         documents: newDocuments,
         context: {} as any, // Empty context for assistant-created docs
         generatedAt: new Date(),
+        generationStatus: 'completed' as const,
       };
       
       this.documentationPackages.set(projectId, newPackage);
@@ -177,6 +233,7 @@ export class ArchitectService {
           templateName: docName,
           content: update.content,
           generatedAt: new Date(),
+          status: 'completed' as const,
         });
       }
     });
@@ -208,6 +265,99 @@ export class ArchitectService {
     this.documentationPackages.delete(session.projectId);
 
     return true;
+  }
+
+  /**
+   * Create initial documents with generating status
+   */
+  private createInitialDocuments(): GeneratedDocument[] {
+    return DOCUMENT_TEMPLATES.map(template => ({
+      templateName: template.filename.replace('.md', ''),
+      content: '',
+      generatedAt: new Date(),
+      status: 'generating' as const,
+    }));
+  }
+
+  /**
+   * Perform async AI document generation in background
+   */
+  private async performAsyncGeneration(
+    projectId: string,
+    sessionId: string,
+    context: any
+  ): Promise<void> {
+    try {
+      console.log('[ArchitectService] Starting AI document generation', { projectId, sessionId });
+
+      // Generate all documents using AI
+      const result = await this.aiDocumentGenerator.generateAllDocuments(sessionId, context);
+
+      // Update package with results
+      const package_ = this.documentationPackages.get(projectId);
+      if (!package_) {
+        throw new Error('Documentation package not found');
+      }
+
+        // Update documents with generated content
+      const updatedDocuments = package_.documents.map(doc => {
+        // Match AI result by comparing documentType enum value with templateName
+        // Both should be the same format: 'technical-specification', 'product-requirements', etc.
+        const aiResult = result.documents.find(d => {
+          // Normalize both values for comparison (remove any .md suffix if present)
+          const docType = d.documentType;
+          const templateName = doc.templateName.replace('.md', '');
+          return docType === templateName;
+        });
+        if (aiResult) {
+          return {
+            ...doc,
+            content: aiResult.content,
+            status: aiResult.success ? ('completed' as const) : ('failed' as const),
+            error: aiResult.error,
+            generatedAt: new Date(),
+          };
+        }
+        return doc;
+      });
+
+      const updatedPackage: DocumentationPackage = {
+        ...package_,
+        documents: updatedDocuments,
+        generationStatus: result.success ? 'completed' : 'failed',
+        generationCompletedAt: new Date(),
+      };
+
+      this.documentationPackages.set(projectId, updatedPackage);
+
+      console.log('[ArchitectService] AI document generation completed', {
+        projectId,
+        success: result.success,
+        totalTokens: result.totalTokensUsed,
+        totalTimeMs: result.totalTimeMs,
+        failedDocuments: result.failedDocuments.length,
+      });
+
+    } catch (error) {
+      console.error('[ArchitectService] AI document generation failed:', error);
+      this.updatePackageStatus(projectId, 'failed');
+      throw error;
+    }
+  }
+
+  /**
+   * Update package generation status
+   */
+  private updatePackageStatus(projectId: string, status: 'completed' | 'failed'): void {
+    const package_ = this.documentationPackages.get(projectId);
+    if (package_) {
+      const updatedPackage: DocumentationPackage = {
+        ...package_,
+        generationStatus: status,
+        generationCompletedAt: new Date(),
+      };
+      this.documentationPackages.set(projectId, updatedPackage);
+    }
   }
 }
 

@@ -57,6 +57,7 @@ export class DocumentGenerator {
       documents,
       context,
       generatedAt: new Date(),
+      generationStatus: 'completed' as const,
     };
   }
 
@@ -78,6 +79,7 @@ export class DocumentGenerator {
       templateName: templateFilename.replace('.md', ''),
       content: templateContent,
       generatedAt: new Date(),
+      status: 'completed' as const,
     };
   }
 
