@@ -5,7 +5,6 @@
 
 import { useEffect, useState } from 'react';
 import { healthAPI } from '../services/api';
-import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
 
 interface HealthStatus {
   status: string;
@@ -22,18 +21,6 @@ export function HealthPage() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Assistant panel state
-  const [showAssistant, setShowAssistant] = useState(() => {
-    // Load visibility preference from localStorage
-    return localStorage.getItem('assistantVisible') !== 'false';
-  });
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-
-  // Save assistant visibility preference
-  useEffect(() => {
-    localStorage.setItem('assistantVisible', showAssistant.toString());
-  }, [showAssistant]);
 
   const loadHealth = async () => {
     try {
@@ -175,60 +162,6 @@ export function HealthPage() {
         </div>
       )}
     </div>
-
-    {/* Assistant Panel */}
-    {showAssistant && (
-      <div className="fixed right-4 top-20 bottom-28 w-96 z-40 bg-surface rounded-2xl shadow-2xl border border-border-subtle overflow-hidden">
-        <div className="h-full flex flex-col">
-          {/* Header */}
-          <div className="flex-shrink-0 px-4 py-3 border-b border-border-subtle bg-surface-card">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-primary">AI Assistant</h3>
-              <button
-                onClick={() => setShowAssistant(false)}
-                className="text-secondary hover:text-primary transition"
-                title="Close assistant"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          
-          {/* Assistant Content */}
-          <div className="flex-1 min-h-0">
-            {selectedProjectId ? (
-              <ProjectAssistantPanel
-                projectId={selectedProjectId}
-                type="concept"
-                onProposalAccepted={async () => {
-                  // Refresh health data if needed
-                  await loadHealth();
-                }}
-              />
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-16 h-16 bg-brand-500/15 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-2xl">📊</span>
-                </div>
-                <h4 className="text-lg font-semibold text-primary mb-2">
-                  Health Assistant
-                </h4>
-                <p className="text-sm text-secondary mb-4">
-                  Need help interpreting health metrics or troubleshooting issues? Chat with the AI assistant.
-                </p>
-                <div className="space-y-2 text-xs text-tertiary">
-                  <p>• Understand system status</p>
-                  <p>• Troubleshoot AI provider issues</p>
-                  <p>• Get optimization suggestions</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
     </>
   );
 }

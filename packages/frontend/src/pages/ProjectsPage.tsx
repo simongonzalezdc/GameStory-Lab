@@ -3,12 +3,14 @@
  * Utilitarian density-focused dashboard with Quick Actions, Recent Spotlight, and Project List
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, FileText, Download, Search, ArrowUpDown, Clock, FolderKanban, X } from 'lucide-react';
+import { Plus, FileText, Download, Search, ArrowUpDown, FolderKanban } from 'lucide-react';
 import { projectsAPI } from '../services/api';
 import { useDebounce } from '../hooks';
 import { motion } from 'framer-motion';
+import { ProjectCard } from '../components/ProjectCard';
+import { ProjectRow } from '../components/ProjectRow';
 
 interface Project {
   id: string;
@@ -88,9 +90,11 @@ export function ProjectsPage() {
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectGenre, setNewProjectGenre] = useState('');
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
   const navigate = useNavigate();
+  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
@@ -145,6 +149,53 @@ export function ProjectsPage() {
     }
   };
 
+  const handleImportProjects = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      setImporting(true);
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const entries = Array.isArray(parsed)
+        ? parsed
+        : Array.isArray(parsed?.projects)
+        ? parsed.projects
+        : parsed?.project
+        ? [parsed.project]
+        : [parsed];
+
+      const normalizedEntries = entries
+        .map((entry: any) => ({
+          name: typeof entry?.name === 'string' ? entry.name.trim() : '',
+          genre: typeof entry?.genre === 'string' ? entry.genre : undefined,
+        }))
+        .filter((entry) => entry.name.length > 0);
+
+      if (!normalizedEntries.length) {
+        throw new Error('No valid project data found in file.');
+      }
+
+      for (const entry of normalizedEntries) {
+        await projectsAPI.create({
+          name: entry.name,
+          genre: entry.genre,
+        });
+      }
+
+      await loadProjects();
+      alert(`Imported ${normalizedEntries.length} project${normalizedEntries.length > 1 ? 's' : ''}.`);
+    } catch (err) {
+      console.error('Failed to import projects', err);
+      alert(err instanceof Error ? err.message : 'Failed to import projects');
+    } finally {
+      setImporting(false);
+      event.target.value = '';
+    }
+  };
+
   const filteredProjects = useMemo(() => {
     const normalized = debouncedSearchQuery.trim().toLowerCase();
     const filtered = normalized
@@ -185,13 +236,39 @@ export function ProjectsPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <input
+        ref={importInputRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={handleImportProjects}
+      />
       {/* Quick Actions Row */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-bold text-primary">Projects</h1>
           <span className="text-sm text-tertiary">({projects.length})</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <button
+            type="button"
+            onClick={() => setShowCreateModal(true)}
+            className="px-3 py-1.5 text-xs font-medium bg-[var(--brand-primary)] text-white rounded-lg hover:bg-[var(--brand-primary-hover)] transition h-8 flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+            disabled={creating}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>{creating ? 'Creating...' : 'New Project'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => importInputRef.current?.click()}
+            disabled={importing}
+            className="px-3 py-1.5 text-xs font-medium border border-[var(--color-border-subtle)] rounded-lg text-secondary hover:text-primary hover:border-[var(--brand-primary)]/40 transition h-8 flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <Download className={`w-3.5 h-3.5 ${importing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{importing ? 'Importing…' : 'Import'}</span>
+            <span className="sm:hidden">Import</span>
+          </button>
           <Link
             to="/templates"
             className="px-3 py-1.5 text-xs font-medium border border-[var(--color-border-subtle)] rounded-lg text-secondary hover:text-primary hover:border-[var(--brand-primary)]/40 transition h-8 flex items-center gap-1.5"
@@ -199,13 +276,6 @@ export function ProjectsPage() {
             <FileText className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Templates</span>
           </Link>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-3 py-1.5 text-xs font-medium bg-[var(--brand-primary)] text-white rounded-lg hover:bg-[var(--brand-primary-hover)] transition h-8 flex items-center gap-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>New Project</span>
-          </button>
         </div>
       </div>
 
@@ -233,43 +303,16 @@ export function ProjectsPage() {
                   key={project.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: index * 0.08 }}
                 >
-                  <Link
-                    to={`/projects/${project.id}`}
-                    className="group flex items-center gap-3 p-3 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface-card)] hover:border-[var(--brand-primary)]/40 hover:bg-[var(--color-surface-elevated)] transition relative overflow-hidden"
-                  >
-                    {/* Notebook Spine - Left border with color */}
-                    <div
-                      className="absolute left-0 top-0 bottom-0 w-1"
-                      style={{ backgroundColor: getGenreColor(project.genre) }}
-                    />
-                    {/* Project Icon */}
-                    <div
-                      className="w-10 h-10 rounded flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                      style={{ backgroundColor: getGenreColor(project.genre) }}
-                    >
-                      {project.name.charAt(0).toUpperCase()}
-                    </div>
-                    {/* Project Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-primary truncate">{project.name}</div>
-                      <div className="flex items-center gap-2 text-xs text-tertiary">
-                        <Clock className="w-3 h-3" />
-                        <span>{formatDistanceToNow(project.updatedAt)}</span>
-                        {project.genre && (
-                          <>
-                            <span>•</span>
-                            <span>{project.genre}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {/* Version Count */}
-                    <div className="text-xs text-secondary">
-                      {(project._count?.versions ?? 0)} v
-                    </div>
-                  </Link>
+                  <ProjectCard
+                    id={project.id}
+                    name={project.name}
+                    genre={project.genre}
+                    updatedLabel={formatDistanceToNow(project.updatedAt)}
+                    versionsCount={project._count?.versions ?? 0}
+                    accentColor={getGenreColor(project.genre)}
+                  />
                 </motion.div>
               ))}
             </div>
@@ -361,65 +404,18 @@ export function ProjectsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredProjects.map((project) => (
-                    <motion.tr
+                  {filteredProjects.map((project, index) => (
+                    <ProjectRow
                       key={project.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="border-b border-[var(--color-border-subtle)] hover:bg-[var(--color-surface-elevated)] transition"
-                    >
-                      <td className="px-4 py-3">
-                        <Link
-                          to={`/projects/${project.id}`}
-                          className="flex items-center gap-2 group"
-                        >
-                          <div
-                            className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                            style={{ backgroundColor: getGenreColor(project.genre) }}
-                          >
-                            {project.name.charAt(0).toUpperCase()}
-                          </div>
-                          <span className="text-sm font-semibold text-primary group-hover:text-[var(--brand-primary)] transition">
-                            {project.name}
-                          </span>
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3">
-                        {project.genre ? (
-                          <span className="text-xs px-2 py-0.5 rounded border border-[var(--color-border-subtle)] text-secondary">
-                            {project.genre}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-tertiary">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs text-primary">{project._count?.versions ?? 0}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5 text-xs text-tertiary">
-                          <Clock className="w-3 h-3" />
-                          <span>{formatDistanceToNow(project.updatedAt)}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Link
-                            to={`/projects/${project.id}`}
-                            className="px-2 py-1 text-xs font-medium border border-[var(--color-border-subtle)] rounded text-secondary hover:text-primary hover:border-[var(--brand-primary)]/40 transition h-7"
-                          >
-                            Open
-                          </Link>
-                          <button
-                            onClick={() => handleDeleteProject(project.id, project.name)}
-                            className="px-2 py-1 text-xs font-medium text-tertiary hover:text-[var(--color-error)] transition h-7"
-                            title="Delete project"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
+                      id={project.id}
+                      name={project.name}
+                      genre={project.genre}
+                      versionsCount={project._count?.versions ?? 0}
+                      updatedLabel={formatDistanceToNow(project.updatedAt)}
+                      accentColor={getGenreColor(project.genre)}
+                      onDelete={() => handleDeleteProject(project.id, project.name)}
+                      delay={index * 0.02}
+                    />
                   ))}
                 </tbody>
               </table>

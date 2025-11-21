@@ -6,7 +6,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { templatesAPI } from '../services/api';
-import { ProjectAssistantPanel } from '../components/ProjectAssistantPanel';
 import { cn } from '../lib/utils';
 
 interface GenreInfo {
@@ -18,120 +17,127 @@ interface GenreInfo {
 // Genre color mapping using CSS variables - Strict theme compliance
 const genreColors: Record<string, { gradient: string; border: string; shadow: string; icon: string; intensity: 'low' | 'medium' | 'high' }> = {
   // ACTION/COMBAT - Garnet variations (Intense, fast-paced, aggressive)
+  // Using only colors from jewel-engine-theme: --jewel-garnet, --jewel-fireopal, --brand-primary-soft
   'fps': {
-    gradient: 'linear-gradient(135deg, var(--jewel-garnet-dark) 0%, var(--jewel-garnet) 50%, var(--jewel-garnet-light) 100%)',
-    border: 'rgba(143, 62, 72, 0.8)',
-    shadow: '0 4px 20px -6px rgba(143, 62, 72, 0.5)',
+    gradient: 'linear-gradient(135deg, color-mix(in srgb, var(--jewel-garnet) 60%, var(--bg-body)) 0%, var(--jewel-garnet) 50%, var(--brand-primary-hover) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-garnet) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-garnet) 50%, transparent)',
     icon: '🎯',
     intensity: 'high'
   },
   'fighting': {
-    gradient: 'linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-garnet-light) 50%, var(--jewel-fireopal) 100%)',
-    border: 'rgba(174, 93, 55, 0.8)',
-    shadow: '0 4px 20px -6px rgba(174, 93, 55, 0.5)',
+    gradient: 'linear-gradient(135deg, var(--jewel-garnet) 0%, var(--brand-primary-hover) 50%, var(--jewel-fireopal) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-fireopal) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-fireopal) 50%, transparent)',
     icon: '🥊',
     intensity: 'high'
   },
   'action-adventure': {
-    gradient: 'linear-gradient(135deg, var(--jewel-fireopal) 0%, var(--jewel-topaz) 50%, var(--jewel-topaz-light) 100%)',
-    border: 'rgba(181, 147, 60, 0.8)',
-    shadow: '0 4px 20px -6px rgba(181, 147, 60, 0.5)',
+    gradient: 'linear-gradient(135deg, var(--jewel-fireopal) 0%, var(--jewel-topaz) 50%, color-mix(in srgb, var(--jewel-topaz) 80%, var(--text-primary)) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-topaz) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-topaz) 50%, transparent)',
     icon: '🗡️',
     intensity: 'medium'
   },
 
   // ADVENTURE/HEROIC - Topaz variations (Story-driven, exploration, heroic)
+  // Using only colors from jewel-engine-theme: --jewel-topaz, --brand-secondary-soft
   'rpg': {
-    gradient: 'linear-gradient(135deg, var(--jewel-topaz-dark) 0%, var(--jewel-topaz) 50%, var(--jewel-topaz-light) 100%)',
-    border: 'rgba(181, 147, 60, 0.8)',
-    shadow: '0 4px 20px -6px rgba(181, 147, 60, 0.5)',
+    gradient: 'linear-gradient(135deg, color-mix(in srgb, var(--jewel-topaz) 60%, var(--bg-body)) 0%, var(--jewel-topaz) 50%, color-mix(in srgb, var(--jewel-topaz) 80%, var(--text-primary)) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-topaz) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-topaz) 50%, transparent)',
     icon: '⚔️',
     intensity: 'medium'
   },
   'adventure': {
-    gradient: 'linear-gradient(135deg, var(--jewel-topaz) 0%, var(--jewel-topaz-light) 50%, var(--jewel-garnet-light) 100%)',
-    border: 'rgba(201, 168, 90, 0.8)',
-    shadow: '0 4px 20px -6px rgba(201, 168, 90, 0.5)',
+    gradient: 'linear-gradient(135deg, var(--jewel-topaz) 0%, color-mix(in srgb, var(--jewel-topaz) 80%, var(--text-primary)) 50%, var(--brand-primary-hover) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-topaz) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-topaz) 50%, transparent)',
     icon: '🗺️',
     intensity: 'low'
   },
   'platformer': {
-    gradient: 'linear-gradient(135deg, var(--jewel-topaz-light) 0%, var(--jewel-garnet-light) 50%, var(--jewel-garnet-light) 100%)',
-    border: 'rgba(212, 163, 171, 0.8)',
-    shadow: '0 4px 20px -6px rgba(212, 163, 171, 0.5)',
+    gradient: 'linear-gradient(135deg, color-mix(in srgb, var(--jewel-topaz) 80%, var(--text-primary)) 0%, var(--brand-primary-hover) 50%, var(--brand-primary-hover) 100%)',
+    border: 'color-mix(in srgb, var(--brand-primary-hover) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--brand-primary-hover) 50%, transparent)',
     icon: '🪜',
     intensity: 'low'
   },
 
   // PUZZLE/TACTICAL - Amethyst variations (Cerebral, tactical, methodical)
+  // Using only colors from jewel-engine-theme: --jewel-amethyst
   'puzzle': {
-    gradient: 'linear-gradient(135deg, var(--jewel-amethyst-dark) 0%, var(--jewel-amethyst) 50%, var(--jewel-amethyst-light) 100%)',
-    border: 'rgba(107, 93, 136, 0.8)',
-    shadow: '0 4px 20px -6px rgba(107, 93, 136, 0.5)',
+    gradient: 'linear-gradient(135deg, color-mix(in srgb, var(--jewel-amethyst) 60%, var(--bg-body)) 0%, var(--jewel-amethyst) 50%, color-mix(in srgb, var(--jewel-amethyst) 80%, var(--text-primary)) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-amethyst) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-amethyst) 50%, transparent)',
     icon: '🧩',
     intensity: 'medium'
   },
   'strategy': {
-    gradient: 'linear-gradient(135deg, var(--jewel-amethyst) 0%, var(--jewel-amethyst-light) 50%, var(--jewel-amethyst-light) 100%)',
-    border: 'rgba(138, 124, 168, 0.8)',
-    shadow: '0 4px 20px -6px rgba(138, 124, 168, 0.5)',
+    gradient: 'linear-gradient(135deg, var(--jewel-amethyst) 0%, color-mix(in srgb, var(--jewel-amethyst) 80%, var(--text-primary)) 50%, color-mix(in srgb, var(--jewel-amethyst) 80%, var(--text-primary)) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-amethyst) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-amethyst) 50%, transparent)',
     icon: '♟️',
     intensity: 'low'
   },
 
   // CREATIVE/BUILDING - Turquoise variations (Creative, innovative, technical)
+  // Using only colors from jewel-engine-theme: --jewel-turquoise
   'simulation': {
-    gradient: 'linear-gradient(135deg, var(--jewel-turquoise-dark) 0%, var(--jewel-turquoise) 50%, var(--jewel-turquoise-light) 100%)',
-    border: 'rgba(52, 108, 104, 0.8)',
-    shadow: '0 4px 20px -6px rgba(52, 108, 104, 0.5)',
+    gradient: 'linear-gradient(135deg, color-mix(in srgb, var(--jewel-turquoise) 60%, var(--bg-body)) 0%, var(--jewel-turquoise) 50%, color-mix(in srgb, var(--jewel-turquoise) 80%, var(--text-primary)) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-turquoise) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-turquoise) 50%, transparent)',
     icon: '🏗️',
     intensity: 'medium'
   },
 
   // SPORTS/OUTDOOR - Emerald variations (Grass, fields, competitive outdoors)
+  // Using only colors from jewel-engine-theme: --jewel-emerald
   'sports': {
-    gradient: 'linear-gradient(135deg, var(--jewel-emerald-dark) 0%, var(--jewel-emerald) 50%, var(--jewel-emerald-light) 100%)',
-    border: 'rgba(90, 120, 80, 0.8)',
-    shadow: '0 4px 20px -6px rgba(90, 120, 80, 0.5)',
+    gradient: 'linear-gradient(135deg, color-mix(in srgb, var(--jewel-emerald) 60%, var(--bg-body)) 0%, var(--jewel-emerald) 50%, color-mix(in srgb, var(--jewel-emerald) 80%, var(--text-primary)) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-emerald) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-emerald) 50%, transparent)',
     icon: '⚽',
     intensity: 'medium'
   },
 
   // SURVIVAL/HORROR - Fire Opal variations (Intense, dangerous, survival)
+  // Using only colors from jewel-engine-theme: --jewel-fireopal, --jewel-garnet, --brand-primary-soft
   'horror': {
-    gradient: 'linear-gradient(135deg, var(--jewel-fireopal-dark) 0%, var(--jewel-garnet-dark) 50%, var(--jewel-garnet) 100%)',
-    border: 'rgba(91, 43, 51, 0.8)',
-    shadow: '0 4px 20px -6px rgba(91, 43, 51, 0.5)',
+    gradient: 'linear-gradient(135deg, color-mix(in srgb, var(--jewel-fireopal) 60%, var(--bg-body)) 0%, color-mix(in srgb, var(--jewel-garnet) 60%, var(--bg-body)) 50%, var(--jewel-garnet) 100%)',
+    border: 'color-mix(in srgb, var(--brand-primary-soft) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--brand-primary-soft) 50%, transparent)',
     icon: '👻',
     intensity: 'high'
   },
   'survival': {
-    gradient: 'linear-gradient(135deg, var(--jewel-garnet-dark) 0%, var(--jewel-fireopal) 50%, var(--jewel-fireopal-light) 100%)',
-    border: 'rgba(174, 93, 55, 0.8)',
-    shadow: '0 4px 20px -6px rgba(174, 93, 55, 0.5)',
+    gradient: 'linear-gradient(135deg, color-mix(in srgb, var(--jewel-garnet) 60%, var(--bg-body)) 0%, var(--jewel-fireopal) 50%, color-mix(in srgb, var(--jewel-fireopal) 80%, var(--text-primary)) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-fireopal) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-fireopal) 50%, transparent)',
     icon: '🏕️',
     intensity: 'medium'
   },
   'roguelike': {
-    gradient: 'linear-gradient(135deg, var(--jewel-fireopal) 0%, var(--jewel-fireopal-light) 50%, var(--jewel-garnet-light) 100%)',
-    border: 'rgba(192, 117, 129, 0.8)',
-    shadow: '0 4px 20px -6px rgba(192, 117, 129, 0.5)',
+    gradient: 'linear-gradient(135deg, var(--jewel-fireopal) 0%, color-mix(in srgb, var(--jewel-fireopal) 80%, var(--text-primary)) 50%, var(--brand-primary-hover) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-fireopal) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-fireopal) 50%, transparent)',
     icon: '🎲',
     intensity: 'low'
   },
 
   // RACING/SPEED - Sapphire variations (Fast, competitive, high-speed)
+  // Using only colors from jewel-engine-theme: --jewel-sapphire
   'racing': {
-    gradient: 'linear-gradient(135deg, var(--jewel-sapphire-dark) 0%, var(--jewel-sapphire) 50%, var(--jewel-sapphire-light) 100%)',
-    border: 'rgba(52, 70, 118, 0.8)',
-    shadow: '0 4px 20px -6px rgba(52, 70, 118, 0.5)',
+    gradient: 'linear-gradient(135deg, color-mix(in srgb, var(--jewel-sapphire) 60%, var(--bg-body)) 0%, var(--jewel-sapphire) 50%, color-mix(in srgb, var(--jewel-sapphire) 80%, var(--text-primary)) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-sapphire) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-sapphire) 50%, transparent)',
     icon: '🏎️',
     intensity: 'high'
   },
   'battle-royale': {
-    gradient: 'linear-gradient(135deg, var(--jewel-sapphire) 0%, var(--jewel-sapphire-light) 50%, var(--jewel-sapphire-light) 100%)',
-    border: 'rgba(74, 86, 136, 0.8)',
-    shadow: '0 4px 20px -6px rgba(74, 86, 136, 0.5)',
+    gradient: 'linear-gradient(135deg, var(--jewel-sapphire) 0%, color-mix(in srgb, var(--jewel-sapphire) 80%, var(--text-primary)) 50%, color-mix(in srgb, var(--jewel-sapphire) 80%, var(--text-primary)) 100%)',
+    border: 'color-mix(in srgb, var(--jewel-sapphire) 80%, transparent)',
+    shadow: '0 4px 20px -6px color-mix(in srgb, var(--jewel-sapphire) 50%, transparent)',
     icon: '👑',
     intensity: 'medium'
   }
@@ -220,18 +226,6 @@ export function TemplateBrowserPage() {
         : `Blending ${selectedGenres.length} genres with conflict-safe AI guidance.`;
 
   const selectionModeLabel = selectedGenres.length <= 1 ? 'Single genre' : `${selectedGenres.length} genres`;
-
-  // Assistant panel state
-  const [showAssistant, setShowAssistant] = useState(() => {
-    // Load visibility preference from localStorage
-    return localStorage.getItem('assistantVisible') !== 'false';
-  });
-  const [selectedProjectId] = useState<string | null>(null);
-
-  // Save assistant visibility preference
-  useEffect(() => {
-    localStorage.setItem('assistantVisible', showAssistant.toString());
-  }, [showAssistant]);
 
   useEffect(() => {
     loadGenres();
@@ -396,7 +390,7 @@ export function TemplateBrowserPage() {
     <div className="space-y-8">
       {/* Hero */}
       <section className="glass-card relative overflow-hidden px-6 py-8 lg:px-10 lg:py-12">
-        <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_15%_-10%,rgba(143,62,72,0.35),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(181,147,60,0.25),transparent_55%)]" />
+        <div className="absolute inset-0 opacity-60" style={{ background: 'radial-gradient(circle at 15% -10%, color-mix(in srgb, var(--jewel-garnet) 35%, transparent) 0%, transparent 45%), radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--jewel-topaz) 25%, transparent) 0%, transparent 55%)' }} />
         <div className="relative z-10 space-y-6">
           <div className="flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-[0.35em] text-tertiary">
             <span className="signal-pill signal-pill--accent">Template Forge</span>
@@ -423,13 +417,6 @@ export function TemplateBrowserPage() {
                 Blend {selectedGenres.length} genres
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => setShowAssistant((prev) => !prev)}
-              className="btn btn-secondary"
-            >
-              {showAssistant ? 'Hide Assistant' : 'Open Assistant'}
-            </button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="stat-chip">
@@ -857,60 +844,6 @@ export function TemplateBrowserPage() {
       )}
     </div>
 
-    {/* Assistant Panel */}
-    {showAssistant && (
-      <div className="fixed right-4 top-20 bottom-28 w-96 z-40 bg-surface rounded-2xl shadow-2xl border border-border-subtle overflow-hidden">
-        <div className="h-full flex flex-col">
-          {/* Header */}
-          <div className="flex-shrink-0 px-4 py-3 border-b border-border-subtle bg-surface-card">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-primary">AI Assistant</h3>
-              <button
-                onClick={() => setShowAssistant(false)}
-                className="text-secondary hover:text-primary transition"
-                title="Close assistant"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          
-          {/* Assistant Content */}
-          <div className="flex-1 min-h-0">
-            {selectedProjectId ? (
-              <ProjectAssistantPanel
-                projectId={selectedProjectId}
-                type="concept"
-                onProposalAccepted={async () => {
-                  if (selectedGenre) {
-                    await loadTemplate(selectedGenre);
-                  }
-                }}
-              />
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-16 h-16 bg-brand-500/15 border border-brand-500/30 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-2xl">🤖</span>
-                </div>
-                <h4 className="text-lg font-semibold text-primary mb-2">
-                  Template Assistant
-                </h4>
-                <p className="text-sm text-secondary mb-4">
-                  Need help choosing or blending templates? Chat with the AI assistant for guidance on game design decisions.
-                </p>
-                <div className="space-y-2 text-xs text-tertiary">
-                  <p>• Get help choosing genre combinations</p>
-                  <p>• Understand template mechanics and lore</p>
-                  <p>• Learn about game design patterns</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
     </>
   );
 }

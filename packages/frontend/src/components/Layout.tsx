@@ -57,7 +57,7 @@ return (
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border-subtle bg-[rgba(17,16,21,0.82)] backdrop-blur-2xl shadow-[0_20px_60px_rgba(11,8,15,0.75)]">
-        <div className="absolute inset-0 pointer-events-none opacity-70 bg-[radial-gradient(circle_at_20%_-10%,rgba(143,62,72,0.25),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(181,147,60,0.2),transparent_50%)]" />
+        <div className="absolute inset-0 pointer-events-none opacity-70" style={{ background: 'radial-gradient(circle at 20% -10%, color-mix(in srgb, var(--jewel-garnet) 25%, transparent) 0%, transparent 45%), radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--jewel-topaz) 20%, transparent) 0%, transparent 50%)' }} />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo */}
@@ -66,7 +66,7 @@ return (
               className="flex items-center gap-3 group transition-opacity hover:opacity-90"
               aria-label="GameStory Lab Home"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-brand-600 to-mint-500 text-white font-bold text-lg shadow-md group-hover:shadow-lg transition-shadow">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg gradient-brand-to-br text-white font-bold text-lg shadow-md group-hover:shadow-lg transition-shadow">
                 GS
               </div>
               <div className="hidden sm:block">
@@ -194,7 +194,7 @@ return (
             <div className="flex items-center gap-3">
               <Link
                 to="/templates"
-                className="hidden sm:inline-flex items-center gap-2 btn bg-gradient-to-r from-brand-600 to-mint-500 text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+                className="hidden sm:inline-flex items-center gap-2 btn gradient-brand-primary text-white shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
                 style={{ boxShadow: '0 10px 30px -12px rgba(63, 93, 168, 0.55)' }}
               >
                 <Sparkles className="w-4 h-4" />

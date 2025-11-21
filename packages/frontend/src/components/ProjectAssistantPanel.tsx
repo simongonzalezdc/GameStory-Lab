@@ -92,13 +92,9 @@ export function ProjectAssistantPanel({
 
   const userBubbleStyle = useMemo(
     () => ({
-      background: [
-        'radial-gradient(120% 140% at 22% 18%, rgba(255,255,255,0.09), rgba(255,255,255,0) 52%)',
-        'radial-gradient(140% 160% at 82% 12%, rgba(255,255,255,0.07), rgba(255,255,255,0) 55%)',
-        'linear-gradient(145deg, #5A7850 0%, #346C68 50%, #344676 100%)', // emerald to turquoise to sapphire gradient
-      ].join(','),
-      border: '1px solid rgba(90, 120, 80, 0.65)', // emerald border
-      color: 'var(--color-text-primary)',
+      background: 'var(--chat-bubble-user-background)',
+      border: '1px solid var(--chat-bubble-user-border-color)',
+      color: 'var(--chat-bubble-text-color)',
       borderRadius: 'var(--chat-bubble-radius)',
       padding: 'var(--chat-message-padding-y) var(--chat-message-padding-x)',
       fontSize: '0.9rem',
@@ -108,19 +104,16 @@ export function ProjectAssistantPanel({
       maxWidth: 'var(--chat-message-max-width)',
       alignSelf: 'flex-end',
       marginLeft: 'auto',
-      boxShadow: '0 16px 36px -18px rgba(52, 70, 118, 0.7), 0 0 0 1px rgba(90, 120, 80, 0.28)',
+      boxShadow: 'var(--chat-bubble-user-shadow)',
     }),
     []
   );
 
   const assistantBubbleStyle = useMemo(
     () => ({
-      background: [
-        'radial-gradient(120% 140% at 18% 18%, rgba(255,255,255,0.07), rgba(255,255,255,0) 52%)',
-        'radial-gradient(140% 160% at 82% 16%, rgba(255,255,255,0.05), rgba(255,255,255,0) 55%)',
-        'linear-gradient(155deg, #8F3E48 0%, #AE5D37 50%, #B5933C 100%)', // garnet to fire opal to topaz gradient
-      ].join(', '),
-      border: '1px solid rgba(143, 62, 72, 0.65)', // garnet border
+      background: 'var(--chat-bubble-assistant-background)',
+      border: '1px solid var(--chat-bubble-assistant-border-color)',
+      color: 'var(--chat-bubble-text-color)',
       borderRadius: 'var(--chat-bubble-radius)',
       padding: 'var(--chat-message-padding-y) var(--chat-message-padding-x)',
       fontSize: '0.9rem',
@@ -128,8 +121,7 @@ export function ProjectAssistantPanel({
       lineHeight: '1.6',
       wordWrap: 'break-word' as const,
       maxWidth: 'var(--chat-message-max-width)',
-      boxShadow:
-        '0 16px 36px -18px rgba(143, 62, 72, 0.7), 0 0 0 1px rgba(143, 62, 72, 0.28)',
+      boxShadow: 'var(--chat-bubble-assistant-shadow)',
     }),
     []
   );
@@ -648,7 +640,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
         <div className="chat-header divider-glow">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-3">
-              <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white shadow-lg" style={{ width: '40px', height: '40px', fontSize: '1rem' }}>
+              <div className="chat-avatar gradient-brand-to-br text-white shadow-lg" style={{ width: '40px', height: '40px', fontSize: '1rem' }}>
                 AI
               </div>
               <div>
@@ -716,7 +708,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
             <div ref={listRef} className="chat-messages-area">
               {initializing ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                  <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white mb-3 shadow-lg animate-pulse" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
+                  <div className="chat-avatar gradient-brand-to-br text-white mb-3 shadow-lg animate-pulse" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     AI
                   </div>
                   <h4 className="text-base font-semibold text-primary mb-1.5">
@@ -751,7 +743,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                  <div className="chat-avatar bg-gradient-to-br from-brand-500 to-mint-500 text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
+                  <div className="chat-avatar gradient-brand-to-br text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
                     AI
                   </div>
                   <h4 className="text-base font-semibold text-primary mb-1.5">
@@ -772,8 +764,8 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     {/* Avatar */}
                     <div className={`chat-avatar ${
                       msg.role === 'assistant'
-                        ? 'bg-gradient-to-br from-brand-500 to-mint-500 text-white'
-                        : 'bg-gradient-to-br from-secondary to-tertiary text-white'
+                        ? 'gradient-brand-to-br text-white'
+                        : 'gradient-surface-card text-white'
                     }`}>
                       {getInitials(msg.role)}
                     </div>
@@ -812,7 +804,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                                 )}
                               </div>
                               {isLong && !isExpanded && (
-                                <div className="absolute inset-x-0 bottom-0 h-20 pointer-events-none bg-gradient-to-t from-black/50 via-black/20 to-transparent rounded-b-lg" />
+                                <div className="absolute inset-x-0 bottom-0 h-20 pointer-events-none rounded-b-lg" style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--color-bg-primary) 50%, transparent) 0%, color-mix(in srgb, var(--color-bg-primary) 20%, transparent) 50%, transparent 100%)' }} />
                               )}
                               {isLong && (
                                 <div className="pt-2 flex justify-end">
@@ -851,7 +843,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
               )}
               {loading && (
                 <div className="flex gap-3">
-                  <div className="chat-avatar bg-gradient-to-br from-brand-600 to-mint-500 text-white">
+                  <div className="chat-avatar gradient-brand-to-br text-white">
                     AI
                   </div>
                   <div className="flex items-center">
@@ -967,7 +959,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     }`}
                   >
                     {index === 0 && (
-                      <div className="mb-3 px-3 py-1.5 badge-lg bg-gradient-to-r from-brand-600 to-mint-500 text-white text-center">
+                      <div className="mb-3 px-3 py-1.5 badge-lg gradient-brand-primary text-white text-center">
                         ⭐ Most Recent Proposal
                       </div>
                     )}

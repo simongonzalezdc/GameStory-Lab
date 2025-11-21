@@ -102,6 +102,62 @@
     --color-assistant-border-glow: rgba(181, 147, 60, 0.2); /* topaz glow - reduced opacity */
     --color-divider-glow: rgba(181, 147, 60, 0.2); /* topaz glow - reduced opacity */
     
+    /* Gradient System - ALL gradients MUST use only jewel theme colors
+     * 
+     * RULE: All gradients throughout the application MUST use only colors defined in
+     * the jewel-engine-theme-lowcontrast-garnet-topaz.css theme file.
+     * 
+     * Allowed colors:
+     * - Base surfaces: --bg-body, --bg-elevated, --bg-panel, --bg-panel-alt, --border-subtle, --border-strong
+     * - Text: --text-primary, --text-secondary, --text-muted, --text-inverse
+     * - Brand: --brand-primary, --brand-primary-hover, --brand-primary-soft, --brand-secondary, --brand-secondary-soft
+     * - Jewel tones: --jewel-amethyst, --jewel-sapphire, --jewel-emerald, --jewel-topaz, --jewel-garnet, --jewel-fireopal, --jewel-turquoise
+     * - Semantic: --success, --warning, --danger, --info
+     * 
+     * When creating new gradients:
+     * 1. Use CSS custom properties (--gradient-*) defined below
+     * 2. Use utility classes (.gradient-*) for common patterns
+     * 3. Use color-mix() with theme variables for opacity variations
+     * 4. NEVER use hardcoded hex colors or rgba() values directly
+     */
+    /* Brand gradients (Garnet + Topaz) */
+    --gradient-brand-primary: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 50%, var(--brand-secondary) 100%);
+    --gradient-brand-secondary: linear-gradient(135deg, var(--brand-secondary) 0%, var(--brand-primary-hover) 100%);
+    --gradient-brand-soft: linear-gradient(135deg, var(--brand-primary-soft) 0%, var(--brand-secondary-soft) 100%);
+    --gradient-brand-to-br: linear-gradient(to bottom right, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+    --gradient-brand-radial: radial-gradient(circle, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+    
+    /* Jewel tone gradients - Primary combinations */
+    --gradient-garnet-fireopal: linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-fireopal) 100%);
+    --gradient-fireopal-topaz: linear-gradient(135deg, var(--jewel-fireopal) 0%, var(--jewel-topaz) 100%);
+    --gradient-garnet-topaz: linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-topaz) 100%);
+    --gradient-garnet-fireopal-topaz: linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-fireopal) 50%, var(--jewel-topaz) 100%);
+    
+    /* Jewel tone gradients - Secondary combinations */
+    --gradient-emerald-turquoise: linear-gradient(135deg, var(--jewel-emerald) 0%, var(--jewel-turquoise) 100%);
+    --gradient-turquoise-sapphire: linear-gradient(135deg, var(--jewel-turquoise) 0%, var(--jewel-sapphire) 100%);
+    --gradient-emerald-turquoise-sapphire: linear-gradient(145deg, var(--jewel-emerald) 0%, var(--jewel-turquoise) 50%, var(--jewel-sapphire) 100%);
+    --gradient-amethyst-sapphire: linear-gradient(135deg, var(--jewel-amethyst) 0%, var(--jewel-sapphire) 100%);
+    
+    /* Surface gradients (using base colors only) */
+    --gradient-surface-card: linear-gradient(170deg, var(--color-surface-card) 0%, var(--color-surface-strong) 100%);
+    --gradient-surface-elevated: linear-gradient(130deg, var(--color-surface-card) 0%, var(--color-surface-strong) 100%);
+    --gradient-surface-vertical: linear-gradient(180deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 55%, var(--color-bg-tertiary) 100%);
+    --gradient-surface-horizontal: linear-gradient(90deg, var(--color-surface-card) 0%, var(--color-surface-elevated) 50%, var(--color-surface-card) 100%);
+    
+    /* Radial gradients for overlays (using jewel colors with opacity) */
+    --gradient-radial-garnet: radial-gradient(circle, color-mix(in srgb, var(--jewel-garnet) 15%, transparent) 0%, transparent 70%);
+    --gradient-radial-topaz: radial-gradient(circle, color-mix(in srgb, var(--jewel-topaz) 15%, transparent) 0%, transparent 70%);
+    --gradient-radial-brand: radial-gradient(circle, color-mix(in srgb, var(--brand-primary) 8%, transparent) 0%, color-mix(in srgb, var(--brand-secondary) 5%, transparent) 30%, transparent 70%);
+    --gradient-radial-surface: radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--color-bg-secondary) 80%, transparent) 0%, transparent 50%);
+    
+    /* Text gradients (using jewel colors) */
+    --gradient-text-brand: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+    --gradient-text-garnet-topaz: linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-topaz) 100%);
+    
+    /* Border gradients (using jewel colors with opacity) */
+    --gradient-border-brand: linear-gradient(135deg, color-mix(in srgb, var(--brand-primary) 20%, transparent), color-mix(in srgb, var(--brand-secondary) 20%, transparent));
+    
     /* Chat Window Design System */
     --chat-container-height: calc(100vh - 4rem);
     --chat-container-min-height: 600px;
@@ -121,6 +177,25 @@
     /* Responsive chat dimensions */
     --chat-proposal-panel-width-mobile: 100%;
     --chat-proposal-panel-height-mobile: 40vh;
+    
+    /* Chat bubble theming */
+    --chat-bubble-user-background:
+      radial-gradient(120% 140% at 22% 18%, color-mix(in srgb, var(--text-primary) 9%, transparent) 0%, transparent 52%),
+      radial-gradient(140% 160% at 82% 12%, color-mix(in srgb, var(--text-primary) 7%, transparent) 0%, transparent 55%),
+      linear-gradient(145deg, var(--jewel-emerald) 0%, var(--jewel-turquoise) 50%, var(--jewel-sapphire) 100%);
+    --chat-bubble-user-border-color: color-mix(in srgb, var(--jewel-emerald) 70%, transparent);
+    --chat-bubble-user-shadow: 0 16px 36px -18px color-mix(in srgb, var(--jewel-sapphire) 70%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--jewel-emerald) 40%, transparent);
+    
+    --chat-bubble-assistant-background:
+      radial-gradient(120% 140% at 18% 18%, color-mix(in srgb, var(--text-primary) 7%, transparent) 0%, transparent 52%),
+      radial-gradient(140% 160% at 82% 16%, color-mix(in srgb, var(--text-primary) 5%, transparent) 0%, transparent 55%),
+      linear-gradient(155deg, var(--jewel-garnet) 0%, var(--jewel-fireopal) 50%, var(--jewel-topaz) 100%);
+    --chat-bubble-assistant-border-color: color-mix(in srgb, var(--jewel-garnet) 70%, transparent);
+    --chat-bubble-assistant-shadow: 0 16px 36px -18px color-mix(in srgb, var(--jewel-garnet) 70%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--jewel-fireopal) 40%, transparent);
+    
+    --chat-bubble-text-color: var(--color-text-primary);
     
     /* App Shell Layout Variables */
     --sidebar-width: 240px;
@@ -235,10 +310,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background:
-      radial-gradient(circle at 20% 80%, rgba(25, 22, 29, 0.8) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(43, 38, 47, 0.6) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(33, 31, 38, 0.9) 0%, transparent 50%),
-      linear-gradient(180deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 55%, var(--color-bg-tertiary) 100%);
+      radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--color-bg-secondary) 80%, transparent) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--color-surface-strong) 60%, transparent) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--color-surface-card) 90%, transparent) 0%, transparent 50%),
+      var(--gradient-surface-vertical);
     color: var(--color-text-primary);
     min-height: 100vh;
     line-height: 1.6;
@@ -261,8 +336,8 @@
     height: 100%;
     pointer-events: none;
     background-image:
-      radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.01) 0%, transparent 50%),
+      radial-gradient(circle at 25% 25%, color-mix(in srgb, var(--text-primary) 2%, transparent) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, color-mix(in srgb, var(--text-primary) 1%, transparent) 0%, transparent 50%),
       url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
     z-index: 0;
   }
@@ -408,6 +483,65 @@
 }
 
 @layer components {
+  /* Gradient Utility Classes - ALL gradients use only jewel theme colors */
+  .gradient-brand-primary {
+    background: var(--gradient-brand-primary);
+  }
+  
+  .gradient-brand-secondary {
+    background: var(--gradient-brand-secondary);
+  }
+  
+  .gradient-brand-to-br {
+    background: var(--gradient-brand-to-br);
+  }
+  
+  .gradient-garnet-fireopal {
+    background: var(--gradient-garnet-fireopal);
+  }
+  
+  .gradient-fireopal-topaz {
+    background: var(--gradient-fireopal-topaz);
+  }
+  
+  .gradient-garnet-topaz {
+    background: var(--gradient-garnet-topaz);
+  }
+  
+  .gradient-garnet-fireopal-topaz {
+    background: var(--gradient-garnet-fireopal-topaz);
+  }
+  
+  .gradient-emerald-turquoise {
+    background: var(--gradient-emerald-turquoise);
+  }
+  
+  .gradient-emerald-turquoise-sapphire {
+    background: var(--gradient-emerald-turquoise-sapphire);
+  }
+  
+  .gradient-surface-card {
+    background: var(--gradient-surface-card);
+  }
+  
+  .gradient-surface-elevated {
+    background: var(--gradient-surface-elevated);
+  }
+  
+  .gradient-text-brand {
+    background: var(--gradient-text-brand);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .gradient-text-garnet-topaz {
+    background: var(--gradient-text-garnet-topaz);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   /* Surface components - Consistent corner radii */
   .surface-panel {
     border-radius: var(--radius-lg);
@@ -422,7 +556,7 @@
     backdrop-filter: blur(16px) saturate(180%);
     -webkit-backdrop-filter: blur(16px) saturate(180%);
     border: 1px solid rgba(74, 66, 79, 0.5);
-    border-image: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(143, 62, 72, 0.3), rgba(181, 147, 60, 0.2)) 1;
+    border-image: linear-gradient(135deg, color-mix(in srgb, var(--text-primary) 20%, transparent), color-mix(in srgb, var(--jewel-garnet) 30%, transparent), color-mix(in srgb, var(--jewel-topaz) 20%, transparent)) 1;
     box-shadow:
       0 8px 32px rgba(12, 18, 36, 0.5),
       0 2px 8px rgba(12, 18, 36, 0.4),
@@ -437,7 +571,7 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(143, 62, 72, 0.08), rgba(181, 147, 60, 0.06));
+    background: linear-gradient(135deg, color-mix(in srgb, var(--text-primary) 10%, transparent), color-mix(in srgb, var(--jewel-garnet) 8%, transparent), color-mix(in srgb, var(--jewel-topaz) 6%, transparent));
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
@@ -484,7 +618,7 @@
   .stat-chip {
     border-radius: var(--radius-lg);
     padding: 1rem 1.25rem;
-    background: linear-gradient(135deg, rgba(143, 62, 72, 0.25), rgba(33, 31, 38, 0.7));
+    background: linear-gradient(135deg, color-mix(in srgb, var(--jewel-garnet) 25%, transparent), color-mix(in srgb, var(--color-surface-card) 70%, transparent));
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
@@ -592,7 +726,7 @@
     left: 0.26rem;
     width: 2px;
     height: calc(100% - 1.2rem);
-    background: linear-gradient(180deg, rgba(181, 147, 60, 0.3), transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--jewel-topaz) 30%, transparent), transparent);
   }
 
   /* Button components - Consistent corner radii with tactile feel */
@@ -1249,8 +1383,8 @@
     bottom: 0;
     background: radial-gradient(
       circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(181, 147, 60, 0.15) 0%,
-      rgba(143, 62, 72, 0.1) 25%,
+      color-mix(in srgb, var(--jewel-topaz) 15%, transparent) 0%,
+      color-mix(in srgb, var(--jewel-garnet) 10%, transparent) 25%,
       transparent 50%
     );
     opacity: 0;
@@ -1449,15 +1583,15 @@
     position: absolute;
     width: 28px;
     height: 28px;
-    background: linear-gradient(135deg, #8F3E48 0%, #AE5D37 50%, #B5933C 100%);
+    background: var(--gradient-garnet-fireopal-topaz);
     border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
     animation: jewel-spin 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite, jewel-glow 2s ease-in-out infinite;
     box-shadow: 
-      0 0 12px rgba(143, 62, 72, 0.6),
-      0 0 20px rgba(174, 93, 55, 0.5),
-      0 0 16px rgba(181, 147, 60, 0.4),
-      inset 0 2px 8px rgba(255, 255, 255, 0.25),
-      inset 0 -2px 8px rgba(0, 0, 0, 0.2);
+      0 0 12px color-mix(in srgb, var(--jewel-garnet) 60%, transparent),
+      0 0 20px color-mix(in srgb, var(--jewel-fireopal) 50%, transparent),
+      0 0 16px color-mix(in srgb, var(--jewel-topaz) 40%, transparent),
+      inset 0 2px 8px color-mix(in srgb, var(--text-primary) 25%, transparent),
+      inset 0 -2px 8px color-mix(in srgb, var(--color-bg-primary) 20%, transparent);
     filter: brightness(1.1);
   }
 
@@ -1466,10 +1600,10 @@
     position: absolute;
     width: 10px;
     height: 10px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(181, 147, 60, 0.7) 70%, transparent 100%);
+    background: radial-gradient(circle, color-mix(in srgb, var(--text-primary) 95%, transparent) 0%, color-mix(in srgb, var(--jewel-topaz) 70%, transparent) 70%, transparent 100%);
     border-radius: 50%;
     animation: jewel-pulse 1.8s ease-in-out infinite;
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--text-primary) 60%, transparent);
   }
 
   /* Sparkle particles around the jewel */

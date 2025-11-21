@@ -3,9 +3,21 @@
  * Professional tool layout with Sidebar + Top Bar + Workspace + Right Panel
  */
 
-import React, { useEffect, useState, memo, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FolderKanban, Settings, Sparkles, ChevronRight, Search, X, MessageSquare, ChevronLeft } from 'lucide-react';
+import {
+  FolderKanban,
+  Settings,
+  Sparkles,
+  ChevronRight,
+  Search,
+  X,
+  MessageSquare,
+  RefreshCcw,
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
+} from 'lucide-react';
 import { CursorGlow } from './CursorGlow';
 import { ProjectAssistantPanel } from './ProjectAssistantPanel';
 
@@ -13,12 +25,30 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+type SyncState = 'idle' | 'syncing' | 'error';
+
 // Navigation items constant
 const NAV_ITEMS = [
   { path: '/', label: 'Projects', icon: FolderKanban },
   { path: '/templates', label: 'Templates', icon: Sparkles },
   { path: '/settings', label: 'Settings', icon: Settings },
 ] as const;
+
+const formatRelativeTime = (date: Date | null) => {
+  if (!date) {
+    return 'Preparing first sync';
+  }
+  const diffMs = Date.now() - date.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  if (diffSeconds < 10) return 'moments ago';
+  if (diffSeconds < 60) return `${diffSeconds}s ago`;
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+};
 
 function AppShellComponent({ children }: AppShellProps) {
   const location = useLocation();
@@ -32,12 +62,55 @@ function AppShellComponent({ children }: AppShellProps) {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const settingsRef = useRef<HTMLDivElement | null>(null);
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const projectMatch = location.pathname.match(/^\/projects\/([^/]+)(?:$|\/)/);
   const activeProjectId = projectMatch ? projectMatch[1] : null;
+  const [syncState, setSyncState] = useState<SyncState>('idle');
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   
   // Determine assistant type based on route
   const assistantType = location.pathname.includes('/architect') ? 'architect' : 
                         activeProjectId ? 'concept' : 'project';
+
+  const triggerSync = useCallback(() => {
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
+    }
+    setSyncState('syncing');
+    syncTimerRef.current = setTimeout(() => {
+      setSyncState('idle');
+      setLastSyncedAt(new Date());
+      syncTimerRef.current = null;
+    }, 1600);
+  }, []);
+
+  const handleManualSync = useCallback(() => {
+    if (syncState === 'syncing') return;
+    triggerSync();
+  }, [syncState, triggerSync]);
+
+  useEffect(() => {
+    triggerSync();
+    return () => {
+      if (syncTimerRef.current) {
+        clearTimeout(syncTimerRef.current);
+      }
+    };
+  }, [location.pathname, triggerSync]);
+
+  const syncDescription =
+    syncState === 'syncing'
+      ? 'Syncing workspace'
+      : syncState === 'error'
+      ? 'Sync paused'
+      : 'Workspace up to date';
+
+  const syncMeta =
+    syncState === 'syncing'
+      ? 'Collecting latest drafts'
+      : syncState === 'error'
+      ? 'Tap to retry'
+      : `Updated ${formatRelativeTime(lastSyncedAt)}`;
 
   useEffect(() => {
     document.documentElement.classList.add('dark');
@@ -111,7 +184,7 @@ function AppShellComponent({ children }: AppShellProps) {
               className="flex items-center gap-3 group transition-opacity hover:opacity-90"
               aria-label="GameStory Lab Home"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-600 to-mint-500 text-white font-bold text-sm shadow-md group-hover:shadow-lg transition-shadow flex-shrink-0">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-brand-to-br text-white font-bold text-sm shadow-md group-hover:shadow-lg transition-shadow flex-shrink-0">
                 GS
               </div>
               {!sidebarCollapsed && (
@@ -258,41 +331,82 @@ function AppShellComponent({ children }: AppShellProps) {
             ))}
           </nav>
 
-          {/* Project Status / Actions */}
-          {activeProjectId && (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {/* Project Status / Actions */}
+            {activeProjectId && (
               <Link
                 to={`/projects/${activeProjectId}/architect`}
-                className="px-3 py-1.5 text-xs font-medium border border-[var(--color-border-subtle)] rounded-lg text-secondary hover:text-primary hover:border-[var(--brand-primary)]/40 transition h-8"
+                className="px-3 py-1.5 text-xs font-medium border border-[var(--color-border-subtle)] rounded-lg text-secondary hover:text-primary hover:border-[var(--brand-primary)]/40 transition h-9 flex items-center"
               >
                 🏗️ Architect
               </Link>
+            )}
+
+            {/* Command Bar Visual */}
+            <button
+              type="button"
+              onClick={() => setShowCommandPalette(true)}
+              className="hidden md:flex items-center gap-3 h-9 min-w-[220px] px-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)]/80 text-secondary text-sm shadow-[var(--shadow-xs)] hover:border-[var(--brand-primary)]/50 hover:text-primary transition"
+              title="Open command palette (⌘K)"
+            >
+              <Search className="w-3.5 h-3.5 text-tertiary" />
+              <div className="flex-1 text-left">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-tertiary font-semibold">Command Bar</p>
+                <p className="text-xs text-secondary">Search projects, actions, scenes...</p>
+              </div>
+              <span className="text-[11px] font-semibold text-tertiary">⌘K</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowCommandPalette(true)}
+              className="md:hidden flex items-center gap-1 px-2.5 py-1.5 h-9 rounded-lg border border-[var(--color-border-subtle)] text-secondary hover:text-primary hover:border-[var(--brand-primary)]/50 transition text-xs font-semibold"
+              aria-label="Open command palette"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>⌘K</span>
+            </button>
+
+            {/* Sync Status */}
+            <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)]/70 shadow-[var(--shadow-xs)]">
+              <div className="flex items-center gap-2">
+                {syncState === 'syncing' && <Loader2 className="w-4 h-4 text-[var(--brand-secondary)] animate-spin" />}
+                {syncState === 'error' && <AlertTriangle className="w-4 h-4 text-[var(--color-danger)]" />}
+                {syncState === 'idle' && <CheckCircle2 className="w-4 h-4 text-[var(--color-success)]" />}
+                <div className="leading-tight">
+                  <p className="text-xs font-semibold text-primary">{syncDescription}</p>
+                  <p className="text-[11px] text-tertiary">{syncMeta}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleManualSync}
+                disabled={syncState === 'syncing'}
+                className={`p-1.5 rounded-lg border border-[var(--color-border-subtle)] text-secondary transition ${
+                  syncState === 'syncing'
+                    ? 'opacity-60 cursor-not-allowed'
+                    : 'hover:text-primary hover:border-[var(--brand-primary)]/60'
+                }`}
+                aria-label="Refresh workspace sync"
+              >
+                <RefreshCcw className="w-3.5 h-3.5" />
+              </button>
             </div>
-          )}
 
-          {/* Command Trigger */}
-          <button
-            onClick={() => setShowCommandPalette(true)}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium border border-[var(--color-border-subtle)] rounded-lg text-secondary hover:text-primary hover:border-[var(--brand-primary)]/40 transition h-8"
-            title="Open command palette (⌘K)"
-          >
-            <Search className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">⌘K</span>
-          </button>
-
-          {/* AI Assistant Toggle */}
-          <button
-            onClick={() => setShowRightPanel(!showRightPanel)}
-            className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium border rounded-lg transition h-8 ${
-              showRightPanel
-                ? 'bg-[var(--brand-primary)]/20 text-primary border-[var(--brand-primary)]/40'
-                : 'border-[var(--color-border-subtle)] text-secondary hover:text-primary hover:border-[var(--brand-primary)]/40'
-            }`}
-            title={showRightPanel ? 'Hide AI Assistant' : 'Show AI Assistant'}
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Assistant</span>
-          </button>
+            {/* AI Assistant Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowRightPanel(!showRightPanel)}
+              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium border rounded-lg transition h-9 ${
+                showRightPanel
+                  ? 'bg-[var(--brand-primary)]/20 text-primary border-[var(--brand-primary)]/40'
+                  : 'border-[var(--color-border-subtle)] text-secondary hover:text-primary hover:border-[var(--brand-primary)]/40'
+              }`}
+              title={showRightPanel ? 'Hide AI Assistant' : 'Show AI Assistant'}
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Assistant</span>
+            </button>
+          </div>
         </header>
 
         {/* Workspace */}
