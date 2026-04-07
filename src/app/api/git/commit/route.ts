@@ -1,12 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 import { writeFileSync } from 'fs';
-import { join } from 'path';
+import { resolve, normalize } from 'path';
 import { getProject } from '@/lib/db/queries';
 
-const execAsync = promisify(exec);
+const execAsync = (command: string, args: string[], options: { cwd: string }): Promise<{ stdout: string; stderr: string }> => {
+  return new Promise((resolveExec, reject) => {
+    const child = spawn(command, args, {
+      cwd: options.cwd,
+      shell: false
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolveExec({ stdout, stderr });
+      } else {
+        reject(new Error(stderr || `Command failed with exit code ${code}`));
+      }
+    });
+
+    child.on('error', reject);
+  });
+};
 
 const commitSchema = z.object({
   projectId: z.string(),
@@ -26,13 +53,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    // Write file to disk
-    const fullPath = join(project.path, validated.filePath);
-    writeFileSync(fullPath, validated.content, 'utf-8');
+    // Write file to disk with path traversal protection
+    const fullPath = resolve(project.path, validated.filePath);
+    const normalizedPath = normalize(fullPath);
+    const projectPathResolved = resolve(project.path);
+
+    if (!normalizedPath.startsWith(projectPathResolved)) {
+      return NextResponse.json({ error: 'Invalid file path: path traversal detected' }, { status: 400 });
+    }
+
+    writeFileSync(normalizedPath, validated.content, 'utf-8');
 
     // Check if git repository exists
     try {
-      await execAsync('git rev-parse --git-dir', { cwd: project.path });
+      await execAsync('git', ['rev-parse', '--git-dir'], { cwd: project.path });
     } catch {
       return NextResponse.json(
         { error: 'Not a git repository. Initialize git first with: git init' },
@@ -40,10 +74,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Git add and commit
+    // Git add and commit with safe argument passing
     try {
-      await execAsync(`git add "${validated.filePath}"`, { cwd: project.path });
-      await execAsync(`git commit -m "${validated.commitMessage.replace(/"/g, '\\"')}"`, {
+      await execAsync('git', ['add', validated.filePath], { cwd: project.path });
+      await execAsync('git', ['commit', '-m', validated.commitMessage], {
         cwd: project.path,
       });
 
