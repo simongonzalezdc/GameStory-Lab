@@ -35,7 +35,7 @@
     "better-sqlite3": "^11.8.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "drizzle-orm": "^0.38.0",
+    "drizzle-orm": "^0.45.2",
     "eslint": "^9.16.0",
     "fast-glob": "^3.3.3",
     "gray-matter": "^4.0.3",
