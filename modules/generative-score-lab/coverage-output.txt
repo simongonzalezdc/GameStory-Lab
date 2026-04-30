@@ -1,0 +1,217 @@
+
+> generative-score-lab@1.0.0 test:coverage
+> vitest --coverage --run
+
+
+ RUN  v2.1.9 /home/user/Generative-Score-Lab
+      Coverage enabled with v8
+
+ ✓ tests/unit/theory/scales.test.ts (11 tests) 8ms
+ ✓ tests/unit/stores/history-store.test.ts (9 tests) 9ms
+ ✓ tests/unit/euclidean.test.ts (7 tests) 8ms
+ ✓ tests/unit/markov.test.ts (8 tests) 12ms
+ ✓ tests/unit/arpeggiator.test.ts (8 tests) 16ms
+ ✓ tests/unit/audio/instruments.test.ts (10 tests) 7ms
+ ✓ tests/unit/random-walk.test.ts (9 tests) 13ms
+stderr | tests/unit/errors/error-handler.test.ts > Error Handler > handle > should handle different severity levels
+[ErrorHandler] {
+  id: '1763450781923-37ybljhwp',
+  severity: 'warning',
+  message: 'Warning',
+  timestamp: 2025-11-18T07:26:21.923Z,
+  details: 'Error: Warning\n' +
+    '    at /home/user/Generative-Score-Lab/tests/unit/errors/error-handler.test.ts:44:27\n' +
+    '    at file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1262:5)'
+}
+
+ ✓ tests/unit/theory/chords.test.ts (4 tests) 6ms
+stderr | tests/unit/stores/project-store.test.ts > Project Store > updateProject > should validate BPM range
+[ErrorHandler] {
+  id: '1763450781969-is7v95mdl',
+  severity: 'warning',
+  message: 'BPM must be between 40 and 300',
+  timestamp: 2025-11-18T07:26:21.969Z,
+  details: 'Error: BPM must be between 40 and 300\n' +
+    '    at Object.updateProject (/home/user/Generative-Score-Lab/src/stores/project-store.ts:102:15)\n' +
+    '    at /home/user/Generative-Score-Lab/tests/unit/stores/project-store.test.ts:56:34\n' +
+    '    at file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)'
+}
+
+ ✓ tests/unit/errors/error-handler.test.ts (7 tests) 49ms
+ ✓ tests/unit/stores/project-store.test.ts (7 tests) 18ms
+stderr | tests/unit/ai/ai-service-validation.test.ts > AI Service Validation > Key and Scale Validation > should reject invalid key
+[ErrorHandler] {
+  id: '1763450782302-ex9eh5k5d',
+  severity: 'warning',
+  message: 'Invalid key: "X". Must be one of: C, C#, D, D#, E, F, F#, G, G#, A, A#, B',
+  timestamp: 2025-11-18T07:26:22.302Z,
+  details: 'Error: Invalid key: "X". Must be one of: C, C#, D, D#, E, F, F#, G, G#, A, A#, B\n' +
+    '    at Module.applyMusicActions (/home/user/Generative-Score-Lab/src/lib/ai/ai-service.ts:430:19)\n' +
+    '    at /home/user/Generative-Score-Lab/tests/unit/ai/ai-service-validation.test.ts:255:22\n' +
+    '    at file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)'
+}
+
+stderr | tests/unit/ai/ai-service-validation.test.ts > AI Service Validation > Key and Scale Validation > should reject invalid scale
+[ErrorHandler] {
+  id: '1763450782314-ilg3n02us',
+  severity: 'warning',
+  message: 'Invalid scale: "invalid". Must be one of: major, minor, dorian, phrygian, lydian, mixolydian, locrian',
+  timestamp: 2025-11-18T07:26:22.314Z,
+  details: 'Error: Invalid scale: "invalid". Must be one of: major, minor, dorian, phrygian, lydian, mixolydian, locrian\n' +
+    '    at Module.applyMusicActions (/home/user/Generative-Score-Lab/src/lib/ai/ai-service.ts:433:19)\n' +
+    '    at /home/user/Generative-Score-Lab/tests/unit/ai/ai-service-validation.test.ts:271:22\n' +
+    '    at file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/user/Generative-Score-Lab/node_modules/@vitest/runner/dist/index.js:1205:15)'
+}
+
+ ✓ tests/unit/ai/ai-service-validation.test.ts (19 tests) 25ms
+
+ Test Files  11 passed (11)
+      Tests  99 passed (99)
+   Start at  07:26:14
+   Duration  8.29s (transform 2.31s, setup 11.15s, collect 3.46s, tests 170ms, environment 45.32s, prepare 3.96s)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   17.03 |    56.81 |   37.75 |   17.03 |                   
+ ...tive-Score-Lab |       0 |        0 |       0 |       0 |                   
+  ...css.config.js |       0 |        0 |       0 |       0 | 1-6               
+  ...ind.config.js |       0 |        0 |       0 |       0 | 1-49              
+ ...-Score-Lab/src |       0 |        0 |       0 |       0 |                   
+  App.tsx          |       0 |        0 |       0 |       0 | 1-295             
+  main.tsx         |       0 |        0 |       0 |       0 | 1-17              
+ ...src/components |       0 |        0 |       0 |       0 |                   
+  ...rBoundary.tsx |       0 |        0 |       0 |       0 | 1-120             
+  ...rBoundary.tsx |       0 |        0 |       0 |       0 | 1-60              
+ .../components/ai |       0 |        0 |       0 |       0 |                   
+  AIChat.tsx       |       0 |        0 |       0 |       0 | 1-246             
+  ...tupWizard.tsx |       0 |        0 |       0 |       0 | 1-289             
+ ...onents/project |       0 |        0 |       0 |       0 |                   
+  ExportDialog.tsx |       0 |        0 |       0 |       0 | 1-125             
+  ...ortDialog.tsx |       0 |        0 |       0 |       0 | 1-239             
+  ShareDialog.tsx  |       0 |        0 |       0 |       0 | 1-64              
+ ...mponents/scene |       0 |        0 |       0 |       0 |                   
+  ClipList.tsx     |       0 |        0 |       0 |       0 | 1-291             
+  ...PianoRoll.tsx |       0 |        0 |       0 |       0 | 1-346             
+  ...SceneCard.tsx |       0 |        0 |       0 |       0 | 1-58              
+  ...tSelector.tsx |       0 |        0 |       0 |       0 | 1-54              
+  SceneBoard.tsx   |       0 |        0 |       0 |       0 | 1-83              
+  SceneCard.tsx    |       0 |        0 |       0 |       0 | 1-85              
+  SceneEditor.tsx  |       0 |        0 |       0 |       0 | 1-240             
+  TrackList.tsx    |       0 |        0 |       0 |       0 | 1-70              
+  TrackRow.tsx     |       0 |        0 |       0 |       0 | 1-194             
+ ...nents/tutorial |       0 |       50 |      50 |       0 |                   
+  ...alOverlay.tsx |       0 |        0 |       0 |       0 | 1-394             
+  ...rial-steps.ts |       0 |      100 |     100 |       0 | 14-85             
+ .../components/ui |       0 |        0 |       0 |       0 |                   
+  AlertDialog.tsx  |       0 |        0 |       0 |       0 | 1-45              
+  Button.tsx       |       0 |        0 |       0 |       0 | 1-39              
+  ...irmDialog.tsx |       0 |        0 |       0 |       0 | 1-52              
+  Dialog.tsx       |       0 |        0 |       0 |       0 | 1-61              
+  ...ification.tsx |       0 |        0 |       0 |       0 | 1-116             
+  Input.tsx        |       0 |        0 |       0 |       0 | 1-36              
+  ...tcutsHelp.tsx |       0 |        0 |       0 |       0 | 1-91              
+  Select.tsx       |       0 |        0 |       0 |       0 | 1-81              
+  ...ngsDialog.tsx |       0 |        0 |       0 |       0 | 1-83              
+  Slider.tsx       |       0 |        0 |       0 |       0 | 1-52              
+  ThemeToggle.tsx  |       0 |        0 |       0 |       0 | 1-48              
+ ...mponents/voice |       0 |        0 |       0 |       0 |                   
+  ...ureDialog.tsx |       0 |        0 |       0 |       0 | 1-182             
+ ...-Lab/src/hooks |       0 |        0 |       0 |       0 |                   
+  useAutoSave.ts   |       0 |        0 |       0 |       0 | 1-101             
+  ...dShortcuts.ts |       0 |        0 |       0 |       0 | 1-120             
+ ...Lab/src/lib/ai |   27.67 |    48.42 |   36.36 |   27.67 |                   
+  ai-service.ts    |   61.37 |    50.54 |   85.71 |   61.37 | ...86-491,502-505 
+  glm-client.ts    |     3.7 |        0 |       0 |     3.7 | 12-73             
+  index.ts         |    5.66 |      100 |       0 |    5.66 | 23-49,55-78       
+  intent-parser.ts |   16.66 |      100 |       0 |   16.66 | 12-25,31-32       
+  local-client.ts  |    1.69 |        0 |       0 |    1.69 | 13-155            
+  ...max-client.ts |     3.7 |        0 |       0 |     3.7 | 12-73             
+  ollama-setup.ts  |       0 |      100 |       0 |       0 | 18-233            
+  ...ter-client.ts |     3.7 |        0 |       0 |     3.7 | 12-73             
+  ...pt-builder.ts |    5.88 |      100 |       0 |    5.88 | 10-191            
+  ...-validator.ts |   32.96 |      100 |       0 |   32.96 | ...51-176,184-258 
+ .../lib/analytics |       0 |      100 |     100 |       0 |                   
+  analytics.ts     |       0 |      100 |     100 |       0 | 9-106             
+ .../src/lib/audio |    25.6 |    52.17 |    12.5 |    25.6 |                   
+  ...note-utils.ts |       0 |        0 |       0 |       0 | 1-36              
+  engine.ts        |       0 |        0 |       0 |       0 | 1-525             
+  instruments.ts   |   85.71 |       60 |      20 |   85.71 | ...64-266,272-274 
+  ...-detection.ts |       0 |        0 |       0 |       0 | 1-204             
+ .../collaboration |       0 |        0 |       0 |       0 |                   
+  sharing.ts       |       0 |        0 |       0 |       0 | 1-63              
+ ...src/lib/errors |    60.1 |    67.85 |   66.66 |    60.1 |                   
+  error-handler.ts |   64.51 |    66.66 |      75 |   64.51 | ...18-229,235-245 
+  ...-reporting.ts |    42.1 |      100 |   33.33 |    42.1 | 23-46,89-101      
+ ...lib/generators |   48.81 |    73.11 |   90.47 |   48.81 |                   
+  arpeggiator.ts   |   85.54 |     64.7 |     100 |   85.54 | ...44-45,83-87,94 
+  ...-generator.ts |   55.55 |    33.33 |     100 |   55.55 | ...19,27-28,30-31 
+  euclidean.ts     |   90.32 |    82.35 |     100 |   90.32 | ...26,126,130,132 
+  factory.ts       |       0 |        0 |       0 |       0 | 1-88              
+  index.ts         |       0 |        0 |       0 |       0 | 1-27              
+  markov.ts        |   95.04 |     82.6 |     100 |   95.04 | 19-20,22-23,30    
+  presets.ts       |       0 |      100 |     100 |       0 | 15-246            
+  random-walk.ts   |   90.56 |       70 |     100 |   90.56 | 20-21,23-24,47    
+ ...Lab/src/lib/io |       0 |        0 |       0 |       0 |                   
+  deserializer.ts  |       0 |        0 |       0 |       0 | 1-25              
+  file-system.ts   |       0 |        0 |       0 |       0 | 1-139             
+  midi-export.ts   |       0 |        0 |       0 |       0 | 1-224             
+  serializer.ts    |       0 |        0 |       0 |       0 | 1-114             
+ ...src/lib/theory |   76.61 |    76.47 |   55.55 |   76.61 |                   
+  chords.ts        |   67.64 |    66.66 |      50 |   67.64 | 42-53             
+  scales.ts        |      80 |    78.57 |   57.14 |      80 | 61-80,126-127     
+ .../src/lib/utils |   50.42 |      100 |      25 |   50.42 |                   
+  constants.ts     |     100 |      100 |     100 |     100 |                   
+  filename.ts      |       0 |      100 |     100 |       0 | 9-18              
+  math.ts          |   28.57 |      100 |      10 |   28.57 | ...69,75-76,83-87 
+  time.ts          |       0 |      100 |     100 |       0 | 8-39              
+ ...Lab/src/stores |   25.52 |       80 |   29.78 |   25.52 |                   
+  ai-store.ts      |       0 |        0 |       0 |       0 | 1-74              
+  audio-store.ts   |       0 |        0 |       0 |       0 | 1-37              
+  clip-store.ts    |    6.52 |      100 |       0 |    6.52 | ...4,48-85,88-112 
+  history-store.ts |     100 |      100 |     100 |     100 |                   
+  project-store.ts |   44.44 |    81.81 |   26.92 |   44.44 | ...89-292,295-307 
+  scene-store.ts   |   25.27 |      100 |      25 |   25.27 | ...2,65-88,91-116 
+  theme-store.ts   |       0 |        0 |       0 |       0 | 1-85              
+  track-store.ts   |    7.57 |      100 |       0 |    7.57 | 16-38,41-60,63-85 
+  ...rial-store.ts |       0 |        0 |       0 |       0 | 1-75              
+  ui-store.ts      |       0 |        0 |       0 |       0 | 1-76              
+ ...-Lab/src/types |   48.38 |    56.25 |   88.88 |   48.38 |                   
+  ai.ts            |       0 |        0 |       0 |       0 |                   
+  audio.ts         |       0 |        0 |       0 |       0 |                   
+  generator.ts     |       0 |      100 |     100 |       0 | 31-34             
+  index.ts         |       0 |        0 |       0 |       0 | 1-9               
+  project.ts       |       0 |        0 |       0 |       0 |                   
+  tone-helpers.ts  |   57.69 |       40 |     100 |   57.69 | ...75-84,89,93-97 
+  ui.ts            |       0 |        0 |       0 |       0 |                   
+-------------------|---------|----------|---------|---------|-------------------
