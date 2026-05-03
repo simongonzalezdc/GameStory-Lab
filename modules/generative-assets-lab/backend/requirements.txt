@@ -7,6 +7,6 @@ python-multipart==0.0.26
 Pillow==12.2.0
 httpx==0.28.1
 pydantic==2.12.1
-python-dotenv==1.0.1
+python-dotenv==1.2.2
 pydantic-settings==2.7.0
 aiosqlite==0.20.0
