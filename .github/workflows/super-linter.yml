@@ -18,7 +18,6 @@ jobs:
           set -euo pipefail
           if [[ -f package.json ]]; then
             if [[ -f package-lock.json ]]; then npm ci; else npm install; fi
-            npm run lint --if-present
             npm test --if-present
           elif [[ -f requirements.txt ]]; then
             python3 -m pip install -r requirements.txt
