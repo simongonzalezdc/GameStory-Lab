@@ -51,7 +51,7 @@ describe('Assistant API Routes', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.session.id).toBe('session-123');
-    expect(mockAssistantService.getOrCreateSession).toHaveBeenCalledWith('project-123', 'concept');
+    expect(mockAssistantService.getOrCreateSession).toHaveBeenCalledWith('project-123', 'project', undefined);
     expect(res.body.messages).toEqual([{ id: 'm1', content: 'hi' }]);
     expect(res.body.proposals).toEqual([{ id: 'p1' }]);
   });
@@ -70,7 +70,7 @@ describe('Assistant API Routes', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.message).toEqual({ id: 'm2', content: 'pong' });
-    expect(mockAssistantService.sendMessage).toHaveBeenCalledWith('s-1', 'ping');
+    expect(mockAssistantService.sendMessage).toHaveBeenCalledWith('s-1', 'ping', { quickActionId: undefined });
   });
 
   it('POST /session/:sessionId/message should 400 without content', async () => {
