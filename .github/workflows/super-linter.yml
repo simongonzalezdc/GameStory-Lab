@@ -19,7 +19,10 @@ jobs:
           if [[ -f package.json ]]; then
             if [[ -f package-lock.json ]]; then npm ci; else npm install; fi
             git fetch --no-tags --depth=1 origin "${GITHUB_BASE_REF:-main}"
-            mapfile -t changed_files < <(git diff --name-only "origin/${GITHUB_BASE_REF:-main}...HEAD" -- '*.js' '*.jsx' '*.ts' '*.tsx')
+            changed_files=()
+            while IFS= read -r file; do
+              changed_files+=("$file")
+            done < <(git diff --name-only FETCH_HEAD..HEAD -- '*.js' '*.jsx' '*.ts' '*.tsx')
             if [[ ${#changed_files[@]} -eq 0 ]]; then
               echo "No changed JS/TS files to lint."
             else
