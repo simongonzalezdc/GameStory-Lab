@@ -18,7 +18,26 @@ jobs:
           set -euo pipefail
           if [[ -f package.json ]]; then
             if [[ -f package-lock.json ]]; then npm ci; else npm install; fi
-            npm test --if-present
+            git fetch --no-tags --depth=1 origin "${GITHUB_BASE_REF:-main}"
+            mapfile -t changed_files < <(git diff --name-only "origin/${GITHUB_BASE_REF:-main}...HEAD" -- '*.js' '*.jsx' '*.ts' '*.tsx')
+            if [[ ${#changed_files[@]} -eq 0 ]]; then
+              echo "No changed JS/TS files to lint."
+            else
+              backend_files=()
+              frontend_files=()
+              shared_files=()
+              for file in "${changed_files[@]}"; do
+                case "$file" in
+                  packages/backend/*) backend_files+=("${file#packages/backend/}") ;;
+                  packages/frontend/*) frontend_files+=("${file#packages/frontend/}") ;;
+                  packages/shared/*) shared_files+=("${file#packages/shared/}") ;;
+                  *) echo "Skipping changed file outside linted workspaces: $file" ;;
+                esac
+              done
+              [[ ${#backend_files[@]} -eq 0 ]] || npm exec --workspace @gameforge/backend -- eslint "${backend_files[@]}"
+              [[ ${#frontend_files[@]} -eq 0 ]] || npm exec --workspace @gameforge/frontend -- eslint "${frontend_files[@]}"
+              [[ ${#shared_files[@]} -eq 0 ]] || npm exec --workspace @gameforge/shared -- eslint "${shared_files[@]}"
+            fi
           elif [[ -f requirements.txt ]]; then
             python3 -m pip install -r requirements.txt
             python3 -m compileall .
