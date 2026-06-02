@@ -1,0 +1,49 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /modules/generative-score-lab
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /modules/generative-assets-lab/frontend
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /modules/shiplab
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      ai-sdk:
+        patterns:
+          - ai
+          - "@ai-sdk/*"
+      next-stack:
+        patterns:
+          - next
+          - react
+          - react-dom
+      db-tooling:
+        patterns:
+          - drizzle-kit
+          - drizzle-orm
+          - better-sqlite3
+      test-tooling:
+        patterns:
+          - vitest
+          - "@vitest/*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5

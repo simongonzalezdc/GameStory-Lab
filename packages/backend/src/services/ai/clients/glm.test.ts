@@ -32,7 +32,7 @@ vi.mock('../../../utils/logger.js', () => ({
 
 describe('GLMClient', () => {
   let client: GLMClient;
-  const mockApiKey = 'test-api-key-12345';
+  const mockApiKey = 'test-key';
   let mockPost: any;
 
   beforeEach(() => {

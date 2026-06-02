@@ -16,7 +16,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@ai-sdk/react": "^2.0.93",
+    "@ai-sdk/react": "^3.0.196",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.4",
     "@radix-ui/react-dialog": "^1.1.4",
@@ -31,8 +31,8 @@
     "@radix-ui/react-toast": "^1.2.4",
     "@tanstack/react-query": "^5.62.11",
     "@uiw/react-codemirror": "^4.23.7",
-    "ai": "^5.0.93",
-    "better-sqlite3": "^11.8.0",
+    "ai": "^6.0.194",
+    "better-sqlite3": "^12.10.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
@@ -40,16 +40,17 @@
     "fast-glob": "^3.3.3",
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.468.0",
-    "next": "^16.2.6",
+    "next": "^16.2.7",
     "ollama": "^0.5.12",
     "openai": "^6.9.1",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "react-hook-form": "^7.55.0",
     "react-markdown": "^10.1.0",
     "spdx-license-list": "^6.9.0",
     "tailwind-merge": "^3.4.0",
     "tree-sitter": "^0.22.1",
+    "ws": "^8.21.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -65,7 +66,7 @@
     "@typescript-eslint/parser": "^8.16.0",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.20",
-    "drizzle-kit": "^0.28.1",
+    "drizzle-kit": "^0.31.10",
     "eslint-config-next": "^16.0.3",
     "jsdom": "^27.2.0",
     "playwright": "^1.49.1",
@@ -73,6 +74,6 @@
     "prettier": "^3.4.2",
     "tailwindcss": "^3.4.18",
     "typescript": "^5.6.0",
-    "vitest": "^4.0.10"
+    "vitest": "^4.1.8"
   }
 }

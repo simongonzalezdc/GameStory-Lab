@@ -44,3 +44,12 @@ packages/backend/prisma/migrations/*_migration/
 # Temporary files
 *.tmp
 temp/
+
+# Security-sensitive local files
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+!.env.example
