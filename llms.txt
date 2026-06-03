@@ -1,0 +1,18 @@
+# GameStory Lab
+
+> AI-assisted game design document (GDD) generator for indie developers.
+
+GameStory Lab is a local web application that turns a game idea into a professional game design document. Start from mechanics or lore — the AI adapts — and it generates concepts, runs 26 consistency-validation rules across 6 categories, blends genres from 15 templates, and exports a GDD, pitch deck, or technical spec as markdown. An AI Model Orchestrator routes work across cloud providers (OpenRouter, Google Gemini) and free local models (Ollama), falling back to local models to keep API costs down. Runs on your machine with PostgreSQL and Redis.
+
+## Tech
+- TypeScript 5.6, Node >= 22, npm-workspaces monorepo, PostgreSQL + Redis (Docker), Ollama / OpenRouter / Gemini. MIT licensed.
+
+## Run
+- Node >= 22 + Docker Compose; `npm install` in the monorepo; frontend on 5173, backend on 3001 (see README quick start).
+
+## Links
+- Repository: https://github.com/simongonzalezdc/GameStory-Lab
+- KyaniteLabs: https://kyanitelabs.tech
+
+## Best-fit searches
+game design document generator, GDD tool, AI game design, indie game tools, lore generator, game mechanics generator, Ollama local AI app
