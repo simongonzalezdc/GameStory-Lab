@@ -4,8 +4,7 @@
  */
 
 import { AIOrchestrator } from './orchestrator.js';
-import type { TaskType, ModelPreference } from '@gameforge/shared';
-import type { AICompletionResponse } from './clients/base.js';
+import type { ModelPreference } from '@gameforge/shared';
 
 export interface GenerateCompletionOptions {
   prompt: string;
@@ -74,7 +73,7 @@ export class AIService {
       ];
 
       const response = await this.orchestrator.generate(
-        'general', // Default task type for blending
+        'assistant',
         messages,
         options.modelPreference || 'auto',
         {
@@ -87,8 +86,12 @@ export class AIService {
       return {
         content: response.content,
         model: response.model,
-        provider: response.provider,
-        usage: response.usage,
+        provider: response.metadata?.provider ?? 'unknown',
+        usage: {
+          prompt_tokens: response.tokensUsed.prompt,
+          completion_tokens: response.tokensUsed.completion,
+          total_tokens: response.tokensUsed.total,
+        },
       };
     } catch (error) {
       throw new Error(`AI completion failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -101,7 +104,7 @@ export class AIService {
   async isAvailable(): Promise<boolean> {
     try {
       const response = await this.orchestrator.generate(
-        'general',
+        'assistant',
         [{ role: 'user', content: 'Hello' }],
         'auto',
         { temperature: 0, maxTokens: 5 }

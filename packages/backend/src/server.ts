@@ -46,7 +46,7 @@ if (envResult.error || !loadedEnvPath) {
 }
 
 // Now import other modules (they will have access to process.env)
-import express from 'express';
+import express, { type RequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -60,9 +60,9 @@ import { logger } from './utils/logger.js';
 logger.debug('Environment variables loaded', { 
   loadedKeys: Object.keys(envResult.parsed || {}).length,
   hasMinimaxKey: !!process.env.MINIMAX_API_KEY,
-  minimaxKeyPreview: process.env.MINIMAX_API_KEY ? process.env.MINIMAX_API_KEY.substring(0, 15) + '...' : 'NOT SET',
   hasGLMKey: !!process.env.GLM_API_KEY,
-  glmKeyPreview: process.env.GLM_API_KEY ? process.env.GLM_API_KEY.substring(0, 15) + '...' : 'NOT SET'
+  hasOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
+  hasGoogleKey: !!process.env.GOOGLE_API_KEY,
 });
 
 // Initialize Express app
@@ -143,7 +143,7 @@ app.use(compression({
     // Use compression's default filter
     return compression.filter(req, res);
   },
-}));
+}) as unknown as RequestHandler);
 
 // CORS configuration - always use an array to support multiple frontend ports
 const allowedOrigins = [
@@ -172,8 +172,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Apply rate limiting to API routes
 // IMPORTANT: Apply specific limiters BEFORE general ones (order matters!)
 // Health check is excluded (no limiter applied)
-app.use('/api/validate', validationLimiter); // More lenient for validation (10/min)
-app.use('/api', generalLimiter); // General rate limiting for other endpoints (20/min)
+app.use('/api/validate', validationLimiter as unknown as RequestHandler); // More lenient for validation (10/min)
+app.use('/api', generalLimiter as unknown as RequestHandler); // General rate limiting for other endpoints (20/min)
 
 // Request logging
 app.use((req, _res, next) => {

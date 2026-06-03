@@ -33,8 +33,8 @@ Object.defineProperty(window, 'localStorage', {
 // Extend Vitest's expect method with methods from react-testing-library
 expect.extend(matchers);
 
-// Import MSW server (temporarily disabled due to localStorage issues)
-// import './mocks/server';
+// Import MSW server so API tests never hit a real local backend.
+import './mocks/server';
 
 // Cleanup after each test case (e.g., clearing jsdom)
 afterEach(() => {

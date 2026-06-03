@@ -1,0 +1,8 @@
+[allowlist]
+description = "Allow fixture-only mock API key strings in GLM unit tests"
+paths = [
+  '''packages/backend/src/services/ai/clients/glm\.test\.ts''',
+]
+regexes = [
+  '''mockApiKey\s*=\s*['"][^'"]*api[-_ ]?key[^'"]*['"]''',
+]

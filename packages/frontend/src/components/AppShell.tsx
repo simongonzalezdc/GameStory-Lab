@@ -448,7 +448,7 @@ function AppShellComponent({ children }: AppShellProps) {
           {/* Assistant Content */}
           <div className="flex-1 min-h-0 overflow-hidden">
             <ProjectAssistantPanel
-              projectId={activeProjectId}
+              projectId={activeProjectId ?? undefined}
               type={assistantType}
               mode={assistantType === 'architect' ? 'architect' : 'auto'}
               onProposalAccepted={async () => {
@@ -498,4 +498,3 @@ function AppShellComponent({ children }: AppShellProps) {
 }
 
 export const AppShell = memo(AppShellComponent);
-

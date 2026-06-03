@@ -1,0 +1,49 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      app-stack:
+        patterns:
+          - react
+          - react-dom
+          - vite
+          - typescript
+      ai-stack:
+        patterns:
+          - "@ai-sdk/*"
+          - ai
+          - ollama
+      test-tooling:
+        patterns:
+          - vitest
+          - "@vitest/*"
+          - playwright
+          - "@playwright/*"
+
+  - package-ecosystem: npm
+    directory: /modules/generative-assets-lab/frontend
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /modules/shiplab
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+

@@ -4,7 +4,7 @@
 
 import { http, HttpResponse } from 'msw';
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = 'http://localhost:3007';
 
 export const handlers = [
   // Health check endpoint (note: /health not /api/health)

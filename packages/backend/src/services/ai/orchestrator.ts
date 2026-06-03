@@ -45,8 +45,6 @@ export class AIOrchestrator {
       logger.debug('Checking Minimax API key', {
         hasConfigKey: !!config.minimaxApiKey,
         hasEnvKey: !!process.env.MINIMAX_API_KEY,
-        envKeyLength: process.env.MINIMAX_API_KEY?.length || 0,
-        finalKey: minimaxApiKey ? minimaxApiKey.substring(0, 15) + '...' : 'NOT SET'
       });
       if (minimaxApiKey) {
         this.clients.set('minimax', new MinimaxClient({ apiKey: minimaxApiKey }));

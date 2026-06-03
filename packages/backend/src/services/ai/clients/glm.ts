@@ -93,12 +93,8 @@ export class GLMClient implements IAIClient {
       // Enhanced debugging for international API
       logger.debug('GLM API request details', {
         url: `${this.baseUrl}/chat/completions`,
-        headers: {
-          'Authorization': `Bearer ${this.apiKey.substring(0, 10)}...`,
-          'Content-Type': 'application/json',
-        },
+        headerNames: ['Authorization', 'Content-Type'],
         requestPayload: JSON.stringify(glmRequest, null, 2),
-        apiKeyLength: this.apiKey.length,
         apiKeyFormat: this.apiKey.includes('.') ? 'contains.dots' : 'simple',
         baseUrl: this.baseUrl,
         model: modelName,
@@ -192,8 +188,7 @@ export class GLMClient implements IAIClient {
           url: error.config?.url,
           method: error.config?.method,
           requestData: error.config?.data ? JSON.stringify(error.config.data).substring(0, 500) : undefined,
-          requestHeaders: error.config?.headers,
-          apiKeyLength: this.apiKey.length,
+          requestHeaderNames: error.config?.headers ? Object.keys(error.config.headers) : undefined,
           apiKeyFormat: this.apiKey.includes('.') ? 'contains.dots' : 'simple',
           baseUrl: this.baseUrl,
         });

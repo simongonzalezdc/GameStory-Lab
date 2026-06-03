@@ -10,7 +10,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 
   return (
     <div className="markdown-content prose prose-invert max-w-none">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+      <ReactMarkdown remarkPlugins={[remarkGfm as any]}>
         {markdownText}
       </ReactMarkdown>
     </div>
@@ -62,4 +62,3 @@ function stringifyMarkdownField(value: unknown): string {
     return String(value);
   }
 }
-

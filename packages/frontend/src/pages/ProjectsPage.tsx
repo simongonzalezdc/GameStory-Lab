@@ -172,7 +172,7 @@ export function ProjectsPage() {
           name: typeof entry?.name === 'string' ? entry.name.trim() : '',
           genre: typeof entry?.genre === 'string' ? entry.genre : undefined,
         }))
-        .filter((entry) => entry.name.length > 0);
+        .filter((entry: { name: string; genre?: string }) => entry.name.length > 0);
 
       if (!normalizedEntries.length) {
         throw new Error('No valid project data found in file.');

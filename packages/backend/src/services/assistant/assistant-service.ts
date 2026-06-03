@@ -3,7 +3,7 @@
  * Handles project-level chat sessions, proposals, and application of AI suggestions
  */
 
-import type { Prisma, PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
 import type { MechanicsData, LoreData } from '@gameforge/shared';
 import { AIOrchestrator } from '../ai/orchestrator.js';
 import { architectService } from '../architect/architect-service.js';
@@ -59,6 +59,10 @@ interface AssistantContext {
 
 interface AssistantModelResponse {
   reply: string;
+  explanation?: string;
+  mechanics?: MechanicsData;
+  lore?: LoreData;
+  architectDocuments?: Array<{ name: string; content: string }>;
   proposal?: {
     explanation?: string;
     targetVersionId?: string;
@@ -244,7 +248,7 @@ export class AssistantService {
         role: 'system' as const,
         content: this.buildSystemPrompt(currentMode, context),
       },
-      ...previousMessages.map((msg) => ({
+      ...previousMessages.map((msg: { role: string; content: string }) => ({
         role: (msg.role === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user',
         content: msg.content,
       })),
@@ -642,10 +646,10 @@ export class AssistantService {
           projectId: latestVersion.projectId,
           version: latestVersion.version + 1,
           title: latestVersion.title,
-          mechanics: newMechanics as Prisma.JsonObject,
-          lore: newLore as Prisma.JsonObject,
+          mechanics: newMechanics as any,
+          lore: newLore as any,
           metadata: {
-            ...((latestVersion.metadata as Prisma.JsonObject) || {}),
+            ...((latestVersion.metadata as Record<string, unknown>) || {}),
             assistantProposalId: proposal.id,
             refinedFrom: latestVersion.id,
             refinementFocus: 'assistant',
@@ -807,7 +811,7 @@ export class AssistantService {
     if (typeof versionMetadata.lastValidated === 'string') {
       metrics.lastValidatedAt = versionMetadata.lastValidated;
     }
-    const complexityIssue = validationResults.find((issue) => issue.ruleName === 'complexity-estimate');
+    const complexityIssue = validationResults.find((issue: any) => issue.ruleName === 'complexity-estimate');
     if (complexityIssue) {
       const match = complexityIssue.message.match(/score:\s*(\d+(\.\d+)?)/i);
       if (match) {
@@ -881,7 +885,7 @@ export class AssistantService {
             lore: latestVersion.lore as LoreData,
           }
         : undefined,
-      validationIssues: validationResults.map((issue) => ({
+      validationIssues: validationResults.map((issue: any) => ({
         rule: issue.ruleName,
         severity: issue.severity,
         message: issue.message,
@@ -1525,8 +1529,15 @@ export class AssistantService {
         });
       }
       
+      // Strip explicit model reasoning tags before JSON extraction; otherwise a leading
+      // [REASONING] block can be mistaken for an array-like JSON candidate.
+      const parseableContent = content
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .replace(/\[REASONING\][\s\S]*?\[\/REASONING\]/gi, '')
+        .trim();
+
       // Use the extractJSON utility which handles markdown, thinking blocks, and common JSON issues
-      const jsonResult = extractJSON(content);
+      const jsonResult = extractJSON(parseableContent);
       
       if (!jsonResult.isValid || !jsonResult.parsed) {
         logger.warn('Failed to extract JSON from assistant response', {

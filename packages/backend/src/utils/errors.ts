@@ -3,8 +3,6 @@
  * Centralized error handling for API routes
  */
 
-import type { Prisma } from '@prisma/client';
-
 /**
  * Custom application error class
  */
@@ -38,7 +36,7 @@ export function handleApiError(error: unknown): ApiError {
 
   // Handle Prisma errors
   if (error && typeof error === 'object' && 'code' in error) {
-    const prismaError = error as Prisma.PrismaClientKnownRequestError;
+    const prismaError = error as { code: string; message?: string; meta?: unknown };
 
     switch (prismaError.code) {
       case 'P2002':
@@ -75,7 +73,7 @@ export function handleApiError(error: unknown): ApiError {
       default:
         return new ApiError(
           'DATABASE_ERROR',
-          `Database error: ${prismaError.message}`,
+          `Database error: ${prismaError.message ?? 'Unknown Prisma error'}`,
           500,
           { code: prismaError.code }
         );
@@ -156,4 +154,3 @@ export function createErrorResponse(error: ApiError, includeStack = false) {
   
   return response;
 }
-

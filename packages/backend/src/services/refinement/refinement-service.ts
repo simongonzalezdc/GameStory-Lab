@@ -78,7 +78,7 @@ export class RefinementService {
 
       console.log('[REFINEMENT DEBUG] Raw validation results from DB:', {
         count: validationResults.length,
-        results: validationResults.map(r => ({
+        results: validationResults.map((r: any) => ({
           ruleName: r.ruleName,
           severity: r.severity,
           confidence: Number(r.confidence),
@@ -86,7 +86,7 @@ export class RefinementService {
         }))
       });
 
-      validationIssues = validationResults.map((result) => ({
+      validationIssues = validationResults.map((result: any) => ({
         rule: result.ruleName,
         severity: result.severity,
         message: result.message,
@@ -1003,4 +1003,3 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
     return `${added} fields added, ${modified} fields modified, ${removed} fields removed`;
   }
 }
-

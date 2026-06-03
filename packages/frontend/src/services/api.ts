@@ -5,6 +5,10 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3007';
 
+type RequestOptions = RequestInit & {
+  timeout?: number;
+};
+
 export class APIError extends Error {
   constructor(
     message: string,
@@ -16,7 +20,7 @@ export class APIError extends Error {
   }
 }
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
   const config: RequestInit = {

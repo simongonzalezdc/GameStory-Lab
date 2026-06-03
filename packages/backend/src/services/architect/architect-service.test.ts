@@ -76,35 +76,35 @@ vi.mock('./document-generator.js', () => {
 vi.mock('./ai-document-generator.js', () => {
   const mockDocuments = [
     {
-      documentType: DOCUMENT_TYPES.EXECUTIVE_SUMMARY,
+      documentType: 'executive-summary',
       content: '# Executive Summary\nGenerated content',
       tokensUsed: 150,
       generationTimeMs: 120,
       success: true,
     },
     {
-      documentType: DOCUMENT_TYPES.TECHNICAL_SPECIFICATION,
+      documentType: 'technical-specification',
       content: '# Technical Specification\nGenerated content',
       tokensUsed: 200,
       generationTimeMs: 140,
       success: true,
     },
     {
-      documentType: DOCUMENT_TYPES.PRODUCT_REQUIREMENTS,
+      documentType: 'product-requirements',
       content: '# Product Requirements\nGenerated content',
       tokensUsed: 180,
       generationTimeMs: 130,
       success: true,
     },
     {
-      documentType: DOCUMENT_TYPES.ROADMAP,
+      documentType: 'roadmap',
       content: '# Roadmap\nGenerated content',
       tokensUsed: 160,
       generationTimeMs: 110,
       success: true,
     },
     {
-      documentType: DOCUMENT_TYPES.LAUNCH_CHECKLIST,
+      documentType: 'launch-checklist',
       content: '# Launch Checklist\nGenerated content',
       tokensUsed: 170,
       generationTimeMs: 90,

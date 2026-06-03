@@ -32,7 +32,7 @@ vi.mock('../../../utils/logger.js', () => ({
 
 describe('GLMClient', () => {
   let client: GLMClient;
-  const mockApiKey = 'test-api-key-12345';
+  const mockCredential = 'fixture-token-for-client-tests';
   let mockPost: any;
 
   beforeEach(() => {
@@ -45,11 +45,11 @@ describe('GLMClient', () => {
     (axios as any).isAxiosError = (err: any) => !!err?.isAxiosError;
     
     // Mock environment variables
-    vi.stubEnv('GLM_API_KEY', mockApiKey);
+    vi.stubEnv('GLM_API_KEY', mockCredential);
     vi.stubEnv('GLM_API_BASE_URL', 'https://api.z.ai/api/coding/paas/v4');
     
     client = new GLMClient({
-      apiKey: mockApiKey,
+      apiKey: mockCredential,
       baseUrl: 'https://api.z.ai/api/coding/paas/v4',
     });
   });
@@ -168,7 +168,7 @@ describe('GLMClient', () => {
       expect(axios.create).toHaveBeenCalledWith({
         baseURL: 'https://api.z.ai/api/coding/paas/v4',
         headers: {
-          'Authorization': `Bearer ${mockApiKey}`,
+          'Authorization': `Bearer ${mockCredential}`,
           'Content-Type': 'application/json',
         },
         timeout: 300000,
@@ -207,7 +207,7 @@ describe('GLMClient', () => {
       expect(axios.create).toHaveBeenCalledWith(
         expect.objectContaining({
           headers: {
-            'Authorization': `Bearer ${mockApiKey}`,
+            'Authorization': `Bearer ${mockCredential}`,
             'Content-Type': 'application/json',
           },
         })

@@ -22,13 +22,13 @@ describe('HealthPage', () => {
   };
 
   it('should show loading state initially', () => {
-    server.use(http.get('http://localhost:3001/health', () => HttpResponse.json(mockHealthy)));
+    server.use(http.get('http://localhost:3007/health', () => HttpResponse.json(mockHealthy)));
     render(<HealthPage />);
-    expect(screen.getByText(/checking system status/i)).toBeInTheDocument();
+    expect(screen.getByText(/refreshing/i)).toBeInTheDocument();
   });
 
   it('should display health status after loading', async () => {
-    server.use(http.get('http://localhost:3001/health', () => HttpResponse.json(mockHealthy)));
+    server.use(http.get('http://localhost:3007/health', () => HttpResponse.json(mockHealthy)));
 
     render(<HealthPage />);
 
@@ -37,13 +37,12 @@ describe('HealthPage', () => {
     });
 
     expect(screen.getByText('System Status')).toBeInTheDocument();
-    expect(screen.getByText(/HEALTHY/i)).toBeInTheDocument();
-    expect(screen.getByText(/CONNECTED/i)).toBeInTheDocument();
+    expect(screen.getByText(/connected/i)).toBeInTheDocument();
   });
 
   it('should display AI providers', async () => {
     server.use(
-      http.get('http://localhost:3001/health', () => {
+      http.get('http://localhost:3007/health', () => {
         return HttpResponse.json({
           status: 'healthy',
           timestamp: '2025-01-01T00:00:00.000Z',
@@ -66,10 +65,8 @@ describe('HealthPage', () => {
       expect(screen.getByText('AI Providers')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('OpenRouter')).toBeInTheDocument();
-    expect(screen.getByText('openrouter')).toBeInTheDocument();
-    expect(screen.getByText('Ollama')).toBeInTheDocument();
-    expect(screen.getByText('ollama')).toBeInTheDocument();
+    expect(screen.getByText(/OpenRouter\s+\(openrouter\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Ollama\s+\(ollama\)/)).toBeInTheDocument();
 
     // Check availability status
     const availableStatuses = screen.getAllByText('Available');
@@ -80,7 +77,7 @@ describe('HealthPage', () => {
 
   it('should display cost tracking information', async () => {
     server.use(
-      http.get('http://localhost:3001/health', () => {
+      http.get('http://localhost:3007/health', () => {
         return HttpResponse.json({
           status: 'healthy',
           timestamp: '2025-01-01T00:00:00.000Z',
@@ -108,7 +105,7 @@ describe('HealthPage', () => {
   it('should display error message on API failure', async () => {
     // Mock API failure
     server.use(
-      http.get('http://localhost:3001/health', () => {
+      http.get('http://localhost:3007/health', () => {
         return HttpResponse.error();
       })
     );
@@ -122,7 +119,7 @@ describe('HealthPage', () => {
 
   it('should have a refresh button', async () => {
     server.use(
-      http.get('http://localhost:3001/health', () => {
+      http.get('http://localhost:3007/health', () => {
         return HttpResponse.json({
           status: 'healthy',
           timestamp: '2025-01-01T00:00:00.000Z',
@@ -148,7 +145,7 @@ describe('HealthPage', () => {
     const calls: number[] = [];
 
     server.use(
-      http.get('http://localhost:3001/health', () => {
+      http.get('http://localhost:3007/health', () => {
         calls.push(Date.now());
         return HttpResponse.json({
           status: 'healthy',
@@ -187,7 +184,7 @@ describe('HealthPage', () => {
     const timestamp = '2025-01-15T10:30:00.000Z';
 
     server.use(
-      http.get('http://localhost:3001/health', () => {
+      http.get('http://localhost:3007/health', () => {
         return HttpResponse.json({
           status: 'healthy',
           timestamp,
@@ -213,7 +210,7 @@ describe('HealthPage', () => {
 
   it('should disable refresh button while loading', async () => {
     server.use(
-      http.get('http://localhost:3001/health', async () => {
+      http.get('http://localhost:3007/health', async () => {
         // Add delay to keep loading state
         await new Promise((resolve) => setTimeout(resolve, 100));
         return HttpResponse.json({

@@ -21,8 +21,8 @@ describe('Layout', () => {
     );
 
     expect(screen.getByText('Projects')).toBeTruthy();
-    expect(screen.getByText('Assistant')).toBeTruthy();
     expect(screen.getByText('Settings')).toBeTruthy();
+    expect(screen.getByRole('link', { name: /explore templates/i })).toBeTruthy();
   });
 
   it('should render children content', () => {
@@ -43,8 +43,7 @@ describe('Layout', () => {
     );
 
     expect(screen.getByText('GameStory Lab')).toBeTruthy();
-    expect(screen.getByText('Experience Design OS')).toBeTruthy();
-    expect(screen.getByText('Beta')).toBeTruthy();
+    expect(screen.getByText('AI Game Design Tool')).toBeTruthy();
   });
 
   it('should render footer with links', () => {

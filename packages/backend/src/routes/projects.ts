@@ -27,7 +27,7 @@ router.get('/', async (_req, res, next) => {
     });
 
     res.json({
-      projects: projects.map((p) => ({
+      projects: projects.map((p: any) => ({
         id: p.id,
         name: p.name,
         genre: p.genre,
@@ -112,7 +112,7 @@ router.get('/:id', async (req, res, next) => {
         createdAt: projectData.createdAt.toISOString(),
         updatedAt: projectData.updatedAt.toISOString(),
       },
-      versions: versions.map((v) => ({
+      versions: versions.map((v: any) => ({
         id: v.id,
         version: v.version,
         title: v.title,
@@ -238,8 +238,8 @@ router.post('/:id/merge', async (req, res, next) => {
     }
 
     // Merge mechanics and lore from all versions
-    const mergedMechanics = mergeMechanics(project.versions.map(v => v.mechanics as any));
-    const mergedLore = mergeLore(project.versions.map(v => v.lore as any));
+    const mergedMechanics = mergeMechanics(project.versions.map((v: any) => v.mechanics as any));
+    const mergedLore = mergeLore(project.versions.map((v: any) => v.lore as any));
 
     // Get next version number
     const latestVersion = project.versions[project.versions.length - 1];
@@ -254,7 +254,7 @@ router.post('/:id/merge', async (req, res, next) => {
         mechanics: mergedMechanics,
         lore: mergedLore,
         metadata: {
-          mergedFrom: project.versions.map(v => ({ id: v.id, version: v.version })),
+          mergedFrom: project.versions.map((v: any) => ({ id: v.id, version: v.version })),
           mergedAt: new Date().toISOString(),
           userEdited: false,
         } as any,

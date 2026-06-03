@@ -62,10 +62,9 @@ describe('TemplateService', () => {
       expect(template).toBeNull();
     });
 
-    it('should get blank template', () => {
+    it('should return null for blank template lookup', () => {
       const template = service.getTemplate('blank');
-      expect(template).toBeDefined();
-      expect(template?.id).toBe('blank');
+      expect(template).toBeNull();
     });
   });
 

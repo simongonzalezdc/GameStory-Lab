@@ -429,7 +429,7 @@ export function ProjectAssistantPanel({
         flushNumbered();
         const level = headerMatch[1].length;
         const text = headerMatch[2];
-        const HeadingTag = `h${Math.min(level + 2, 6)}` as keyof JSX.IntrinsicElements;
+        const HeadingTag = `h${Math.min(level + 2, 6)}` as React.ElementType;
         const sizeClass = level === 1 ? 'text-lg' : level === 2 ? 'text-base' : 'text-sm';
         nodes.push(
           <HeadingTag 

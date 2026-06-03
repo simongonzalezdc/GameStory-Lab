@@ -59,6 +59,27 @@ vi.mock('./clients/ollama.js', () => {
   };
 });
 
+vi.mock('./clients/minimax.js', () => {
+  const MockMinimaxClient = vi.fn(function(this: any) {
+    this.name = 'Minimax M2';
+    this.type = 'minimax';
+    this.isAvailable = vi.fn().mockResolvedValue(true);
+    this.listModels = vi.fn().mockResolvedValue(['MiniMax-M2']);
+    this.complete = vi.fn().mockResolvedValue({
+      content: 'Generated content',
+      model: 'MiniMax-M2',
+      tokensUsed: { prompt: 50, completion: 50, total: 100 },
+      finishReason: 'stop',
+      metadata: { provider: 'minimax', costUsd: 0.001, durationMs: 10 },
+    });
+    return this;
+  });
+
+  return {
+    MinimaxClient: MockMinimaxClient,
+  };
+});
+
 describe('AIOrchestrator', () => {
   beforeEach(() => {
     vi.clearAllMocks();

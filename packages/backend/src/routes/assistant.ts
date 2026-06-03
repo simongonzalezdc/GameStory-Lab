@@ -24,7 +24,7 @@ async function getService() {
 }
 
 router.post('/session', async (req: Request, res: Response) => {
-  const { projectId, type, mode } = req.body;
+  const { projectId, mode } = req.body;
   // Allow 'general' as a special projectId for workflow assistance without a project
   // Reject if projectId is not 'general' AND (it's falsy OR not a string)
   if (projectId !== 'general' && (!projectId || typeof projectId !== 'string')) {

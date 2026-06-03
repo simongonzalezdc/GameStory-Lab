@@ -135,13 +135,8 @@ export class MinimaxClient implements IAIClient {
 
       logger.debug('Minimax API (Anthropic-compatible) request details', {
         url: `${this.baseUrl}/v1/messages`,
-        headers: {
-          'x-api-key': `${this.apiKey.substring(0, 10)}...`,
-          'anthropic-version': '2023-06-01',
-          'Content-Type': 'application/json',
-        },
+        headerNames: ['x-api-key', 'anthropic-version', 'Content-Type'],
         requestPayload: JSON.stringify(anthropicRequest, null, 2),
-        apiKeyLength: this.apiKey.length,
         baseUrl: this.baseUrl,
         model: modelName,
       });
@@ -284,8 +279,7 @@ export class MinimaxClient implements IAIClient {
           url: error.config?.url,
           method: error.config?.method,
           requestData: error.config?.data ? JSON.stringify(error.config.data).substring(0, 500) : undefined,
-          requestHeaders: error.config?.headers,
-          apiKeyLength: this.apiKey.length,
+          requestHeaderNames: error.config?.headers ? Object.keys(error.config.headers) : undefined,
           baseUrl: this.baseUrl,
         });
         
@@ -338,4 +332,3 @@ export class MinimaxClient implements IAIClient {
     return cost;
   }
 }
-
