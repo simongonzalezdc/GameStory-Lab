@@ -62,7 +62,7 @@
     "@types/react": "^19.0.6",
     "@types/react-dom": "^19.0.2",
     "@typescript-eslint/eslint-plugin": "^8.16.0",
-    "@typescript-eslint/parser": "^8.16.0",
+    "@typescript-eslint/parser": "^8.60.1",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.28.1",
