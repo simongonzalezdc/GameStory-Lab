@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@gameforge/shared": "*",
-    "@google/generative-ai": "^0.17.0",
+    "@google/generative-ai": "^0.24.0",
     "@prisma/client": "^6.19.0",
     "adm-zip": "^0.5.12",
     "axios": "^1.7.9",
