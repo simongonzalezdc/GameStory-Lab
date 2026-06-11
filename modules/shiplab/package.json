@@ -39,9 +39,9 @@
     "eslint": "^9.16.0",
     "fast-glob": "^3.3.3",
     "gray-matter": "^4.0.3",
-    "lucide-react": "^0.468.0",
+    "lucide-react": "^0.577.0",
     "next": "^16.2.6",
-    "ollama": "^0.5.12",
+    "ollama": "^0.6.0",
     "openai": "^6.9.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
@@ -49,7 +49,7 @@
     "react-markdown": "^10.1.0",
     "spdx-license-list": "^6.9.0",
     "tailwind-merge": "^3.4.0",
-    "tree-sitter": "^0.22.1",
+    "tree-sitter": "^0.25.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -77,6 +77,6 @@
   },
   "overrides": {
     "postcss": "^8.5.14",
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.28.0"
   }
 }
