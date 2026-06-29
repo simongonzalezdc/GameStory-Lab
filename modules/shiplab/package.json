@@ -64,7 +64,7 @@
     "@typescript-eslint/eslint-plugin": "^8.16.0",
     "@typescript-eslint/parser": "^8.60.1",
     "@vitejs/plugin-react": "^5.2.0",
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.5.2",
     "drizzle-kit": "^0.31.10",
     "eslint-config-next": "^16.0.3",
     "jsdom": "^27.2.0",
