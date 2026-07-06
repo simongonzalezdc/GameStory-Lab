@@ -45,7 +45,7 @@
     "openai": "^6.9.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "react-hook-form": "^7.55.0",
+    "react-hook-form": "^7.81.0",
     "react-markdown": "^10.1.0",
     "spdx-license-list": "^6.9.0",
     "tailwind-merge": "^3.4.0",
