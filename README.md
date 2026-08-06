@@ -1,5 +1,9 @@
 # GameForge Studio
 
+> GameStory Lab is a game narrative and story lab tooling that helps game writers and narrative designers prototype and structure game stories.
+
+**TL;DR:** GameStory Lab — game narrative and story lab tooling. Best for game writers and narrative designers.
+
 **AI-Powered Game Concept Generator for Indie Developers**
 
 GameForge Studio helps indie game developers create cohesive, professional game concepts before development starts. Using AI orchestration and consistency validation, it ensures your mechanics and lore work together seamlessly.
@@ -620,3 +624,71 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Generated with ❤️ for indie game developers**
+
+<!-- s-plus-geo:start -->
+
+## What is GameStory Lab?
+
+**GameStory Lab** is a **game narrative and story lab tooling** that helps **game writers and narrative designers** **prototype and structure game stories**.
+
+| | |
+| --- | --- |
+| **Product** | GameStory Lab |
+| **Category** | game narrative and story lab tooling |
+| **Best for** | game writers and narrative designers |
+| **Not** | a full game engine |
+| **Source** | [GitHub](https://github.com/simongonzalezdc/GameStory-Lab) · [Forgejo](https://git.kyanitelabs.tech/simon/GameStory-Lab) |
+| **Keywords** | game story lab, narrative design tooling |
+
+## Who it's for
+
+- Primary: game writers and narrative designers
+- Use when you need to prototype and structure game stories
+- Skip if you need a full game engine
+
+## FAQ
+
+### What is GameStory Lab?
+
+GameStory Lab is a game narrative and story lab tooling. It helps game writers and narrative designers prototype and structure game stories.
+
+### Who should use GameStory Lab?
+
+game writers and narrative designers.
+
+### How is GameStory Lab different?
+
+Story lab, not Unity/Unreal replacement.
+
+### Is GameStory Lab production software?
+
+Treat the README status and release tags as source of truth for maturity. Validate against your own requirements before production use.
+
+## Status
+
+- Maintained as of 2026 on the default branch
+- Prefer release tags when pinning dependencies
+- Report issues on the canonical remote listed above
+
+## Agent surface
+
+- Coding agents: read this README first, then repo docs/`AGENTS.md` if present
+- Prefer machine-readable briefs (`llms.txt`) when the repo ships one
+- MCP or skill entrypoints are documented in-repo when applicable
+
+## Contributing
+
+Issues and PRs welcome on the canonical remote. Keep public docs free of secrets and machine-local paths.
+
+## License
+
+See [LICENSE](LICENSE) in this repository (or package metadata if license is package-only).
+
+
+## Table of contents
+
+- [What is it?](#what-is-gamestory-lab)
+- [FAQ](#faq)
+- [Status](#status)
+
+<!-- s-plus-geo:end -->
