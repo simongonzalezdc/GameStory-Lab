@@ -48,7 +48,7 @@ GameForge Studio helps indie game developers create cohesive, professional game 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Pastorsimon1798/GameStory-Lab.git
+   git clone https://github.com/simongonzalezdc/GameStory-Lab.git
    cd GameStory-Lab
    ```
 
@@ -616,8 +616,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Support
 
-- **Issues**: [GitHub Issues](https://github.com/Pastorsimon1798/GameStory-Lab/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Pastorsimon1798/GameStory-Lab/discussions)
+- **Issues**: [GitHub Issues](https://github.com/simongonzalezdc/GameStory-Lab/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/simongonzalezdc/GameStory-Lab/discussions)
 
 ---
 
