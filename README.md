@@ -1,4 +1,6 @@
-# GameForge Studio
+# GameStory Lab (GameForge Studio)
+
+> Product name: **GameForge Studio**. Repository: `simongonzalezdc/GameStory-Lab`.
 
 **AI-Powered Game Concept Generator for Indie Developers**
 
