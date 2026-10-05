@@ -29,7 +29,7 @@
     "helmet": "^8.0.0",
     "ollama": "^0.6.3",
     "winston": "^3.17.0",
-    "zod": "^3.23.8"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",
