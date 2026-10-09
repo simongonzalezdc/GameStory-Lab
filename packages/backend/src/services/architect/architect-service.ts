@@ -184,7 +184,7 @@ export class ArchitectService {
       updateSizes: updates.map(u => u.content?.length || 0),
     });
 
-    let pkg = this.documentationPackages.get(projectId);
+    const pkg = this.documentationPackages.get(projectId);
     
     // If no package exists, create a new one with the assistant's documents
     if (!pkg) {
@@ -278,7 +278,7 @@ export class ArchitectService {
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9\-_.]/g, '')
       .replace(/-+/g, '-')
-      .replace(/^\-+|\-+$/g, '');
+      .replace(/^-+|-+$/g, '');
 
     const normalized = slug || 'assistant-document';
     return normalized.endsWith('.md') ? normalized : `${normalized}.md`;

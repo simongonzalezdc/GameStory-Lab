@@ -35,6 +35,11 @@ export default [
       },
     },
     rules: {
+      // no-undef cannot see TypeScript's type space (flags node type names like
+      // NodeJS.ErrnoException as undefined). Undefined names are tsc's job —
+      // enforced by the `tsc` build gate in CI. Same override typescript-eslint's
+      // own recommended preset applies.
+      'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       'no-unused-vars': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',

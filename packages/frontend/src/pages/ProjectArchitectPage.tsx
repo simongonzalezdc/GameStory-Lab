@@ -45,7 +45,7 @@ export function ProjectArchitectPage() {
   const checkedProjects = useRef<Set<string>>(new Set());
   const missingDocsLogged = useRef<Set<string>>(new Set());
   const previousProjectId = useRef<string | undefined>(undefined);
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+  const pollingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Start polling for generation status
   const startPolling = () => {
