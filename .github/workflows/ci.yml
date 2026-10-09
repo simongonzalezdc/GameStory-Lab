@@ -1,0 +1,35 @@
+# GameStory-Lab CI — honest gates over npm workspaces. Replaces the former
+# `|| true` scaffold (lint+test could never fail; runner failure streak
+# forced it off). Validated at 0a144d0 on 2026-10-08:
+# - GREEN and gated: npm test (vitest per workspace: shared 1, backend 16,
+#   frontend 2 files), shared + backend builds.
+# - NOT gated at HEAD, broken and tracked for repair:
+#   root lint (backend 12 + frontend 13 eslint errors), frontend build
+#   (TS2503 "Cannot find namespace 'NodeJS'" x2, TS2304 "Cannot find name
+#   'global'" in src/test/setup.ts). Widen when green.
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: docker
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci || npm install
+          fi
+      - name: Tests (all workspaces)
+        run: npm test
+      - name: Build shared
+        run: npm run build -w packages/shared
+      - name: Build backend
+        run: npm run build -w packages/backend
