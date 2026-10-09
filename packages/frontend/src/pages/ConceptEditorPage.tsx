@@ -66,7 +66,7 @@ export function ConceptEditorPage() {
   
   // Track last validated version to avoid duplicate validations
   const lastValidatedVersionId = useRef<string | null>(null);
-  const validationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const validationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentVersionRef = useRef<Version | null>(null);
   const assistantRef = useRef<HTMLDivElement | null>(null);
 
@@ -131,55 +131,6 @@ export function ConceptEditorPage() {
       '=== END OF VALIDATION SUMMARY ===',
     ].join('\n');
   };
-
-  useEffect(() => {
-    if (projectId) {
-      loadProject();
-    }
-  }, [projectId]);
-
-  useEffect(() => {
-    currentVersionRef.current = currentVersion;
-  }, [currentVersion]);
-
-  useEffect(() => {
-    // Only validate if version actually changed and we have content
-    if (!currentVersion) return;
-
-    // Skip if already validated this version
-    if (currentVersion.id === lastValidatedVersionId.current) return;
-
-    // Skip if version has no meaningful content to validate
-    if (!hasContentToValidate(currentVersion)) {
-      setValidationStatus('Add mechanics or lore to run validation.');
-      return;
-    }
-    
-    // Clear any pending validation
-    if (validationTimeoutRef.current) {
-      clearTimeout(validationTimeoutRef.current);
-    }
-    
-    // Capture the version ID to avoid closure issues
-    const versionIdToValidate = currentVersion.id;
-    
-    // Debounce validation - shorter delay if no previous validation (e.g., after refinement)
-    // This gives React time to finish all re-renders and prevents rate limiting
-    const debounceDelay = lastValidatedVersionId.current === null ? 500 : 1000; // Faster if no previous validation
-    validationTimeoutRef.current = setTimeout(() => {
-      // Double-check version is still current and hasn't been validated
-      if (currentVersion && currentVersion.id === versionIdToValidate && currentVersion.id !== lastValidatedVersionId.current) {
-        runValidation('auto');
-      }
-    }, debounceDelay);
-    
-    // Cleanup timeout on unmount or version change
-    return () => {
-      if (validationTimeoutRef.current) {
-        clearTimeout(validationTimeoutRef.current);
-      }
-    };
-  }, [currentVersion?.id]); // Only depend on version ID, not the whole object
 
   const loadProject = async () => {
     if (!projectId) return;
@@ -294,6 +245,54 @@ export function ConceptEditorPage() {
       setValidating(false);
     }
   };
+  useEffect(() => {
+    if (projectId) {
+      loadProject();
+    }
+  }, [projectId]);
+
+  useEffect(() => {
+    currentVersionRef.current = currentVersion;
+  }, [currentVersion]);
+
+  useEffect(() => {
+    // Only validate if version actually changed and we have content
+    if (!currentVersion) return;
+
+    // Skip if already validated this version
+    if (currentVersion.id === lastValidatedVersionId.current) return;
+
+    // Skip if version has no meaningful content to validate
+    if (!hasContentToValidate(currentVersion)) {
+      setValidationStatus('Add mechanics or lore to run validation.');
+      return;
+    }
+    
+    // Clear any pending validation
+    if (validationTimeoutRef.current) {
+      clearTimeout(validationTimeoutRef.current);
+    }
+    
+    // Capture the version ID to avoid closure issues
+    const versionIdToValidate = currentVersion.id;
+    
+    // Debounce validation - shorter delay if no previous validation (e.g., after refinement)
+    // This gives React time to finish all re-renders and prevents rate limiting
+    const debounceDelay = lastValidatedVersionId.current === null ? 500 : 1000; // Faster if no previous validation
+    validationTimeoutRef.current = setTimeout(() => {
+      // Double-check version is still current and hasn't been validated
+      if (currentVersion && currentVersion.id === versionIdToValidate && currentVersion.id !== lastValidatedVersionId.current) {
+        runValidation('auto');
+      }
+    }, debounceDelay);
+    
+    // Cleanup timeout on unmount or version change
+    return () => {
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+    };
+  }, [currentVersion?.id]); // Only depend on version ID, not the whole object
 
   const handleExport = async (template: 'gdd' | 'pitch' | 'technical') => {
     if (!currentVersion) return;

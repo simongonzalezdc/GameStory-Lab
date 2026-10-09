@@ -1957,7 +1957,7 @@ export class AssistantService {
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9\-_.]/g, '')
       .replace(/-+/g, '-')
-      .replace(/^\-+|\-+$/g, '');
+      .replace(/^-+|-+$/g, '');
 
     const normalized = slug || 'assistant-document';
     return normalized.endsWith('.md') ? normalized : `${normalized}.md`;
