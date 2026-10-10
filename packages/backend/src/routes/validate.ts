@@ -5,8 +5,8 @@
 
 import express from 'express';
 import { prisma } from '../server.js';
-import { ValidationRequestSchema } from '@gameforge/shared';
-import type { MechanicsData, LoreData } from '@gameforge/shared';
+import { ValidationRequestSchema } from '@gamestory/shared';
+import type { MechanicsData, LoreData } from '@gamestory/shared';
 import { ValidationEngine } from '../services/validation/engine.js';
 import { logger } from '../utils/logger.js';
 

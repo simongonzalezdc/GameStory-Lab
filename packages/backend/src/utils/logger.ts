@@ -32,7 +32,7 @@ const consoleFormat = winston.format.combine(
 export const logger = winston.createLogger({
   level: logLevel,
   format: logFormat,
-  defaultMeta: { service: 'gameforge-backend' },
+  defaultMeta: { service: 'gamestory-backend' },
   transports: [
     // Write all logs to console
     new winston.transports.Console({

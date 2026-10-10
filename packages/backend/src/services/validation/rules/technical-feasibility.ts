@@ -3,7 +3,7 @@
  * Flag ambitious scope and technical complexity (informational only)
  */
 
-import type { MechanicsData, LoreData, ValidationIssue } from '@gameforge/shared';
+import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared';
 
 /**
  * Estimate complexity and warn if extremely complex

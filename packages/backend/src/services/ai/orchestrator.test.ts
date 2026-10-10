@@ -4,7 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AIOrchestrator } from './orchestrator.js';
-import type { TaskType } from '@gameforge/shared';
+import type { TaskType } from '@gamestory/shared';
 
 // Mock the AI clients - vitest v4 compatible syntax
 vi.mock('./clients/openrouter.js', () => {

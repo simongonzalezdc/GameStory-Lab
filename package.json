@@ -1,7 +1,7 @@
 {
-  "name": "gameforge-studio",
+  "name": "gamestory-lab",
   "version": "1.0.0",
-  "description": "AI-powered game concept generator for indie developers",
+  "description": "GameStory Lab - game narrative and story lab tooling for game writers and narrative designers",
   "private": true,
   "workspaces": [
     "packages/frontend",
@@ -33,7 +33,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Pastorsimon1798/GameStory-Lab"
+    "url": "https://github.com/simongonzalezdc/GameStory-Lab"
   },
   "keywords": [
     "game-design",
@@ -43,5 +43,5 @@
     "indie-games"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "Apache-2.0"
 }

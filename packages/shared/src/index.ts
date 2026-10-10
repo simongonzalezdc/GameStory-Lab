@@ -1,5 +1,5 @@
 /**
- * GameForge Studio - Shared Package
+ * GameStory Lab - Shared Package
  * Exports all shared types and validation schemas
  */
 

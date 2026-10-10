@@ -1,6 +1,6 @@
-# GameForge Studio - Complete Setup Guide
+# GameStory Lab - Complete Setup Guide
 
-This guide will walk you through setting up GameForge Studio on your local machine.
+This guide will walk you through setting up GameStory Lab on your local machine.
 
 ## Prerequisites
 
@@ -13,6 +13,8 @@ Before you begin, ensure you have the following installed:
 
 ### Optional (but recommended):
 - **Ollama** for free local AI models ([Download](https://ollama.com/download))
+- **MiniMax API Key** — primary cloud provider ([Get key](https://platform.minimaxi.com/))
+- **GLM API Key** (Zhipu AI) — secondary cloud provider ([Get key](https://open.bigmodel.cn/))
 - **OpenRouter API Key** for cloud AI models ([Get key](https://openrouter.ai/keys))
 - **Google API Key** for Gemini models ([Get key](https://aistudio.google.com/app/apikey))
 
@@ -21,7 +23,7 @@ Before you begin, ensure you have the following installed:
 ## Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/Pastorsimon1798/GameStory-Lab.git
+git clone https://github.com/simongonzalezdc/GameStory-Lab.git
 cd GameStory-Lab
 ```
 
@@ -57,12 +59,19 @@ cp .env.example .env
 
 **Minimum required (for local development):**
 ```env
-DATABASE_URL=postgresql://gameforge:gameforge_dev_password@localhost:5432/gameforge
-REDIS_URL=redis://localhost:6379
+DATABASE_URL=postgresql://gamestory:gamestory_dev_password@localhost:5432/gamestory
 OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-**Optional (for cloud AI):**
+**Primary provider (MiniMax) + fallback (GLM):**
+```env
+MINIMAX_API_KEY=your-minimax-key-here
+MINIMAX_API_BASE_URL=https://api.minimax.io/anthropic
+GLM_API_KEY=your-glm-key-here
+GLM_API_BASE_URL=https://open.bigmodel.cn/api/paas/v4
+```
+
+**Optional (other cloud AI):**
 ```env
 OPENROUTER_API_KEY=sk-or-v1-YOUR-KEY-HERE
 GOOGLE_API_KEY=AIzaSy-YOUR-KEY-HERE
@@ -80,7 +89,7 @@ AI_COST_LIMIT_PER_HOUR_USD=5.00
 
 ## Step 4: Start Infrastructure
 
-Start PostgreSQL and Redis using Docker Compose:
+Start PostgreSQL using Docker Compose:
 
 ```bash
 docker-compose up -d
@@ -92,8 +101,7 @@ docker ps
 ```
 
 You should see:
-- `gameforge-postgres` on port 5432
-- `gameforge-redis` on port 6379
+- `gamestory-postgres` on port 5432
 
 **Check container logs:**
 ```bash
@@ -112,7 +120,7 @@ npx prisma migrate dev
 ```
 
 This will:
-1. Create the `gameforge` database
+1. Create the `gamestory` database
 2. Run all migrations to create tables:
    - users
    - projects
@@ -240,7 +248,7 @@ curl http://localhost:3001/health
 
 Open http://localhost:5173 in your browser.
 
-You should see the GameForge Studio dashboard with system status.
+You should see the GameStory Lab dashboard with system status.
 
 ---
 
@@ -278,6 +286,8 @@ You should see the GameForge Studio dashboard with system status.
 2. Start Ollama: `ollama serve`
 3. Install recommended model: `ollama pull qwen3:30b-a3b` (MoE - best for 16GB!)
 4. Verify `OLLAMA_BASE_URL` in `.env`
+
+**Note:** If neither MiniMax/GLM keys nor Ollama are available, generation endpoints will fail — configure at least one provider.
 
 **Note:** If Ollama is unavailable, the system will use OpenRouter/Google APIs (if configured).
 
@@ -439,7 +449,7 @@ curl -X POST http://localhost:3001/api/export \
 
 ## Getting Help
 
-- **GitHub Issues:** https://github.com/Pastorsimon1798/GameStory-Lab/issues
+- **GitHub Issues:** https://github.com/simongonzalezdc/GameStory-Lab/issues
 - **Documentation:** See `Dev Docs/` folder
 - **API Reference:** http://localhost:3001/api
 

@@ -1,7 +1,7 @@
 {
-  "name": "@gameforge/frontend",
+  "name": "@gamestory/frontend",
   "version": "1.0.0",
-  "description": "GameForge Studio frontend UI",
+  "description": "GameStory Lab frontend UI",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@gameforge/shared": "*",
+    "@gamestory/shared": "*",
     "@tailwindcss/postcss": "^4.1.17",
     "@tanstack/react-query": "^5.62.7",
     "clsx": "^2.1.1",

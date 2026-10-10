@@ -3,7 +3,7 @@
  * Catch missing fundamentals that make other rules less reliable
  */
 
-import type { MechanicsData, LoreData, ValidationIssue } from '@gameforge/shared';
+import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared';
 
 /**
  * Ensure core sections exist so other rules have context

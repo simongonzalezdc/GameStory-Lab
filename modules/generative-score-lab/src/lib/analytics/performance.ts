@@ -34,7 +34,7 @@ function reportMetric(metric: Metric) {
     });
     // Keep only last 20 metrics
     localStorage.setItem('webVitals', JSON.stringify(vitals.slice(-20)));
-  } catch (error) {
+  } catch {
     // Ignore storage errors
   }
 }

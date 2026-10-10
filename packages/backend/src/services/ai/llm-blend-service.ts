@@ -3,7 +3,7 @@
  * Uses AI to intelligently blend genre templates while resolving conflicts and ambiguities
  */
 
-import type { Genre } from '@gameforge/shared';
+import type { Genre } from '@gamestory/shared';
 import { TemplateService } from '../templates/template-service.js';
 import { getAIService } from './ai-service.js';
 import { logger } from '../../utils/logger.js';

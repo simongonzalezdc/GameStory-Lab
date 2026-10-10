@@ -3,7 +3,7 @@
  * Handles iterative improvement of game concepts with version tracking
  */
 
-import type { MechanicsData, LoreData, RefinementFocus } from '@gameforge/shared';
+import type { MechanicsData, LoreData, RefinementFocus } from '@gamestory/shared';
 import { PrismaClient } from '@prisma/client';
 import { AIOrchestrator } from '../ai/orchestrator.js';
 import { logger } from '../../utils/logger.js';

@@ -3,7 +3,7 @@
  * Basic storytelling coherence checks
  */
 
-import type { MechanicsData, LoreData, ValidationIssue } from '@gameforge/shared';
+import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared';
 
 /**
  * Validate protagonist has clear motivation

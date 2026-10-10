@@ -4,7 +4,7 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
-import type { MechanicsData, LoreData } from '@gameforge/shared';
+import type { MechanicsData, LoreData } from '@gamestory/shared';
 import { AIOrchestrator } from '../ai/orchestrator.js';
 import { architectService } from '../architect/architect-service.js';
 import { INTERVIEW_QUESTIONS, getNextQuestion } from '../architect/interview-questions.js';
@@ -898,7 +898,7 @@ export class AssistantService {
 
   private buildSystemPrompt(mode: AssistantMode, context: AssistantContext) {
     const baseInstructions = [
-      'You are the GameForge Studio unified project assistant.',
+      'You are the GameStory Lab unified project assistant.',
       'You help with both concept refinement (mechanics/lore) and architect documentation in a single conversation.',
       '',
       '📋 CRITICAL RESPONSE FORMAT RULES:',

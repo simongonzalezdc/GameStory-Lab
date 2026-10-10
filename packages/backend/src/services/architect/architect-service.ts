@@ -283,7 +283,6 @@ export class ArchitectService {
     const normalized = slug || 'assistant-document';
     return normalized.endsWith('.md') ? normalized : `${normalized}.md`;
   }
-
   /**
    * Get all document templates info
    */
