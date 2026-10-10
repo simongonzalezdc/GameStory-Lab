@@ -25,6 +25,21 @@ jobs:
         run: npm run build -w packages/shared
       - name: Build backend
         run: npm run build -w packages/backend
+      - name: Verify backend runtime assets in dist
+        run: |
+          # tsc emits no non-TS files; the build copies runtime-read assets
+          # (genre templates, architect markdown) into dist/. Assert shipped.
+          missing=0
+          for f in packages/backend/src/services/templates/genres/*.json; do
+            target="packages/backend/dist/services/templates/genres/$(basename "$f")"
+            [ -f "$target" ] || { echo "missing from dist: $target"; missing=1; }
+          done
+          for f in packages/backend/src/services/architect/templates/*.md; do
+            target="packages/backend/dist/services/architect/templates/$(basename "$f")"
+            [ -f "$target" ] || { echo "missing from dist: $target"; missing=1; }
+          done
+          [ "$missing" -eq 0 ] || exit 1
+          echo "all runtime assets present in dist"
       - name: Build frontend (tsc + vite)
         run: npm run build -w packages/frontend
   modules:
