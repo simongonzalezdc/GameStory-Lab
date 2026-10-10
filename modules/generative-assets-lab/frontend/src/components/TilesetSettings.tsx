@@ -26,7 +26,24 @@ const TILESET_TYPES = [
     id: 'full' as const,
     name: 'Full Set',
     description: '16 tiles (basic + inner corners)',
-    pieces: ['center', 'top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right', 'inner-top-left', 'inner-top-right', 'inner-bottom-left', 'inner-bottom-right', 'horizontal', 'vertical', 'single'],
+    pieces: [
+      'center',
+      'top',
+      'bottom',
+      'left',
+      'right',
+      'top-left',
+      'top-right',
+      'bottom-left',
+      'bottom-right',
+      'inner-top-left',
+      'inner-top-right',
+      'inner-bottom-left',
+      'inner-bottom-right',
+      'horizontal',
+      'vertical',
+      'single',
+    ],
   },
   {
     id: 'autotile' as const,
@@ -160,9 +177,7 @@ export function TilesetSettings({ enabled, onToggle, onSettingsChange }: Tileset
 
           {/* Tile Size */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Tile Size
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tile Size</label>
             <div className="grid grid-cols-3 gap-2">
               {TILE_SIZES.map((ts) => (
                 <button
@@ -229,8 +244,13 @@ export function TilesetSettings({ enabled, onToggle, onSettingsChange }: Tileset
           <div className="bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700 rounded p-3 text-sm text-emerald-800 dark:text-emerald-300">
             <p className="font-medium mb-1">Tileset Mode Active:</p>
             <ul className="space-y-1 text-xs">
-              <li>• Generates {includePieces.length} tile piece{includePieces.length !== 1 ? 's' : ''} ({tileSize}x{tileSize})</li>
-              <li>• {currentType.name}: {currentType.description}</li>
+              <li>
+                • Generates {includePieces.length} tile piece{includePieces.length !== 1 ? 's' : ''} ({tileSize}x
+                {tileSize})
+              </li>
+              <li>
+                • {currentType.name}: {currentType.description}
+              </li>
               <li>• {seamless ? 'Seamless edges for tiling' : 'Individual standalone tiles'}</li>
               <li>• Perfect for platformers, RPGs, and tile-based games</li>
             </ul>

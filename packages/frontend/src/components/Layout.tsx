@@ -51,18 +51,24 @@ function LayoutComponent({ children }: LayoutProps) {
 
   const isFullWidth = location.pathname.includes('/projects/') || location.pathname.includes('/architect');
 
-return (
+  return (
     <div className="min-h-screen bg-[var(--color-bg-primary)] transition-colors flex flex-col relative overflow-hidden">
       <CursorGlow />
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border-subtle bg-[rgba(17,16,21,0.82)] backdrop-blur-2xl shadow-[0_20px_60px_rgba(11,8,15,0.75)]">
-        <div className="absolute inset-0 pointer-events-none opacity-70" style={{ background: 'radial-gradient(circle at 20% -10%, color-mix(in srgb, var(--jewel-garnet) 25%, transparent) 0%, transparent 45%), radial-gradient(circle at 50% -5%, color-mix(in srgb, var(--jewel-fireopal) 15%, transparent) 0%, transparent 40%), radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--jewel-topaz) 20%, transparent) 0%, transparent 50%)' }} />
+        <div
+          className="absolute inset-0 pointer-events-none opacity-70"
+          style={{
+            background:
+              'radial-gradient(circle at 20% -10%, color-mix(in srgb, var(--jewel-garnet) 25%, transparent) 0%, transparent 45%), radial-gradient(circle at 50% -5%, color-mix(in srgb, var(--jewel-fireopal) 15%, transparent) 0%, transparent 40%), radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--jewel-topaz) 20%, transparent) 0%, transparent 50%)',
+          }}
+        />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Logo */}
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="flex items-center gap-3 group transition-opacity hover:opacity-90"
               aria-label="GameStory Lab Home"
             >
@@ -70,9 +76,7 @@ return (
                 GS
               </div>
               <div className="hidden sm:block">
-                <div className="text-xs font-bold text-tertiary uppercase tracking-[0.12em]">
-                  GameStory Lab
-                </div>
+                <div className="text-xs font-bold text-tertiary uppercase tracking-[0.12em]">GameStory Lab</div>
                 <div className="-mt-0.5">
                   <h1 className="text-base font-semibold text-primary">AI Game Design Tool</h1>
                 </div>
@@ -83,7 +87,8 @@ return (
             <nav className="flex items-center gap-2" aria-label="Main navigation">
               {NAV_ITEMS.map((item) => {
                 const normalizedPath = item.path.split('#')[0];
-                const isActive = location.pathname === normalizedPath || location.pathname + location.hash === item.path;
+                const isActive =
+                  location.pathname === normalizedPath || location.pathname + location.hash === item.path;
                 const Icon = item.icon;
                 const isSettings = item.path === '/settings';
 
@@ -101,7 +106,9 @@ return (
                         aria-expanded={showSettingsMenu}
                         aria-haspopup="menu"
                       >
-                        <span className={`avatar avatar-sm flex items-center justify-center ${showSettingsMenu ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
+                        <span
+                          className={`avatar avatar-sm flex items-center justify-center ${showSettingsMenu ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}
+                        >
                           <Icon className="w-4 h-4" strokeWidth={1.75} />
                         </span>
                         <span>{item.label}</span>
@@ -181,7 +188,9 @@ return (
                     }`}
                     aria-current={isActive ? 'page' : undefined}
                   >
-                    <span className={`avatar avatar-sm flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}>
+                    <span
+                      className={`avatar avatar-sm flex items-center justify-center ${isActive ? 'bg-brand-500/15 text-brand-700 dark:text-brand-100' : 'bg-surface-elevated text-tertiary'} border border-subtle`}
+                    >
                       <Icon className="w-4 h-4" strokeWidth={1.75} />
                     </span>
                     <span>{item.label}</span>
@@ -227,11 +236,11 @@ return (
 
       {/* Main Content */}
       {location.pathname.includes('/architect') ? (
-        <main className="w-full h-[calc(100vh-4rem)] overflow-hidden px-4 sm:px-6 lg:px-8">
-          {children}
-        </main>
+        <main className="w-full h-[calc(100vh-4rem)] overflow-hidden px-4 sm:px-6 lg:px-8">{children}</main>
       ) : (
-        <main className={`mx-auto ${isFullWidth ? 'max-w-full px-0' : 'max-w-7xl px-4 sm:px-6 lg:px-8'} py-6 lg:py-8 pb-24 lg:pb-32 flex-1 flex flex-col min-h-0`}>
+        <main
+          className={`mx-auto ${isFullWidth ? 'max-w-full px-0' : 'max-w-7xl px-4 sm:px-6 lg:px-8'} py-6 lg:py-8 pb-24 lg:pb-32 flex-1 flex flex-col min-h-0`}
+        >
           {children}
         </main>
       )}
@@ -242,23 +251,23 @@ return (
           <div className="text-center text-sm text-secondary space-y-2">
             <p className="font-medium text-primary">
               Crafted for player-first storytelling.{' '}
-              <a 
-                href="mailto:team@gamestory.lab" 
+              <a
+                href="mailto:team@gamestory.lab"
                 className="font-semibold text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200 underline underline-offset-2 transition-colors"
               >
                 Share feedback
               </a>
             </p>
             <p>
-              <Link 
+              <Link
                 to="/tutorial"
                 className="font-medium text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200 underline underline-offset-2 transition-colors"
               >
                 Read the Tutorial
               </Link>
               {' • '}
-              <a 
-                href="https://github.com/simongonzalezdc/GameStory-Lab" 
+              <a
+                href="https://github.com/simongonzalezdc/GameStory-Lab"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200 underline underline-offset-2 transition-colors"

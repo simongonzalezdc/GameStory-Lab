@@ -43,12 +43,12 @@ We follow a **90-day disclosure policy**:
 
 ### 5. Severity Levels
 
-| Severity | Response Time | Fix Timeline |
-|----------|---------------|--------------|
-| **Critical** | 24 hours | 7 days |
-| **High** | 48 hours | 14 days |
-| **Medium** | 7 days | 30 days |
-| **Low** | 14 days | 90 days |
+| Severity     | Response Time | Fix Timeline |
+| ------------ | ------------- | ------------ |
+| **Critical** | 24 hours      | 7 days       |
+| **High**     | 48 hours      | 14 days      |
+| **Medium**   | 7 days        | 30 days      |
+| **Low**      | 14 days       | 90 days      |
 
 ### 6. What to Report
 
@@ -92,4 +92,3 @@ Security researchers who report valid vulnerabilities will be:
 - Eligible for swag/recognition (for significant findings)
 
 Thank you for helping keep GameStory Lab secure! 🔒
-

@@ -25,14 +25,11 @@ export class MinimaxClient implements AIClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`,
+          Authorization: `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify({
           model: this.config.model || 'abab6.5-chat',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...input.messages,
-          ],
+          messages: [{ role: 'system', content: systemPrompt }, ...input.messages],
           tokens_to_generate: input.maxTokens || 2048,
           temperature: 0.7,
           top_p: 0.95,
@@ -46,7 +43,7 @@ export class MinimaxClient implements AIClient {
       }
 
       const data = await response.json();
-      
+
       // Validate response structure
       const validated = validateMinimaxResponse(data);
       const content = validated.content;

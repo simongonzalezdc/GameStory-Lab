@@ -6,12 +6,7 @@
 import { readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import {
-  ProjectContext,
-  GeneratedDocument,
-  DocumentationPackage,
-  DOCUMENT_TEMPLATES,
-} from './types.js';
+import { ProjectContext, GeneratedDocument, DocumentationPackage, DOCUMENT_TEMPLATES } from './types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,7 +24,7 @@ export class DocumentGenerator {
   async generateDocumentation(
     projectId: string,
     sessionId: string,
-    context: ProjectContext
+    context: ProjectContext,
   ): Promise<DocumentationPackage> {
     const documents: GeneratedDocument[] = [];
 
@@ -64,10 +59,7 @@ export class DocumentGenerator {
   /**
    * Generate a single document from a template
    */
-  private async generateDocument(
-    templateFilename: string,
-    context: ProjectContext
-  ): Promise<GeneratedDocument> {
+  private async generateDocument(templateFilename: string, context: ProjectContext): Promise<GeneratedDocument> {
     // Load template
     const templatePath = join(this.templatesDir, templateFilename);
     let templateContent = await readFile(templatePath, 'utf-8');
@@ -210,10 +202,7 @@ export class DocumentGenerator {
       result = result.replace(/{{#IF_NO_INTEGRATIONS}}[\s\S]*?{{\/IF_NO_INTEGRATIONS}}/g, '');
     } else {
       result = result.replace(/{{#IF_HAS_INTEGRATIONS}}[\s\S]*?{{\/IF_HAS_INTEGRATIONS}}/g, '');
-      result = result.replace(
-        /{{#IF_NO_INTEGRATIONS}}([\s\S]*?){{\/IF_NO_INTEGRATIONS}}/g,
-        '$1'
-      );
+      result = result.replace(/{{#IF_NO_INTEGRATIONS}}([\s\S]*?){{\/IF_NO_INTEGRATIONS}}/g, '$1');
     }
 
     return result;

@@ -1,7 +1,7 @@
 /**
  * Error Reporting Service Integration
  * Supports Sentry or similar error tracking service
- * 
+ *
  * To enable Sentry:
  * 1. Install: npm install @sentry/react
  * 2. Set VITE_SENTRY_DSN in .env
@@ -37,7 +37,9 @@ export function initErrorReporting(): void {
     //   replaysSessionSampleRate: 0.1,
     //   replaysOnErrorSampleRate: 1.0,
     // });
-    console.log('[Error Reporting] Sentry DSN found but Sentry not installed. Install @sentry/react to enable.');
+    console.log(
+      '[Error Reporting] Sentry DSN found but Sentry not installed. Install @sentry/react to enable.'
+    );
   } else {
     console.log('[Error Reporting] Initialized (no Sentry DSN configured)');
   }

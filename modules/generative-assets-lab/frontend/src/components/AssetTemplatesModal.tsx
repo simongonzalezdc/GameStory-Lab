@@ -21,51 +21,272 @@ interface AssetTemplatesModalProps {
 
 const ASSET_TEMPLATES: AssetTemplate[] = [
   // Characters
-  { id: 'knight', name: 'Fantasy Knight', prompt: 'fantasy knight character, full armor, sword and shield, heroic pose, game sprite', category: 'Characters', tags: ['fantasy', 'warrior', 'medieval'] },
-  { id: 'mage', name: 'Wizard/Mage', prompt: 'wizard character with staff, flowing robes, magical aura, fantasy game sprite', category: 'Characters', tags: ['fantasy', 'magic', 'medieval'] },
-  { id: 'archer', name: 'Archer', prompt: 'archer character with bow, leather armor, quiver of arrows, game sprite', category: 'Characters', tags: ['fantasy', 'ranged', 'medieval'] },
-  { id: 'rogue', name: 'Rogue/Thief', prompt: 'rogue character, dark cloak, daggers, sneaky pose, game sprite', category: 'Characters', tags: ['fantasy', 'stealth', 'medieval'] },
-  { id: 'villager', name: 'Village NPC', prompt: 'friendly village npc, casual medieval clothing, warm expression, game sprite', category: 'Characters', tags: ['fantasy', 'npc', 'medieval'] },
+  {
+    id: 'knight',
+    name: 'Fantasy Knight',
+    prompt: 'fantasy knight character, full armor, sword and shield, heroic pose, game sprite',
+    category: 'Characters',
+    tags: ['fantasy', 'warrior', 'medieval'],
+  },
+  {
+    id: 'mage',
+    name: 'Wizard/Mage',
+    prompt: 'wizard character with staff, flowing robes, magical aura, fantasy game sprite',
+    category: 'Characters',
+    tags: ['fantasy', 'magic', 'medieval'],
+  },
+  {
+    id: 'archer',
+    name: 'Archer',
+    prompt: 'archer character with bow, leather armor, quiver of arrows, game sprite',
+    category: 'Characters',
+    tags: ['fantasy', 'ranged', 'medieval'],
+  },
+  {
+    id: 'rogue',
+    name: 'Rogue/Thief',
+    prompt: 'rogue character, dark cloak, daggers, sneaky pose, game sprite',
+    category: 'Characters',
+    tags: ['fantasy', 'stealth', 'medieval'],
+  },
+  {
+    id: 'villager',
+    name: 'Village NPC',
+    prompt: 'friendly village npc, casual medieval clothing, warm expression, game sprite',
+    category: 'Characters',
+    tags: ['fantasy', 'npc', 'medieval'],
+  },
 
   // Enemies
-  { id: 'goblin', name: 'Goblin', prompt: 'goblin enemy, green skin, crude weapon, menacing expression, game sprite', category: 'Enemies', tags: ['fantasy', 'monster', 'hostile'] },
-  { id: 'skeleton', name: 'Skeleton Warrior', prompt: 'skeleton warrior, bones, rusty sword and shield, undead enemy sprite', category: 'Enemies', tags: ['fantasy', 'undead', 'hostile'] },
-  { id: 'slime', name: 'Slime Monster', prompt: 'slime creature, gelatinous body, cute and bouncy, enemy sprite', category: 'Enemies', tags: ['fantasy', 'monster', 'basic'] },
-  { id: 'dragon', name: 'Dragon', prompt: 'fierce dragon, scales, wings, breathing fire, boss enemy sprite', category: 'Enemies', tags: ['fantasy', 'boss', 'flying'] },
-  { id: 'zombie', name: 'Zombie', prompt: 'zombie enemy, decaying flesh, slow movement, horror game sprite', category: 'Enemies', tags: ['horror', 'undead', 'hostile'] },
+  {
+    id: 'goblin',
+    name: 'Goblin',
+    prompt: 'goblin enemy, green skin, crude weapon, menacing expression, game sprite',
+    category: 'Enemies',
+    tags: ['fantasy', 'monster', 'hostile'],
+  },
+  {
+    id: 'skeleton',
+    name: 'Skeleton Warrior',
+    prompt: 'skeleton warrior, bones, rusty sword and shield, undead enemy sprite',
+    category: 'Enemies',
+    tags: ['fantasy', 'undead', 'hostile'],
+  },
+  {
+    id: 'slime',
+    name: 'Slime Monster',
+    prompt: 'slime creature, gelatinous body, cute and bouncy, enemy sprite',
+    category: 'Enemies',
+    tags: ['fantasy', 'monster', 'basic'],
+  },
+  {
+    id: 'dragon',
+    name: 'Dragon',
+    prompt: 'fierce dragon, scales, wings, breathing fire, boss enemy sprite',
+    category: 'Enemies',
+    tags: ['fantasy', 'boss', 'flying'],
+  },
+  {
+    id: 'zombie',
+    name: 'Zombie',
+    prompt: 'zombie enemy, decaying flesh, slow movement, horror game sprite',
+    category: 'Enemies',
+    tags: ['horror', 'undead', 'hostile'],
+  },
 
   // Weapons
-  { id: 'sword', name: 'Iron Sword', prompt: 'iron sword weapon, sharp blade, leather-wrapped handle, game item sprite', category: 'Weapons', tags: ['weapon', 'melee', 'medieval'], recommendedSettings: { dimensions: { width: 32, height: 32 } } },
-  { id: 'bow', name: 'Wooden Bow', prompt: 'wooden bow weapon, curved wood, bowstring, game item sprite', category: 'Weapons', tags: ['weapon', 'ranged', 'medieval'], recommendedSettings: { dimensions: { width: 32, height: 32 } } },
-  { id: 'staff', name: 'Magic Staff', prompt: 'magical staff, glowing crystal orb on top, carved wood, game item sprite', category: 'Weapons', tags: ['weapon', 'magic', 'medieval'], recommendedSettings: { dimensions: { width: 32, height: 32 } } },
-  { id: 'axe', name: 'Battle Axe', prompt: 'battle axe weapon, heavy blade, wooden handle, game item sprite', category: 'Weapons', tags: ['weapon', 'melee', 'medieval'], recommendedSettings: { dimensions: { width: 32, height: 32 } } },
+  {
+    id: 'sword',
+    name: 'Iron Sword',
+    prompt: 'iron sword weapon, sharp blade, leather-wrapped handle, game item sprite',
+    category: 'Weapons',
+    tags: ['weapon', 'melee', 'medieval'],
+    recommendedSettings: { dimensions: { width: 32, height: 32 } },
+  },
+  {
+    id: 'bow',
+    name: 'Wooden Bow',
+    prompt: 'wooden bow weapon, curved wood, bowstring, game item sprite',
+    category: 'Weapons',
+    tags: ['weapon', 'ranged', 'medieval'],
+    recommendedSettings: { dimensions: { width: 32, height: 32 } },
+  },
+  {
+    id: 'staff',
+    name: 'Magic Staff',
+    prompt: 'magical staff, glowing crystal orb on top, carved wood, game item sprite',
+    category: 'Weapons',
+    tags: ['weapon', 'magic', 'medieval'],
+    recommendedSettings: { dimensions: { width: 32, height: 32 } },
+  },
+  {
+    id: 'axe',
+    name: 'Battle Axe',
+    prompt: 'battle axe weapon, heavy blade, wooden handle, game item sprite',
+    category: 'Weapons',
+    tags: ['weapon', 'melee', 'medieval'],
+    recommendedSettings: { dimensions: { width: 32, height: 32 } },
+  },
 
   // Items & Pickups
-  { id: 'potion-health', name: 'Health Potion', prompt: 'health potion, red liquid in glass bottle, cork stopper, game item sprite', category: 'Items', tags: ['consumable', 'healing', 'fantasy'], recommendedSettings: { dimensions: { width: 16, height: 16 } } },
-  { id: 'potion-mana', name: 'Mana Potion', prompt: 'mana potion, blue liquid in glass bottle, glowing, game item sprite', category: 'Items', tags: ['consumable', 'magic', 'fantasy'], recommendedSettings: { dimensions: { width: 16, height: 16 } } },
-  { id: 'coin', name: 'Gold Coin', prompt: 'gold coin, shiny metal, embossed design, game currency sprite', category: 'Items', tags: ['currency', 'collectible'], recommendedSettings: { dimensions: { width: 16, height: 16 } } },
-  { id: 'gem', name: 'Gemstone', prompt: 'precious gemstone, faceted crystal, sparkles, game collectible sprite', category: 'Items', tags: ['currency', 'collectible', 'valuable'], recommendedSettings: { dimensions: { width: 16, height: 16 } } },
-  { id: 'key', name: 'Old Key', prompt: 'antique key, brass metal, ornate handle, game item sprite', category: 'Items', tags: ['key-item', 'puzzle'], recommendedSettings: { dimensions: { width: 16, height: 16 } } },
-  { id: 'chest', name: 'Treasure Chest', prompt: 'wooden treasure chest, iron bindings, closed, game object sprite', category: 'Items', tags: ['container', 'treasure'], recommendedSettings: { dimensions: { width: 32, height: 32 } } },
+  {
+    id: 'potion-health',
+    name: 'Health Potion',
+    prompt: 'health potion, red liquid in glass bottle, cork stopper, game item sprite',
+    category: 'Items',
+    tags: ['consumable', 'healing', 'fantasy'],
+    recommendedSettings: { dimensions: { width: 16, height: 16 } },
+  },
+  {
+    id: 'potion-mana',
+    name: 'Mana Potion',
+    prompt: 'mana potion, blue liquid in glass bottle, glowing, game item sprite',
+    category: 'Items',
+    tags: ['consumable', 'magic', 'fantasy'],
+    recommendedSettings: { dimensions: { width: 16, height: 16 } },
+  },
+  {
+    id: 'coin',
+    name: 'Gold Coin',
+    prompt: 'gold coin, shiny metal, embossed design, game currency sprite',
+    category: 'Items',
+    tags: ['currency', 'collectible'],
+    recommendedSettings: { dimensions: { width: 16, height: 16 } },
+  },
+  {
+    id: 'gem',
+    name: 'Gemstone',
+    prompt: 'precious gemstone, faceted crystal, sparkles, game collectible sprite',
+    category: 'Items',
+    tags: ['currency', 'collectible', 'valuable'],
+    recommendedSettings: { dimensions: { width: 16, height: 16 } },
+  },
+  {
+    id: 'key',
+    name: 'Old Key',
+    prompt: 'antique key, brass metal, ornate handle, game item sprite',
+    category: 'Items',
+    tags: ['key-item', 'puzzle'],
+    recommendedSettings: { dimensions: { width: 16, height: 16 } },
+  },
+  {
+    id: 'chest',
+    name: 'Treasure Chest',
+    prompt: 'wooden treasure chest, iron bindings, closed, game object sprite',
+    category: 'Items',
+    tags: ['container', 'treasure'],
+    recommendedSettings: { dimensions: { width: 32, height: 32 } },
+  },
 
   // Tiles & Terrain
-  { id: 'grass', name: 'Grass Tile', prompt: 'grass ground tile, green blades, detailed texture, tileable seamless', category: 'Tiles', tags: ['terrain', 'nature', 'ground'], recommendedSettings: { pixelArt: true, dimensions: { width: 32, height: 32 } } },
-  { id: 'dirt', name: 'Dirt Path', prompt: 'dirt path tile, brown earth, small rocks, tileable seamless', category: 'Tiles', tags: ['terrain', 'ground', 'path'], recommendedSettings: { pixelArt: true, dimensions: { width: 32, height: 32 } } },
-  { id: 'stone', name: 'Stone Floor', prompt: 'stone floor tile, gray cobblestone, medieval dungeon, tileable seamless', category: 'Tiles', tags: ['terrain', 'dungeon', 'stone'], recommendedSettings: { pixelArt: true, dimensions: { width: 32, height: 32 } } },
-  { id: 'water', name: 'Water', prompt: 'water tile, blue ripples, animated surface, tileable seamless', category: 'Tiles', tags: ['terrain', 'water', 'animated'], recommendedSettings: { pixelArt: true, dimensions: { width: 32, height: 32 } } },
-  { id: 'lava', name: 'Lava', prompt: 'lava tile, molten rock, glowing orange-red, animated, tileable seamless', category: 'Tiles', tags: ['terrain', 'hazard', 'animated'], recommendedSettings: { pixelArt: true, dimensions: { width: 32, height: 32 } } },
+  {
+    id: 'grass',
+    name: 'Grass Tile',
+    prompt: 'grass ground tile, green blades, detailed texture, tileable seamless',
+    category: 'Tiles',
+    tags: ['terrain', 'nature', 'ground'],
+    recommendedSettings: { pixelArt: true, dimensions: { width: 32, height: 32 } },
+  },
+  {
+    id: 'dirt',
+    name: 'Dirt Path',
+    prompt: 'dirt path tile, brown earth, small rocks, tileable seamless',
+    category: 'Tiles',
+    tags: ['terrain', 'ground', 'path'],
+    recommendedSettings: { pixelArt: true, dimensions: { width: 32, height: 32 } },
+  },
+  {
+    id: 'stone',
+    name: 'Stone Floor',
+    prompt: 'stone floor tile, gray cobblestone, medieval dungeon, tileable seamless',
+    category: 'Tiles',
+    tags: ['terrain', 'dungeon', 'stone'],
+    recommendedSettings: { pixelArt: true, dimensions: { width: 32, height: 32 } },
+  },
+  {
+    id: 'water',
+    name: 'Water',
+    prompt: 'water tile, blue ripples, animated surface, tileable seamless',
+    category: 'Tiles',
+    tags: ['terrain', 'water', 'animated'],
+    recommendedSettings: { pixelArt: true, dimensions: { width: 32, height: 32 } },
+  },
+  {
+    id: 'lava',
+    name: 'Lava',
+    prompt: 'lava tile, molten rock, glowing orange-red, animated, tileable seamless',
+    category: 'Tiles',
+    tags: ['terrain', 'hazard', 'animated'],
+    recommendedSettings: { pixelArt: true, dimensions: { width: 32, height: 32 } },
+  },
 
   // Buildings & Structures
-  { id: 'house', name: 'Village House', prompt: 'small village house, thatched roof, wooden walls, isometric view', category: 'Buildings', tags: ['building', 'medieval', 'residential'], recommendedSettings: { isometric: true, dimensions: { width: 64, height: 64 } } },
-  { id: 'tower', name: 'Watch Tower', prompt: 'stone watch tower, crenellations, flag on top, isometric view', category: 'Buildings', tags: ['building', 'medieval', 'defense'], recommendedSettings: { isometric: true, dimensions: { width: 64, height: 64 } } },
-  { id: 'tree', name: 'Fantasy Tree', prompt: 'fantasy tree, lush green foliage, thick trunk, game environment sprite', category: 'Buildings', tags: ['nature', 'decoration', 'environment'], recommendedSettings: { dimensions: { width: 48, height: 64 } } },
-  { id: 'rock', name: 'Large Rock', prompt: 'large rock formation, gray stone, moss patches, game environment sprite', category: 'Buildings', tags: ['nature', 'obstacle', 'environment'], recommendedSettings: { dimensions: { width: 32, height: 32 } } },
+  {
+    id: 'house',
+    name: 'Village House',
+    prompt: 'small village house, thatched roof, wooden walls, isometric view',
+    category: 'Buildings',
+    tags: ['building', 'medieval', 'residential'],
+    recommendedSettings: { isometric: true, dimensions: { width: 64, height: 64 } },
+  },
+  {
+    id: 'tower',
+    name: 'Watch Tower',
+    prompt: 'stone watch tower, crenellations, flag on top, isometric view',
+    category: 'Buildings',
+    tags: ['building', 'medieval', 'defense'],
+    recommendedSettings: { isometric: true, dimensions: { width: 64, height: 64 } },
+  },
+  {
+    id: 'tree',
+    name: 'Fantasy Tree',
+    prompt: 'fantasy tree, lush green foliage, thick trunk, game environment sprite',
+    category: 'Buildings',
+    tags: ['nature', 'decoration', 'environment'],
+    recommendedSettings: { dimensions: { width: 48, height: 64 } },
+  },
+  {
+    id: 'rock',
+    name: 'Large Rock',
+    prompt: 'large rock formation, gray stone, moss patches, game environment sprite',
+    category: 'Buildings',
+    tags: ['nature', 'obstacle', 'environment'],
+    recommendedSettings: { dimensions: { width: 32, height: 32 } },
+  },
 
   // UI Elements
-  { id: 'button', name: 'Game Button', prompt: 'game UI button, wooden frame, medieval style, normal state', category: 'UI', tags: ['ui', 'button', 'interface'], recommendedSettings: { dimensions: { width: 128, height: 48 } } },
-  { id: 'health-bar', name: 'Health Bar', prompt: 'health bar UI element, red fill, gray border, game interface', category: 'UI', tags: ['ui', 'hud', 'health'], recommendedSettings: { dimensions: { width: 100, height: 16 } } },
-  { id: 'icon-heart', name: 'Heart Icon', prompt: 'heart icon, red pixelated heart, health indicator, UI sprite', category: 'UI', tags: ['ui', 'icon', 'health'], recommendedSettings: { pixelArt: true, dimensions: { width: 16, height: 16 } } },
-  { id: 'icon-star', name: 'Star Icon', prompt: 'star icon, golden shining star, collectible indicator, UI sprite', category: 'UI', tags: ['ui', 'icon', 'collectible'], recommendedSettings: { pixelArt: true, dimensions: { width: 16, height: 16 } } },
+  {
+    id: 'button',
+    name: 'Game Button',
+    prompt: 'game UI button, wooden frame, medieval style, normal state',
+    category: 'UI',
+    tags: ['ui', 'button', 'interface'],
+    recommendedSettings: { dimensions: { width: 128, height: 48 } },
+  },
+  {
+    id: 'health-bar',
+    name: 'Health Bar',
+    prompt: 'health bar UI element, red fill, gray border, game interface',
+    category: 'UI',
+    tags: ['ui', 'hud', 'health'],
+    recommendedSettings: { dimensions: { width: 100, height: 16 } },
+  },
+  {
+    id: 'icon-heart',
+    name: 'Heart Icon',
+    prompt: 'heart icon, red pixelated heart, health indicator, UI sprite',
+    category: 'UI',
+    tags: ['ui', 'icon', 'health'],
+    recommendedSettings: { pixelArt: true, dimensions: { width: 16, height: 16 } },
+  },
+  {
+    id: 'icon-star',
+    name: 'Star Icon',
+    prompt: 'star icon, golden shining star, collectible indicator, UI sprite',
+    category: 'UI',
+    tags: ['ui', 'icon', 'collectible'],
+    recommendedSettings: { pixelArt: true, dimensions: { width: 16, height: 16 } },
+  },
 ];
 
 const CATEGORIES = ['All', 'Characters', 'Enemies', 'Weapons', 'Items', 'Tiles', 'Buildings', 'UI'];
@@ -76,7 +297,8 @@ export function AssetTemplatesModal({ onClose, onSelectTemplate }: AssetTemplate
 
   const filteredTemplates = ASSET_TEMPLATES.filter((template) => {
     const matchesCategory = selectedCategory === 'All' || template.category === selectedCategory;
-    const matchesSearch = searchQuery === '' ||
+    const matchesSearch =
+      searchQuery === '' ||
       template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.prompt.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -162,8 +384,7 @@ export function AssetTemplatesModal({ onClose, onSelectTemplate }: AssetTemplate
                     {template.recommendedSettings.pixelArt && '🎮 Pixel Art'}
                     {template.recommendedSettings.isometric && '📐 Isometric'}
                     {template.recommendedSettings.dimensions &&
-                      ` • ${template.recommendedSettings.dimensions.width}x${template.recommendedSettings.dimensions.height}`
-                    }
+                      ` • ${template.recommendedSettings.dimensions.width}x${template.recommendedSettings.dimensions.height}`}
                   </div>
                 )}
               </button>

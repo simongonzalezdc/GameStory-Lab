@@ -17,6 +17,7 @@ GameStory Lab helps indie game developers create cohesive, professional game con
 ## ✨ Features
 
 ### ✅ Implemented & Working:
+
 - **🎮 Flexible Workflow**: Start with mechanics OR lore - AI adapts to your creative process
 - **🖥️ Full Web Interface**: Complete React UI with project management, concept editing, validation, and export
 - **🤖 AI Model Orchestration**: Automatically selects optimal AI models (MiniMax, GLM, DeepSeek, Qwen 3, Phi-4, Gemini, Ollama)
@@ -51,28 +52,33 @@ GameStory Lab helps indie game developers create cohesive, professional game con
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/simongonzalezdc/GameStory-Lab.git
    cd GameStory-Lab
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env
    # Edit .env and add your API keys
    ```
 
 4. **Start infrastructure (PostgreSQL)**
+
    ```bash
    docker-compose up -d
    ```
 
 5. **Initialize database**
+
    ```bash
    cd packages/backend
    npx prisma migrate dev
@@ -81,6 +87,7 @@ GameStory Lab helps indie game developers create cohesive, professional game con
    ```
 
 6. **Install and configure Ollama (optional but recommended)**
+
    ```bash
    # macOS/Linux
    curl -fsSL https://ollama.com/install.sh | sh
@@ -93,6 +100,7 @@ GameStory Lab helps indie game developers create cohesive, professional game con
    ```
 
 7. **Start development servers**
+
    ```bash
    # Terminal 1: Backend
    cd packages/backend
@@ -132,21 +140,21 @@ gamestory-lab/
 `package.json`/`requirements.txt`, lockfile, and CI coverage. They are **not**
 part of the root npm workspaces — `cd` into each to install and test:
 
-| Module | Stack | Test |
-|---|---|---|
-| `generative-assets-lab/backend` | FastAPI + LangChain | `pytest` |
-| `generative-assets-lab/frontend` | Vite + React | `vitest run` |
-| `generative-score-lab` | Vite + React 18 | `vitest run` |
-| `shiplab` | Next.js + Drizzle | `vitest run` |
+| Module                           | Stack               | Test         |
+| -------------------------------- | ------------------- | ------------ |
+| `generative-assets-lab/backend`  | FastAPI + LangChain | `pytest`     |
+| `generative-assets-lab/frontend` | Vite + React        | `vitest run` |
+| `generative-score-lab`           | Vite + React 18     | `vitest run` |
+| `shiplab`                        | Next.js + Drizzle   | `vitest run` |
 
 ### Tech Stack
 
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| **Frontend** | React 19 + TypeScript | User interface |
-| **Backend** | Node.js + Express | API server |
-| **Database** | PostgreSQL 17 | Structured data + JSONB |
-| **ORM** | Prisma 6 | Type-safe database access |
+| Component      | Technology                                   | Purpose                      |
+| -------------- | -------------------------------------------- | ---------------------------- |
+| **Frontend**   | React 19 + TypeScript                        | User interface               |
+| **Backend**    | Node.js + Express                            | API server                   |
+| **Database**   | PostgreSQL 17                                | Structured data + JSONB      |
+| **ORM**        | Prisma 6                                     | Type-safe database access    |
 | **AI Gateway** | MiniMax + GLM + OpenRouter + Google + Ollama | Multi-model AI orchestration |
 
 ---
@@ -195,6 +203,7 @@ part of the root npm workspaces — `cd` into each to install and test:
 
 1. Install Ollama: https://ollama.com/download
 2. Pull models (optimized for Mac M4 16GB):
+
    ```bash
    # PRIMARY (MoE - Best quality/memory ratio!)
    ollama pull qwen3:30b-a3b     # 30B quality, 3B memory (8-12GB RAM)
@@ -208,6 +217,7 @@ part of the root npm workspaces — `cd` into each to install and test:
    ollama pull deepseek-r1:8b    # Advanced reasoning (7-9GB RAM)
    ollama pull llama4:8b         # Lightweight, versatile (<8GB RAM)
    ```
+
 3. **Models Released:** Qwen 3 (April 2025), Phi-4 (Nov 2025), DeepSeek R1, Llama 4
 4. **MoE Breakthrough:** Qwen3-30B-A3B uses Mixture-of-Experts - 30B params, only 3B active!
 5. Ollama runs on `http://localhost:11434` by default
@@ -239,23 +249,27 @@ The database uses PostgreSQL with JSONB for flexible concept storage:
 Create unique hybrid game concepts by intelligently blending multiple genres:
 
 ### **Available Genres (15 Total)**
+
 - **Action-Adventure**, **Adventure**, **Battle Royale**, **Fighting**, **FPS**
 - **Horror**, **Platformer**, **Puzzle**, **Racing**, **Roguelike**
 - **RPG**, **Simulation**, **Sports**, **Strategy**, **Survival**
 
 ### **How It Works**
+
 1. Select 2+ genres in **Mix Mode**
 2. Adjust weight sliders (e.g., 70% RPG + 30% FPS)
 3. Blend to preview hybrid mechanics and lore
 4. Create project directly from blended template
 
 ### **Popular Blends**
+
 - **70% RPG + 30% FPS** → Action RPG (Borderlands-style)
 - **50% Platformer + 50% Adventure** → Metroidvania (Hollow Knight-style)
 - **60% Survival + 40% Horror** → Survival Horror (The Last of Us-style)
 - **40% Roguelike + 40% Action-Adventure + 20% RPG** → Roguelite Action RPG (Hades-style)
 
 ### **Smart Merging**
+
 - Combines mechanics, progression systems, and resource management
 - Blends lore elements (setting, protagonist, conflicts, themes)
 - Intelligently weights primary genre characteristics
@@ -274,14 +288,13 @@ After completing your game concept, the Project Architect guides you through a s
 ### **Documentation Generated**
 
 **4 Core Documents (Always):**
+
 1. **Executive Summary** - Quick reference for humans (1-2 pages)
 2. **Technical Specification** - Complete implementation guide for AI agents
 3. **Product Requirements** - What to build (features & acceptance criteria)
 4. **Roadmap** - Development timeline and phases
 
-**2 Optional Documents (For Open Source Projects):**
-5. **Monetization Audit** - Revenue strategy and feature tier recommendations
-6. **Launch Checklist** - Go-to-market plan and community setup
+**2 Optional Documents (For Open Source Projects):** 5. **Monetization Audit** - Revenue strategy and feature tier recommendations 6. **Launch Checklist** - Go-to-market plan and community setup
 
 ### **How to Use**
 
@@ -311,6 +324,7 @@ After completing your game concept, the Project Architect guides you through a s
 ### **What It Does**
 
 The Assistant Panel provides project-level AI chat assistance with a proposal system. You can:
+
 - Chat with AI about your project concepts
 - Receive AI-generated proposals for concept improvements
 - Accept or reject proposals to update your concepts
@@ -494,13 +508,17 @@ npm run format
 ## 🐛 Troubleshooting
 
 ### OpenRouter API returns 429 (rate limit)
+
 **Solution**: The orchestrator automatically falls back to Ollama. Check logs for fallback confirmation.
 
 ### Prisma migration fails
+
 **Solution**: Ensure Docker containers are running (`docker-compose ps`). Check schema syntax. Rollback with `npx prisma migrate resolve --rolled-back <migration>`.
 
 ### Ollama not responding
+
 **Solution**:
+
 ```bash
 # Check if Ollama is running
 ollama list
@@ -514,6 +532,7 @@ ollama pull phi4:14b       # High quality reasoning
 ```
 
 ### Frontend can't connect to backend
+
 **Solution**: Verify `FRONTEND_URL` in `.env`. Check CORS settings in `packages/backend/src/server.ts`. Ensure backend is running on port 3001.
 
 ---
@@ -523,14 +542,17 @@ ollama pull phi4:14b       # High quality reasoning
 See `.env.example` for all available configuration options.
 
 ### Required
+
 - `DATABASE_URL` - PostgreSQL connection string
 
 ### Optional (but recommended)
+
 - `OPENROUTER_API_KEY` - For cloud AI models
 - `GOOGLE_API_KEY` - For Gemini validation
 - `OLLAMA_BASE_URL` - Local Ollama instance (default: http://localhost:11434)
 
 ### Application Settings
+
 - `NODE_ENV` - development | production | test
 - `PORT` - Backend port (default: 3001)
 - `FRONTEND_URL` - Frontend URL for CORS (default: http://localhost:5173)
@@ -541,6 +563,7 @@ See `.env.example` for all available configuration options.
 ## 🗺️ Roadmap
 
 ### ✅ Phase 1: Backend Foundation (Completed - 100%)
+
 - [x] Monorepo setup with TypeScript
 - [x] Database schema with Prisma (5 tables)
 - [x] AI client abstraction (OpenRouter, Google, Ollama)
@@ -551,6 +574,7 @@ See `.env.example` for all available configuration options.
 - [x] Cost tracking and rate limiting
 
 ### ✅ Phase 2: Complete Validation System (Completed - 100%)
+
 - [x] Validation engine architecture with parallel processing
 - [x] **All 27 validation rules implemented** ✅
   - [x] Mechanics-Lore Alignment (10 rules)
@@ -561,6 +585,7 @@ See `.env.example` for all available configuration options.
   - [x] Technical Feasibility (3 rules)
 
 ### ✅ Phase 3: Genre Templates & Refinement (Completed - 100%)
+
 - [x] **Genre template system** ✅
   - [x] 15 JSON template files covering all major genres (Nov 2025)
   - [x] Template loading service
@@ -576,6 +601,7 @@ See `.env.example` for all available configuration options.
 - [x] Enhanced title generation service with SEO analysis
 
 ### ✅ Phase 4: Frontend UI (Completed - 100%)
+
 - [x] React UI with Vite + TypeScript setup
 - [x] Main layout with navigation
 - [x] Project management dashboard with CRUD operations
@@ -587,6 +613,7 @@ See `.env.example` for all available configuration options.
 - [x] Complete routing and state management
 
 ### ✅ Phase 5: AI Project Architect (Completed - 100%)
+
 - [x] **Interview workflow system** ✅
   - [x] Structured interview questions (27 questions across 3 phases)
   - [x] Intelligent question branching based on answers
@@ -608,6 +635,7 @@ See `.env.example` for all available configuration options.
   - [x] Integration with concept editor
 
 ### 🔮 Phase 6: Advanced Features (Future)
+
 - [ ] Multi-user support with authentication
 - [ ] Cloud saves and sync
 - [ ] Visual concept art generation (Stable Diffusion)
@@ -664,14 +692,14 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 **GameStory Lab** is a **game narrative and story lab tooling** that helps **game writers and narrative designers** **prototype and structure game stories**.
 
-| | |
-| --- | --- |
-| **Product** | GameStory Lab |
-| **Category** | game narrative and story lab tooling |
-| **Best for** | game writers and narrative designers |
-| **Not** | a full game engine |
-| **Source** | [GitHub](https://github.com/simongonzalezdc/GameStory-Lab) · [Forgejo](https://git.kyanitelabs.tech/simon/GameStory-Lab) |
-| **Keywords** | game story lab, narrative design tooling |
+|              |                                                                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| **Product**  | GameStory Lab                                                                                                            |
+| **Category** | game narrative and story lab tooling                                                                                     |
+| **Best for** | game writers and narrative designers                                                                                     |
+| **Not**      | a full game engine                                                                                                       |
+| **Source**   | [GitHub](https://github.com/simongonzalezdc/GameStory-Lab) · [Forgejo](https://git.kyanitelabs.tech/simon/GameStory-Lab) |
+| **Keywords** | game story lab, narrative design tooling                                                                                 |
 
 ## Who it's for
 
@@ -716,7 +744,6 @@ Issues and PRs welcome on the canonical remote. Keep public docs free of secrets
 ## License
 
 See [LICENSE](LICENSE) in this repository (or package metadata if license is package-only).
-
 
 ## Table of contents
 

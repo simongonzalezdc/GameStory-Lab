@@ -12,6 +12,7 @@ Before you begin, ensure you have the following installed:
 - **Git** ([Download](https://git-scm.com/))
 
 ### Optional (but recommended):
+
 - **Ollama** for free local AI models ([Download](https://ollama.com/download))
 - **MiniMax API Key** — primary cloud provider ([Get key](https://platform.minimaxi.com/))
 - **GLM API Key** (Zhipu AI) — secondary cloud provider ([Get key](https://open.bigmodel.cn/))
@@ -38,6 +39,7 @@ npm install
 ```
 
 This will install dependencies for:
+
 - Root workspace
 - Backend (Express + Prisma)
 - Frontend (React + Vite)
@@ -58,12 +60,14 @@ cp .env.example .env
 ### Edit `.env` with your settings:
 
 **Minimum required (for local development):**
+
 ```env
 DATABASE_URL=postgresql://gamestory:gamestory_dev_password@localhost:5432/gamestory
 OLLAMA_BASE_URL=http://localhost:11434
 ```
 
 **Primary provider (MiniMax) + fallback (GLM):**
+
 ```env
 MINIMAX_API_KEY=your-minimax-key-here
 MINIMAX_API_BASE_URL=https://api.minimax.io/anthropic
@@ -72,12 +76,14 @@ GLM_API_BASE_URL=https://open.bigmodel.cn/api/paas/v4
 ```
 
 **Optional (other cloud AI):**
+
 ```env
 OPENROUTER_API_KEY=sk-or-v1-YOUR-KEY-HERE
 GOOGLE_API_KEY=AIzaSy-YOUR-KEY-HERE
 ```
 
 **Application settings:**
+
 ```env
 NODE_ENV=development
 PORT=3001
@@ -96,14 +102,17 @@ docker-compose up -d
 ```
 
 **Verify containers are running:**
+
 ```bash
 docker ps
 ```
 
 You should see:
+
 - `gamestory-postgres` on port 5432
 
 **Check container logs:**
+
 ```bash
 docker-compose logs -f
 ```
@@ -120,6 +129,7 @@ npx prisma migrate dev
 ```
 
 This will:
+
 1. Create the `gamestory` database
 2. Run all migrations to create tables:
    - users
@@ -130,14 +140,17 @@ This will:
 3. Generate the Prisma client
 
 **Generate Prisma client only (if needed):**
+
 ```bash
 npx prisma generate
 ```
 
 **View database in Prisma Studio (optional):**
+
 ```bash
 npx prisma studio
 ```
+
 Opens GUI at http://localhost:5555
 
 ---
@@ -149,6 +162,7 @@ Ollama provides free, unlimited local AI models.
 ### Install Ollama:
 
 **macOS/Linux:**
+
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
 ```
@@ -179,6 +193,7 @@ ollama pull llama4:8b
 ```
 
 **Model Sizes & Performance (Mac M4 16GB):**
+
 - `qwen3:30b-a3b` - 8-12GB RAM, 20-30 tok/s (MoE magic!)
 - `phi4:14b` - 11-13GB RAM, 25-35 tok/s (highest quality)
 - `qwen3-coder:7b` - 6-8GB RAM, 35-45 tok/s (best creative)
@@ -187,6 +202,7 @@ ollama pull llama4:8b
 - `llama4:8b` - <8GB RAM, 35-45 tok/s (lightweight)
 
 **Verify Ollama is running:**
+
 ```bash
 ollama list
 ollama ps
@@ -207,17 +223,21 @@ This starts both backend and frontend concurrently.
 ### Option B: Start servers separately:
 
 **Terminal 1 - Backend:**
+
 ```bash
 cd packages/backend
 npm run dev
 ```
+
 Backend runs on http://localhost:3001
 
 **Terminal 2 - Frontend:**
+
 ```bash
 cd packages/frontend
 npm run dev
 ```
+
 Frontend runs on http://localhost:5173
 
 ---
@@ -225,11 +245,13 @@ Frontend runs on http://localhost:5173
 ## Step 8: Verify Installation
 
 ### Check API Health:
+
 ```bash
 curl http://localhost:3001/health
 ```
 
 **Expected response:**
+
 ```json
 {
   "status": "healthy",
@@ -259,6 +281,7 @@ You should see the GameStory Lab dashboard with system status.
 **Error:** `Connection refused at localhost:5432`
 
 **Solutions:**
+
 1. Verify Docker containers are running: `docker ps`
 2. Restart containers: `docker-compose restart`
 3. Check logs: `docker-compose logs postgres`
@@ -271,6 +294,7 @@ You should see the GameStory Lab dashboard with system status.
 **Error:** `P1001: Can't reach database server`
 
 **Solutions:**
+
 1. Ensure PostgreSQL container is healthy: `docker ps`
 2. Wait a few seconds after `docker-compose up` for DB to initialize
 3. Reset database: `npx prisma migrate reset` (WARNING: deletes all data)
@@ -282,6 +306,7 @@ You should see the GameStory Lab dashboard with system status.
 **Error:** `Connection refused at localhost:11434`
 
 **Solutions:**
+
 1. Check if Ollama is running: `ollama list`
 2. Start Ollama: `ollama serve`
 3. Install recommended model: `ollama pull qwen3:30b-a3b` (MoE - best for 16GB!)
@@ -292,6 +317,7 @@ You should see the GameStory Lab dashboard with system status.
 **Note:** If Ollama is unavailable, the system will use OpenRouter/Google APIs (if configured).
 
 **Model Selection (November 2025):**
+
 - The system automatically selects the best available model
 - Priority: qwen3:30b-a3b > phi4:14b > qwen3-coder:7b > qwen3:7b
 - MoE models provide 30B quality with only 3B memory usage!
@@ -303,6 +329,7 @@ You should see the GameStory Lab dashboard with system status.
 **Error:** `429 Too Many Requests`
 
 **Solutions:**
+
 1. System automatically falls back to Ollama
 2. Check current hour cost: `GET /health`
 3. Increase cost limit in `.env`: `AI_COST_LIMIT_PER_HOUR_USD=10.00`
@@ -315,6 +342,7 @@ You should see the GameStory Lab dashboard with system status.
 **Error:** `EADDRINUSE: address already in use :::3001`
 
 **Solutions:**
+
 1. Change port in `.env`: `PORT=3002`
 2. Kill process using port: `lsof -ti:3001 | xargs kill`
 3. Or use different ports for frontend/backend
@@ -326,6 +354,7 @@ You should see the GameStory Lab dashboard with system status.
 **Error:** `Module not found` or TypeScript errors
 
 **Solutions:**
+
 1. Rebuild shared package: `cd packages/shared && npm run build`
 2. Clear node_modules and reinstall: `rm -rf node_modules && npm install`
 3. Restart TypeScript server in your IDE

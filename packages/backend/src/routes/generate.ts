@@ -37,7 +37,7 @@ async function getDependencies() {
 router.post('/', async (req, res, next) => {
   try {
     const { prisma: prismaClient, aiOrchestrator: orchestrator } = await getDependencies();
-    
+
     const validation = GenerationRequestSchema.safeParse(req.body);
 
     if (!validation.success) {
@@ -72,41 +72,45 @@ router.post('/', async (req, res, next) => {
 
     switch (taskType) {
       case 'mechanics': {
-        systemMessage = 'You are an expert game designer. Respond directly with only the requested JSON output, no explanations or reasoning.';
+        systemMessage =
+          'You are an expert game designer. Respond directly with only the requested JSON output, no explanations or reasoning.';
         prompt = getMechanicsPrompt(
           context.genre as Genre,
           context.existingContent?.lore as LoreData,
-          context.userPrompt
+          context.userPrompt,
         );
         break;
       }
 
       case 'lore': {
-        systemMessage = 'You are an expert narrative designer and worldbuilder. Respond directly with only the requested JSON output, no explanations or reasoning.';
+        systemMessage =
+          'You are an expert narrative designer and worldbuilder. Respond directly with only the requested JSON output, no explanations or reasoning.';
         prompt = getLorePrompt(
           context.genre as Genre,
           context.existingContent?.mechanics as MechanicsData,
-          context.userPrompt
+          context.userPrompt,
         );
         break;
       }
 
       case 'title': {
-        systemMessage = 'You are an expert at creating memorable game titles. Respond directly with only the requested JSON output, no explanations or reasoning.';
+        systemMessage =
+          'You are an expert at creating memorable game titles. Respond directly with only the requested JSON output, no explanations or reasoning.';
         prompt = getTitlePrompt(
           context.existingContent?.mechanics as MechanicsData,
           context.existingContent?.lore as LoreData,
-          context.genre as Genre
+          context.genre as Genre,
         );
         break;
       }
 
       case 'refinement': {
-        systemMessage = 'You are an expert game designer who excels at refining concepts. Respond directly with only the requested JSON output, no explanations or reasoning.';
+        systemMessage =
+          'You are an expert game designer who excels at refining concepts. Respond directly with only the requested JSON output, no explanations or reasoning.';
         prompt = getRefinementPrompt(
           context.existingContent?.mechanics as MechanicsData,
           context.existingContent?.lore as LoreData,
-          context.userPrompt || ''
+          context.userPrompt || '',
         );
         break;
       }
@@ -129,7 +133,7 @@ router.post('/', async (req, res, next) => {
         { role: 'system', content: systemMessage },
         { role: 'user', content: prompt },
       ],
-      modelPreference || 'auto'
+      modelPreference || 'auto',
     );
 
     // Parse AI response with improved error handling using extractJSON utility
@@ -137,13 +141,13 @@ router.post('/', async (req, res, next) => {
     try {
       // Use the extractJSON utility which handles markdown, thinking blocks, and common JSON issues
       const jsonResult = extractJSON(response.content);
-      
+
       if (!jsonResult.isValid || !jsonResult.parsed) {
         throw new Error(jsonResult.error || 'Failed to extract valid JSON from AI response');
       }
-      
+
       generatedContent = jsonResult.parsed;
-      
+
       // Validate that we got meaningful content
       if (!generatedContent || (typeof generatedContent === 'object' && Object.keys(generatedContent).length === 0)) {
         throw new Error('Empty or invalid content in AI response');
@@ -157,7 +161,7 @@ router.post('/', async (req, res, next) => {
         responsePreview: response.content.substring(0, 500),
         hasThinking: response.metadata?.thinking ? 'yes' : 'no',
       });
-      
+
       return res.status(500).json({
         error: {
           code: 'PARSE_ERROR',
@@ -191,7 +195,7 @@ router.post('/', async (req, res, next) => {
       // Look for versions created in the last 30 seconds to catch "generate both" scenarios
       const thirtySecondsAgo = new Date(Date.now() - 30000);
       const recentVersion = await prismaClient.version.findFirst({
-        where: { 
+        where: {
           projectId,
           createdAt: {
             gte: thirtySecondsAgo,
@@ -200,25 +204,29 @@ router.post('/', async (req, res, next) => {
         orderBy: { version: 'desc' },
         take: 1,
       });
-      
+
       // Also check the most recent version regardless of time (fallback)
-      const mostRecentVersion = recentVersion || await prismaClient.version.findFirst({
-        where: { 
-          projectId,
-        },
-        orderBy: { version: 'desc' },
-        take: 1,
-      });
-      
+      const mostRecentVersion =
+        recentVersion ||
+        (await prismaClient.version.findFirst({
+          where: {
+            projectId,
+          },
+          orderBy: { version: 'desc' },
+          take: 1,
+        }));
+
       // If recent version exists and has mechanics but empty/missing lore, update it
-      const hasMechanics = mostRecentVersion?.mechanics && 
+      const hasMechanics =
+        mostRecentVersion?.mechanics &&
         typeof mostRecentVersion.mechanics === 'object' &&
         Object.keys(mostRecentVersion.mechanics as object).length > 0;
-      const hasNoLore = !mostRecentVersion?.lore || 
+      const hasNoLore =
+        !mostRecentVersion?.lore ||
         (typeof mostRecentVersion.lore === 'object' && Object.keys(mostRecentVersion.lore as object).length === 0);
-      
+
       if (mostRecentVersion && hasMechanics && hasNoLore) {
-        logger.info('Updating existing version with lore', { 
+        logger.info('Updating existing version with lore', {
           versionId: mostRecentVersion.id,
           versionNumber: mostRecentVersion.version,
           hasMechanics,
@@ -229,7 +237,7 @@ router.post('/', async (req, res, next) => {
           data: {
             lore: generatedContent,
             metadata: {
-              ...(mostRecentVersion.metadata as object || {}),
+              ...((mostRecentVersion.metadata as object) || {}),
               aiModel: response.model,
               promptTokens: response.tokensUsed.prompt,
               completionTokens: response.tokensUsed.completion,
@@ -238,28 +246,32 @@ router.post('/', async (req, res, next) => {
             },
           },
         });
-        logger.info('Version updated successfully', { 
-          versionId: version.id, 
-          hasLore: !!version.lore && Object.keys(version.lore as object).length > 0 
+        logger.info('Version updated successfully', {
+          versionId: version.id,
+          hasLore: !!version.lore && Object.keys(version.lore as object).length > 0,
         });
       } else {
         // Create new version with mechanics from context or from most recent version
         const mechanicsFromContext = context.existingContent?.mechanics;
-        const mechanicsFromRecent = mostRecentVersion?.mechanics && 
+        const mechanicsFromRecent =
+          mostRecentVersion?.mechanics &&
           typeof mostRecentVersion.mechanics === 'object' &&
           Object.keys(mostRecentVersion.mechanics as object).length > 0
-          ? mostRecentVersion.mechanics
-          : null;
+            ? mostRecentVersion.mechanics
+            : null;
         const mechanicsData = (mechanicsFromContext || mechanicsFromRecent || {}) as any;
-        
-        logger.info('Creating new version with lore', { 
+
+        logger.info('Creating new version with lore', {
           hasMechanicsFromContext: !!mechanicsFromContext,
           hasMechanicsFromRecent: !!mechanicsFromRecent,
           recentVersionId: mostRecentVersion?.id,
         });
-        
+
         const loreData = generatedContent as any;
-        const titleValue = ('title' in generatedContent && (generatedContent as { title?: string }).title) ? (generatedContent as { title?: string }).title : null;
+        const titleValue =
+          'title' in generatedContent && (generatedContent as { title?: string }).title
+            ? (generatedContent as { title?: string }).title
+            : null;
         version = await prismaClient.version.create({
           data: {
             projectId,
@@ -280,13 +292,11 @@ router.post('/', async (req, res, next) => {
       }
     } else {
       // Create new version (for mechanics, title, or refinement)
-      const mechanicsData = taskType === 'mechanics' 
-        ? (generatedContent as any)
-        : ((context.existingContent?.mechanics || {}) as any);
+      const mechanicsData =
+        taskType === 'mechanics' ? (generatedContent as any) : ((context.existingContent?.mechanics || {}) as any);
       const loreData = (context.existingContent?.lore || {}) as any;
-      const titleValue = (taskType === 'title' && 'title' in generatedContent) 
-        ? (generatedContent as { title?: string }).title 
-        : null;
+      const titleValue =
+        taskType === 'title' && 'title' in generatedContent ? (generatedContent as { title?: string }).title : null;
       const startedWithValue = taskType === 'mechanics' ? 'mechanics' : undefined;
       version = await prismaClient.version.create({
         data: {
@@ -336,7 +346,7 @@ router.post('/', async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Generation request failed', { 
+    logger.error('Generation request failed', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       projectId: req.body.projectId,
@@ -345,6 +355,5 @@ router.post('/', async (req, res, next) => {
     next(error);
   }
 });
-
 
 export default router;

@@ -48,9 +48,7 @@ export function PromptHistory({ onSelectPrompt }: PromptHistoryProps) {
     if (existing) {
       // Update usage count and timestamp
       const updated = prompts.map((p) =>
-        p.id === existing.id
-          ? { ...p, usageCount: p.usageCount + 1, timestamp: Date.now() }
-          : p
+        p.id === existing.id ? { ...p, usageCount: p.usageCount + 1, timestamp: Date.now() } : p,
       );
       savePrompts(updated);
     } else {
@@ -68,9 +66,7 @@ export function PromptHistory({ onSelectPrompt }: PromptHistoryProps) {
   };
 
   const toggleFavorite = (id: string) => {
-    const updated = prompts.map((p) =>
-      p.id === id ? { ...p, favorite: !p.favorite } : p
-    );
+    const updated = prompts.map((p) => (p.id === id ? { ...p, favorite: !p.favorite } : p));
     savePrompts(updated);
   };
 
@@ -85,9 +81,7 @@ export function PromptHistory({ onSelectPrompt }: PromptHistoryProps) {
     }
   };
 
-  const filteredPrompts = prompts.filter((p) =>
-    filter === 'favorites' ? p.favorite : true
-  );
+  const filteredPrompts = prompts.filter((p) => (filter === 'favorites' ? p.favorite : true));
 
   const sortedPrompts = [...filteredPrompts].sort((a, b) => {
     // Favorites first, then by timestamp
@@ -162,9 +156,7 @@ export function PromptHistory({ onSelectPrompt }: PromptHistoryProps) {
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <History className="mx-auto mb-2 text-gray-400" size={32} />
                 <p className="text-sm">
-                  {filter === 'favorites'
-                    ? 'No favorite prompts yet'
-                    : 'No prompt history yet'}
+                  {filter === 'favorites' ? 'No favorite prompts yet' : 'No prompt history yet'}
                 </p>
               </div>
             ) : (
@@ -179,9 +171,7 @@ export function PromptHistory({ onSelectPrompt }: PromptHistoryProps) {
                     }}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm text-gray-900 dark:text-white line-clamp-2 flex-1">
-                        {savedPrompt.prompt}
-                      </p>
+                      <p className="text-sm text-gray-900 dark:text-white line-clamp-2 flex-1">{savedPrompt.prompt}</p>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                         <button
                           onClick={(e) => {

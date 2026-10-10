@@ -161,9 +161,7 @@ describe('Templates API Routes', () => {
     });
 
     it('should return 404 for non-existent genre', async () => {
-      const response = await request(app)
-        .post('/api/templates/invalid/customize')
-        .send({});
+      const response = await request(app).post('/api/templates/invalid/customize').send({});
 
       expect(response.status).toBe(404);
     });
@@ -188,9 +186,7 @@ describe('Templates API Routes', () => {
     });
 
     it('should return 400 for missing genres array', async () => {
-      const response = await request(app)
-        .post('/api/templates/blend')
-        .send({});
+      const response = await request(app).post('/api/templates/blend').send({});
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');
@@ -238,11 +234,9 @@ describe('Templates API Routes', () => {
     });
 
     it('should return 400 for missing genres', async () => {
-      const response = await request(app)
-        .post('/api/templates/blend-and-create')
-        .send({
-          projectName: 'Test',
-        });
+      const response = await request(app).post('/api/templates/blend-and-create').send({
+        projectName: 'Test',
+      });
 
       expect(response.status).toBe(400);
     });
@@ -250,11 +244,9 @@ describe('Templates API Routes', () => {
 
   describe('POST /api/templates/:genre/create-project', () => {
     it('should create project from template', async () => {
-      const response = await request(app)
-        .post('/api/templates/rpg/create-project')
-        .send({
-          projectName: 'My RPG',
-        });
+      const response = await request(app).post('/api/templates/rpg/create-project').send({
+        projectName: 'My RPG',
+      });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('project');
@@ -275,20 +267,16 @@ describe('Templates API Routes', () => {
     });
 
     it('should return 400 for missing project name', async () => {
-      const response = await request(app)
-        .post('/api/templates/rpg/create-project')
-        .send({});
+      const response = await request(app).post('/api/templates/rpg/create-project').send({});
 
       expect(response.status).toBe(400);
       expect(response.body.error).toContain('projectName');
     });
 
     it('should return 404 for non-existent genre', async () => {
-      const response = await request(app)
-        .post('/api/templates/invalid/create-project')
-        .send({
-          projectName: 'Test',
-        });
+      const response = await request(app).post('/api/templates/invalid/create-project').send({
+        projectName: 'Test',
+      });
 
       expect(response.status).toBe(404);
     });

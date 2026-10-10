@@ -7,12 +7,24 @@ import { BatchGenerationModal } from './BatchGenerationModal';
 import { ErrorMessage } from './ErrorMessage';
 import { PixelArtSettings, type PixelArtSettings as PixelArtSettingsType } from './PixelArtSettings';
 import { MultiAngleSettings, type MultiAngleSettings as MultiAngleSettingsType } from './MultiAngleSettings';
-import { ColorVariationSettings, type ColorVariationSettings as ColorVariationSettingsType } from './ColorVariationSettings';
-import { IsometricModeSettings, type IsometricModeSettings as IsometricModeSettingsType } from './IsometricModeSettings';
+import {
+  ColorVariationSettings,
+  type ColorVariationSettings as ColorVariationSettingsType,
+} from './ColorVariationSettings';
+import {
+  IsometricModeSettings,
+  type IsometricModeSettings as IsometricModeSettingsType,
+} from './IsometricModeSettings';
 import { TilesetSettings, type TilesetSettings as TilesetSettingsType } from './TilesetSettings';
 import { AnimationSettings, type AnimationSettings as AnimationSettingsType } from './AnimationSettings';
-import { BackgroundLayersSettings, type BackgroundLayersSettings as BackgroundLayersSettingsType } from './BackgroundLayersSettings';
-import { CharacterCustomizationSettings, type CharacterCustomizationSettings as CharacterCustomizationSettingsType } from './CharacterCustomizationSettings';
+import {
+  BackgroundLayersSettings,
+  type BackgroundLayersSettings as BackgroundLayersSettingsType,
+} from './BackgroundLayersSettings';
+import {
+  CharacterCustomizationSettings,
+  type CharacterCustomizationSettings as CharacterCustomizationSettingsType,
+} from './CharacterCustomizationSettings';
 import { AssetTemplatesModal } from './AssetTemplatesModal';
 import { PromptHistory } from './PromptHistory';
 
@@ -99,13 +111,14 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
 
   // Character Customization
   const [characterCustomizationEnabled, setCharacterCustomizationEnabled] = useState(false);
-  const [characterCustomizationSettings, setCharacterCustomizationSettings] = useState<CharacterCustomizationSettingsType>({
-    enabled: false,
-    equipmentSlots: ['helmet', 'chest', 'weapon'],
-    variationsPerSlot: 3,
-    maintainConsistency: true,
-    generateBase: true,
-  });
+  const [characterCustomizationSettings, setCharacterCustomizationSettings] =
+    useState<CharacterCustomizationSettingsType>({
+      enabled: false,
+      equipmentSlots: ['helmet', 'chest', 'weapon'],
+      variationsPerSlot: 3,
+      maintainConsistency: true,
+      generateBase: true,
+    });
 
   // Note: Ollama status check infrastructure kept for future text-based features
   // (prompt enhancement, chat assistance, etc.)
@@ -939,9 +952,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
         {/* Prompt Input */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Describe your asset
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Describe your asset</label>
             <div className="flex items-center gap-3">
               <PromptHistory onSelectPrompt={(prompt) => setPrompt(prompt)} />
               <button
@@ -970,9 +981,7 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
 
         {/* Model Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            AI Model
-          </label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">AI Model</label>
           <select
             value={model}
             onChange={(e) => setModel(e.target.value as any)}
@@ -983,7 +992,8 @@ export function GenerationForm({ onGenerated }: GenerationFormProps) {
             <option value="chatgpt">OpenAI (DALL-E 3) - Cloud</option>
           </select>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            💡 Tip: OpenRouter model is free with 20 requests/minute limit. Local models (Ollama) coming soon for text features.
+            💡 Tip: OpenRouter model is free with 20 requests/minute limit. Local models (Ollama) coming soon for text
+            features.
           </p>
         </div>
 

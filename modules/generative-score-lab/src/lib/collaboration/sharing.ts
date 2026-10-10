@@ -1,6 +1,6 @@
 /**
  * Collaboration and project sharing functionality
- * 
+ *
  * This module provides basic project sharing via URL parameters.
  * For full real-time collaboration, a backend service would be needed.
  */
@@ -61,4 +61,3 @@ export async function copyShareableUrl(project: Project): Promise<boolean> {
 export function hasSharedProjectInUrl(): boolean {
   return window.location.hash.includes('share=');
 }
-

@@ -51,12 +51,12 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
 
   // Memoize scene and track lookups
   const scene = useMemo(
-    () => project?.scenes.find(s => s.id === sceneId),
+    () => project?.scenes.find((s) => s.id === sceneId),
     [project?.scenes, sceneId]
   );
 
   const track = useMemo(
-    () => scene?.tracks.find(t => t.id === trackId),
+    () => scene?.tracks.find((t) => t.id === trackId),
     [scene?.tracks, trackId]
   );
   const trackClips = track?.clips ?? [];
@@ -90,9 +90,9 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     }
 
     let generatorConfig;
-    
+
     if (usePreset && selectedPreset) {
-      const preset = generatorPresets.find(p => p.id === selectedPreset);
+      const preset = generatorPresets.find((p) => p.id === selectedPreset);
       if (preset) {
         generatorConfig = preset.config;
       } else {
@@ -119,7 +119,17 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     setUsePreset(false);
     setSelectedPreset('');
     setLengthBars(DEFAULT_CLIP_LENGTH_BARS);
-  }, [generatorType, lengthBars, addClip, sceneId, trackId, usePreset, selectedPreset, track, trackClips.length]);
+  }, [
+    generatorType,
+    lengthBars,
+    addClip,
+    sceneId,
+    trackId,
+    usePreset,
+    selectedPreset,
+    track,
+    trackClips.length,
+  ]);
 
   const handleDeleteClick = useCallback((clipId: string) => {
     setClipToDelete(clipId);
@@ -147,144 +157,141 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
         variant="danger"
       />
       <div>
-      <div className="flex items-center justify-between mb-3">
-        <h5 className="font-medium text-gray-900">Clips</h5>
-        <Button 
-          size="sm" 
-          onClick={() => setShowAddDialog(true)} 
-          data-tutorial="add-clip"
-          aria-label="Add new clip to track"
-        >
-          + Add Clip
-        </Button>
-      </div>
+        <div className="flex items-center justify-between mb-3">
+          <h5 className="font-medium text-gray-900">Clips</h5>
+          <Button
+            size="sm"
+            onClick={() => setShowAddDialog(true)}
+            data-tutorial="add-clip"
+            aria-label="Add new clip to track"
+          >
+            + Add Clip
+          </Button>
+        </div>
 
-      {trackClips.length === 0 ? (
-        <p className="text-sm text-gray-500">No clips. Add a clip to start generating music!</p>
-      ) : (
-        <div 
-          className="space-y-2"
-          role="list"
-          aria-label="Clip list"
-        >
-          {trackClips.map(clip => (
-            <div 
-              key={clip.id} 
-              className="bg-white p-3 rounded border border-gray-200"
-              role="listitem"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900" aria-label={`Clip: ${clip.generator.type} generator, ${clip.lengthBars} bars long`}>
-                    {clip.generator.type} • {clip.lengthBars} bars
-                  </p>
-                </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDeleteClick(clip.id)}
-                      className="text-red-600"
-                      aria-label={`Delete clip: ${clip.generator.type} (${clip.lengthBars} bars)`}
+        {trackClips.length === 0 ? (
+          <p className="text-sm text-gray-500">No clips. Add a clip to start generating music!</p>
+        ) : (
+          <div className="space-y-2" role="list" aria-label="Clip list">
+            {trackClips.map((clip) => (
+              <div
+                key={clip.id}
+                className="bg-white p-3 rounded border border-gray-200"
+                role="listitem"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p
+                      className="text-sm font-medium text-gray-900"
+                      aria-label={`Clip: ${clip.generator.type} generator, ${clip.lengthBars} bars long`}
                     >
-                      🗑
-                    </Button>
+                      {clip.generator.type} • {clip.lengthBars} bars
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDeleteClick(clip.id)}
+                    className="text-red-600"
+                    aria-label={`Delete clip: ${clip.generator.type} (${clip.lengthBars} bars)`}
+                  >
+                    🗑
+                  </Button>
+                </div>
+                <ClipPianoRoll
+                  sceneId={sceneId}
+                  trackId={trackId}
+                  clip={clip}
+                  sceneKey={sceneKey}
+                  sceneScale={sceneScale}
+                  sceneBpm={sceneBpm}
+                />
               </div>
-              <ClipPianoRoll
-                sceneId={sceneId}
-                trackId={trackId}
-                clip={clip}
-                sceneKey={sceneKey}
-                sceneScale={sceneScale}
-                sceneBpm={sceneBpm}
+            ))}
+          </div>
+        )}
+
+        {/* Add Clip Dialog */}
+        <Dialog
+          open={showAddDialog}
+          onOpenChange={setShowAddDialog}
+          title="Add Clip"
+          description="Choose a generator and configure the clip"
+        >
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="use-preset"
+                checked={usePreset}
+                onChange={(e) => {
+                  setUsePreset(e.target.checked);
+                  if (!e.target.checked) {
+                    setSelectedPreset('');
+                  }
+                }}
+                className="rounded"
               />
+              <label htmlFor="use-preset" className="text-sm font-medium text-gray-700">
+                Use preset
+              </label>
             </div>
-          ))}
-        </div>
-      )}
 
-      {/* Add Clip Dialog */}
-      <Dialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        title="Add Clip"
-        description="Choose a generator and configure the clip"
-      >
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="use-preset"
-              checked={usePreset}
+            {usePreset ? (
+              <Select
+                label="Preset"
+                value={selectedPreset}
+                onValueChange={(v) => {
+                  setSelectedPreset(v);
+                  const preset = generatorPresets.find((p) => p.id === v);
+                  if (preset) {
+                    setGeneratorType(preset.config.type);
+                  }
+                }}
+                options={generatorPresets.map((p) => ({
+                  value: p.id,
+                  label: `${p.name} (${p.category})`,
+                }))}
+              />
+            ) : (
+              <Select
+                label="Generator Type"
+                value={generatorType}
+                onValueChange={(v) => setGeneratorType(v as GeneratorType)}
+                options={GENERATOR_OPTIONS}
+              />
+            )}
+
+            {validationError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+                {validationError}
+              </div>
+            )}
+
+            <Input
+              label="Length (bars)"
+              type="number"
+              value={lengthBars}
               onChange={(e) => {
-                setUsePreset(e.target.checked);
-                if (!e.target.checked) {
-                  setSelectedPreset('');
+                const value = parseInt(e.target.value);
+                if (!isNaN(value) && value > 0) {
+                  setLengthBars(Math.min(128, Math.max(1, value)));
+                } else if (e.target.value === '') {
+                  setLengthBars(1);
                 }
               }}
-              className="rounded"
+              min={1}
+              max={128}
             />
-            <label htmlFor="use-preset" className="text-sm font-medium text-gray-700">
-              Use preset
-            </label>
-          </div>
 
-          {usePreset ? (
-            <Select
-              label="Preset"
-              value={selectedPreset}
-              onValueChange={(v) => {
-                setSelectedPreset(v);
-                const preset = generatorPresets.find(p => p.id === v);
-                if (preset) {
-                  setGeneratorType(preset.config.type);
-                }
-              }}
-              options={generatorPresets.map(p => ({
-                value: p.id,
-                label: `${p.name} (${p.category})`,
-              }))}
-            />
-          ) : (
-            <Select
-              label="Generator Type"
-              value={generatorType}
-              onValueChange={(v) => setGeneratorType(v as GeneratorType)}
-              options={GENERATOR_OPTIONS}
-            />
-          )}
-
-          {validationError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
-              {validationError}
+            <div className="flex gap-2 justify-end mt-6">
+              <Button variant="secondary" onClick={() => setShowAddDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddClip}>Create Clip</Button>
             </div>
-          )}
-
-          <Input
-            label="Length (bars)"
-            type="number"
-            value={lengthBars}
-            onChange={(e) => {
-              const value = parseInt(e.target.value);
-              if (!isNaN(value) && value > 0) {
-                setLengthBars(Math.min(128, Math.max(1, value)));
-              } else if (e.target.value === '') {
-                setLengthBars(1);
-              }
-            }}
-            min={1}
-            max={128}
-          />
-
-          <div className="flex gap-2 justify-end mt-6">
-            <Button variant="secondary" onClick={() => setShowAddDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddClip}>
-              Create Clip
-            </Button>
           </div>
-        </div>
-      </Dialog>
+        </Dialog>
       </div>
     </>
   );

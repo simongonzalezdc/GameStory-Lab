@@ -1,6 +1,7 @@
 # AGENTS.md instructions for simongonzalezdc/GameStory-Lab
 
 <!-- EMPOWER_ORCHESTRATOR:START -->
+
 ## Empower the Orchestrator
 
 This repository is governed by the Empower Orchestrator law. Every top-level/orchestrator agent session is an audition to improve the system, not only finish the current task.
@@ -23,4 +24,5 @@ Worker discipline: isolated worktree/sandbox, one artifact equals one commit/cha
 Success line: “I noticed X, found a better way. The system just got an upgrade.”
 
 Full recipe: `docs/agent-law/empower-orchestrator.md`.
+
 <!-- EMPOWER_ORCHESTRATOR:END -->

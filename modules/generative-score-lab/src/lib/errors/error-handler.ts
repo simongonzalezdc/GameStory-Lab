@@ -41,16 +41,20 @@ class ErrorHandler {
   /**
    * Handle an error
    */
-  handle(error: unknown, context?: string, severity: ErrorSeverity = ErrorSeverity.ERROR): AppError {
+  handle(
+    error: unknown,
+    context?: string,
+    severity: ErrorSeverity = ErrorSeverity.ERROR
+  ): AppError {
     const appError = this.createAppError(error, context, severity);
     this.logError(appError);
     this.notifyListeners(appError);
-    
+
     // Report critical errors to external service
     if (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.ERROR) {
       reportError(appError);
     }
-    
+
     return appError;
   }
 
@@ -129,15 +133,9 @@ class ErrorHandler {
    * Determine if error is recoverable
    */
   private isRecoverable(error: Error): boolean {
-    const criticalErrors = [
-      'out of memory',
-      'stack overflow',
-      'maximum call stack',
-    ];
+    const criticalErrors = ['out of memory', 'stack overflow', 'maximum call stack'];
 
-    return !criticalErrors.some((msg) =>
-      error.message.toLowerCase().includes(msg)
-    );
+    return !criticalErrors.some((msg) => error.message.toLowerCase().includes(msg));
   }
 
   /**
@@ -231,10 +229,7 @@ export async function handleAsyncError<T>(
 /**
  * Helper function for handling sync errors
  */
-export function handleSyncError<T>(
-  fn: () => T,
-  context?: string
-): [T | null, AppError | null] {
+export function handleSyncError<T>(fn: () => T, context?: string): [T | null, AppError | null] {
   try {
     const result = fn();
     return [result, null];

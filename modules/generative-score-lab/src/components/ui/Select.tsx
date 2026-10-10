@@ -29,9 +29,7 @@ export const Select = memo(function Select({
 }: SelectProps) {
   return (
     <div className={clsx('w-full', className)}>
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      )}
+      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
       <SelectPrimitive.Root value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectPrimitive.Trigger
           className={clsx(

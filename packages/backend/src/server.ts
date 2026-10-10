@@ -57,7 +57,7 @@ import { handleApiError, createErrorResponse } from './utils/errors.js';
 import { logger } from './utils/logger.js';
 
 // Log environment variable status
-logger.debug('Environment variables loaded', { 
+logger.debug('Environment variables loaded', {
   loadedKeys: Object.keys(envResult.parsed || {}).length,
   hasMinimaxKey: !!process.env.MINIMAX_API_KEY,
   hasGLMKey: !!process.env.GLM_API_KEY,
@@ -129,21 +129,23 @@ const validationLimiter = rateLimit({
 app.use(helmet());
 
 // Enable gzip compression for all responses
-app.use(compression({
-  // Only compress responses larger than 1KB
-  threshold: 1024,
-  // Compression level (0-9, where 6 is default and good balance)
-  level: 6,
-  // Filter function to determine which responses to compress
-  filter: (req, res) => {
-    // Don't compress if client doesn't accept encoding
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    // Use compression's default filter
-    return compression.filter(req, res);
-  },
-}) as unknown as RequestHandler);
+app.use(
+  compression({
+    // Only compress responses larger than 1KB
+    threshold: 1024,
+    // Compression level (0-9, where 6 is default and good balance)
+    level: 6,
+    // Filter function to determine which responses to compress
+    filter: (req, res) => {
+      // Don't compress if client doesn't accept encoding
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      // Use compression's default filter
+      return compression.filter(req, res);
+    },
+  }) as unknown as RequestHandler,
+);
 
 // CORS configuration - always use an array to support multiple frontend ports
 const allowedOrigins = [
@@ -164,7 +166,7 @@ app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
-  })
+  }),
 );
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -186,12 +188,12 @@ app.get('/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     const aiStatus = await aiOrchestrator.getStatus();
-    
+
     logger.debug('Health check - AI status', {
       clientCount: aiStatus.clients.length,
-      clients: aiStatus.clients.map(c => ({ name: c.name, type: c.type, available: c.available }))
+      clients: aiStatus.clients.map((c) => ({ name: c.name, type: c.type, available: c.available })),
     });
-    
+
     // Log the actual response being sent
     const response = {
       status: 'healthy',
@@ -199,9 +201,9 @@ app.get('/health', async (_req, res) => {
       database: 'connected',
       ai: aiStatus,
     };
-    logger.debug('Health check response', { 
+    logger.debug('Health check response', {
       aiClientsCount: response.ai.clients.length,
-      aiClientNames: response.ai.clients.map(c => c.name)
+      aiClientNames: response.ai.clients.map((c) => c.name),
     });
 
     res.json(response);
@@ -290,10 +292,10 @@ async function start() {
         port: PORT,
       });
     });
-    
+
     // Set server timeout to 10 minutes for long-running AI requests (local LLMs can be slow)
     server.timeout = 600000; // 10 minutes
-    
+
     // Handle server errors
     server.on('error', (error: NodeJS.ErrnoException) => {
       if (error.code === 'EADDRINUSE') {

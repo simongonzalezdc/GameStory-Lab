@@ -66,7 +66,7 @@ router.post('/', async (req, res, next) => {
           version.mechanics as MechanicsData,
           version.lore as LoreData,
           version.project.genre || undefined,
-          (version.metadata as any)?.consistencyScore
+          (version.metadata as any)?.consistencyScore,
         );
         filename = `${projectName}-gdd.md`;
         break;
@@ -78,7 +78,7 @@ router.post('/', async (req, res, next) => {
           version.title || 'Untitled',
           version.mechanics as MechanicsData,
           version.lore as LoreData,
-          version.project.genre || undefined
+          version.project.genre || undefined,
         );
         filename = `${projectName}-pitch.md`;
         break;
@@ -90,7 +90,7 @@ router.post('/', async (req, res, next) => {
           version.title || 'Untitled',
           version.mechanics as MechanicsData,
           version.lore as LoreData,
-          version.project.genre || undefined
+          version.project.genre || undefined,
         );
         filename = `${projectName}-technical.md`;
         break;

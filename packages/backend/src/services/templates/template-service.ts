@@ -88,16 +88,14 @@ export class TemplateService {
    * Get all available genre templates
    */
   getAllTemplates(): GenreTemplate[] {
-    return Array.from(this.templates.values()).map(template =>
-      JSON.parse(JSON.stringify(template))
-    );
+    return Array.from(this.templates.values()).map((template) => JSON.parse(JSON.stringify(template)));
   }
 
   /**
    * Get list of available genres
    */
   getAvailableGenres(): Array<{ id: Genre; name: string; description: string }> {
-    const genres = Array.from(this.templates.values()).map(template => ({
+    const genres = Array.from(this.templates.values()).map((template) => ({
       id: template.id,
       name: template.name,
       description: template.description,
@@ -112,7 +110,7 @@ export class TemplateService {
   customizeTemplate(
     genre: Genre,
     mechanicsOverrides?: Partial<MechanicsData>,
-    loreOverrides?: Partial<LoreData>
+    loreOverrides?: Partial<LoreData>,
   ): { mechanics: MechanicsData; lore: LoreData } | null {
     const template = this.getTemplate(genre);
     if (!template) {
@@ -215,9 +213,7 @@ export class TemplateService {
    * - [{genre: 'platformer', weight: 0.5}, {genre: 'adventure', weight: 0.5}] = Metroidvania
    * - [{genre: 'survival', weight: 0.6}, {genre: 'horror', weight: 0.4}] = Survival Horror
    */
-  blendGenres(
-    genreConfigs: Array<{ genre: Genre; weight: number }>
-  ): GenreTemplate | null {
+  blendGenres(genreConfigs: Array<{ genre: Genre; weight: number }>): GenreTemplate | null {
     // Validate inputs
     if (genreConfigs.length === 0) {
       logger.warn('No genres provided for blending');
@@ -230,7 +226,7 @@ export class TemplateService {
 
     // Normalize weights to sum to 1.0
     const totalWeight = genreConfigs.reduce((sum, config) => sum + config.weight, 0);
-    const normalizedConfigs = genreConfigs.map(config => ({
+    const normalizedConfigs = genreConfigs.map((config) => ({
       genre: config.genre,
       weight: config.weight / totalWeight,
     }));
@@ -240,14 +236,14 @@ export class TemplateService {
 
     // Get all templates
     const templates = normalizedConfigs
-      .map(config => ({
+      .map((config) => ({
         template: this.getTemplate(config.genre),
         weight: config.weight,
       }))
-      .filter(item => item.template !== null) as Array<{
-        template: GenreTemplate;
-        weight: number;
-      }>;
+      .filter((item) => item.template !== null) as Array<{
+      template: GenreTemplate;
+      weight: number;
+    }>;
 
     if (templates.length === 0) {
       logger.warn('No valid templates found for blending');
@@ -255,7 +251,7 @@ export class TemplateService {
     }
 
     // Create blended template
-    const genreNames = sortedConfigs.map(c => {
+    const genreNames = sortedConfigs.map((c) => {
       const template = this.getTemplate(c.genre);
       return template?.name || c.genre;
     });
@@ -271,17 +267,15 @@ export class TemplateService {
     const blendedLore = this.blendLore(templates);
 
     // Combine tags (union of all tags)
-    const allTags = templates.flatMap(t => t.template.tags);
+    const allTags = templates.flatMap((t) => t.template.tags);
     const uniqueTags = Array.from(new Set(allTags));
 
     // Weighted average difficulty
-    const difficulties = templates.map(t => t.template.difficulty);
-    const blendedDifficulty = difficulties.length > 1
-      ? `Varies (${difficulties.join(' + ')})`
-      : difficulties[0];
+    const difficulties = templates.map((t) => t.template.difficulty);
+    const blendedDifficulty = difficulties.length > 1 ? `Varies (${difficulties.join(' + ')})` : difficulties[0];
 
     // Combine target audiences
-    const audiences = templates.map(t => t.template.targetAudience);
+    const audiences = templates.map((t) => t.template.targetAudience);
     const blendedAudience = audiences.join(' and ');
 
     return {
@@ -299,11 +293,9 @@ export class TemplateService {
   /**
    * Blend mechanics from multiple templates
    */
-  private blendMechanics(
-    templates: Array<{ template: GenreTemplate; weight: number }>
-  ): MechanicsData {
+  private blendMechanics(templates: Array<{ template: GenreTemplate; weight: number }>): MechanicsData {
     // Combine core loops into hybrid description
-    const coreLoops = templates.map(t => t.template.mechanics.coreLoop).filter(Boolean);
+    const coreLoops = templates.map((t) => t.template.mechanics.coreLoop).filter(Boolean);
     const blendedCoreLoop = coreLoops.join(' ⚡ ');
 
     // Combine player actions (weighted selection)
@@ -315,7 +307,7 @@ export class TemplateService {
     });
 
     // Blend progression systems (use primary with elements from others)
-    const progressionTypes = templates.map(t => t.template.mechanics.progressionSystems?.type);
+    const progressionTypes = templates.map((t) => t.template.mechanics.progressionSystems?.type);
     const hasOpen = progressionTypes.includes('open');
     const hasBranching = progressionTypes.includes('branching');
 
@@ -323,22 +315,16 @@ export class TemplateService {
     if (hasOpen) progressionType = 'open';
     else if (hasBranching) progressionType = 'branching';
 
-    const allProgressionMechanics = templates.flatMap(
-      t => t.template.mechanics.progressionSystems?.mechanics || []
-    );
+    const allProgressionMechanics = templates.flatMap((t) => t.template.mechanics.progressionSystems?.mechanics || []);
 
     // Combine win/fail conditions
-    const allWinConditions = templates.flatMap(
-      t => t.template.mechanics.winConditions || []
-    );
-    const allFailConditions = templates.flatMap(
-      t => t.template.mechanics.failConditions || []
-    );
+    const allWinConditions = templates.flatMap((t) => t.template.mechanics.winConditions || []);
+    const allFailConditions = templates.flatMap((t) => t.template.mechanics.failConditions || []);
 
     // Combine resource systems (union, avoid duplicates by name)
     const resourceMap = new Map<string, any>();
     templates.forEach(({ template }) => {
-      template.mechanics.resourceSystems?.forEach(resource => {
+      template.mechanics.resourceSystems?.forEach((resource) => {
         if (!resourceMap.has(resource.name)) {
           resourceMap.set(resource.name, resource);
         }
@@ -361,15 +347,13 @@ export class TemplateService {
   /**
    * Blend lore from multiple templates
    */
-  private blendLore(
-    templates: Array<{ template: GenreTemplate; weight: number }>
-  ): LoreData {
+  private blendLore(templates: Array<{ template: GenreTemplate; weight: number }>): LoreData {
     const primaryTemplate = templates[0].template;
 
     // Blend setting (combine elements)
-    const eras = templates.map(t => t.template.lore.setting?.era).filter(Boolean);
-    const locations = templates.map(t => t.template.lore.setting?.location).filter(Boolean);
-    const worldTypes = templates.map(t => t.template.lore.setting?.worldType).filter(Boolean);
+    const eras = templates.map((t) => t.template.lore.setting?.era).filter(Boolean);
+    const locations = templates.map((t) => t.template.lore.setting?.location).filter(Boolean);
+    const worldTypes = templates.map((t) => t.template.lore.setting?.worldType).filter(Boolean);
 
     const blendedSetting = {
       era: eras.length > 1 ? eras.join(' meets ') : eras[0] || '',
@@ -378,9 +362,7 @@ export class TemplateService {
     };
 
     // Blend protagonist (combine abilities, use primary for background/motivation)
-    const allAbilities = templates.flatMap(
-      t => t.template.lore.protagonist?.abilities || []
-    );
+    const allAbilities = templates.flatMap((t) => t.template.lore.protagonist?.abilities || []);
     const uniqueAbilities = Array.from(new Set(allAbilities));
 
     const blendedProtagonist = {
@@ -390,10 +372,8 @@ export class TemplateService {
     };
 
     // Blend conflict (combine primary and secondary conflicts)
-    const primaryConflicts = templates.map(t => t.template.lore.conflict?.primary).filter(Boolean);
-    const allSecondaryConflicts = templates.flatMap(
-      t => t.template.lore.conflict?.secondary || []
-    );
+    const primaryConflicts = templates.map((t) => t.template.lore.conflict?.primary).filter(Boolean);
+    const allSecondaryConflicts = templates.flatMap((t) => t.template.lore.conflict?.secondary || []);
 
     const blendedConflict = {
       primary: primaryConflicts.join(' while also '),
@@ -401,9 +381,9 @@ export class TemplateService {
     };
 
     // Blend world rules (combine or use most interesting)
-    const physics = templates.map(t => t.template.lore.worldRules?.physics).filter(Boolean);
-    const magic = templates.map(t => t.template.lore.worldRules?.magic).filter(Boolean);
-    const technology = templates.map(t => t.template.lore.worldRules?.technology).filter(Boolean);
+    const physics = templates.map((t) => t.template.lore.worldRules?.physics).filter(Boolean);
+    const magic = templates.map((t) => t.template.lore.worldRules?.magic).filter(Boolean);
+    const technology = templates.map((t) => t.template.lore.worldRules?.technology).filter(Boolean);
 
     const blendedWorldRules = {
       physics: physics.length > 1 ? physics.join(' combined with ') : physics[0] || '',
@@ -412,7 +392,7 @@ export class TemplateService {
     };
 
     // Combine themes (union)
-    const allThemes = templates.flatMap(t => t.template.lore.themes || []);
+    const allThemes = templates.flatMap((t) => t.template.lore.themes || []);
     const uniqueThemes = Array.from(new Set(allThemes));
 
     return {

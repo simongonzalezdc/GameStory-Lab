@@ -11,11 +11,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const Input = memo(function Input({ label, error, className, ...props }: InputProps) {
   return (
     <div className="w-full">
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {label}
-        </label>
-      )}
+      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
       <input
         className={clsx(
           'w-full px-3 py-2',
@@ -30,9 +26,7 @@ export const Input = memo(function Input({ label, error, className, ...props }: 
         )}
         {...props}
       />
-      {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 });

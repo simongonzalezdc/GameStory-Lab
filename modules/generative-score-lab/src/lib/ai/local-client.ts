@@ -22,7 +22,7 @@ export class LocalAIClient implements AIClient {
     try {
       // Check Ollama status before sending message
       const status = await checkOllamaStatus(this.config);
-      
+
       if (!status.isRunning) {
         const setupResult = await setupOllama(this.config);
         return {
@@ -60,10 +60,7 @@ export class LocalAIClient implements AIClient {
         },
         body: JSON.stringify({
           model: this.config.model || 'llama3.1',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...input.messages,
-          ],
+          messages: [{ role: 'system', content: systemPrompt }, ...input.messages],
           stream: false,
           options: {
             temperature: 0.7,
@@ -76,30 +73,32 @@ export class LocalAIClient implements AIClient {
       if (!response.ok) {
         const errorText = await response.text();
         let errorMessage = `Local LLM error: ${response.status} - ${errorText}`;
-        
+
         // Provide helpful error messages for common issues
         if (response.status === 404) {
           try {
             const errorData = JSON.parse(errorText);
             if (errorData.error?.includes('model') && errorData.error?.includes('not found')) {
               const setupResult = await setupOllama(this.config);
-              errorMessage = setupResult.message || `Model '${this.config.model}' is not available. ${errorText}`;
+              errorMessage =
+                setupResult.message ||
+                `Model '${this.config.model}' is not available. ${errorText}`;
             }
           } catch {
             // If parsing fails, use original error
           }
         }
-        
+
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      
+
       // Log raw response in development
       if (import.meta.env.MODE === 'development') {
         console.debug('[Ollama] Raw API response:', data);
       }
-      
+
       // Validate response structure
       let validated;
       try {
@@ -111,12 +110,13 @@ export class LocalAIClient implements AIClient {
         }
         throw validationError;
       }
-      
+
       const content = validated.content;
 
       // If content is empty after validation, provide a helpful message
       if (!content || content.trim() === '') {
-        const errorMsg = 'Ollama returned an empty response. The model may not have generated any content. Try rephrasing your request.';
+        const errorMsg =
+          'Ollama returned an empty response. The model may not have generated any content. Try rephrasing your request.';
         if (import.meta.env.MODE === 'development') {
           console.warn('[Ollama] Empty content after validation:', { data, validated });
         }

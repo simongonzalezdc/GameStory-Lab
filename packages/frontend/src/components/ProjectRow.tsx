@@ -83,4 +83,3 @@ export function ProjectRow({
     </motion.tr>
   );
 }
-

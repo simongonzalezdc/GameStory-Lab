@@ -16,12 +16,7 @@ interface Shortcut {
   category: 'Generation' | 'Navigation' | 'UI' | 'General';
 }
 
-export function KeyboardShortcuts({
-  onGenerate,
-  onExport,
-  onToggleDarkMode,
-  onFocusPrompt,
-}: KeyboardShortcutsProps) {
+export function KeyboardShortcuts({ onGenerate, onExport, onToggleDarkMode, onFocusPrompt }: KeyboardShortcutsProps) {
   const [showHelp, setShowHelp] = useState(false);
 
   const shortcuts: Shortcut[] = [
@@ -84,10 +79,7 @@ export function KeyboardShortcuts({
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger shortcuts when typing in input/textarea
       const target = e.target as HTMLElement;
-      const isInputField =
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable;
+      const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
 
       // Allow Ctrl/Cmd + shortcuts even in input fields
       const isModifierCombo = e.ctrlKey || e.metaKey;
@@ -143,13 +135,16 @@ export function KeyboardShortcuts({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onGenerate, onExport, onToggleDarkMode, onFocusPrompt]);
 
-  const groupedShortcuts = shortcuts.reduce((acc, shortcut) => {
-    if (!acc[shortcut.category]) {
-      acc[shortcut.category] = [];
-    }
-    acc[shortcut.category].push(shortcut);
-    return acc;
-  }, {} as Record<string, Shortcut[]>);
+  const groupedShortcuts = shortcuts.reduce(
+    (acc, shortcut) => {
+      if (!acc[shortcut.category]) {
+        acc[shortcut.category] = [];
+      }
+      acc[shortcut.category].push(shortcut);
+      return acc;
+    },
+    {} as Record<string, Shortcut[]>,
+  );
 
   return (
     <>
@@ -188,18 +183,14 @@ export function KeyboardShortcuts({
               <div className="space-y-6">
                 {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]) => (
                   <div key={category}>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                      {category}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">{category}</h3>
                     <div className="space-y-2">
                       {categoryShortcuts.map((shortcut, index) => (
                         <div
                           key={index}
                           className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
                         >
-                          <span className="text-gray-700 dark:text-gray-300">
-                            {shortcut.description}
-                          </span>
+                          <span className="text-gray-700 dark:text-gray-300">{shortcut.description}</span>
                           <div className="flex items-center gap-1">
                             {shortcut.modifiers?.map((mod, idx) => (
                               <kbd
@@ -209,9 +200,7 @@ export function KeyboardShortcuts({
                                 {mod}
                               </kbd>
                             ))}
-                            {shortcut.modifiers && (
-                              <span className="text-gray-500 dark:text-gray-400">+</span>
-                            )}
+                            {shortcut.modifiers && <span className="text-gray-500 dark:text-gray-400">+</span>}
                             <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-sm font-mono text-gray-800 dark:text-gray-200 shadow-sm">
                               {shortcut.key}
                             </kbd>
@@ -226,7 +215,15 @@ export function KeyboardShortcuts({
               {/* Tip */}
               <div className="mt-6 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
                 <p className="text-sm text-purple-800 dark:text-purple-300">
-                  <strong>💡 Pro Tip:</strong> Press <kbd className="px-2 py-0.5 bg-white dark:bg-gray-800 border border-purple-300 dark:border-purple-700 rounded text-xs font-mono mx-1">?</kbd> anytime to view this help, or press <kbd className="px-2 py-0.5 bg-white dark:bg-gray-800 border border-purple-300 dark:border-purple-700 rounded text-xs font-mono mx-1">Esc</kbd> to close any modal.
+                  <strong>💡 Pro Tip:</strong> Press{' '}
+                  <kbd className="px-2 py-0.5 bg-white dark:bg-gray-800 border border-purple-300 dark:border-purple-700 rounded text-xs font-mono mx-1">
+                    ?
+                  </kbd>{' '}
+                  anytime to view this help, or press{' '}
+                  <kbd className="px-2 py-0.5 bg-white dark:bg-gray-800 border border-purple-300 dark:border-purple-700 rounded text-xs font-mono mx-1">
+                    Esc
+                  </kbd>{' '}
+                  to close any modal.
                 </p>
               </div>
             </div>

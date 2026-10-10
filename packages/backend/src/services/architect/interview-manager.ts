@@ -4,12 +4,7 @@
  */
 
 import { randomUUID } from 'crypto';
-import {
-  InterviewSession,
-  InterviewAnswer,
-  InterviewQuestion,
-  ProjectContext,
-} from './types.js';
+import { InterviewSession, InterviewAnswer, InterviewQuestion, ProjectContext } from './types.js';
 import {
   INTERVIEW_QUESTIONS,
   getNextQuestion,
@@ -50,7 +45,7 @@ export class InterviewManager {
   submitAnswer(
     sessionId: string,
     questionId: string,
-    answer: string | string[]
+    answer: string | string[],
   ): {
     success: boolean;
     nextQuestion: InterviewQuestion | null;
@@ -90,12 +85,11 @@ export class InterviewManager {
     const completionPercentage = getCompletionPercentage(answersMap);
 
     // Check if current phase is complete
-    const currentPhaseQuestions = session.currentPhase === 'complete' 
-      ? [] 
-      : getQuestionsByPhase(session.currentPhase as 'quick-discovery' | 'deep-dive' | 'open-source');
-    const currentPhaseAnswered = currentPhaseQuestions.every(
-      (q) => answersMap.has(q.id) || !q.required
-    );
+    const currentPhaseQuestions =
+      session.currentPhase === 'complete'
+        ? []
+        : getQuestionsByPhase(session.currentPhase as 'quick-discovery' | 'deep-dive' | 'open-source');
+    const currentPhaseAnswered = currentPhaseQuestions.every((q) => answersMap.has(q.id) || !q.required);
 
     let phaseComplete = false;
     let interviewComplete = false;
@@ -183,9 +177,7 @@ export class InterviewManager {
       context.constraints = {
         timeline: constraintsAnswer.match(/timeline[:\s]*([^,\n]+)/i)?.[1]?.trim(),
         budget: constraintsAnswer.match(/budget[:\s]*([^,\n]+)/i)?.[1]?.trim(),
-        integrations: this.parseCommaSeparated(
-          constraintsAnswer.match(/integrations?[:\s]*([^,\n]+)/i)?.[1]
-        ),
+        integrations: this.parseCommaSeparated(constraintsAnswer.match(/integrations?[:\s]*([^,\n]+)/i)?.[1]),
       };
     }
 

@@ -264,9 +264,7 @@ describe('RefinementService', () => {
 
   describe('Error Handling', () => {
     it('should handle AI generation errors', async () => {
-      vi.mocked(mockAIOrchestrator.generate).mockRejectedValue(
-        new Error('AI error')
-      );
+      vi.mocked(mockAIOrchestrator.generate).mockRejectedValue(new Error('AI error'));
 
       const request: RefinementRequest = {
         conceptId: 'version-123',
@@ -277,9 +275,7 @@ describe('RefinementService', () => {
     });
 
     it('should handle database errors', async () => {
-      vi.mocked(mockPrisma.version.create).mockRejectedValue(
-        new Error('Database error')
-      );
+      vi.mocked(mockPrisma.version.create).mockRejectedValue(new Error('Database error'));
 
       const request: RefinementRequest = {
         conceptId: 'version-123',

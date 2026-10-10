@@ -21,16 +21,18 @@ export interface AICompletionRequest {
   maxTokens?: number;
   topP?: number;
   stream?: boolean;
-  responseFormat?: {
-    type: 'json_object' | 'text';
-  } | {
-    type: 'json_schema';
-    json_schema: {
-      name: string;
-      description?: string;
-      schema: Record<string, any>;
-    };
-  };
+  responseFormat?:
+    | {
+        type: 'json_object' | 'text';
+      }
+    | {
+        type: 'json_schema';
+        json_schema: {
+          name: string;
+          description?: string;
+          schema: Record<string, any>;
+        };
+      };
 }
 
 export interface AICompletionResponse {
@@ -75,7 +77,7 @@ export class AIClientError extends Error {
     message: string,
     public provider: string,
     public statusCode?: number,
-    public originalError?: unknown
+    public originalError?: unknown,
   ) {
     super(message);
     this.name = 'AIClientError';

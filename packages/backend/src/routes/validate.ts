@@ -58,24 +58,24 @@ router.post('/', async (req, res, next) => {
       hasLore: !!lore && Object.keys(lore).length > 0,
       mechanicsKeys: mechanics ? Object.keys(mechanics) : [],
       loreKeys: lore ? Object.keys(lore) : [],
-      genre: version.project.genre
+      genre: version.project.genre,
     });
-    
+
     const result = await validationEngine.validate(
       mechanics as MechanicsData,
       lore as LoreData,
-      version.project.genre || undefined
+      version.project.genre || undefined,
     );
-    
+
     console.log('[VALIDATION DEBUG] Validation engine result:', {
       issuesCount: result.issues.length,
       overallScore: result.overallScore,
-      issues: result.issues.map(i => ({
+      issues: result.issues.map((i) => ({
         rule: i.rule,
         severity: i.severity,
         confidence: i.confidence,
-        message: i.message
-      }))
+        message: i.message,
+      })),
     });
 
     // Delete previous validation results for this version
@@ -86,7 +86,7 @@ router.post('/', async (req, res, next) => {
     console.log('[VALIDATION DEBUG] Storing validation results:', {
       conceptId,
       issuesCount: result.issues.length,
-      overallScore: result.overallScore
+      overallScore: result.overallScore,
     });
 
     // Store new validation results and get the first ID as validationId
@@ -103,12 +103,12 @@ router.post('/', async (req, res, next) => {
           dismissed: false,
         })),
       });
-      
+
       console.log('[VALIDATION DEBUG] Created validation results:', {
         count: createdResults.count,
-        conceptId
+        conceptId,
       });
-      
+
       // Get the first validation result ID for the response
       const firstResult = await prisma.validationResult.findFirst({
         where: { conceptId },
@@ -116,10 +116,10 @@ router.post('/', async (req, res, next) => {
         orderBy: { createdAt: 'desc' },
       });
       validationId = firstResult?.id || null;
-      
+
       console.log('[VALIDATION DEBUG] Retrieved validation result ID:', {
         validationId,
-        hasId: !!validationId
+        hasId: !!validationId,
       });
     } else {
       // Generate a UUID for the response even if no issues
@@ -144,7 +144,7 @@ router.post('/', async (req, res, next) => {
       validationId,
       issuesCount: result.issues.length,
       overallScore: responseScore,
-      overallScorePercent: Math.round(responseScore * 100)
+      overallScorePercent: Math.round(responseScore * 100),
     });
 
     res.json({

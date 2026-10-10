@@ -36,12 +36,7 @@ interface ProjectState {
 
   // Clip operations
   addClip: (sceneId: string, trackId: string, clip: Omit<Clip, 'id'>) => void;
-  updateClip: (
-    sceneId: string,
-    trackId: string,
-    clipId: string,
-    updates: Partial<Clip>
-  ) => void;
+  updateClip: (sceneId: string, trackId: string, clipId: string, updates: Partial<Clip>) => void;
   deleteClip: (sceneId: string, trackId: string, clipId: string) => void;
 
   // Import/Export
@@ -51,7 +46,7 @@ interface ProjectState {
   // Utility
   markDirty: () => void;
   markClean: () => void;
-  
+
   // History
   undo: () => void;
   redo: () => void;
@@ -308,7 +303,7 @@ export const useProjectStore = create<ProjectState>()(
 
       markDirty: () => set({ isDirty: true }),
       markClean: () => set({ isDirty: false }),
-      
+
       // History operations
       undo: () => {
         const historyStore = useHistoryStore.getState();

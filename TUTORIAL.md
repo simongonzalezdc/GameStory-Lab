@@ -5,6 +5,7 @@ Welcome to GameStory Lab! This tutorial will walk you through creating your firs
 ## What You'll Learn
 
 By the end of this tutorial, you'll know how to:
+
 - Create a project
 - Generate game concepts with AI
 - Understand mechanics vs lore
@@ -23,6 +24,7 @@ A **Project** is a container for your game ideas. Think of it as a folder where 
 ### What is a Concept?
 
 A **Concept** is a complete game design that includes:
+
 - **Mechanics**: How the game plays (core loop, player actions, progression systems, win/lose conditions)
 - **Lore**: The story and world (setting, protagonist, conflict, themes, world rules)
 
@@ -72,7 +74,6 @@ You'll now see your project in the list!
      - **Both** (recommended): Creates both mechanics and lore together
      - **Mechanics only**: Just gameplay systems
      - **Lore only**: Just story and world
-   
    - **Describe your game idea** (optional but helpful):
      - Example: "A cozy farming sim where players manage a small farm, build relationships with villagers, and explore a magical forest"
      - The more detail you provide, the better the AI can tailor the concept
@@ -104,6 +105,7 @@ Once your concept is generated, you'll see three tabs:
 ### Mechanics Tab
 
 Shows the **gameplay systems**:
+
 - **Core Loop**: The main gameplay cycle
 - **Player Actions**: What players can do
 - **Progression Systems**: How players advance
@@ -113,6 +115,7 @@ Shows the **gameplay systems**:
 ### Lore Tab
 
 Shows the **story and world**:
+
 - **Setting**: Era, location, world type
 - **Protagonist**: Background, motivation, abilities
 - **Conflict**: Primary and secondary challenges
@@ -122,6 +125,7 @@ Shows the **story and world**:
 ### Validation Tab
 
 Shows **consistency checks**:
+
 - **Consistency Score**: Overall quality (0-100%)
 - **Issues**: Any problems found (errors, warnings, info)
 - **Suggestions**: How to fix issues
@@ -133,6 +137,7 @@ Shows **consistency checks**:
 ### Understanding Validation
 
 The validation system checks if your mechanics and lore work together coherently. It looks for:
+
 - **Mechanics-Lore Alignment**: Do the gameplay actions match the story?
 - **Genre Conventions**: Does it follow genre expectations?
 - **World Physics**: Are the world rules consistent?
@@ -156,6 +161,7 @@ The validation system checks if your mechanics and lore work together coherently
 ### Fixing Issues
 
 You can fix issues by:
+
 1. **Refining** your concept (see Part 6)
 2. **Manually editing** (if you have direct editing access)
 3. **Regenerating** specific parts
@@ -208,6 +214,7 @@ Once you're happy with your concept, export it to professional documentation:
 ### What's Included
 
 The exported document includes:
+
 - Project overview
 - Complete mechanics breakdown
 - Full lore and narrative
@@ -229,6 +236,7 @@ The exported document includes:
 ### Using Templates
 
 Templates are pre-built starting points:
+
 - **Browse Templates**: See all available genres
 - **Preview**: Check what's included before creating
 - **Customize**: Templates can be modified after creation
@@ -236,6 +244,7 @@ Templates are pre-built starting points:
 ### AI Model Selection
 
 The system automatically selects the best AI model:
+
 - **Ollama** (free, local): Used when available
 - **OpenRouter** (cloud): Access to multiple models
 - **Google Gemini**: Fast validation
@@ -257,6 +266,7 @@ You can't manually select models yet, but the system chooses optimally.
 ### Common Workflows
 
 **Workflow 1: Start Fresh**
+
 1. Create project
 2. Generate "Both" (mechanics + lore)
 3. Validate
@@ -264,6 +274,7 @@ You can't manually select models yet, but the system chooses optimally.
 5. Export when satisfied
 
 **Workflow 2: Mechanics First**
+
 1. Create project
 2. Generate "Mechanics only"
 3. Review gameplay
@@ -271,6 +282,7 @@ You can't manually select models yet, but the system chooses optimally.
 5. Validate and refine
 
 **Workflow 3: Template-Based**
+
 1. Browse templates
 2. Create project from template
 3. Customize and refine
@@ -279,16 +291,19 @@ You can't manually select models yet, but the system chooses optimally.
 ### Troubleshooting
 
 **Low Consistency Score?**
+
 - Check validation issues
 - Use "Improve Consistency" refinement
 - Make sure mechanics and lore align
 
 **AI Generation Failed?**
+
 - Check System Status page
 - Ensure Ollama is running (if using local AI)
 - Check API keys (if using cloud AI)
 
 **Can't See Concepts?**
+
 - Make sure you generated a concept
 - Check that the project loaded correctly
 - Try refreshing the page
@@ -300,6 +315,7 @@ You can't manually select models yet, but the system chooses optimally.
 ### You've Completed the Tutorial! 🎉
 
 Now you know how to:
+
 - ✅ Create projects
 - ✅ Generate concepts
 - ✅ Validate consistency
@@ -326,14 +342,17 @@ Now you know how to:
 ## Quick Reference
 
 ### Keyboard Shortcuts
+
 - None yet (coming soon!)
 
 ### Important Pages
+
 - **Projects**: `/` - Your project dashboard
 - **Templates**: `/templates` - Browse genre templates
 - **Status**: `/health` - System health and AI providers
 
 ### Key Concepts
+
 - **Project** = Container for concepts
 - **Concept** = Complete game design (mechanics + lore)
 - **Version** = Iteration of a concept
@@ -347,4 +366,3 @@ Now you know how to:
 For technical setup, see `SETUP.md`  
 For API documentation, see `README.md`  
 For developers, see `Dev Docs/`
-

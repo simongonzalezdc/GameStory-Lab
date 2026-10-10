@@ -6,14 +6,14 @@ interface ThinkingIndicatorProps {
 }
 
 const THINKING_MESSAGES = [
-  "Consulting the archives...",
-  "Weaving narrative threads...",
-  "Calculating probabilities...",
-  "Polishing gemstones...",
-  "Aligning constellations...",
-  "Drafting blueprints...",
-  "Synthesizing lore...",
-  "Balancing mechanics..."
+  'Consulting the archives...',
+  'Weaving narrative threads...',
+  'Calculating probabilities...',
+  'Polishing gemstones...',
+  'Aligning constellations...',
+  'Drafting blueprints...',
+  'Synthesizing lore...',
+  'Balancing mechanics...',
 ];
 
 export function ThinkingIndicator({ className = '' }: ThinkingIndicatorProps) {
@@ -39,20 +39,20 @@ export function ThinkingIndicator({ className = '' }: ThinkingIndicatorProps) {
               <div
                 key={msg}
                 className={`absolute inset-0 transition-all duration-500 flex items-center
-                  ${idx === messageIndex 
-                    ? 'opacity-100 transform translate-y-0' 
-                    : 'opacity-0 transform -translate-y-2'
+                  ${
+                    idx === messageIndex ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-2'
                   }`}
               >
-                <span 
+                <span
                   className="text-sm font-medium"
                   style={{
-                    background: 'linear-gradient(135deg, var(--jewel-sapphire), var(--jewel-amethyst), var(--jewel-garnet), var(--jewel-amethyst), var(--jewel-sapphire))',
+                    background:
+                      'linear-gradient(135deg, var(--jewel-sapphire), var(--jewel-amethyst), var(--jewel-garnet), var(--jewel-amethyst), var(--jewel-sapphire))',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
                     backgroundSize: '200% 100%',
-                    animation: 'shimmer 3s infinite linear'
+                    animation: 'shimmer 3s infinite linear',
                   }}
                 >
                   {msg}

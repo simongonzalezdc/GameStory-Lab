@@ -5,7 +5,7 @@ const JEWEL_PALETTE = [
   '#344676', // Sapphire
   '#6B5D88', // Amethyst
   '#AE5D37', // Fire Opal
-  '#B5933C'  // Topaz
+  '#B5933C', // Topaz
 ];
 
 interface TokenPrismProps {
@@ -16,7 +16,7 @@ interface TokenPrismProps {
 export const TokenPrism = React.memo(({ content, isVisible }: TokenPrismProps) => {
   const tokens = useMemo(() => {
     // Heuristic split: Space, punctuation, or word boundaries
-    return content.split(/(\s+|[.,;!?(){}[\]]|\b)/g).filter(t => t.length > 0);
+    return content.split(/(\s+|[.,;!?(){}[\]]|\b)/g).filter((t) => t.length > 0);
   }, [content]);
 
   if (!isVisible) return null;
@@ -38,4 +38,3 @@ export const TokenPrism = React.memo(({ content, isVisible }: TokenPrismProps) =
 });
 
 TokenPrism.displayName = 'TokenPrism';
-

@@ -22,7 +22,7 @@ export default function ErrorNotification() {
     // Clean up timeouts on unmount
     return () => {
       unsubscribe();
-      timeouts.forEach(timeout => clearTimeout(timeout));
+      timeouts.forEach((timeout) => clearTimeout(timeout));
     };
   }, []);
 
@@ -43,9 +43,7 @@ export default function ErrorNotification() {
           role="alert"
         >
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 text-2xl">
-              {getSeverityIcon(error.severity)}
-            </div>
+            <div className="flex-shrink-0 text-2xl">{getSeverityIcon(error.severity)}</div>
             <div className="flex-1 min-w-0">
               <div className="font-semibold mb-1">{getSeverityLabel(error.severity)}</div>
               <div className="text-sm">{error.userMessage}</div>

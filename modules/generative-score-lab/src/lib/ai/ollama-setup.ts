@@ -64,7 +64,7 @@ export async function checkModelAvailable(baseURL: string, modelName: string): P
  * Returns progress information
  */
 export async function pullModel(
-  baseURL: string, 
+  baseURL: string,
   modelName: string,
   onProgress?: (progress: { status: string; completed?: number; total?: number }) => void
 ): Promise<{ success: boolean; error?: string }> {
@@ -148,7 +148,8 @@ export async function checkOllamaStatus(config: LocalConfig): Promise<OllamaStat
     status.availableModels = await getAvailableModels(config.baseURL);
 
     if (status.availableModels.length === 0) {
-      status.error = 'Ollama is running but no models are available. Please download a model first.';
+      status.error =
+        'Ollama is running but no models are available. Please download a model first.';
       return status;
     }
 

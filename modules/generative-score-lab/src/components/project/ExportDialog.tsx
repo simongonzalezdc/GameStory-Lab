@@ -56,9 +56,9 @@ export default function ExportDialog({ open, onClose, project }: ExportDialogPro
   }, [exporting, onClose]);
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={handleClose} 
+    <Dialog
+      open={open}
+      onClose={handleClose}
       title="Export Project"
       description="Save your project as a JSON file that can be imported later"
     >

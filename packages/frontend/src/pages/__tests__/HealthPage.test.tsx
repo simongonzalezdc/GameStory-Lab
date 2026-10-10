@@ -56,7 +56,7 @@ describe('HealthPage', () => {
             costLimit: 5.0,
           },
         });
-      })
+      }),
     );
 
     render(<HealthPage />);
@@ -88,7 +88,7 @@ describe('HealthPage', () => {
             costLimit: 5.0,
           },
         });
-      })
+      }),
     );
 
     render(<HealthPage />);
@@ -107,7 +107,7 @@ describe('HealthPage', () => {
     server.use(
       http.get('http://localhost:3007/health', () => {
         return HttpResponse.error();
-      })
+      }),
     );
 
     render(<HealthPage />);
@@ -130,7 +130,7 @@ describe('HealthPage', () => {
             costLimit: 5.0,
           },
         });
-      })
+      }),
     );
 
     render(<HealthPage />);
@@ -157,7 +157,7 @@ describe('HealthPage', () => {
             costLimit: 5.0,
           },
         });
-      })
+      }),
     );
 
     render(<HealthPage />);
@@ -195,7 +195,7 @@ describe('HealthPage', () => {
             costLimit: 5.0,
           },
         });
-      })
+      }),
     );
 
     render(<HealthPage />);
@@ -223,7 +223,7 @@ describe('HealthPage', () => {
             costLimit: 5.0,
           },
         });
-      })
+      }),
     );
 
     render(<HealthPage />);

@@ -42,7 +42,5 @@ export function SkeletonGrid({ count = 6 }: { count?: number }) {
 }
 
 export function SkeletonText({ className = '' }: { className?: string }) {
-  return (
-    <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`} />
-  );
+  return <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`} />;
 }

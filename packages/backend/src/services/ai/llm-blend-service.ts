@@ -51,10 +51,7 @@ export class LLMBlendService {
   /**
    * Intelligently blend genres using LLM analysis
    */
-  async blendGenresIntelligently(
-    genreConfigs: GenreConfig[],
-    designOptions: any
-  ): Promise<LLMEnhancedBlend | null> {
+  async blendGenresIntelligently(genreConfigs: GenreConfig[], designOptions: any): Promise<LLMEnhancedBlend | null> {
     try {
       // Step 1: Get base templates and perform mechanical blend
       const templates = this.getTemplatesWithWeights(genreConfigs);
@@ -70,12 +67,7 @@ export class LLMBlendService {
       const strategy = await this.generateBlendStrategy(templates, analysis, designOptions);
 
       // Step 4: Create the enhanced template
-      const enhancedTemplate = await this.createEnhancedTemplate(
-        templates,
-        strategy,
-        analysis,
-        designOptions
-      );
+      const enhancedTemplate = await this.createEnhancedTemplate(templates, strategy, analysis, designOptions);
 
       return {
         template: enhancedTemplate,
@@ -94,21 +86,22 @@ export class LLMBlendService {
    */
   private async analyzeBlendConflicts(
     templates: Array<{ template: any; weight: number; genreName: string }>,
-    genreConfigs: GenreConfig[]
+    genreConfigs: GenreConfig[],
   ): Promise<LLMBlendAnalysis> {
     const prompt = this.buildConflictAnalysisPrompt(templates, genreConfigs);
 
     try {
       const response = await this.aiService.generateCompletion({
         prompt,
-        systemMessage: 'You are a game design expert analyzing genre compatibility. Provide detailed analysis of conflicts and coherence.',
+        systemMessage:
+          'You are a game design expert analyzing genre compatibility. Provide detailed analysis of conflicts and coherence.',
         temperature: 0.3,
         maxTokens: 1000,
       });
 
       // Parse the AI response (assuming it returns structured JSON)
       const analysis = this.parseAIAnalysisResponse(response.content);
-      
+
       return {
         conflicts: analysis.conflicts || [],
         coherence_score: analysis.coherence_score || 50,
@@ -130,14 +123,15 @@ export class LLMBlendService {
   private async generateBlendStrategy(
     templates: Array<{ template: any; weight: number; genreName: string }>,
     analysis: LLMBlendAnalysis,
-    designOptions: any
+    designOptions: any,
   ): Promise<{ strategy: string; reasoning: string }> {
     const prompt = this.buildStrategyPrompt(templates, analysis, designOptions);
 
     try {
       const response = await this.aiService.generateCompletion({
         prompt,
-        systemMessage: 'You are a creative game designer creating a coherent genre hybrid. Focus on resolving conflicts and creating synergy.',
+        systemMessage:
+          'You are a creative game designer creating a coherent genre hybrid. Focus on resolving conflicts and creating synergy.',
         temperature: 0.7,
         maxTokens: 800,
       });
@@ -162,7 +156,7 @@ export class LLMBlendService {
     templates: Array<{ template: any; weight: number; genreName: string }>,
     strategy: { strategy: string; reasoning: string },
     analysis: LLMBlendAnalysis,
-    designOptions: any
+    designOptions: any,
   ): Promise<any> {
     // Create base mechanical blend first
     const baseBlend = this.createMechanicalBlend(templates);
@@ -173,13 +167,14 @@ export class LLMBlendService {
     try {
       const response = await this.aiService.generateCompletion({
         prompt,
-        systemMessage: 'You are enhancing a game template. Create a coherent, well-balanced hybrid that resolves conflicts and maximizes synergy.',
+        systemMessage:
+          'You are enhancing a game template. Create a coherent, well-balanced hybrid that resolves conflicts and maximizes synergy.',
         temperature: 0.6,
         maxTokens: 1500,
       });
 
       const enhancedTemplate = this.parseAIEnhancementResponse(response.content, baseBlend);
-      
+
       return {
         ...baseBlend,
         ...enhancedTemplate,
@@ -194,23 +189,23 @@ export class LLMBlendService {
   // Helper methods
   private getTemplatesWithWeights(genreConfigs: GenreConfig[]) {
     return genreConfigs
-      .map(config => ({
+      .map((config) => ({
         template: this.templateService.getTemplate(config.genre),
         weight: config.weight,
         genreName: this.templateService.getTemplate(config.genre)?.name || config.genre,
       }))
-      .filter(item => item.template !== null) as Array<{
-        template: any;
-        weight: number;
-        genreName: string;
-      }>;
+      .filter((item) => item.template !== null) as Array<{
+      template: any;
+      weight: number;
+      genreName: string;
+    }>;
   }
 
   private buildConflictAnalysisPrompt(
     templates: Array<{ template: any; weight: number; genreName: string }>,
-    genreConfigs: GenreConfig[]
+    genreConfigs: GenreConfig[],
   ): string {
-    const templateSummaries = templates.map(t => ({
+    const templateSummaries = templates.map((t) => ({
       name: t.genreName,
       weight: Math.round(t.weight * 100),
       mechanics: t.template.mechanics.coreLoop,
@@ -222,13 +217,13 @@ export class LLMBlendService {
 Analyze the following genre blend for conflicts and coherence issues:
 
 GENRES TO BLEND:
-${templateSummaries.map(t => `- ${t.name} (${t.weight}%): ${t.mechanics}`).join('\n')}
+${templateSummaries.map((t) => `- ${t.name} (${t.weight}%): ${t.mechanics}`).join('\n')}
 
 SETTINGS:
-${templateSummaries.map(t => `- ${t.name}: ${t.setting}`).join('\n')}
+${templateSummaries.map((t) => `- ${t.name}: ${t.setting}`).join('\n')}
 
 CONFLICTS:
-${templateSummaries.map(t => `- ${t.name}: ${t.conflict}`).join('\n')}
+${templateSummaries.map((t) => `- ${t.name}: ${t.conflict}`).join('\n')}
 
 Please analyze and return a JSON response with:
 {
@@ -251,15 +246,15 @@ Focus on identifying gameplay conflicts, narrative coherence issues, and themati
   private buildStrategyPrompt(
     templates: Array<{ template: any; weight: number; genreName: string }>,
     analysis: LLMBlendAnalysis,
-    designOptions: any
+    designOptions: any,
   ): string {
     return `
 Create an intelligent blending strategy for these genres:
 
-PRIMARY GENRES: ${templates.map(t => `${t.genreName} (${Math.round(t.weight * 100)}%)`).join(', ')}
+PRIMARY GENRES: ${templates.map((t) => `${t.genreName} (${Math.round(t.weight * 100)}%)`).join(', ')}
 
 CONFLICTS TO RESOLVE:
-${analysis.conflicts.map(c => `- ${c.type}: ${c.description} (${c.severity})`).join('\n')}
+${analysis.conflicts.map((c) => `- ${c.type}: ${c.description} (${c.severity})`).join('\n')}
 
 TARGET EXPERIENCE:
 - Tone: ${designOptions.tone}
@@ -288,7 +283,7 @@ Provide your strategy in a clear, actionable format.
     templates: Array<{ template: any; weight: number; genreName: string }>,
     strategy: { strategy: string; reasoning: string },
     analysis: LLMBlendAnalysis,
-    designOptions: any
+    designOptions: any,
   ): string {
     return `
 Enhance this basic genre blend into a coherent, conflict-free template:
@@ -298,9 +293,9 @@ Name: ${baseBlend.name}
 Description: ${baseBlend.description}
 Core Loop: ${baseBlend.mechanics.coreLoop}
 
-GENRE SOURCES: ${templates.map(t => `${t.genreName} (${Math.round(t.weight * 100)}%)`).join(', ')}
+GENRE SOURCES: ${templates.map((t) => `${t.genreName} (${Math.round(t.weight * 100)}%)`).join(', ')}
 
-CONFLICTS RESOLVED: ${analysis.conflicts.map(c => c.resolution).join('; ')}
+CONFLICTS RESOLVED: ${analysis.conflicts.map((c) => c.resolution).join('; ')}
 
 STRATEGY TO APPLY: ${strategy.strategy}
 
@@ -368,34 +363,34 @@ Return the enhanced template with improved mechanics, lore, and description that
 
   private createMechanicalBlend(templates: Array<{ template: any; weight: number; genreName: string }>): any {
     // This uses the existing template service blending logic
-    const genreConfigs = templates.map(t => ({ genre: t.template.id, weight: t.weight }));
+    const genreConfigs = templates.map((t) => ({ genre: t.template.id, weight: t.weight }));
     const baseBlend = this.templateService.blendGenres(genreConfigs);
-    
+
     if (!baseBlend) {
       // Fallback if template service blending fails
-      const genreNames = templates.map(t => t.genreName).join(' + ');
+      const genreNames = templates.map((t) => t.genreName).join(' + ');
       return {
         id: 'blank',
         name: genreNames,
         description: `Hybrid genre combining ${genreNames}`,
         mechanics: {
-          coreLoop: templates.map(t => t.template.mechanics.coreLoop).join(' → '),
-          playerActions: templates.flatMap(t => t.template.mechanics.playerActions || []).slice(0, 8),
+          coreLoop: templates.map((t) => t.template.mechanics.coreLoop).join(' → '),
+          playerActions: templates.flatMap((t) => t.template.mechanics.playerActions || []).slice(0, 8),
         },
         lore: {
           setting: {
-            location: templates.map(t => t.template.lore.setting?.location || 'Mixed').join(' / '),
+            location: templates.map((t) => t.template.lore.setting?.location || 'Mixed').join(' / '),
           },
           conflict: {
-            primary: templates.map(t => t.template.lore.conflict?.primary || 'Adventure').join(' and '),
+            primary: templates.map((t) => t.template.lore.conflict?.primary || 'Adventure').join(' and '),
           },
         },
-        tags: templates.flatMap(t => t.template.tags || []),
+        tags: templates.flatMap((t) => t.template.tags || []),
         difficulty: 'Variable',
         targetAudience: 'Mixed',
       };
     }
-    
+
     return baseBlend;
   }
 }

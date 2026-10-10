@@ -54,7 +54,12 @@ export function AssetPackModal({ pack, onClose, onSaved }: AssetPackModalProps) 
       const packData: AssetPackCreate = {
         name: name.trim(),
         description: description.trim() || undefined,
-        tags: tags.trim() ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+        tags: tags.trim()
+          ? tags
+              .split(',')
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : [],
         asset_ids: selectedAssetIds,
       };
 
@@ -82,15 +87,11 @@ export function AssetPackModal({ pack, onClose, onSaved }: AssetPackModalProps) 
   };
 
   const toggleAssetSelection = (assetId: string) => {
-    setSelectedAssetIds(prev =>
-      prev.includes(assetId)
-        ? prev.filter(id => id !== assetId)
-        : [...prev, assetId]
-    );
+    setSelectedAssetIds((prev) => (prev.includes(assetId) ? prev.filter((id) => id !== assetId) : [...prev, assetId]));
   };
 
   const selectAll = () => {
-    setSelectedAssetIds(availableAssets.map(a => a.id));
+    setSelectedAssetIds(availableAssets.map((a) => a.id));
   };
 
   const clearSelection = () => {
@@ -108,10 +109,7 @@ export function AssetPackModal({ pack, onClose, onSaved }: AssetPackModalProps) 
               {pack ? 'Edit Asset Pack' : 'Create Asset Pack'}
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
             <X size={20} className="text-gray-500 dark:text-gray-400" />
           </button>
         </div>
@@ -120,9 +118,7 @@ export function AssetPackModal({ pack, onClose, onSaved }: AssetPackModalProps) 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Pack Name *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pack Name *</label>
             <input
               type="text"
               value={name}
@@ -136,9 +132,7 @@ export function AssetPackModal({ pack, onClose, onSaved }: AssetPackModalProps) 
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Description
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}

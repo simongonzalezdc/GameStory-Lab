@@ -10,7 +10,7 @@ import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared
  */
 export async function validateComplexityEstimate(
   mechanics: MechanicsData,
-  _lore: LoreData
+  _lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const playerActions = mechanics.playerActions || [];
   const resourceSystems = mechanics.resourceSystems || [];
@@ -65,7 +65,7 @@ export async function validateComplexityEstimate(
  */
 export async function validatePerformanceConsiderations(
   mechanics: MechanicsData,
-  _lore: LoreData
+  _lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
 
@@ -91,7 +91,7 @@ export async function validatePerformanceConsiderations(
     return {
       rule: 'performance-considerations',
       severity: 'info',
-      confidence: 0.70,
+      confidence: 0.7,
       message: `Multiple performance-intensive features: ${performanceIntensive.join(', ')}`,
       suggestion: 'Consider optimization strategies: LOD, culling, instancing, simplified physics, etc.',
       location: {
@@ -109,7 +109,7 @@ export async function validatePerformanceConsiderations(
 export async function validateScopeRealityCheck(
   mechanics: MechanicsData,
   lore: LoreData,
-  genre?: string
+  genre?: string,
 ): Promise<ValidationIssue | null> {
   const playerActions = mechanics.playerActions || [];
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
@@ -146,7 +146,7 @@ export async function validateScopeRealityCheck(
     return {
       rule: 'scope-reality-check',
       severity: 'warning',
-      confidence: 0.80,
+      confidence: 0.8,
       message: `Ambitious scope detected: ${ambitiousFeatures.join('; ')}`,
       suggestion: 'Consider starting with simplified version (vertical slice) and expanding if successful',
       location: {
@@ -158,7 +158,7 @@ export async function validateScopeRealityCheck(
     return {
       rule: 'scope-reality-check',
       severity: 'info',
-      confidence: 0.70,
+      confidence: 0.7,
       message: `Ambitious feature: ${ambitiousFeatures[0]}`,
       suggestion: 'Ensure you have resources/team for this feature, or start simpler',
       location: {

@@ -5,13 +5,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import type {
-  IAIClient,
-  AIClientConfig,
-  AICompletionRequest,
-  AICompletionResponse,
-  AIClientError,
-} from './base.js';
+import type { IAIClient, AIClientConfig, AICompletionRequest, AICompletionResponse, AIClientError } from './base.js';
 
 interface OpenRouterMessage {
   role: 'system' | 'user' | 'assistant';
@@ -60,7 +54,7 @@ export class OpenRouterClient implements IAIClient {
     this.client = axios.create({
       baseURL: config.baseUrl || 'https://openrouter.ai/api/v1',
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://github.com/simongonzalezdc/GameStory-Lab',
         'X-Title': 'GameStory Lab',
@@ -84,10 +78,7 @@ export class OpenRouterClient implements IAIClient {
         top_p: request.topP ?? 0.9,
       };
 
-      const response = await this.client.post<OpenRouterResponse>(
-        '/chat/completions',
-        openrouterRequest
-      );
+      const response = await this.client.post<OpenRouterResponse>('/chat/completions', openrouterRequest);
 
       const data = response.data;
       const durationMs = Date.now() - startTime;
@@ -169,22 +160,22 @@ export class OpenRouterClient implements IAIClient {
     const pricing: Record<string, { prompt: number; completion: number }> = {
       'deepseek/deepseek-chat': { prompt: 0.14, completion: 0.28 },
       'deepseek/deepseek-reasoner': { prompt: 0.55, completion: 2.19 },
-      'qwen/qwen-2.5-72b-instruct': { prompt: 0.35, completion: 0.40 },
+      'qwen/qwen-2.5-72b-instruct': { prompt: 0.35, completion: 0.4 },
       'qwen/qwq-32b-preview': { prompt: 0.18, completion: 0.18 },
-      'google/gemini-2.0-flash-exp': { prompt: 0.075, completion: 0.30 },
-      'openai/gpt-4o': { prompt: 2.50, completion: 10.00 },
-      'anthropic/claude-3.5-sonnet': { prompt: 3.00, completion: 15.00 },
+      'google/gemini-2.0-flash-exp': { prompt: 0.075, completion: 0.3 },
+      'openai/gpt-4o': { prompt: 2.5, completion: 10.0 },
+      'anthropic/claude-3.5-sonnet': { prompt: 3.0, completion: 15.0 },
     };
 
     // Normalize model name (remove provider prefix if present)
     const normalizedModel = model.toLowerCase();
-    const modelPricing = Object.entries(pricing).find(([key]) =>
-      normalizedModel.includes(key.toLowerCase())
-    )?.[1] || { prompt: 0.50, completion: 1.00 }; // Default pricing
+    const modelPricing = Object.entries(pricing).find(([key]) => normalizedModel.includes(key.toLowerCase()))?.[1] || {
+      prompt: 0.5,
+      completion: 1.0,
+    }; // Default pricing
 
     const cost =
-      (promptTokens / 1_000_000) * modelPricing.prompt +
-      (completionTokens / 1_000_000) * modelPricing.completion;
+      (promptTokens / 1_000_000) * modelPricing.prompt + (completionTokens / 1_000_000) * modelPricing.completion;
 
     return cost;
   }

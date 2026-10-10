@@ -31,12 +31,7 @@ export const GenerationRequestSchema = z.object({
       .optional(),
     userPrompt: z.string().optional(),
   }),
-  modelPreference: z.union([
-    z.literal('auto'),
-    z.literal('openrouter'),
-    z.literal('ollama'),
-    z.string(),
-  ]).optional(),
+  modelPreference: z.union([z.literal('auto'), z.literal('openrouter'), z.literal('ollama'), z.string()]).optional(),
 });
 
 export const ValidationRequestSchema = z.object({
@@ -52,12 +47,7 @@ export const ExportRequestSchema = z.object({
 
 export const RefinementRequestSchema = z.object({
   conceptId: z.string().uuid(),
-  focus: z.enum([
-    'deepen-mechanics',
-    'enrich-lore',
-    'improve-consistency',
-    'enhance-genre-fit',
-  ]),
+  focus: z.enum(['deepen-mechanics', 'enrich-lore', 'improve-consistency', 'enhance-genre-fit']),
   currentContent: z.object({
     mechanics: z.record(z.unknown()),
     lore: z.record(z.unknown()),
@@ -92,58 +82,62 @@ export const ValidationResponseSchema = z.object({
 // Data Schemas
 // ============================================================================
 
-export const MechanicsDataSchema = z.object({
-  coreLoop: z.string().optional(),
-  playerActions: z.array(z.string()).optional(),
-  progressionSystems: z
-    .object({
-      type: z.enum(['linear', 'branching', 'open']),
-      mechanics: z.array(z.string()),
-    })
-    .optional(),
-  winConditions: z.array(z.string()).optional(),
-  failConditions: z.array(z.string()).optional(),
-  resourceSystems: z
-    .array(
-      z.object({
-        name: z.string(),
-        mechanics: z.string(),
-        scarcity: z.enum(['abundant', 'balanced', 'scarce']),
+export const MechanicsDataSchema = z
+  .object({
+    coreLoop: z.string().optional(),
+    playerActions: z.array(z.string()).optional(),
+    progressionSystems: z
+      .object({
+        type: z.enum(['linear', 'branching', 'open']),
+        mechanics: z.array(z.string()),
       })
-    )
-    .optional(),
-}).passthrough();
+      .optional(),
+    winConditions: z.array(z.string()).optional(),
+    failConditions: z.array(z.string()).optional(),
+    resourceSystems: z
+      .array(
+        z.object({
+          name: z.string(),
+          mechanics: z.string(),
+          scarcity: z.enum(['abundant', 'balanced', 'scarce']),
+        }),
+      )
+      .optional(),
+  })
+  .passthrough();
 
-export const LoreDataSchema = z.object({
-  setting: z
-    .object({
-      era: z.string().optional(),
-      location: z.string().optional(),
-      worldType: z.string().optional(),
-    })
-    .optional(),
-  protagonist: z
-    .object({
-      background: z.string().optional(),
-      motivation: z.string().optional(),
-      abilities: z.array(z.string()).optional(),
-    })
-    .optional(),
-  conflict: z
-    .object({
-      primary: z.string().optional(),
-      secondary: z.array(z.string()).optional(),
-    })
-    .optional(),
-  worldRules: z
-    .object({
-      physics: z.string().optional(),
-      magic: z.string().optional(),
-      technology: z.string().optional(),
-    })
-    .optional(),
-  themes: z.array(z.string()).optional(),
-}).passthrough();
+export const LoreDataSchema = z
+  .object({
+    setting: z
+      .object({
+        era: z.string().optional(),
+        location: z.string().optional(),
+        worldType: z.string().optional(),
+      })
+      .optional(),
+    protagonist: z
+      .object({
+        background: z.string().optional(),
+        motivation: z.string().optional(),
+        abilities: z.array(z.string()).optional(),
+      })
+      .optional(),
+    conflict: z
+      .object({
+        primary: z.string().optional(),
+        secondary: z.array(z.string()).optional(),
+      })
+      .optional(),
+    worldRules: z
+      .object({
+        physics: z.string().optional(),
+        magic: z.string().optional(),
+        technology: z.string().optional(),
+      })
+      .optional(),
+    themes: z.array(z.string()).optional(),
+  })
+  .passthrough();
 
 // ============================================================================
 // Environment Schema

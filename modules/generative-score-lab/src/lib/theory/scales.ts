@@ -64,8 +64,7 @@ export function noteNameToMidi(noteName: string): number {
   }
 
   const [, rawNote, octaveStr] = match;
-  const normalizedNote =
-    ENHARMONIC_EQUIVALENTS[formatNoteName(rawNote)] ?? formatNoteName(rawNote);
+  const normalizedNote = ENHARMONIC_EQUIVALENTS[formatNoteName(rawNote)] ?? formatNoteName(rawNote);
   const octave = parseInt(octaveStr, 10);
 
   return noteToMidi(normalizedNote, octave);

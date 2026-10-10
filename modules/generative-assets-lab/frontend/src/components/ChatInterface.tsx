@@ -65,10 +65,7 @@ export function ChatInterface({ asset, onRefinementComplete, onClose }: ChatInte
           <Wand2 className="h-5 w-5" />
           Refine Asset
         </h2>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-        >
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">
           ×
         </button>
       </div>
@@ -82,12 +79,8 @@ export function ChatInterface({ asset, onRefinementComplete, onClose }: ChatInte
         />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-gray-900 truncate">{asset.file_name}</p>
-          <p className="text-xs text-gray-500 truncate">
-            {asset.generation_prompt || 'No prompt'}
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Version {asset.version_number}
-          </p>
+          <p className="text-xs text-gray-500 truncate">{asset.generation_prompt || 'No prompt'}</p>
+          <p className="text-xs text-gray-400 mt-1">Version {asset.version_number}</p>
         </div>
       </div>
 
@@ -110,9 +103,7 @@ export function ChatInterface({ asset, onRefinementComplete, onClose }: ChatInte
 
       {/* Model Selection */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          AI Provider:
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">AI Provider:</label>
         <select
           value={selectedModel}
           onChange={(e) => setSelectedModel(e.target.value as any)}
@@ -127,9 +118,7 @@ export function ChatInterface({ asset, onRefinementComplete, onClose }: ChatInte
 
       {/* Chat Input */}
       <form onSubmit={handleSubmit} className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Refinement Instruction:
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Refinement Instruction:</label>
         <div className="flex gap-2">
           <input
             type="text"
@@ -160,19 +149,13 @@ export function ChatInterface({ asset, onRefinementComplete, onClose }: ChatInte
       </form>
 
       {/* Error Display */}
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-          {error}
-        </div>
-      )}
+      {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
 
       {/* Loading State */}
       {loading && (
         <div className="text-sm text-gray-600 flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span>
-            Ollama is enhancing your instruction, then generating refined image...
-          </span>
+          <span>Ollama is enhancing your instruction, then generating refined image...</span>
         </div>
       )}
 

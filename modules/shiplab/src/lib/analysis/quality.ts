@@ -72,8 +72,8 @@ async function runESLint(projectPath: string): Promise<{
           'no-empty': 'warn',
           'no-unreachable': 'warn',
           'valid-typeof': 'error',
-          'eqeqeq': ['warn', 'always'],
-          'curly': ['warn', 'all'],
+          eqeqeq: ['warn', 'always'],
+          curly: ['warn', 'all'],
           'no-var': 'warn',
           'prefer-const': 'warn',
         },
@@ -85,13 +85,7 @@ async function runESLint(projectPath: string): Promise<{
     const files = await fg(patterns, {
       cwd: projectPath,
       absolute: true,
-      ignore: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/build/**',
-        '**/.next/**',
-        '**/coverage/**',
-      ],
+      ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**', '**/coverage/**'],
     });
 
     if (files.length === 0) {
@@ -151,13 +145,10 @@ async function runSemgrep(projectPath: string): Promise<{
     }
 
     // Run semgrep with auto config (community rules)
-    const { stdout } = await execAsync(
-      `semgrep --config auto --json --quiet "${projectPath}"`,
-      {
-        maxBuffer: 10 * 1024 * 1024, // 10MB buffer
-        timeout: 60000, // 60 second timeout
-      }
-    );
+    const { stdout } = await execAsync(`semgrep --config auto --json --quiet "${projectPath}"`, {
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+      timeout: 60000, // 60 second timeout
+    });
 
     const result = JSON.parse(stdout);
     const issues: QualityIssue[] = [];

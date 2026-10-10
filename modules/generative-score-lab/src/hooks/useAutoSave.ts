@@ -41,11 +41,7 @@ export function useAutoSave(): void {
           // The markClean() call above ensures we don't save again immediately
         }
       } catch (error) {
-        errorHandler.handle(
-          error,
-          'Auto-Save',
-          ErrorSeverity.WARNING
-        );
+        errorHandler.handle(error, 'Auto-Save', ErrorSeverity.WARNING);
       }
     }, AUTO_SAVE_INTERVAL);
 
@@ -64,11 +60,7 @@ export function useAutoSave(): void {
           };
           localStorage.setItem('generative-score-lab-autosave', JSON.stringify(autoSaveData));
         } catch (error) {
-          errorHandler.handle(
-            error,
-            'Auto-Save (on unmount)',
-            ErrorSeverity.WARNING
-          );
+          errorHandler.handle(error, 'Auto-Save (on unmount)', ErrorSeverity.WARNING);
         }
       }
     };
@@ -99,4 +91,3 @@ export function getAutoSavedProject(): { project: unknown; timestamp: string } |
 export function clearAutoSave(): void {
   localStorage.removeItem('generative-score-lab-autosave');
 }
-

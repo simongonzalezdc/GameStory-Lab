@@ -12,7 +12,7 @@ import {
   ArrowRight,
   Zap,
   Shield,
-  Code2
+  Code2,
 } from 'lucide-react';
 
 export default function Home() {
@@ -26,12 +26,11 @@ export default function Home() {
             AI-Powered Post-Production Toolkit
           </div>
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
-            Transform Finished Code into{' '}
-            <span className="text-primary">Shipped Products</span>
+            Transform Finished Code into <span className="text-primary">Shipped Products</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            ShipLab uses AI to generate documentation, marketing content, deployment configs, and more -
-            everything you need to launch your project successfully.
+            ShipLab uses AI to generate documentation, marketing content, deployment configs, and
+            more - everything you need to launch your project successfully.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/dashboard">
@@ -64,7 +63,8 @@ export default function Home() {
               <FileSearch className="h-12 w-12 text-primary mb-4" />
               <CardTitle>Code Quality Analysis</CardTitle>
               <CardDescription>
-                Scan your code with ESLint and Semgrep to find bugs, security issues, and code smells
+                Scan your code with ESLint and Semgrep to find bugs, security issues, and code
+                smells
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -174,8 +174,7 @@ export default function Home() {
             <CardContent>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  8 popular licenses
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />8 popular licenses
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -238,9 +237,7 @@ export default function Home() {
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 bg-primary/5">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Ship Faster?
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Ship Faster?</h2>
           <p className="text-xl text-muted-foreground mb-8">
             Join developers who are shipping better products with AI-powered tools
           </p>

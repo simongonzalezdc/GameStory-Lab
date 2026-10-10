@@ -16,39 +16,42 @@ export default function SceneEditor() {
 
   // Memoize scene lookup - use JSON.stringify to detect deep changes
   const currentScene = useMemo(
-    () => project?.scenes.find(s => s.id === currentSceneId),
+    () => project?.scenes.find((s) => s.id === currentSceneId),
     [project?.scenes, currentSceneId]
   );
 
   // Create a stable reference that changes when scene data changes
   const sceneDataString = useMemo(
-    () => currentScene ? JSON.stringify({
-      id: currentScene.id,
-      bpm: currentScene.bpm,
-      key: currentScene.key,
-      scale: currentScene.scale,
-      intensityRange: currentScene.intensityRange,
-      tracks: (currentScene.tracks ?? []).map(t => ({
-        id: t.id,
-        muted: t.muted,
-        solo: t.solo,
-        volume: t.volume,
-        pan: t.pan,
-        clips: (t.clips ?? []).map(c => ({
-          id: c.id,
-          muted: c.muted,
-          generator: c.generator,
-          lengthBars: c.lengthBars,
-          offset: c.offset || 0,
-          customNotes: (c.customNotes ?? []).map(note => [
-            note.pitch,
-            note.time,
-            note.duration,
-            note.velocity,
-          ]),
-        })),
-      })),
-    }) : null,
+    () =>
+      currentScene
+        ? JSON.stringify({
+            id: currentScene.id,
+            bpm: currentScene.bpm,
+            key: currentScene.key,
+            scale: currentScene.scale,
+            intensityRange: currentScene.intensityRange,
+            tracks: (currentScene.tracks ?? []).map((t) => ({
+              id: t.id,
+              muted: t.muted,
+              solo: t.solo,
+              volume: t.volume,
+              pan: t.pan,
+              clips: (t.clips ?? []).map((c) => ({
+                id: c.id,
+                muted: c.muted,
+                generator: c.generator,
+                lengthBars: c.lengthBars,
+                offset: c.offset || 0,
+                customNotes: (c.customNotes ?? []).map((note) => [
+                  note.pitch,
+                  note.time,
+                  note.duration,
+                  note.velocity,
+                ]),
+              })),
+            })),
+          })
+        : null,
     [currentScene]
   );
 
@@ -147,7 +150,7 @@ export default function SceneEditor() {
       ctrl: true,
       action: () => {
         if (!isTypingInInput() && project) {
-          const currentIndex = project.scenes.findIndex(s => s.id === currentSceneId);
+          const currentIndex = project.scenes.findIndex((s) => s.id === currentSceneId);
           if (currentIndex > 0) {
             setCurrentScene(project.scenes[currentIndex - 1].id);
           }
@@ -160,7 +163,7 @@ export default function SceneEditor() {
       ctrl: true,
       action: () => {
         if (!isTypingInInput() && project) {
-          const currentIndex = project.scenes.findIndex(s => s.id === currentSceneId);
+          const currentIndex = project.scenes.findIndex((s) => s.id === currentSceneId);
           if (currentIndex < project.scenes.length - 1) {
             setCurrentScene(project.scenes[currentIndex + 1].id);
           }
@@ -193,11 +196,7 @@ export default function SceneEditor() {
         <div className="bg-white border-b border-gray-200 p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentScene(null)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => setCurrentScene(null)}>
                 ← Back to Scenes
               </Button>
               <h2 className="text-xl font-bold text-gray-900 mt-2">{currentScene.name}</h2>
@@ -205,22 +204,23 @@ export default function SceneEditor() {
                 {currentScene.key} {currentScene.scale} • {currentScene.bpm || project?.bpm} BPM
               </p>
             </div>
-            <div className="flex gap-2" data-tutorial="playback" role="toolbar" aria-label="Playback controls">
-              <Button 
+            <div
+              className="flex gap-2"
+              data-tutorial="playback"
+              role="toolbar"
+              aria-label="Playback controls"
+            >
+              <Button
                 onClick={handlePlayPause}
                 aria-label={isPlaying ? 'Pause playback' : 'Start playback'}
               >
                 {isPlaying ? '⏸ Pause' : '▶ Play'}
               </Button>
-              <Button 
-                onClick={handleStop} 
-                variant="secondary"
-                aria-label="Stop playback"
-              >
+              <Button onClick={handleStop} variant="secondary" aria-label="Stop playback">
                 ⏹ Stop
               </Button>
-              <Button 
-                onClick={() => setShowMidiExport(true)} 
+              <Button
+                onClick={() => setShowMidiExport(true)}
                 variant="secondary"
                 aria-label="Export MIDI file"
               >

@@ -4,7 +4,13 @@
  */
 
 import { BaseGenerator } from './base-generator';
-import type { GeneratorConfig, GenerationContext, NoteSequence, Note, EuclideanParams } from '@/types';
+import type {
+  GeneratorConfig,
+  GenerationContext,
+  NoteSequence,
+  Note,
+  EuclideanParams,
+} from '@/types';
 import { noteToMidi } from '../theory/scales';
 
 export class EuclideanGenerator extends BaseGenerator {
@@ -13,7 +19,7 @@ export class EuclideanGenerator extends BaseGenerator {
     this.validateContext(context);
 
     const params = config.params as EuclideanParams;
-    
+
     // Validate euclidean parameters
     if (params.steps < 1 || params.steps > 64) {
       throw new Error('Euclidean steps must be between 1 and 64');
@@ -38,11 +44,11 @@ export class EuclideanGenerator extends BaseGenerator {
         const pitch = this.getPitchForRole(params.patternRole, context);
         // For kick drums, use longer duration and higher velocity for better audibility
         const isKick = params.patternRole === 'kick';
-        const duration = isKick 
+        const duration = isKick
           ? Math.min(stepDuration * 0.9, 0.3) // Longer duration for kick
           : Math.min(stepDuration * 0.8, 0.1); // Short hit for other drums
         const velocity = isKick ? 1.0 : 0.8; // Full velocity for kick
-        
+
         notes.push({
           time: index * stepDuration,
           pitch,

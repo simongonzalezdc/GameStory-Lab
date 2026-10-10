@@ -7,11 +7,7 @@ import { InterviewManager } from './interview-manager.js';
 import { DocumentGenerator } from './document-generator.js';
 import { AIDocumentGenerator } from './ai-document-generator.js';
 import { ContextBuilder } from './context-builder.js';
-import {
-  DocumentationPackage,
-  GeneratedDocument,
-  DOCUMENT_TEMPLATES,
-} from './types.js';
+import { DocumentationPackage, GeneratedDocument, DOCUMENT_TEMPLATES } from './types.js';
 import { INTERVIEW_QUESTIONS } from './interview-questions.js';
 import { logger } from '../../utils/logger.js';
 
@@ -78,16 +74,13 @@ export class ArchitectService {
    * Start async AI-powered documentation generation
    * Returns immediately with 202 status, processes in background
    */
-  async generateDocumentation(
-    projectId: string,
-    sessionId: string
-  ): Promise<{ status: 'accepted'; message: string }> {
+  async generateDocumentation(projectId: string, sessionId: string): Promise<{ status: 'accepted'; message: string }> {
     // Check if generation is already in progress
     const existingPackage = this.documentationPackages.get(projectId);
     if (existingPackage?.generationStatus === 'generating') {
       return {
         status: 'accepted',
-        message: 'Documentation generation already in progress'
+        message: 'Documentation generation already in progress',
       };
     }
 
@@ -110,34 +103,26 @@ export class ArchitectService {
     this.documentationPackages.set(projectId, documentationPackage);
 
     // Start background generation
-    this.performAsyncGeneration(projectId, sessionId, context)
-      .catch(error => {
-        console.error('[ArchitectService] Background generation failed:', error);
-        this.updatePackageStatus(projectId, 'failed');
-      });
+    this.performAsyncGeneration(projectId, sessionId, context).catch((error) => {
+      console.error('[ArchitectService] Background generation failed:', error);
+      this.updatePackageStatus(projectId, 'failed');
+    });
 
     return {
       status: 'accepted',
-      message: 'Documentation generation started. This may take 30-60 seconds.'
+      message: 'Documentation generation started. This may take 30-60 seconds.',
     };
   }
 
   /**
    * Generate documentation synchronously (fallback method)
    */
-  async generateDocumentationSync(
-    projectId: string,
-    sessionId: string
-  ): Promise<DocumentationPackage> {
+  async generateDocumentationSync(projectId: string, sessionId: string): Promise<DocumentationPackage> {
     // Build context from interview answers
     const context = this.interviewManager.buildProjectContext(sessionId);
 
     // Generate all documents
-    const documentationPackage = await this.documentGenerator.generateDocumentation(
-      projectId,
-      sessionId,
-      context
-    );
+    const documentationPackage = await this.documentGenerator.generateDocumentation(projectId, sessionId, context);
 
     // Store the package (in production, save to database)
     this.documentationPackages.set(projectId, documentationPackage);
@@ -168,7 +153,7 @@ export class ArchitectService {
    */
   applyAssistantUpdates(
     projectId: string,
-    updates: Array<{ name: string; content: string }>
+    updates: Array<{ name: string; content: string }>,
   ): DocumentationPackage | null {
     const sanitizedUpdates = this.normalizeDocumentUpdates(updates);
 
@@ -180,12 +165,12 @@ export class ArchitectService {
     console.log('[ArchitectService] applyAssistantUpdates called', {
       projectId,
       updateCount: updates.length,
-      updateNames: updates.map(u => u.name),
-      updateSizes: updates.map(u => u.content?.length || 0),
+      updateNames: updates.map((u) => u.name),
+      updateSizes: updates.map((u) => u.content?.length || 0),
     });
 
     const pkg = this.documentationPackages.get(projectId);
-    
+
     // If no package exists, create a new one with the assistant's documents
     if (!pkg) {
       console.log('[ArchitectService] Creating new documentation package', { projectId });
@@ -204,12 +189,12 @@ export class ArchitectService {
         generatedAt: new Date(),
         generationStatus: 'completed' as const,
       };
-      
+
       this.documentationPackages.set(projectId, newPackage);
       console.log('[ArchitectService] New documentation package created', {
         projectId,
         documentCount: newPackage.documents.length,
-        documentNames: newPackage.documents.map(d => d.templateName),
+        documentNames: newPackage.documents.map((d) => d.templateName),
       });
       return newPackage;
     }
@@ -217,7 +202,7 @@ export class ArchitectService {
     // Update existing documents
     const updatedDocuments = pkg.documents.map((doc) => {
       const update = sanitizedUpdates.find(
-        (u) => u.name === doc.templateName || u.name === doc.templateName.replace('.md', '')
+        (u) => u.name === doc.templateName || u.name === doc.templateName.replace('.md', ''),
       );
       if (update) {
         return {
@@ -230,7 +215,7 @@ export class ArchitectService {
     });
 
     // Add any new documents that don't exist yet
-    const existingNames = new Set(pkg.documents.map(d => d.templateName));
+    const existingNames = new Set(pkg.documents.map((d) => d.templateName));
     sanitizedUpdates.forEach((update) => {
       const docName = update.name;
       if (!existingNames.has(docName)) {
@@ -252,7 +237,9 @@ export class ArchitectService {
     return updatedPackage;
   }
 
-  private normalizeDocumentUpdates(updates: Array<{ name: string; content: string }>): Array<{ name: string; content: string }> {
+  private normalizeDocumentUpdates(
+    updates: Array<{ name: string; content: string }>,
+  ): Array<{ name: string; content: string }> {
     return updates
       .map((update, index) => {
         if (!update) return null;
@@ -307,7 +294,7 @@ export class ArchitectService {
    * Create initial documents with generating status
    */
   private createInitialDocuments(): GeneratedDocument[] {
-    return DOCUMENT_TEMPLATES.map(template => ({
+    return DOCUMENT_TEMPLATES.map((template) => ({
       templateName: template.filename.replace('.md', ''),
       content: '',
       generatedAt: new Date(),
@@ -318,11 +305,7 @@ export class ArchitectService {
   /**
    * Perform async AI document generation in background
    */
-  private async performAsyncGeneration(
-    projectId: string,
-    sessionId: string,
-    context: any
-  ): Promise<void> {
+  private async performAsyncGeneration(projectId: string, sessionId: string, context: any): Promise<void> {
     try {
       console.log('[ArchitectService] Starting AI document generation', { projectId, sessionId });
 
@@ -335,11 +318,11 @@ export class ArchitectService {
         throw new Error('Documentation package not found');
       }
 
-        // Update documents with generated content
-      const updatedDocuments = package_.documents.map(doc => {
+      // Update documents with generated content
+      const updatedDocuments = package_.documents.map((doc) => {
         // Match AI result by comparing documentType enum value with templateName
         // Both should be the same format: 'technical-specification', 'product-requirements', etc.
-        const aiResult = result.documents.find(d => {
+        const aiResult = result.documents.find((d) => {
           // Normalize both values for comparison (remove any .md suffix if present)
           const docType = d.documentType;
           const templateName = doc.templateName.replace('.md', '');
@@ -373,7 +356,6 @@ export class ArchitectService {
         totalTimeMs: result.totalTimeMs,
         failedDocuments: result.failedDocuments.length,
       });
-
     } catch (error) {
       console.error('[ArchitectService] AI document generation failed:', error);
       this.updatePackageStatus(projectId, 'failed');

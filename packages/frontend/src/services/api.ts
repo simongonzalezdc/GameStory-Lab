@@ -13,7 +13,7 @@ export class APIError extends Error {
   constructor(
     message: string,
     public status: number,
-    public data?: any
+    public data?: any,
   ) {
     super(message);
     this.name = 'APIError';
@@ -33,25 +33,26 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   // Add timeout for long-running requests (like generation, refinement, and assistant)
   // Note: TypeScript doesn't know about our custom timeout option, so we'll handle it manually
-  const isLongRunning = endpoint.includes('/generate') || 
-                        endpoint.includes('/refinement') || 
-                        endpoint.includes('/assistant') ||
-                        endpoint.includes('/architect') ||
-                        endpoint.includes('/blend-intelligent'); // LLM-enhanced blending
+  const isLongRunning =
+    endpoint.includes('/generate') ||
+    endpoint.includes('/refinement') ||
+    endpoint.includes('/assistant') ||
+    endpoint.includes('/architect') ||
+    endpoint.includes('/blend-intelligent'); // LLM-enhanced blending
   let customTimeout = (options as any).timeout || (isLongRunning ? 300000 : 30000); // 5 min for AI operations, 30s default
-  
+
   // Ensure we always use the longer timeout for assistant and AI-enhanced blending endpoints
   if ((endpoint.includes('/assistant') || endpoint.includes('/blend-intelligent')) && customTimeout < 300000) {
     customTimeout = 300000;
   }
-  
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), customTimeout);
   config.signal = controller.signal;
 
   try {
     console.log(`[API] ${options.method || 'GET'} ${url}`, options.body ? JSON.parse(options.body as string) : '');
-    
+
     const response = await fetch(url, config);
     clearTimeout(timeoutId);
 
@@ -61,7 +62,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
       throw new APIError(
         errorData.error?.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`,
         response.status,
-        errorData
+        errorData,
       );
     }
 
@@ -83,25 +84,25 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     return data;
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     if (error instanceof APIError) {
       throw error;
     }
-    
+
     if (error instanceof Error && error.name === 'AbortError') {
       console.error(`[API] Request timeout after ${customTimeout}ms:`, url);
       throw new APIError(
         `Request timed out after ${customTimeout / 1000} seconds. The AI model may be taking longer than expected.`,
         0,
-        { timeout: true }
+        { timeout: true },
       );
     }
-    
+
     console.error(`[API] Network error:`, error);
     throw new APIError(
       error instanceof Error ? error.message : 'Network error - check if backend is running',
       0,
-      error
+      error,
     );
   }
 }
@@ -159,7 +160,10 @@ export const templatesAPI = {
       body: JSON.stringify(data),
     }),
 
-  createProject: (genre: string, data: { projectName: string; mechanicsOverrides?: any; loreOverrides?: any; designOptions?: TemplateDesignOptions }) =>
+  createProject: (
+    genre: string,
+    data: { projectName: string; mechanicsOverrides?: any; loreOverrides?: any; designOptions?: TemplateDesignOptions },
+  ) =>
     request<{ project: any; concept: any }>(`/api/templates/${genre}/create-project`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -171,10 +175,13 @@ export const templatesAPI = {
       body: JSON.stringify(data),
     }),
 
-  blendIntelligent: (data: { genres: Array<{ genre: string; weight: number }>; designOptions?: TemplateDesignOptions }) =>
-    request<{ 
-      enhanced: boolean; 
-      template: any; 
+  blendIntelligent: (data: {
+    genres: Array<{ genre: string; weight: number }>;
+    designOptions?: TemplateDesignOptions;
+  }) =>
+    request<{
+      enhanced: boolean;
+      template: any;
       analysis: {
         conflicts: Array<{
           type: 'mechanics' | 'lore' | 'setting' | 'conflict' | 'themes';
@@ -196,11 +203,18 @@ export const templatesAPI = {
       timeout: 300000, // 300 seconds (5 minutes) for complex LLM analysis
     }),
 
-  blendAndCreate: (data: { projectName: string; genres: Array<{ genre: string; weight: number }>; designOptions?: TemplateDesignOptions }) =>
-    request<{ project: any; version: any; blendedTemplate: string; sourceGenres: any; message: string }>('/api/templates/blend-and-create', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+  blendAndCreate: (data: {
+    projectName: string;
+    genres: Array<{ genre: string; weight: number }>;
+    designOptions?: TemplateDesignOptions;
+  }) =>
+    request<{ project: any; version: any; blendedTemplate: string; sourceGenres: any; message: string }>(
+      '/api/templates/blend-and-create',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+    ),
 };
 
 // Generation API
@@ -299,19 +313,18 @@ export const healthAPI = {
 
 // Assistant API
 export const assistantAPI = {
-  startSession: (data: { projectId: string; type?: 'concept' | 'architect' | 'project'; mode?: 'concept' | 'architect' | 'auto' }) =>
+  startSession: (data: {
+    projectId: string;
+    type?: 'concept' | 'architect' | 'project';
+    mode?: 'concept' | 'architect' | 'auto';
+  }) =>
     request<{ session: any; messages: any[]; proposals: any[] }>('/api/assistant/session', {
       method: 'POST',
       body: JSON.stringify(data),
       timeout: 30000, // 30 seconds for session start
     } as any),
 
-  sendMessage: (
-    sessionId: string,
-    content: string,
-    mode?: 'concept' | 'architect' | 'auto',
-    quickActionId?: string
-  ) =>
+  sendMessage: (sessionId: string, content: string, mode?: 'concept' | 'architect' | 'auto', quickActionId?: string) =>
     request<{ message: any; proposal?: any }>(`/api/assistant/session/${sessionId}/message`, {
       method: 'POST',
       body: JSON.stringify({ content, mode, quickActionId }),
@@ -324,11 +337,9 @@ export const assistantAPI = {
       body: JSON.stringify({ mode }),
     } as any),
 
-  getMessages: (sessionId: string) =>
-    request<{ messages: any[] }>(`/api/assistant/session/${sessionId}/messages`),
+  getMessages: (sessionId: string) => request<{ messages: any[] }>(`/api/assistant/session/${sessionId}/messages`),
 
-  getProposals: (sessionId: string) =>
-    request<{ proposals: any[] }>(`/api/assistant/session/${sessionId}/proposals`),
+  getProposals: (sessionId: string) => request<{ proposals: any[] }>(`/api/assistant/session/${sessionId}/proposals`),
 
   acceptProposal: (sessionId: string, proposalId: string) =>
     request<{ success: boolean; result: any }>(`/api/assistant/proposals/${proposalId}/accept`, {

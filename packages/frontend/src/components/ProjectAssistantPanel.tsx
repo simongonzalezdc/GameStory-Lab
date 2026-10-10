@@ -87,7 +87,7 @@ export function ProjectAssistantPanel({
           label: '📖 Enrich Lore',
           type: 'refine',
           focus: 'enrich-lore',
-        }
+        },
       );
     }
 
@@ -110,7 +110,7 @@ export function ProjectAssistantPanel({
       marginLeft: 'auto',
       boxShadow: 'var(--chat-bubble-user-shadow)',
     }),
-    []
+    [],
   );
 
   const assistantBubbleStyle = useMemo(
@@ -127,7 +127,7 @@ export function ProjectAssistantPanel({
       maxWidth: 'var(--chat-message-max-width)',
       boxShadow: 'var(--chat-bubble-assistant-shadow)',
     }),
-    []
+    [],
   );
 
   // Helper function to format JSON strings
@@ -164,12 +164,12 @@ export function ProjectAssistantPanel({
       }
       let codeContent = match[2];
       const lang = match[1]?.toLowerCase() || undefined;
-      
+
       // Auto-detect and format JSON
       if (lang === 'json' || (!lang && isJSON(codeContent))) {
         codeContent = formatJSON(codeContent);
       }
-      
+
       segments.push({ type: 'code', lang: lang || (isJSON(codeContent) ? 'json' : undefined), content: codeContent });
       lastIndex = codeRegex.lastIndex;
     }
@@ -191,27 +191,33 @@ export function ProjectAssistantPanel({
       }
       if (match[2] && match[3]) {
         parts.push(
-          <a key={`${keyPrefix}-${idx++}`} href={match[3]} target="_blank" rel="noreferrer" className="text-brand-200 underline">
+          <a
+            key={`${keyPrefix}-${idx++}`}
+            href={match[3]}
+            target="_blank"
+            rel="noreferrer"
+            className="text-brand-200 underline"
+          >
             {match[2]}
-          </a>
+          </a>,
         );
       } else if (match[5]) {
         parts.push(
           <code key={`${keyPrefix}-${idx++}`} className="inline-code">
             {match[5]}
-          </code>
+          </code>,
         );
       } else if (match[7]) {
         parts.push(
           <strong key={`${keyPrefix}-${idx++}`} className="text-[var(--color-text-primary)]">
             {match[7]}
-          </strong>
+          </strong>,
         );
       } else if (match[9]) {
         parts.push(
           <em key={`${keyPrefix}-${idx++}`} className="text-[var(--color-text-secondary)]">
             {match[9]}
-          </em>
+          </em>,
         );
       }
       lastIndex = regex.lastIndex;
@@ -230,26 +236,26 @@ export function ProjectAssistantPanel({
     let braceType: '{' | '[' | null = null;
     let inString = false;
     let escapeNext = false;
-    
+
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
-      
+
       if (escapeNext) {
         escapeNext = false;
         continue;
       }
-      
+
       if (char === '\\') {
         escapeNext = true;
         continue;
       }
-      
+
       // Track string boundaries (don't count braces inside strings)
       if (char === '"' && !escapeNext) {
         inString = !inString;
         continue;
       }
-      
+
       if (!inString) {
         if (char === '{' || char === '[') {
           if (depth === 0) {
@@ -271,24 +277,25 @@ export function ProjectAssistantPanel({
         }
       }
     }
-    
+
     return results;
   };
 
   const renderTextSegment = (text: string, keyPrefix: string) => {
     const trimmed = text.trim();
-    
+
     // Check if the entire text segment is a JSON object/array (not in code blocks)
     if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
       if (isJSON(trimmed)) {
         // Render as a formatted JSON code block
         return (
           <div key={`${keyPrefix}-json`} className="relative">
-            <div className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
-              style={{ 
+            <div
+              className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
+              style={{
                 backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
                 color: 'var(--color-text-tertiary)',
-                borderBottom: '1px solid var(--color-border-subtle)'
+                borderBottom: '1px solid var(--color-border-subtle)',
               }}
             >
               JSON
@@ -308,13 +315,13 @@ export function ProjectAssistantPanel({
         );
       }
     }
-    
+
     // Check for JSON objects/arrays embedded within text
     const jsonMatches = findJSONInText(text);
     if (jsonMatches.length > 0) {
       const parts: React.ReactNode[] = [];
       let lastIndex = 0;
-      
+
       jsonMatches.forEach((match, idx) => {
         // Add text before JSON
         if (match.start > lastIndex) {
@@ -323,19 +330,20 @@ export function ProjectAssistantPanel({
             parts.push(
               <span key={`${keyPrefix}-before-${idx}`} className="text-[var(--color-text-secondary)]">
                 {renderInline(beforeText, `${keyPrefix}-before-${idx}`)}
-              </span>
+              </span>,
             );
           }
         }
-        
+
         // Add formatted JSON block
         parts.push(
           <div key={`${keyPrefix}-json-${idx}`} className="relative my-2">
-            <div className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
-              style={{ 
+            <div
+              className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
+              style={{
                 backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
                 color: 'var(--color-text-tertiary)',
-                borderBottom: '1px solid var(--color-border-subtle)'
+                borderBottom: '1px solid var(--color-border-subtle)',
               }}
             >
               JSON
@@ -351,12 +359,12 @@ export function ProjectAssistantPanel({
             >
               <code className="whitespace-pre-wrap break-words">{formatJSON(match.json)}</code>
             </pre>
-          </div>
+          </div>,
         );
-        
+
         lastIndex = match.end;
       });
-      
+
       // Add remaining text after last JSON
       if (lastIndex < text.length) {
         const afterText = text.substring(lastIndex);
@@ -364,22 +372,23 @@ export function ProjectAssistantPanel({
           parts.push(
             <span key={`${keyPrefix}-after`} className="text-[var(--color-text-secondary)]">
               {renderInline(afterText, `${keyPrefix}-after`)}
-            </span>
+            </span>,
           );
         }
       }
-      
+
       return <div key={keyPrefix}>{parts}</div>;
     }
-    
+
     const calloutMatch = trimmed.match(/^(INFO|WARNING|WARN|ERROR):?\s*(.*)$/i);
     if (calloutMatch) {
       const level = calloutMatch[1].toLowerCase();
       const body = calloutMatch[2] || '';
-      const bg =
-        level.startsWith('err') ? 'validation-error' :
-        level.startsWith('warn') ? 'validation-warning' :
-        'validation-info';
+      const bg = level.startsWith('err')
+        ? 'validation-error'
+        : level.startsWith('warn')
+          ? 'validation-warning'
+          : 'validation-info';
       return (
         <div key={`${keyPrefix}-callout`} className={`rounded-md border px-3 py-2 text-sm ${bg}`}>
           <div className="font-semibold mb-1 uppercase tracking-wide text-xs">{calloutMatch[1]}</div>
@@ -396,11 +405,16 @@ export function ProjectAssistantPanel({
     const flushBullets = () => {
       if (bulletBuffer.length) {
         nodes.push(
-          <ul key={`${keyPrefix}-ul-${nodes.length}`} className="list-disc list-inside space-y-1.5 my-2 text-[var(--color-text-secondary)]">
+          <ul
+            key={`${keyPrefix}-ul-${nodes.length}`}
+            className="list-disc list-inside space-y-1.5 my-2 text-[var(--color-text-secondary)]"
+          >
             {bulletBuffer.map((item, idx) => (
-              <li key={`${keyPrefix}-li-${idx}`} className="leading-relaxed">{renderInline(item.trim(), `${keyPrefix}-li-${idx}`)}</li>
+              <li key={`${keyPrefix}-li-${idx}`} className="leading-relaxed">
+                {renderInline(item.trim(), `${keyPrefix}-li-${idx}`)}
+              </li>
             ))}
-          </ul>
+          </ul>,
         );
         bulletBuffer = [];
       }
@@ -409,11 +423,16 @@ export function ProjectAssistantPanel({
     const flushNumbered = () => {
       if (numberedBuffer.length) {
         nodes.push(
-          <ol key={`${keyPrefix}-ol-${nodes.length}`} className="list-decimal list-inside space-y-1.5 my-2 text-[var(--color-text-secondary)]">
+          <ol
+            key={`${keyPrefix}-ol-${nodes.length}`}
+            className="list-decimal list-inside space-y-1.5 my-2 text-[var(--color-text-secondary)]"
+          >
             {numberedBuffer.map((item, idx) => (
-              <li key={`${keyPrefix}-nli-${idx}`} className="leading-relaxed">{renderInline(item.text.trim(), `${keyPrefix}-nli-${idx}`)}</li>
+              <li key={`${keyPrefix}-nli-${idx}`} className="leading-relaxed">
+                {renderInline(item.text.trim(), `${keyPrefix}-nli-${idx}`)}
+              </li>
             ))}
-          </ol>
+          </ol>,
         );
         numberedBuffer = [];
       }
@@ -421,7 +440,7 @@ export function ProjectAssistantPanel({
 
     lines.forEach((line, idx) => {
       const trimmedLine = line.trim();
-      
+
       // Check for headers (# ## ###)
       const headerMatch = trimmedLine.match(/^(#{1,3})\s+(.+)$/);
       if (headerMatch) {
@@ -432,16 +451,16 @@ export function ProjectAssistantPanel({
         const HeadingTag = `h${Math.min(level + 2, 6)}` as React.ElementType;
         const sizeClass = level === 1 ? 'text-lg' : level === 2 ? 'text-base' : 'text-sm';
         nodes.push(
-          <HeadingTag 
-            key={`${keyPrefix}-h-${idx}`} 
+          <HeadingTag
+            key={`${keyPrefix}-h-${idx}`}
             className={`${sizeClass} font-bold text-[var(--color-text-primary)] mt-3 mb-2 leading-tight`}
           >
             {renderInline(text, `${keyPrefix}-h-${idx}`)}
-          </HeadingTag>
+          </HeadingTag>,
         );
         return;
       }
-      
+
       // Check for numbered lists (1. 2. 3.)
       const numberedMatch = trimmedLine.match(/^(\d+)\.\s+(.+)$/);
       if (numberedMatch) {
@@ -449,14 +468,14 @@ export function ProjectAssistantPanel({
         numberedBuffer.push({ num: numberedMatch[1], text: numberedMatch[2] });
         return;
       }
-      
+
       // Check for bullet lists (- or *)
       if (/^\s*[-*]\s+/.test(line)) {
         flushNumbered();
         bulletBuffer.push(line.replace(/^\s*[-*]\s+/, ''));
         return;
       }
-      
+
       // Empty line - flush buffers and add spacing
       if (trimmedLine === '') {
         flushBullets();
@@ -467,17 +486,17 @@ export function ProjectAssistantPanel({
         }
         return;
       }
-      
+
       // Regular text
       flushBullets();
       flushNumbered();
       nodes.push(
         <p key={`${keyPrefix}-p-${idx}`} className="text-[var(--color-text-secondary)] leading-relaxed mb-1">
           {renderInline(line, `${keyPrefix}-p-${idx}`)}
-        </p>
+        </p>,
       );
     });
-    
+
     flushBullets();
     flushNumbered();
 
@@ -513,11 +532,15 @@ export function ProjectAssistantPanel({
     setSession(null);
     setMessages([]);
     setProposals([]);
-    
+
     // Use a special "general" projectId when no project is selected
     const effectiveProjectId = projectId || 'general';
-    
-    console.log('[Assistant] Starting unified session:', { projectId: effectiveProjectId, type: 'project', mode: currentMode });
+
+    console.log('[Assistant] Starting unified session:', {
+      projectId: effectiveProjectId,
+      type: 'project',
+      mode: currentMode,
+    });
     assistantAPI
       .startSession({ projectId: effectiveProjectId, type: 'project', mode: currentMode })
       .then((data) => {
@@ -528,33 +551,41 @@ export function ProjectAssistantPanel({
             ...msg,
             role: msg.role === 'assistant' ? 'assistant' : 'user',
             createdAt: msg.createdAt || new Date().toISOString(),
-          }))
+          })),
         );
         setProposals(data.proposals as AssistantProposal[]);
         // Auto-show proposals if they exist
         if (data.proposals && data.proposals.length > 0) {
           setShowProposals(true);
         }
-        
+
         // Set current mode from session metadata
         if (data.session?.metadata?.mode) {
           setCurrentMode(data.session.metadata.mode);
         }
-        
+
         setInitializing(false);
-        
+
         // For architect mode, automatically send a greeting to trigger the interview
-        if ((currentMode === 'architect' || initialMode === 'architect') && data.messages.length === 0 && data.session?.id) {
+        if (
+          (currentMode === 'architect' || initialMode === 'architect') &&
+          data.messages.length === 0 &&
+          data.session?.id
+        ) {
           // Wait a moment for the session to be fully initialized, then send greeting
           setTimeout(async () => {
             try {
-              const response = await assistantAPI.sendMessage(data.session.id, 'Hi! I\'m ready to create documentation for my game.', 'architect');
+              const response = await assistantAPI.sendMessage(
+                data.session.id,
+                "Hi! I'm ready to create documentation for my game.",
+                'architect',
+              );
               setMessages((prev) => [
                 ...prev,
                 {
                   ...response.message,
                   createdAt: response.message.createdAt || new Date().toISOString(),
-                }
+                },
               ]);
               if (response.proposal) {
                 setProposals((prev) => [response.proposal as AssistantProposal, ...prev]);
@@ -569,7 +600,10 @@ export function ProjectAssistantPanel({
       })
       .catch((err) => {
         console.error('[Assistant] Failed to start session:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Failed to start assistant session. Please check your connection and try again.';
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'Failed to start assistant session. Please check your connection and try again.';
         setError(errorMessage);
         setInitializing(false);
       });
@@ -590,7 +624,7 @@ export function ProjectAssistantPanel({
 
   const handleSend = async (
     overrideMessage?: string,
-    options?: { quickActionId?: string; modeOverride?: 'concept' | 'architect' | 'auto' }
+    options?: { quickActionId?: string; modeOverride?: 'concept' | 'architect' | 'auto' },
   ) => {
     if (loading) return;
     if (!session?.id) return;
@@ -603,7 +637,7 @@ export function ProjectAssistantPanel({
     if (!overrideMessage) {
       setInput('');
     }
-    
+
     // Add user message immediately for better UX
     const tempUserMessage = {
       id: crypto.randomUUID(),
@@ -613,7 +647,7 @@ export function ProjectAssistantPanel({
       metadata: options?.quickActionId ? { quickActionId: options.quickActionId } : undefined,
     };
     setMessages((prev) => [...prev, tempUserMessage]);
-    
+
     try {
       const modeToUse = options?.modeOverride || currentMode;
       console.log('[Assistant] Sending message:', {
@@ -622,14 +656,9 @@ export function ProjectAssistantPanel({
         mode: modeToUse,
         quickActionId: options?.quickActionId,
       });
-      const response: any = await assistantAPI.sendMessage(
-        session.id,
-        userMessage,
-        modeToUse,
-        options?.quickActionId
-      );
+      const response: any = await assistantAPI.sendMessage(session.id, userMessage, modeToUse, options?.quickActionId);
       console.log('[Assistant] Received response:', response);
-      
+
       // Log debug info if available
       if ((response as any).debug) {
         const dbg = (response as any).debug;
@@ -639,15 +668,15 @@ export function ProjectAssistantPanel({
         console.log('[Assistant] Has Proposal:', dbg.hasProposal);
         console.log('[Assistant] Proposal Keys:', dbg.proposalKeys);
       }
-      
+
       setMessages((prev) => [
         ...prev,
         {
           ...response.message,
           createdAt: response.message.createdAt || new Date().toISOString(),
-        }
+        },
       ]);
-      
+
       if (response.proposal) {
         console.log('[Assistant] Received proposal:', response.proposal);
         setProposals((prev) => [response.proposal as AssistantProposal, ...prev]);
@@ -670,8 +699,9 @@ export function ProjectAssistantPanel({
   const handleQuickAction = (action: string) => {
     const isGeneralMode = !projectId;
 
-    const prompts: Record<string, string> = isGeneralMode ? {
-      'summarize-analyze': `Help me get started with GameStory Lab. Explain:
+    const prompts: Record<string, string> = isGeneralMode
+      ? {
+          'summarize-analyze': `Help me get started with GameStory Lab. Explain:
 
 1. What is the difference between mechanics and lore in game design?
 2. How does the validation system work?
@@ -679,7 +709,7 @@ export function ProjectAssistantPanel({
 4. Give me an example of a simple game concept I could create.
 
 Provide clear, beginner-friendly explanations with examples.`,
-      'propose-improvements': `I'm new to GameStory Lab and want to understand how to create my first game concept. Can you:
+          'propose-improvements': `I'm new to GameStory Lab and want to understand how to create my first game concept. Can you:
 
 1. Walk me through the steps to create a project
 2. Explain the difference between using AI generation vs templates
@@ -687,8 +717,9 @@ Provide clear, beginner-friendly explanations with examples.`,
 4. Show me what a complete game concept looks like
 
 Make it practical and actionable for a beginner.`,
-    } : {
-      'summarize-analyze': `Summarize the current mechanics and lore, then run a full validation-style analysis:
+        }
+      : {
+          'summarize-analyze': `Summarize the current mechanics and lore, then run a full validation-style analysis:
 
 1. Summarize the mechanics and lore in your own words.
 2. Evaluate structure, balance, and completeness for both.
@@ -696,7 +727,7 @@ Make it practical and actionable for a beginner.`,
 4. Call out blockers, inconsistencies, or missing elements explicitly.
 
 Return the summary followed by the analysis with the score and recommendations.`,
-      'propose-improvements': `Your goal is to improve the current concept so that validation scores move closer to 100%.
+          'propose-improvements': `Your goal is to improve the current concept so that validation scores move closer to 100%.
 
 1. Identify the biggest issues that keep this concept from being production-ready.
 2. Propose concrete lore and mechanic updates that address those issues.
@@ -704,7 +735,7 @@ Return the summary followed by the analysis with the score and recommendations.`
 4. Prepare a concise change-list that could be turned into a proposal.
 
 Focus on actionable improvements that meaningfully tighten the concept.`,
-    };
+        };
     if (prompts[action]) {
       void handleSend(prompts[action], { quickActionId: action });
     }
@@ -741,7 +772,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    
+
     if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
@@ -763,33 +794,33 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
     }
     try {
       // Find the proposal to log its contents before accepting
-      const proposal = proposals.find(p => p.id === proposalId);
+      const proposal = proposals.find((p) => p.id === proposalId);
       console.log('[Assistant] Accepting proposal:', {
         proposalId,
         proposalType: proposal?.proposalType,
-        hasMechanics: !!(proposal?.payload?.mechanics),
-        hasLore: !!(proposal?.payload?.lore),
+        hasMechanics: !!proposal?.payload?.mechanics,
+        hasLore: !!proposal?.payload?.lore,
         mechanicsKeys: proposal?.payload?.mechanics ? Object.keys(proposal.payload.mechanics) : [],
         loreKeys: proposal?.payload?.lore ? Object.keys(proposal.payload.lore) : [],
         mechanicsEmpty: proposal?.payload?.mechanics && Object.keys(proposal.payload.mechanics).length === 0,
         loreEmpty: proposal?.payload?.lore && Object.keys(proposal.payload.lore).length === 0,
       });
-      
+
       let response;
-     try {
-       response = await assistantAPI.acceptProposal(session.id, proposalId) as any;
-     } catch (err: any) {
-       // Handle API errors (400, 500, etc.)
-       console.error('[Assistant] Proposal acceptance failed:', err);
+      try {
+        response = (await assistantAPI.acceptProposal(session.id, proposalId)) as any;
+      } catch (err: any) {
+        // Handle API errors (400, 500, etc.)
+        console.error('[Assistant] Proposal acceptance failed:', err);
         const errorMessage = err?.error || err?.message || (err as any)?.response?.data || 'Failed to apply proposal';
         const errorDetails = err?.details || (err as any)?.response?.data?.details || '';
         setError(`${errorMessage}${errorDetails ? `\n\nDetails: ${errorDetails}` : ''}`);
         // Don't remove proposal from list if it failed
         return;
-     }
-      
+      }
+
       console.log('[Assistant] Proposal accepted, response:', response);
-      
+
       // The API returns {success: true, result: {newVersion: {...} | documentation: {...}}}
       // OR {error: "...", details: "..."} if validation failed
       if ((response as any).error) {
@@ -798,9 +829,9 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
         // Don't remove proposal from list if it failed
         return;
       }
-      
+
       const actualResult = (response as any).result;
-      
+
       console.log('[Assistant] Checking result structure:', {
         fullResponse: response,
         responseKeys: Object.keys(response),
@@ -810,7 +841,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
         resultKeys: response.result && typeof response.result === 'object' ? Object.keys(response.result) : [],
         resultStringified: response.result ? JSON.stringify(response.result, null, 2) : 'null/undefined',
       });
-      
+
       if (!actualResult || (!actualResult.newVersion && !actualResult.documentation)) {
         console.warn('[Assistant] Proposal accepted but no version or documentation was created', {
           fullResponse: response,
@@ -820,19 +851,21 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
           resultIsNull: actualResult === null,
           resultIsUndefined: actualResult === undefined,
         });
-        setError('Proposal was accepted but no changes were applied. The proposal may have been empty or contained no actual mechanics/lore changes.');
+        setError(
+          'Proposal was accepted but no changes were applied. The proposal may have been empty or contained no actual mechanics/lore changes.',
+        );
         // Still remove the proposal from the list since it was accepted
         setProposals((prev) => prev.filter((p) => p.id !== proposalId));
         return;
       }
-      
+
       console.log('[Assistant] Proposal applied successfully', {
         hasNewVersion: !!actualResult.newVersion,
         hasDocumentation: !!actualResult.documentation,
         newVersionId: actualResult.newVersion?.id,
         newVersionNumber: actualResult.newVersion?.version,
       });
-      
+
       setProposals((prev) => prev.filter((p) => p.id !== proposalId));
       // Notify parent component to refresh data
       if (onProposalAccepted) {
@@ -885,7 +918,10 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
         <div className="chat-header divider-glow">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-3">
-              <div className="chat-avatar gradient-brand-to-br text-white shadow-lg" style={{ width: '40px', height: '40px', fontSize: '1rem' }}>
+              <div
+                className="chat-avatar gradient-brand-to-br text-white shadow-lg"
+                style={{ width: '40px', height: '40px', fontSize: '1rem' }}
+              >
                 AI
               </div>
               <div>
@@ -914,7 +950,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                 <option value="concept">🎮 Concept</option>
                 <option value="architect">🏗️ Architect</option>
               </select>
-              
+
               <select
                 value={quickMode}
                 onChange={(e) => setQuickMode(e.target.value as 'standard' | 'concise' | 'detailed')}
@@ -928,9 +964,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                 <button
                   onClick={() => setShowProposals(!showProposals)}
                   className={`relative px-3 py-1.5 btn text-xs font-medium flex items-center gap-1.5 ${
-                    showProposals
-                      ? 'btn-primary'
-                      : 'btn-primary animate-pulse'
+                    showProposals ? 'btn-primary' : 'btn-primary animate-pulse'
                   }`}
                   title={`${proposals.length} proposal${proposals.length > 1 ? 's' : ''} ready for review`}
                 >
@@ -953,27 +987,27 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
             <div ref={listRef} className="chat-messages-area">
               {initializing ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                  <div className="chat-avatar gradient-brand-to-br text-white mb-3 shadow-lg animate-pulse" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
+                  <div
+                    className="chat-avatar gradient-brand-to-br text-white mb-3 shadow-lg animate-pulse"
+                    style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}
+                  >
                     AI
                   </div>
-                  <h4 className="text-base font-semibold text-primary mb-1.5">
-                    Initializing assistant...
-                  </h4>
+                  <h4 className="text-base font-semibold text-primary mb-1.5">Initializing assistant...</h4>
                   <p className="text-xs text-secondary max-w-md">
                     Setting up your session. This should only take a moment.
                   </p>
                 </div>
               ) : error && messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                  <div className="chat-avatar bg-[var(--color-danger)] text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
+                  <div
+                    className="chat-avatar bg-[var(--color-danger)] text-white mb-3 shadow-lg"
+                    style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}
+                  >
                     ⚠
                   </div>
-                  <h4 className="text-base font-semibold text-[var(--color-danger)] mb-1.5">
-                    Failed to start session
-                  </h4>
-                  <p className="text-xs text-[var(--color-danger)] max-w-md mb-3">
-                    {error}
-                  </p>
+                  <h4 className="text-base font-semibold text-[var(--color-danger)] mb-1.5">Failed to start session</h4>
+                  <p className="text-xs text-[var(--color-danger)] max-w-md mb-3">{error}</p>
                   <button
                     onClick={() => {
                       setError(null);
@@ -988,41 +1022,47 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                  <div className="chat-avatar gradient-brand-to-br text-white mb-3 shadow-lg" style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}>
+                  <div
+                    className="chat-avatar gradient-brand-to-br text-white mb-3 shadow-lg"
+                    style={{ width: '48px', height: '48px', fontSize: '1.125rem' }}
+                  >
                     AI
                   </div>
-                  <h4 className="text-base font-semibold text-primary mb-1.5">
-                    Start a conversation
-                  </h4>
+                  <h4 className="text-base font-semibold text-primary mb-1.5">Start a conversation</h4>
                   <p className="text-xs text-secondary max-w-md">
-                    {projectId 
-                      ? "Ask me anything about your project. I can help refine mechanics, expand lore, check consistency, and more."
+                    {projectId
+                      ? 'Ask me anything about your project. I can help refine mechanics, expand lore, check consistency, and more.'
                       : "I'm here to help with game design, templates, workflows, and best practices. Ask me anything!"}
                   </p>
                 </div>
               ) : (
                 messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
-                  >
+                  <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                     {/* Avatar */}
-                    <div className={`chat-avatar ${
-                      msg.role === 'assistant'
-                        ? 'gradient-brand-to-br text-white'
-                        : 'gradient-user-avatar text-white'
-                    }`}>
+                    <div
+                      className={`chat-avatar ${
+                        msg.role === 'assistant' ? 'gradient-brand-to-br text-white' : 'gradient-user-avatar text-white'
+                      }`}
+                    >
                       {getInitials(msg.role)}
                     </div>
                     {/* Message Bubble */}
-                    <div className={`flex-1 ${msg.role === 'user' ? 'flex flex-col items-end' : 'flex flex-col items-start'}`}>
+                    <div
+                      className={`flex-1 ${msg.role === 'user' ? 'flex flex-col items-end' : 'flex flex-col items-start'}`}
+                    >
                       <div
                         className={`chat-message-bubble relative shadow-sm ${
                           msg.role === 'assistant'
                             ? 'chat-message-assistant text-primary'
                             : 'chat-message-user text-white'
                         } ${tokenModeMessages.has(msg.id) ? 'token-mode' : ''}`}
-                        style={msg.role === 'user' && !tokenModeMessages.has(msg.id) ? userBubbleStyle : tokenModeMessages.has(msg.id) ? {} : assistantBubbleStyle}
+                        style={
+                          msg.role === 'user' && !tokenModeMessages.has(msg.id)
+                            ? userBubbleStyle
+                            : tokenModeMessages.has(msg.id)
+                              ? {}
+                              : assistantBubbleStyle
+                        }
                       >
                         {/* Toggle Button */}
                         <button
@@ -1062,7 +1102,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                             const isLong = msg.content.length > 1200;
                             const isExpanded = expandedMessages.has(msg.id);
                             const isTokenMode = tokenModeMessages.has(msg.id);
-                            
+
                             return (
                               <>
                                 {/* Layer 1: Standard Markdown (Fade out when Token Mode is active) */}
@@ -1074,11 +1114,13 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                                       segment.type === 'code' ? (
                                         <div key={`${msg.id}-code-${idx}`} className="relative">
                                           {segment.lang && (
-                                            <div className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
-                                              style={{ 
-                                                backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
+                                            <div
+                                              className="text-xs font-medium mb-1.5 px-2 py-1 rounded-t-md inline-block"
+                                              style={{
+                                                backgroundColor:
+                                                  'color-mix(in srgb, var(--color-surface-panel) 80%, transparent)',
                                                 color: 'var(--color-text-tertiary)',
-                                                borderBottom: '1px solid var(--color-border-subtle)'
+                                                borderBottom: '1px solid var(--color-border-subtle)',
                                               }}
                                             >
                                               {segment.lang.toUpperCase()}
@@ -1087,7 +1129,8 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                                           <pre
                                             className="code-block text-[var(--color-text-primary)] overflow-auto font-mono text-sm leading-relaxed rounded-md"
                                             style={{
-                                              backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 60%, transparent)',
+                                              backgroundColor:
+                                                'color-mix(in srgb, var(--color-surface-panel) 60%, transparent)',
                                               border: '1px solid var(--color-border-subtle)',
                                               padding: segment.lang ? '0.75rem' : '0.75rem',
                                               marginTop: segment.lang ? '0' : '0',
@@ -1100,11 +1143,17 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                                         <div key={`${msg.id}-text-${idx}`} className="space-y-2">
                                           {renderTextSegment(segment.content, `${msg.id}-t-${idx}`)}
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                   {isLong && !isExpanded && (
-                                    <div className="absolute inset-x-0 bottom-0 h-20 pointer-events-none rounded-b-lg" style={{ background: 'linear-gradient(to top, color-mix(in srgb, var(--color-bg-primary) 50%, transparent) 0%, color-mix(in srgb, var(--color-bg-primary) 20%, transparent) 50%, transparent 100%)' }} />
+                                    <div
+                                      className="absolute inset-x-0 bottom-0 h-20 pointer-events-none rounded-b-lg"
+                                      style={{
+                                        background:
+                                          'linear-gradient(to top, color-mix(in srgb, var(--color-bg-primary) 50%, transparent) 0%, color-mix(in srgb, var(--color-bg-primary) 20%, transparent) 50%, transparent 100%)',
+                                      }}
+                                    />
                                   )}
                                   {isLong && (
                                     <div className="pt-2 flex justify-end">
@@ -1153,7 +1202,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                               });
                             }}
                             className="flex items-center gap-2 w-full text-left text-xs transition-all duration-200 rounded-md px-2 py-1.5 hover:bg-surface-panel/30"
-                            style={{ 
+                            style={{
                               color: 'var(--color-text-secondary)',
                             }}
                             onMouseEnter={(e) => {
@@ -1173,33 +1222,58 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                             </svg>
                             <span className="font-medium flex items-center gap-1.5">
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                                />
                               </svg>
                               {expandedThinking.has(msg.id) ? 'Hide' : 'Show'} Reasoning
                             </span>
-                            <span className="ml-auto text-[10px] font-normal opacity-70" style={{ color: 'var(--color-text-tertiary)' }}>
+                            <span
+                              className="ml-auto text-[10px] font-normal opacity-70"
+                              style={{ color: 'var(--color-text-tertiary)' }}
+                            >
                               {Math.round(msg.metadata.thinking.length / 100) / 10}k chars
                             </span>
                           </button>
                           {expandedThinking.has(msg.id) && (
-                            <div 
+                            <div
                               className="mt-2 p-4 rounded-lg border overflow-hidden"
-                              style={{ 
+                              style={{
                                 backgroundColor: 'color-mix(in srgb, var(--color-surface-panel) 70%, transparent)',
                                 borderColor: 'var(--color-border-subtle)',
                               }}
                             >
-                              <div className="flex items-center gap-2 mb-2 pb-2 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-text-tertiary)' }}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                              <div
+                                className="flex items-center gap-2 mb-2 pb-2 border-b"
+                                style={{ borderColor: 'var(--color-border-subtle)' }}
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                  style={{ color: 'var(--color-text-tertiary)' }}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                                  />
                                 </svg>
-                                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-tertiary)' }}>
+                                <span
+                                  className="text-xs font-semibold uppercase tracking-wide"
+                                  style={{ color: 'var(--color-text-tertiary)' }}
+                                >
                                   AI Reasoning Process
                                 </span>
                               </div>
-                              <div 
+                              <div
                                 className="text-xs leading-relaxed whitespace-pre-wrap font-mono max-h-[400px] overflow-y-auto"
-                                style={{ 
+                                style={{
                                   color: 'var(--color-text-secondary)',
                                   lineHeight: '1.7',
                                 }}
@@ -1211,9 +1285,9 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                         </div>
                       )}
                       {msg.createdAt && (
-                        <div className={`text-xs text-secondary mt-0.5 px-1 ${
-                          msg.role === 'user' ? 'text-right' : ''
-                        }`}>
+                        <div
+                          className={`text-xs text-secondary mt-0.5 px-1 ${msg.role === 'user' ? 'text-right' : ''}`}
+                        >
                           {formatTime(msg.createdAt)}
                         </div>
                       )}
@@ -1250,7 +1324,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                   </div>
                 </div>
               )}
-              
+
               {/* Quick Actions */}
               <div className="px-4 pt-2 pb-1.5">
                 <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
@@ -1310,13 +1384,8 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
           {showProposals && proposals.length > 0 && (
             <div className="chat-proposal-panel panel-slide-in">
               <div className="chat-header flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-primary">
-                  Proposals ({proposals.length})
-                </h4>
-                <button
-                  onClick={() => setShowProposals(false)}
-                  className="text-secondary hover:text-primary"
-                >
+                <h4 className="text-sm font-semibold text-primary">Proposals ({proposals.length})</h4>
+                <button onClick={() => setShowProposals(false)} className="text-secondary hover:text-primary">
                   ✕
                 </button>
               </div>
@@ -1325,9 +1394,7 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                   <div
                     key={proposal.id}
                     className={`card p-4 text-sm shadow-sm ${
-                      index === 0
-                        ? 'border-brand-400 shadow-brand-500/20'
-                        : 'border-border-subtle'
+                      index === 0 ? 'border-brand-400 shadow-brand-500/20' : 'border-border-subtle'
                     }`}
                   >
                     {index === 0 && (
@@ -1336,24 +1403,27 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                       </div>
                     )}
                     <p className="font-medium text-primary mb-2">
-                      {proposal.proposalType === 'architect-document' ? '📄 Document Update' : '🎮 Mechanics & Lore Update'}
+                      {proposal.proposalType === 'architect-document'
+                        ? '📄 Document Update'
+                        : '🎮 Mechanics & Lore Update'}
                     </p>
-                    
+
                     <div className="mb-3 p-2 bg-brand-900/20 rounded border border-brand-800">
                       <p className="text-xs font-semibold text-brand-200 mb-1">What this will improve:</p>
                       <div className="text-xs text-brand-300 whitespace-pre-wrap">
-                        {proposal.payload?.explanation || (
-                          proposal.proposalType === 'architect-document'
+                        {proposal.payload?.explanation ||
+                          (proposal.proposalType === 'architect-document'
                             ? 'Updates project documentation with better structure and content.'
-                            : 'Enhances game mechanics and lore to improve consistency and depth.'
-                        )}
+                            : 'Enhances game mechanics and lore to improve consistency and depth.')}
                       </div>
                     </div>
 
                     {/* Show preview of architect documents if present */}
                     {proposal.proposalType === 'architect-document' && proposal.payload?.architectDocuments && (
                       <div className="mb-3 p-2 validation-info rounded">
-                        <p className="text-xs font-semibold text-[var(--color-text-primary)] mb-1">Documents to create/update:</p>
+                        <p className="text-xs font-semibold text-[var(--color-text-primary)] mb-1">
+                          Documents to create/update:
+                        </p>
                         <ul className="text-xs text-[var(--color-text-secondary)] space-y-1">
                           {proposal.payload.architectDocuments.map((doc: any, idx: number) => (
                             <li key={idx} className="flex items-start gap-1">
@@ -1389,11 +1459,12 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                             </div>
                           )}
                           {(!proposal.payload?.mechanics || Object.keys(proposal.payload.mechanics).length === 0) &&
-                           (!proposal.payload?.lore || Object.keys(proposal.payload.lore).length === 0) && (
-                            <div className="text-[var(--color-danger)] font-semibold mt-2 p-2 validation-error rounded">
-                              ⚠️ WARNING: This proposal has no mechanics or lore content! Accepting it will not create a new version.
-                            </div>
-                          )}
+                            (!proposal.payload?.lore || Object.keys(proposal.payload.lore).length === 0) && (
+                              <div className="text-[var(--color-danger)] font-semibold mt-2 p-2 validation-error rounded">
+                                ⚠️ WARNING: This proposal has no mechanics or lore content! Accepting it will not create
+                                a new version.
+                              </div>
+                            )}
                         </div>
                       </div>
                     )}
@@ -1401,12 +1472,16 @@ Focus on actionable improvements that meaningfully tighten the concept.`,
                     {proposal.changeLog?.length > 0 && (
                       <div className="mb-3 space-y-1">
                         <p className="text-xs font-semibold text-secondary mb-1">Changes:</p>
-                          {proposal.changeLog.slice(0, 3).map((change) => (
+                        {proposal.changeLog.slice(0, 3).map((change) => (
                           <div key={change.field} className="text-xs text-secondary flex items-start gap-1">
                             <span>
-                              {change.changeType === 'added' ? '➕' :
-                               change.changeType === 'modified' ? '✏️' :
-                               change.changeType === 'removed' ? '❌' : '📝'}
+                              {change.changeType === 'added'
+                                ? '➕'
+                                : change.changeType === 'modified'
+                                  ? '✏️'
+                                  : change.changeType === 'removed'
+                                    ? '❌'
+                                    : '📝'}
                             </span>
                             <span className="font-semibold">{change.field}</span>
                           </div>

@@ -87,7 +87,7 @@ router.post('/:genre/customize', (req: Request, res: Response) => {
     const customized = templateService.customizeTemplate(
       genre,
       mechanicsOverrides as Partial<MechanicsData>,
-      loreOverrides as Partial<LoreData>
+      loreOverrides as Partial<LoreData>,
     );
 
     if (!customized) {
@@ -247,7 +247,7 @@ router.post('/blend-and-create', async (req: Request, res: Response) => {
         metadata: {
           startedWith: 'mechanics',
           userEdited: false,
-          generatedFrom: `blended:${genres.map(g => `${g.genre}(${Math.round(g.weight * 100)}%)`).join('+')}`,
+          generatedFrom: `blended:${genres.map((g) => `${g.genre}(${Math.round(g.weight * 100)}%)`).join('+')}`,
           blendedGenres: genres,
           blendedTemplateName: blendedTemplate.name,
           designOptions,
@@ -305,8 +305,8 @@ router.post('/blend-intelligent', async (req: Request, res: Response) => {
           designOptions: {
             tone: 'dark intrigue',
             complexity: 'medium',
-            sessionLength: '20-40m'
-          }
+            sessionLength: '20-40m',
+          },
         },
       });
     }
@@ -325,7 +325,7 @@ router.post('/blend-intelligent', async (req: Request, res: Response) => {
     const validDesignOptions = designOptions || {
       tone: 'balanced',
       complexity: 'medium',
-      sessionLength: '20-40m'
+      sessionLength: '20-40m',
     };
 
     // Get LLM blend service
@@ -333,18 +333,17 @@ router.post('/blend-intelligent', async (req: Request, res: Response) => {
     const llmBlendService = getLLMBlendService();
 
     // Perform intelligent blending
-    const enhancedBlend = await llmBlendService.blendGenresIntelligently(
-      genres,
-      validDesignOptions
-    );
+    const enhancedBlend = await llmBlendService.blendGenresIntelligently(genres, validDesignOptions);
 
     if (!enhancedBlend) {
-      return res.status(400).json({ error: 'Failed to perform intelligent blending. Check that all genres are valid.' });
+      return res
+        .status(400)
+        .json({ error: 'Failed to perform intelligent blending. Check that all genres are valid.' });
     }
 
     // Log the enhancement for analytics
     logger.info('Performed LLM-enhanced blending', {
-      genres: genres.map(g => `${g.genre}(${Math.round(g.weight * 100)}%)`),
+      genres: genres.map((g) => `${g.genre}(${Math.round(g.weight * 100)}%)`),
       coherence_score: enhancedBlend.analysis.coherence_score,
       conflicts_resolved: enhancedBlend.analysis.conflicts.length,
     });
@@ -360,10 +359,10 @@ router.post('/blend-intelligent', async (req: Request, res: Response) => {
       ai_enhanced: true,
     });
   } catch (error) {
-    logger.error('Failed to perform intelligent blending', { 
-      error, 
+    logger.error('Failed to perform intelligent blending', {
+      error,
       genres: req.body.genres,
-      designOptions: req.body.designOptions 
+      designOptions: req.body.designOptions,
     });
     res.status(500).json({ error: 'Failed to perform intelligent blending' });
   }
@@ -393,7 +392,7 @@ router.post('/:genre/create-project', async (req: Request, res: Response) => {
     const customized = templateService.customizeTemplate(
       genre,
       mechanicsOverrides as Partial<MechanicsData>,
-      loreOverrides as Partial<LoreData>
+      loreOverrides as Partial<LoreData>,
     );
 
     if (!customized) {

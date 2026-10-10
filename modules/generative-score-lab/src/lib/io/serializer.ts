@@ -23,7 +23,15 @@ const ProjectMetadataSchema = z.object({
 });
 
 const GeneratorConfigSchema = z.object({
-  type: z.enum(['euclidean', 'arp', 'patternDSL', 'markov', 'randomWalk', 'magenta', 'audioModelStem'] as const),
+  type: z.enum([
+    'euclidean',
+    'arp',
+    'patternDSL',
+    'markov',
+    'randomWalk',
+    'magenta',
+    'audioModelStem',
+  ] as const),
   params: z.record(z.string(), z.unknown()),
 });
 
@@ -100,14 +108,10 @@ export function validateProject(data: unknown): data is Project {
     return true;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessage = `Invalid project structure: ${error.issues.map((issue) => 
-        `${issue.path.join('.')}: ${issue.message}`
-      ).join(', ')}`;
-      errorHandler.handle(
-        new Error(errorMessage),
-        'Project Validation',
-        ErrorSeverity.WARNING
-      );
+      const errorMessage = `Invalid project structure: ${error.issues
+        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+        .join(', ')}`;
+      errorHandler.handle(new Error(errorMessage), 'Project Validation', ErrorSeverity.WARNING);
     }
     return false;
   }

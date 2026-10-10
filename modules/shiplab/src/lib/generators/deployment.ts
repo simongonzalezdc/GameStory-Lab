@@ -42,7 +42,10 @@ export interface ProjectDeploymentInfo {
 /**
  * Analyze project for deployment configuration
  */
-async function analyzeProjectForDeployment(projectPath: string, projectName: string): Promise<ProjectDeploymentInfo> {
+async function analyzeProjectForDeployment(
+  projectPath: string,
+  projectName: string
+): Promise<ProjectDeploymentInfo> {
   const info: ProjectDeploymentInfo = {
     name: projectName,
     language: 'JavaScript',
@@ -210,7 +213,12 @@ function getCostEstimate(platform: DeploymentConfig['platform']): DeploymentConf
         {
           name: 'Pro',
           pricePerMonth: '$19/user',
-          features: ['Password protection', 'Form submissions', 'Analytics', 'Background functions'],
+          features: [
+            'Password protection',
+            'Form submissions',
+            'Analytics',
+            'Background functions',
+          ],
         },
       ],
       estimatedMonthlyCost: '$0-19 (Free tier for most sites)',

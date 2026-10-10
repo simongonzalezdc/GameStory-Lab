@@ -10,11 +10,7 @@ interface VoiceCaptureDialogProps {
   onCapture: (notes: number[]) => void;
 }
 
-export default function VoiceCaptureDialog({
-  open,
-  onClose,
-  onCapture,
-}: VoiceCaptureDialogProps) {
+export default function VoiceCaptureDialog({ open, onClose, onCapture }: VoiceCaptureDialogProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [capturedNotes, setCapturedNotes] = useState<number[]>([]);
   const [currentNote, setCurrentNote] = useState<string>('');
@@ -100,14 +96,13 @@ export default function VoiceCaptureDialog({
   }, [handleStopRecording, onClose]);
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={handleClose} 
+    <Dialog
+      open={open}
+      onClose={handleClose}
       title="Capture Voice Melody"
       description="Hum or sing a melody into your microphone. The app will detect the pitches and convert them to MIDI notes."
     >
       <div className="space-y-4">
-
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
             {error}
@@ -118,15 +113,13 @@ export default function VoiceCaptureDialog({
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
           <div className="text-sm text-gray-500 mb-2">Current Note</div>
           <div className="text-4xl font-bold text-gray-900">
-            {isRecording ? (currentNote || '—') : '—'}
+            {isRecording ? currentNote || '—' : '—'}
           </div>
         </div>
 
         {/* Captured Notes Display */}
         <div>
-          <div className="text-sm text-gray-700 mb-2">
-            Captured Notes ({capturedNotes.length})
-          </div>
+          <div className="text-sm text-gray-700 mb-2">Captured Notes ({capturedNotes.length})</div>
           <div className="bg-white border border-gray-200 rounded-lg p-4 min-h-[100px] max-h-[150px] overflow-y-auto">
             {capturedNotes.length === 0 ? (
               <p className="text-gray-400 text-sm text-center">No notes captured yet</p>

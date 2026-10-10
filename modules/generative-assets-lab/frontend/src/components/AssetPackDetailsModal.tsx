@@ -14,28 +14,29 @@ export function AssetPackDetailsModal({ pack, onClose }: AssetPackDetailsModalPr
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchPackAssets = useCallback(async (signal?: AbortSignal) => {
-    setLoading(true);
-    try {
-      // Fetch all assets and filter by pack's asset_ids
-      // TODO: This should be optimized with a backend endpoint that takes asset IDs
-      const response = await fetch(`${API_ENDPOINTS.assets}?limit=1000`, { signal });
-      if (!response.ok) throw new Error('Failed to fetch assets');
-      const data = await response.json();
+  const fetchPackAssets = useCallback(
+    async (signal?: AbortSignal) => {
+      setLoading(true);
+      try {
+        // Fetch all assets and filter by pack's asset_ids
+        // TODO: This should be optimized with a backend endpoint that takes asset IDs
+        const response = await fetch(`${API_ENDPOINTS.assets}?limit=1000`, { signal });
+        if (!response.ok) throw new Error('Failed to fetch assets');
+        const data = await response.json();
 
-      const packAssets = (data.assets || []).filter((asset: Asset) =>
-        pack.asset_ids.includes(asset.id)
-      );
-      setAssets(packAssets);
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        return; // Ignore abort errors
+        const packAssets = (data.assets || []).filter((asset: Asset) => pack.asset_ids.includes(asset.id));
+        setAssets(packAssets);
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return; // Ignore abort errors
+        }
+        console.error('Error fetching pack assets:', error);
+      } finally {
+        setLoading(false);
       }
-      console.error('Error fetching pack assets:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [pack.asset_ids]);
+    },
+    [pack.asset_ids],
+  );
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -58,7 +59,7 @@ export function AssetPackDetailsModal({ pack, onClose }: AssetPackDetailsModalPr
       link.click();
 
       // Small delay between downloads to avoid browser throttling
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   };
 
@@ -67,7 +68,7 @@ export function AssetPackDetailsModal({ pack, onClose }: AssetPackDetailsModalPr
       return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
       });
     } catch {
       return dateString;
@@ -82,13 +83,9 @@ export function AssetPackDetailsModal({ pack, onClose }: AssetPackDetailsModalPr
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <Package className="text-blue-600 dark:text-blue-400 flex-shrink-0" size={24} />
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white truncate">
-                {pack.name}
-              </h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white truncate">{pack.name}</h2>
               {pack.description && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                  {pack.description}
-                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">{pack.description}</p>
               )}
             </div>
           </div>
@@ -128,9 +125,7 @@ export function AssetPackDetailsModal({ pack, onClose }: AssetPackDetailsModalPr
             </div>
           ) : assets.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500 dark:text-gray-400">
-                No assets found in this pack.
-              </p>
+              <p className="text-gray-500 dark:text-gray-400">No assets found in this pack.</p>
             </div>
           ) : (
             <div className="grid grid-cols-4 gap-4">
@@ -147,19 +142,14 @@ export function AssetPackDetailsModal({ pack, onClose }: AssetPackDetailsModalPr
 
                   {/* Hover Overlay */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-2">
-                    <p className="text-white text-xs font-medium text-center mb-2 truncate w-full">
-                      {asset.file_name}
-                    </p>
+                    <p className="text-white text-xs font-medium text-center mb-2 truncate w-full">{asset.file_name}</p>
                     <p className="text-white/80 text-xs">
                       {asset.width} × {asset.height}
                     </p>
                     {asset.style_tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2 justify-center">
                         {asset.style_tags.slice(0, 2).map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="text-xs bg-blue-600/80 text-white px-2 py-0.5 rounded"
-                          >
+                          <span key={idx} className="text-xs bg-blue-600/80 text-white px-2 py-0.5 rounded">
                             {tag}
                           </span>
                         ))}
@@ -174,9 +164,7 @@ export function AssetPackDetailsModal({ pack, onClose }: AssetPackDetailsModalPr
 
         {/* Footer */}
         <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Pack ID: {pack.id.slice(0, 8)}...
-          </div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Pack ID: {pack.id.slice(0, 8)}...</div>
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}

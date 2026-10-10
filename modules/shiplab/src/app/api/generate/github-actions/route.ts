@@ -30,7 +30,10 @@ export async function POST(request: NextRequest) {
     console.error('GitHub Actions generation error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json(

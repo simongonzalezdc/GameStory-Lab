@@ -25,14 +25,11 @@ export class GLMClient implements AIClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`,
+          Authorization: `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify({
           model: this.config.model || 'glm-4-plus',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...input.messages,
-          ],
+          messages: [{ role: 'system', content: systemPrompt }, ...input.messages],
           max_tokens: input.maxTokens || 2048,
           temperature: 0.7,
           top_p: 0.95,
@@ -46,7 +43,7 @@ export class GLMClient implements AIClient {
       }
 
       const data = await response.json();
-      
+
       // Validate response structure
       const validated = validateGLMResponse(data);
       const content = validated.content;

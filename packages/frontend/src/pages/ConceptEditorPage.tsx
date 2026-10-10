@@ -63,7 +63,7 @@ export function ConceptEditorPage() {
   const [lastValidatedAt, setLastValidatedAt] = useState<string | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [highlightAssistant, setHighlightAssistant] = useState(false);
-  
+
   // Track last validated version to avoid duplicate validations
   const lastValidatedVersionId = useRef<string | null>(null);
   const validationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -111,7 +111,7 @@ export function ConceptEditorPage() {
                 issue.category
               }\n   Message: ${issue.message}\n   Suggestion: ${issue.suggestion || 'Not provided'}\n   Location: ${
                 issue.field ? issue.field : 'Not specified'
-              }`
+              }`,
           )
           .join('\n')
       : 'No validation issues.';
@@ -146,7 +146,7 @@ export function ConceptEditorPage() {
       }
       // Reset validation tracking when loading new project data
       lastValidatedVersionId.current = null;
-      
+
       const response = await projectsAPI.get(projectId);
       setProject(response.project);
       setVersions(response.versions || []);
@@ -173,12 +173,12 @@ export function ConceptEditorPage() {
 
   const runValidation = async (source: 'auto' | 'manual' | 'follow-up' = 'auto', force = false) => {
     const version = currentVersionRef.current;
-    
+
     if (!version) {
       setValidationError('No version selected to validate.');
       return;
     }
-    
+
     if (!hasContentToValidate(version)) {
       setValidationStatus('Add mechanics or lore to run validation.');
       setValidationIssues([]);
@@ -186,7 +186,7 @@ export function ConceptEditorPage() {
       setValidationError(null);
       return;
     }
-    
+
     // Skip if already validated this version unless forced
     if (!force && lastValidatedVersionId.current === version.id) {
       setValidationStatus('Already validated. Re-run manually to refresh.');
@@ -203,11 +203,11 @@ export function ConceptEditorPage() {
         lore: version.lore,
       });
       setValidationIssues(response.issues || []);
-      
+
       // Handle both possible response formats: consistencyScore or overallScore
       const rawScore = response.consistencyScore || (response as any).overallScore || 0;
       const displayScore = Math.round(rawScore * 100);
-      
+
       console.log('[Validation] Score updated:', {
         versionId: version.id,
         versionNumber: version.version,
@@ -216,8 +216,8 @@ export function ConceptEditorPage() {
         hasConsistencyScore: !!response.consistencyScore,
         hasOverallScore: !!(response as any).overallScore,
         issueCount: response.issues?.length || 0,
-        errors: response.issues?.filter(i => i.severity === 'error').length || 0,
-        warnings: response.issues?.filter(i => i.severity === 'warning').length || 0,
+        errors: response.issues?.filter((i) => i.severity === 'error').length || 0,
+        warnings: response.issues?.filter((i) => i.severity === 'warning').length || 0,
       });
       setConsistencyScore(displayScore);
       // Mark this version as validated
@@ -225,7 +225,9 @@ export function ConceptEditorPage() {
       const now = new Date();
       setLastValidationSource(source);
       setLastValidatedAt(now.toISOString());
-      setValidationStatus(`Validated ${source === 'manual' ? 'manually' : 'automatically'} at ${now.toLocaleTimeString()}`);
+      setValidationStatus(
+        `Validated ${source === 'manual' ? 'manually' : 'automatically'} at ${now.toLocaleTimeString()}`,
+      );
     } catch (err) {
       // Handle rate limit errors gracefully and surface to user
       if (err instanceof APIError) {
@@ -267,25 +269,29 @@ export function ConceptEditorPage() {
       setValidationStatus('Add mechanics or lore to run validation.');
       return;
     }
-    
+
     // Clear any pending validation
     if (validationTimeoutRef.current) {
       clearTimeout(validationTimeoutRef.current);
     }
-    
+
     // Capture the version ID to avoid closure issues
     const versionIdToValidate = currentVersion.id;
-    
+
     // Debounce validation - shorter delay if no previous validation (e.g., after refinement)
     // This gives React time to finish all re-renders and prevents rate limiting
     const debounceDelay = lastValidatedVersionId.current === null ? 500 : 1000; // Faster if no previous validation
     validationTimeoutRef.current = setTimeout(() => {
       // Double-check version is still current and hasn't been validated
-      if (currentVersion && currentVersion.id === versionIdToValidate && currentVersion.id !== lastValidatedVersionId.current) {
+      if (
+        currentVersion &&
+        currentVersion.id === versionIdToValidate &&
+        currentVersion.id !== lastValidatedVersionId.current
+      ) {
         runValidation('auto');
       }
     }, debounceDelay);
-    
+
     // Cleanup timeout on unmount or version change
     return () => {
       if (validationTimeoutRef.current) {
@@ -316,25 +322,29 @@ export function ConceptEditorPage() {
       setValidationStatus('Add mechanics or lore to run validation.');
       return;
     }
-    
+
     // Clear any pending validation
     if (validationTimeoutRef.current) {
       clearTimeout(validationTimeoutRef.current);
     }
-    
+
     // Capture the version ID to avoid closure issues
     const versionIdToValidate = currentVersion.id;
-    
+
     // Debounce validation - shorter delay if no previous validation (e.g., after refinement)
     // This gives React time to finish all re-renders and prevents rate limiting
     const debounceDelay = lastValidatedVersionId.current === null ? 500 : 1000; // Faster if no previous validation
     validationTimeoutRef.current = setTimeout(() => {
       // Double-check version is still current and hasn't been validated
-      if (currentVersion && currentVersion.id === versionIdToValidate && currentVersion.id !== lastValidatedVersionId.current) {
+      if (
+        currentVersion &&
+        currentVersion.id === versionIdToValidate &&
+        currentVersion.id !== lastValidatedVersionId.current
+      ) {
         runValidation('auto');
       }
     }, debounceDelay);
-    
+
     // Cleanup timeout on unmount or version change
     return () => {
       if (validationTimeoutRef.current) {
@@ -370,7 +380,9 @@ export function ConceptEditorPage() {
     }
   };
 
-  const handleRefine = async (focus: 'deepen-mechanics' | 'enrich-lore' | 'improve-consistency' | 'enhance-genre-fit') => {
+  const handleRefine = async (
+    focus: 'deepen-mechanics' | 'enrich-lore' | 'improve-consistency' | 'enhance-genre-fit',
+  ) => {
     if (!currentVersion) return;
 
     try {
@@ -379,7 +391,7 @@ export function ConceptEditorPage() {
       // Clear validation score while refining
       setConsistencyScore(null);
       setValidationIssues([]);
-      
+
       await refinementAPI.refine({
         conceptId: currentVersion.id,
         focus,
@@ -387,7 +399,7 @@ export function ConceptEditorPage() {
 
       // Reload project to get the new version
       await loadProject();
-      
+
       // Force validation immediately after refinement
       // Clear any pending validation timeout and reset tracking
       if (validationTimeoutRef.current) {
@@ -396,11 +408,11 @@ export function ConceptEditorPage() {
       }
       // Reset validation tracking so the useEffect will trigger validation with shorter debounce
       lastValidatedVersionId.current = null;
-      
+
       // The useEffect will automatically trigger validation when currentVersion.id changes
       // We've already reset lastValidatedVersionId.current = null, so it will validate
       // No need to manually trigger - let the useEffect handle it to avoid double validation
-      
+
       alert('Version refined successfully! A new version has been created. Validating consistency...');
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to refine version');
@@ -415,7 +427,11 @@ export function ConceptEditorPage() {
       return;
     }
 
-    if (!confirm(`Merge all ${versions.length} versions into a new version? This will combine mechanics and lore from all versions.`)) {
+    if (
+      !confirm(
+        `Merge all ${versions.length} versions into a new version? This will combine mechanics and lore from all versions.`,
+      )
+    ) {
       return;
     }
 
@@ -423,11 +439,11 @@ export function ConceptEditorPage() {
       setMerging(true);
       setError(null);
       const response = await projectsAPI.merge(projectId);
-      
+
       // Reload project to get the merged version
       // loadProject() will automatically set currentVersion to the latest (which is the merged one)
       await loadProject();
-      
+
       alert(`Successfully merged ${response.mergedCount} versions into version ${response.version.version}!`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to merge versions';
@@ -451,10 +467,7 @@ export function ConceptEditorPage() {
       <div className="validation-error rounded-lg p-8 text-center">
         <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">Error Loading Project</h3>
         <p className="text-[var(--color-text-secondary)] mb-4">{error || 'Project not found'}</p>
-        <button
-          onClick={() => navigate('/projects')}
-          className="btn btn-primary"
-        >
+        <button onClick={() => navigate('/projects')} className="btn btn-primary">
           ← Back to Projects
         </button>
       </div>
@@ -476,7 +489,7 @@ export function ConceptEditorPage() {
       if (generateType === 'both' || generateType === 'mechanics') {
         setGenerationStep('Generating game mechanics...');
         console.log('[Generate] Starting mechanics generation');
-        
+
         try {
           mechanicsResult = await generateAPI.generate({
             projectId,
@@ -496,25 +509,25 @@ export function ConceptEditorPage() {
       // Generate lore (use mechanics if available for better alignment)
       if (generateType === 'both' || generateType === 'lore') {
         setGenerationStep(generateType === 'both' ? 'Generating lore and story...' : 'Generating lore...');
-        console.log('[Generate] Starting lore generation', { 
+        console.log('[Generate] Starting lore generation', {
           hasMechanicsResult: !!mechanicsResult,
           mechanicsFromResult: mechanicsResult?.content?.mechanics ? 'present' : 'missing',
         });
-        
+
         try {
           // If generating lore only and we have an existing version, pass its mechanics
           // When generating both, pass mechanics from the just-generated result
-          const existingMechanics = mechanicsResult 
-            ? mechanicsResult.content?.mechanics 
-            : (currentVersion?.mechanics && Object.keys(currentVersion.mechanics).length > 0 
-                ? currentVersion.mechanics 
-                : undefined);
-          
-          console.log('[Generate] Passing mechanics to lore generation', { 
+          const existingMechanics = mechanicsResult
+            ? mechanicsResult.content?.mechanics
+            : currentVersion?.mechanics && Object.keys(currentVersion.mechanics).length > 0
+              ? currentVersion.mechanics
+              : undefined;
+
+          console.log('[Generate] Passing mechanics to lore generation', {
             hasMechanics: !!existingMechanics,
             mechanicsKeys: existingMechanics ? Object.keys(existingMechanics).length : 0,
           });
-          
+
           await generateAPI.generate({
             projectId,
             taskType: 'lore',
@@ -531,32 +544,32 @@ export function ConceptEditorPage() {
         }
       }
 
-        setGenerationStep('Loading version...');
-        // Reload project to get the new/updated version
-        await loadProject();
-        
-        // If we generated lore, switch to the lore tab to show it
-        if (generateType === 'lore' || generateType === 'both') {
-          setActiveTab('lore');
-        }
-        
-        setShowGenerateModal(false);
-        setGeneratePrompt('');
-        setGenerationStep('');
-      } catch (err) {
-        console.error('[Generate] Error:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Failed to generate version';
-        setError(errorMessage);
-        setGenerationStep('');
-      } finally {
-        setGenerating(false);
+      setGenerationStep('Loading version...');
+      // Reload project to get the new/updated version
+      await loadProject();
+
+      // If we generated lore, switch to the lore tab to show it
+      if (generateType === 'lore' || generateType === 'both') {
+        setActiveTab('lore');
       }
-    };
+
+      setShowGenerateModal(false);
+      setGeneratePrompt('');
+      setGenerationStep('');
+    } catch (err) {
+      console.error('[Generate] Error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate version';
+      setError(errorMessage);
+      setGenerationStep('');
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   // Render Generate Modal component (reusable) - defined before use
-  const renderGenerateModal = () => (
+  const renderGenerateModal = () =>
     showGenerateModal && (
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -570,24 +583,19 @@ export function ConceptEditorPage() {
               {currentVersion ? `Edit Version ${currentVersion.version}` : 'Create New Version'}
             </h2>
             <p className="text-secondary mb-6">
-              {currentVersion 
+              {currentVersion
                 ? 'Refine your game concept by making targeted improvements.'
-                : 'Create a new version of your game concept by defining mechanics and lore.'
-              }
+                : 'Create a new version of your game concept by defining mechanics and lore.'}
             </p>
-            
+
             <form onSubmit={handleGenerateConcept} className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">
-                  Generation Focus
-                </label>
+                <label className="block text-sm font-semibold text-primary mb-2">Generation Focus</label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <button
                     onClick={() => setGenerateType('both')}
                     className={`p-4 rounded-lg border transition ${
-                      generateType === 'both'
-                        ? 'border-accent bg-surface-muted'
-                        : 'border-subtle hover:border-accent'
+                      generateType === 'both' ? 'border-accent bg-surface-muted' : 'border-subtle hover:border-accent'
                     }`}
                   >
                     <div className="font-medium text-primary">Both</div>
@@ -607,9 +615,7 @@ export function ConceptEditorPage() {
                   <button
                     onClick={() => setGenerateType('lore')}
                     className={`p-4 rounded-lg border transition ${
-                      generateType === 'lore'
-                        ? 'border-accent bg-surface-muted'
-                        : 'border-subtle hover:border-accent'
+                      generateType === 'lore' ? 'border-accent bg-surface-muted' : 'border-subtle hover:border-accent'
                     }`}
                   >
                     <div className="font-medium text-primary">Lore</div>
@@ -617,7 +623,8 @@ export function ConceptEditorPage() {
                   </button>
                 </div>
                 <label htmlFor="generate-prompt" className="block text-sm font-semibold text-primary mb-2">
-                  What kind of {generateType === 'mechanics' ? 'gameplay' : generateType === 'lore' ? 'story' : 'game'} do you want?
+                  What kind of {generateType === 'mechanics' ? 'gameplay' : generateType === 'lore' ? 'story' : 'game'}{' '}
+                  do you want?
                 </label>
                 <textarea
                   id="generate-prompt"
@@ -634,9 +641,7 @@ export function ConceptEditorPage() {
               {error && (
                 <div className="validation-error px-4 py-3 text-sm">
                   <strong>Error:</strong> {error}
-                  <div className="mt-2 text-xs">
-                    Check the browser console (F12) for more details.
-                  </div>
+                  <div className="mt-2 text-xs">Check the browser console (F12) for more details.</div>
                 </div>
               )}
 
@@ -644,10 +649,13 @@ export function ConceptEditorPage() {
                 <div className="validation-info px-4 py-3 text-sm">
                   <div className="flex items-center gap-2">
                     <JewelSpinner size="sm" />
-                    <span><strong>Status:</strong> {generationStep}</span>
+                    <span>
+                      <strong>Status:</strong> {generationStep}
+                    </span>
                   </div>
                   <div className="mt-2 text-xs text-[var(--color-info)]">
-                    This may take 30-120 seconds depending on the AI model. Check the browser console (F12) for detailed logs.
+                    This may take 30-120 seconds depending on the AI model. Check the browser console (F12) for detailed
+                    logs.
                   </div>
                 </div>
               )}
@@ -666,11 +674,7 @@ export function ConceptEditorPage() {
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="flex-1 btn btn-primary"
-                  disabled={generating}
-                >
+                <button type="submit" className="flex-1 btn btn-primary" disabled={generating}>
                   {generating ? (
                     <>
                       <JewelSpinner size="sm" />
@@ -688,8 +692,7 @@ export function ConceptEditorPage() {
           </div>
         </div>
       </div>
-    )
-  );
+    );
 
   if (!currentVersion) {
     return (
@@ -697,16 +700,11 @@ export function ConceptEditorPage() {
         {/* Header */}
         <div className="flex justify-between items-center flex-shrink-0 mb-6">
           <div>
-            <button
-              onClick={() => navigate('/projects')}
-              className="btn btn-primary"
-            >
+            <button onClick={() => navigate('/projects')} className="btn btn-primary">
               ← Back to Projects
             </button>
             <h2 className="text-3xl font-bold text-primary">{project.name}</h2>
-            {project.genre && (
-              <p className="text-secondary mt-1">Genre: {project.genre}</p>
-            )}
+            {project.genre && <p className="text-secondary mt-1">Genre: {project.genre}</p>}
           </div>
           <div className="surface-card rounded-xl border border-subtle shadow-sm p-12 text-center">
             <h3 className="text-2xl font-bold text-primary mb-2">No Versions Yet</h3>
@@ -719,17 +717,11 @@ export function ConceptEditorPage() {
           </div>
 
           <div className="flex flex-wrap justify-center gap-3">
-            <button
-              onClick={() => setShowGenerateModal(true)}
-              className="btn btn-primary"
-            >
+            <button onClick={() => setShowGenerateModal(true)} className="btn btn-primary">
               <span>✨</span>
               <span>Generate Version with AI</span>
             </button>
-            <button
-              onClick={() => navigate('/templates')}
-              className="btn btn-secondary"
-            >
+            <button onClick={() => navigate('/templates')} className="btn btn-secondary">
               <span>🎨</span>
               <span>Start from Template</span>
             </button>
@@ -745,76 +737,93 @@ export function ConceptEditorPage() {
   return (
     <div className="flex flex-col h-full w-full min-h-0 overflow-hidden">
       {/* Compact Sticky Header Bar */}
-      <div className="sticky top-0 z-30 surface-card border-b border-subtle shadow-sm flex-shrink-0" style={{ background: 'linear-gradient(90deg, var(--color-surface-card) 0%, var(--color-surface-elevated) 50%, var(--color-surface-card) 100%)' }}>
+      <div
+        className="sticky top-0 z-30 surface-card border-b border-subtle shadow-sm flex-shrink-0"
+        style={{
+          background:
+            'linear-gradient(90deg, var(--color-surface-card) 0%, var(--color-surface-elevated) 50%, var(--color-surface-card) 100%)',
+        }}
+      >
         <div className="flex items-center justify-between gap-4 py-2.5">
           {/* Left: Project Info & Navigation */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
-          <button
-            onClick={() => navigate('/projects')}
+            <button
+              onClick={() => navigate('/projects')}
               className="flex-shrink-0 text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] text-sm font-medium"
               title="Back to Projects"
-          >
+            >
               ←
-          </button>
+            </button>
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <h2 className="text-xl font-bold text-primary truncate" style={{ background: 'linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-fireopal) 50%, var(--jewel-topaz) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{project.name}</h2>
-              {versions.length > 1 ? (
-              <select
-                value={currentVersion?.id || ''}
-                onChange={(e) => {
-                  const selected = versions.find(v => v.id === e.target.value);
-                  if (selected) {
-                    setCurrentVersion(selected);
-                  }
+              <h2
+                className="text-xl font-bold text-primary truncate"
+                style={{
+                  background:
+                    'linear-gradient(135deg, var(--jewel-garnet) 0%, var(--jewel-fireopal) 50%, var(--jewel-topaz) 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
                 }}
-                  className="px-2.5 py-1 bg-[var(--color-surface-card)] border border-[var(--color-border-subtle)] rounded-lg text-xs text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] flex-shrink-0"
               >
-                {versions.map((v) => (
-                  <option key={v.id} value={v.id}>
+                {project.name}
+              </h2>
+              {versions.length > 1 ? (
+                <select
+                  value={currentVersion?.id || ''}
+                  onChange={(e) => {
+                    const selected = versions.find((v) => v.id === e.target.value);
+                    if (selected) {
+                      setCurrentVersion(selected);
+                    }
+                  }}
+                  className="px-2.5 py-1 bg-[var(--color-surface-card)] border border-[var(--color-border-subtle)] rounded-lg text-xs text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] flex-shrink-0"
+                >
+                  {versions.map((v) => (
+                    <option key={v.id} value={v.id}>
                       v{v.version} {v.version === versions[0].version ? '(Latest)' : ''}
-                  </option>
-                ))}
-              </select>
+                    </option>
+                  ))}
+                </select>
               ) : (
                 <span className="text-xs text-secondary flex-shrink-0">v{currentVersion.version}</span>
-          )}
-          {versions.length > 1 && (
+              )}
+              {versions.length > 1 && (
                 <div className="relative group flex-shrink-0">
-              <button
-                className="px-2 py-1 text-xs bg-surface-muted text-primary rounded hover:bg-surface-elevated transition"
-                title={`${versions.length} versions`}
-              >
+                  <button
+                    className="px-2 py-1 text-xs bg-surface-muted text-primary rounded hover:bg-surface-elevated transition"
+                    title={`${versions.length} versions`}
+                  >
                     📋 {versions.length}
-              </button>
+                  </button>
                   <div className="absolute left-0 mt-2 w-72 bg-[var(--color-surface-card)] rounded-lg shadow-lg border border-[var(--color-border-subtle)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-20 max-h-96 overflow-y-auto">
-                <div className="p-2">
-                  <div className="text-xs font-semibold text-secondary uppercase tracking-wider px-2 py-1 mb-1">
-                    All Versions
-                  </div>
-                  {versions.map((v) => (
-                    <button
-                      key={v.id}
-                      onClick={() => setCurrentVersion(v)}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
-                        currentVersion?.id === v.id
-                          ? 'bg-[var(--color-surface-muted)] text-[var(--color-text-primary)]'
-                          : 'hover:bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)]'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Version {v.version}</span>
-                        {v.version === versions[0].version && (
-                          <span className="text-xs px-1.5 py-0.5 bg-[var(--color-surface-elevated)] text-[var(--brand-primary)] rounded">
-                            Latest
-                          </span>
-                        )}
+                    <div className="p-2">
+                      <div className="text-xs font-semibold text-secondary uppercase tracking-wider px-2 py-1 mb-1">
+                        All Versions
                       </div>
-                    </button>
-                  ))}
+                      {versions.map((v) => (
+                        <button
+                          key={v.id}
+                          onClick={() => setCurrentVersion(v)}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                            currentVersion?.id === v.id
+                              ? 'bg-[var(--color-surface-muted)] text-[var(--color-text-primary)]'
+                              : 'hover:bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)]'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">Version {v.version}</span>
+                            {v.version === versions[0].version && (
+                              <span className="text-xs px-1.5 py-0.5 bg-[var(--color-surface-elevated)] text-[var(--brand-primary)] rounded">
+                                Latest
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
             </div>
           </div>
 
@@ -822,31 +831,42 @@ export function ConceptEditorPage() {
           <div className="flex items-center gap-2 flex-shrink-0">
             {/* Consistency Score - Compact */}
             {consistencyScore !== null && (
-              <div className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 shadow-sm ${
-                consistencyScore >= 80 ? 'validation-success border-[var(--color-success)]' :
-                consistencyScore >= 60 ? 'validation-warning border-[var(--color-warning)]' :
-                'validation-error border-[var(--color-danger)]'
-              }`} style={{ boxShadow: '0 2px 8px rgba(181, 147, 60, 0.1)' }}>
-                <span className={`text-sm font-bold ${
-                  consistencyScore >= 80 ? 'text-[var(--color-success)]' :
-                  consistencyScore >= 60 ? 'text-[var(--color-warning)]' :
-                  'text-[var(--color-danger)]'
-                }`}>
+              <div
+                className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 shadow-sm ${
+                  consistencyScore >= 80
+                    ? 'validation-success border-[var(--color-success)]'
+                    : consistencyScore >= 60
+                      ? 'validation-warning border-[var(--color-warning)]'
+                      : 'validation-error border-[var(--color-danger)]'
+                }`}
+                style={{ boxShadow: '0 2px 8px rgba(181, 147, 60, 0.1)' }}
+              >
+                <span
+                  className={`text-sm font-bold ${
+                    consistencyScore >= 80
+                      ? 'text-[var(--color-success)]'
+                      : consistencyScore >= 60
+                        ? 'text-[var(--color-warning)]'
+                        : 'text-[var(--color-danger)]'
+                  }`}
+                >
                   {consistencyScore}%
                 </span>
                 <div className="w-16 bg-[var(--color-surface-card)] rounded-full h-1.5">
                   <div
                     className={`h-1.5 rounded-full transition-all ${
-                      consistencyScore >= 80 ? 'bg-[var(--color-success)]' :
-                      consistencyScore >= 60 ? 'bg-[var(--color-warning)]' :
-                      'bg-[var(--color-danger)]'
+                      consistencyScore >= 80
+                        ? 'bg-[var(--color-success)]'
+                        : consistencyScore >= 60
+                          ? 'bg-[var(--color-warning)]'
+                          : 'bg-[var(--color-danger)]'
                     }`}
                     style={{ width: `${Math.min(100, Math.max(0, consistencyScore))}%` }}
                   />
                 </div>
               </div>
             )}
-            
+
             {/* Action Buttons - Compact */}
             <div className="flex items-center gap-1.5">
               {versions.length >= 2 && (
@@ -869,21 +889,21 @@ export function ConceptEditorPage() {
                   )}
                 </button>
               )}
-          <button
-            onClick={() => handleExport('gdd')}
-            disabled={exporting}
+              <button
+                onClick={() => handleExport('gdd')}
+                disabled={exporting}
                 className="btn btn-secondary btn-xs font-medium disabled:opacity-50"
-            title="Export as GDD"
-          >
+                title="Export as GDD"
+              >
                 📄
-          </button>
-          <button
-            onClick={() => navigate(`/projects/${projectId}/architect`)}
+              </button>
+              <button
+                onClick={() => navigate(`/projects/${projectId}/architect`)}
                 className="btn btn-primary btn-xs font-medium"
                 title="Open Project Architect"
-            >
+              >
                 🏗️
-            </button>
+              </button>
             </div>
           </div>
         </div>
@@ -920,7 +940,9 @@ export function ConceptEditorPage() {
         <div
           ref={assistantRef}
           className={`flex flex-col min-h-0 overflow-hidden flex-[3] ${
-            highlightAssistant ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-[var(--color-surface-card)] rounded-xl transition' : ''
+            highlightAssistant
+              ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-[var(--color-surface-card)] rounded-xl transition'
+              : ''
           }`}
         >
           {project?.id && (
@@ -963,9 +985,7 @@ export function ConceptEditorPage() {
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}
                   {tab === 'validation' && validationIssues.length > 0 && (
-                    <span className="ml-2 badge badge-error">
-                      {validationIssues.length}
-                    </span>
+                    <span className="ml-2 badge badge-error">{validationIssues.length}</span>
                   )}
                 </button>
               ))}
@@ -988,8 +1008,8 @@ export function ConceptEditorPage() {
                 <div className="flex-1 min-h-0 overflow-y-auto">
                   {showRawJsonMechanics ? (
                     <pre className="bg-surface-muted p-4 rounded-lg overflow-auto text-sm text-primary h-full">
-                  {JSON.stringify(currentVersion.mechanics, null, 2)}
-                </pre>
+                      {JSON.stringify(currentVersion.mechanics, null, 2)}
+                    </pre>
                   ) : (
                     <MechanicsViewer mechanics={currentVersion.mechanics} />
                   )}
@@ -1004,7 +1024,8 @@ export function ConceptEditorPage() {
                     <div className="text-4xl mb-2">📖</div>
                     <h4 className="font-semibold text-[var(--color-text-primary)] mb-1">No Lore Generated</h4>
                     <p className="text-[var(--color-text-secondary)] mb-4">
-                      This version doesn't have any lore yet. Generate lore using the "Generate Version" button or refine the version.
+                      This version doesn't have any lore yet. Generate lore using the "Generate Version" button or
+                      refine the version.
                     </p>
                     <button
                       onClick={() => {
@@ -1020,18 +1041,15 @@ export function ConceptEditorPage() {
                   <>
                     <div className="flex items-center justify-between mb-6 flex-shrink-0">
                       <h3 className="text-xl font-semibold text-primary">Game Lore</h3>
-                      <button
-                        onClick={() => setShowRawJsonLore(!showRawJsonLore)}
-                        className="btn btn-secondary btn-xs"
-                      >
+                      <button onClick={() => setShowRawJsonLore(!showRawJsonLore)} className="btn btn-secondary btn-xs">
                         {showRawJsonLore ? '📄 View Formatted' : '🔧 View JSON'}
                       </button>
                     </div>
                     <div className="flex-1 min-h-0 overflow-y-auto">
                       {showRawJsonLore ? (
                         <pre className="bg-surface-muted p-4 rounded-lg overflow-auto text-sm text-primary h-full">
-                    {JSON.stringify(currentVersion.lore, null, 2)}
-                  </pre>
+                          {JSON.stringify(currentVersion.lore, null, 2)}
+                        </pre>
                       ) : (
                         <LoreViewer lore={currentVersion.lore} />
                       )}
@@ -1051,7 +1069,7 @@ export function ConceptEditorPage() {
                       lastValidatedVersionId.current = null;
                       // Ensure we're validating the current version
                       if (currentVersion) {
-                      runValidation('manual', true);
+                        runValidation('manual', true);
                       } else {
                         // If no current version, reload project first
                         await loadProject();
@@ -1137,8 +1155,8 @@ export function ConceptEditorPage() {
                             issue.severity === 'error'
                               ? 'validation-error'
                               : issue.severity === 'warning'
-                              ? 'validation-warning'
-                              : 'validation-info'
+                                ? 'validation-warning'
+                                : 'validation-info'
                           }`}
                         >
                           <div className="flex justify-between items-start">
@@ -1149,8 +1167,8 @@ export function ConceptEditorPage() {
                                     issue.severity === 'error'
                                       ? 'badge-error'
                                       : issue.severity === 'warning'
-                                      ? 'badge-warning'
-                                      : 'badge-info'
+                                        ? 'badge-warning'
+                                        : 'badge-info'
                                   }`}
                                 >
                                   {issue.severity.toUpperCase()}
@@ -1158,9 +1176,7 @@ export function ConceptEditorPage() {
                                 <span className="text-sm text-secondary">{issue.category}</span>
                               </div>
                               <p className="text-primary">{issue.message}</p>
-                              {issue.field && (
-                                <p className="text-sm text-tertiary mt-1">Field: {issue.field}</p>
-                              )}
+                              {issue.field && <p className="text-sm text-tertiary mt-1">Field: {issue.field}</p>}
                             </div>
                           </div>
                         </div>
@@ -1172,7 +1188,6 @@ export function ConceptEditorPage() {
             )}
           </div>
         </div>
-
       </div>
 
       {/* Generate Modal - also available when concept exists */}

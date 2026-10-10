@@ -25,16 +25,13 @@ export class OpenRouterClient implements AIClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`,
+          Authorization: `Bearer ${this.config.apiKey}`,
           'HTTP-Referer': window.location.origin,
           'X-Title': 'Generative Score Lab',
         },
         body: JSON.stringify({
           model: this.config.model || 'anthropic/claude-3.5-sonnet',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...input.messages,
-          ],
+          messages: [{ role: 'system', content: systemPrompt }, ...input.messages],
           max_tokens: input.maxTokens || 2048,
         }),
         signal: input.signal,
@@ -46,7 +43,7 @@ export class OpenRouterClient implements AIClient {
       }
 
       const data = await response.json();
-      
+
       // Validate response structure
       const validated = validateOpenRouterResponse(data);
       const content = validated.content;

@@ -4,12 +4,7 @@
  */
 
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
-import type {
-  IAIClient,
-  AIClientConfig,
-  AICompletionRequest,
-  AICompletionResponse,
-} from './base.js';
+import type { IAIClient, AIClientConfig, AICompletionRequest, AICompletionResponse } from './base.js';
 
 export class GoogleClient implements IAIClient {
   readonly name = 'Google Gemini';
@@ -62,10 +57,9 @@ export class GoogleClient implements IAIClient {
 
       // Estimate cost (Gemini 2.5 Flash pricing as of Nov 2025)
       const costPer1MPrompt = 0.075; // $0.075 per 1M tokens
-      const costPer1MCompletion = 0.30; // $0.30 per 1M tokens
+      const costPer1MCompletion = 0.3; // $0.30 per 1M tokens
       const costUsd =
-        (promptTokens / 1_000_000) * costPer1MPrompt +
-        (completionTokens / 1_000_000) * costPer1MCompletion;
+        (promptTokens / 1_000_000) * costPer1MPrompt + (completionTokens / 1_000_000) * costPer1MCompletion;
 
       return {
         content: text,

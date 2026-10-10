@@ -8,7 +8,7 @@ import { DOCUMENT_TYPES } from './prompts/document-prompts.js';
 
 // Mock the dependencies - vitest v4 compatible syntax
 vi.mock('./interview-manager.js', () => {
-  const MockInterviewManager = vi.fn(function() {
+  const MockInterviewManager = vi.fn(function () {
     this.createSession = vi.fn().mockReturnValue({
       id: 'test-session-123',
       projectId: 'project-123',
@@ -50,7 +50,7 @@ vi.mock('./interview-manager.js', () => {
 });
 
 vi.mock('./document-generator.js', () => {
-  const MockDocumentGenerator = vi.fn(function() {
+  const MockDocumentGenerator = vi.fn(function () {
     this.generateDocumentation = vi.fn().mockResolvedValue({
       projectId: 'project-123',
       sessionId: 'test-session-123',
@@ -112,7 +112,7 @@ vi.mock('./ai-document-generator.js', () => {
     },
   ];
 
-  const MockAIDocumentGenerator = vi.fn(function() {
+  const MockAIDocumentGenerator = vi.fn(function () {
     this.generateAllDocuments = vi.fn().mockResolvedValue({
       documents: mockDocuments,
       totalTokensUsed: mockDocuments.reduce((sum, doc) => sum + doc.tokensUsed, 0),
@@ -224,11 +224,7 @@ describe('ArchitectService', () => {
       expect(startResult.sessionId).toBeDefined();
 
       // Submit answer
-      const answerResult = service.submitAnswer(
-        startResult.sessionId,
-        'q1',
-        'My amazing game'
-      );
+      const answerResult = service.submitAnswer(startResult.sessionId, 'q1', 'My amazing game');
       expect(answerResult.nextQuestion).toBeDefined();
 
       // Check progress
@@ -236,10 +232,7 @@ describe('ArchitectService', () => {
       expect(progress).toBeDefined();
 
       // Generate documentation (async)
-      const result = await service.generateDocumentation(
-        'project-123',
-        startResult.sessionId
-      );
+      const result = await service.generateDocumentation('project-123', startResult.sessionId);
       expect(result.status).toBe('accepted');
 
       await new Promise((resolve) => setImmediate(resolve));

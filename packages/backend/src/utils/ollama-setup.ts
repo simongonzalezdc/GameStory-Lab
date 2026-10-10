@@ -12,8 +12,8 @@ const execAsync = promisify(exec);
 // Use 127.0.0.1 instead of localhost to avoid IPv6 issues with multiple Ollama instances
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
 const REQUIRED_MODELS = [
-  'qwen3:8b',  // Primary model - best balance
-  'qwen3:4b',  // Fallback - faster
+  'qwen3:8b', // Primary model - best balance
+  'qwen3:4b', // Fallback - faster
 ];
 
 /**
@@ -36,7 +36,7 @@ async function isOllamaRunning(): Promise<boolean> {
 async function startOllama(): Promise<boolean> {
   try {
     logger.info('Starting Ollama server...');
-    
+
     // Check if Ollama is already running
     if (await isOllamaRunning()) {
       logger.info('Ollama is already running');
@@ -51,7 +51,7 @@ async function startOllama(): Promise<boolean> {
         logger.info('Ollama process found, waiting for API to be ready...');
         // Wait a bit for API to be ready
         for (let i = 0; i < 10; i++) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500));
           if (await isOllamaRunning()) {
             logger.info('Ollama API is now ready');
             return true;
@@ -71,7 +71,7 @@ async function startOllama(): Promise<boolean> {
 
     // Wait for Ollama to start (up to 10 seconds)
     for (let i = 0; i < 20; i++) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       if (await isOllamaRunning()) {
         logger.info('Ollama server started successfully');
         return true;
@@ -95,17 +95,15 @@ async function isModelAvailable(modelName: string): Promise<boolean> {
     const listResponse = await fetch(`${OLLAMA_BASE_URL}/api/tags`, {
       signal: AbortSignal.timeout(3000),
     });
-    
+
     if (listResponse.ok) {
-      const data = await listResponse.json() as { models?: Array<{ name?: string } | string> };
+      const data = (await listResponse.json()) as { models?: Array<{ name?: string } | string> };
       const models = data.models || [];
       const modelNames = models.map((m: any) => m.name || m);
-      
+
       // Check if our model is in the list (exact match or contains)
-      const found = modelNames.some((name: string) => 
-        name === modelName || name.includes(modelName.split(':')[0])
-      );
-      
+      const found = modelNames.some((name: string) => name === modelName || name.includes(modelName.split(':')[0]));
+
       if (found) {
         return true;
       }
@@ -145,7 +143,7 @@ async function isModelAvailable(modelName: string): Promise<boolean> {
 async function pullModel(modelName: string): Promise<boolean> {
   try {
     logger.info(`Ensuring Ollama model is available: ${modelName}...`);
-    
+
     // Use ollama pull - it's idempotent (fast if model exists, downloads if not)
     const { stdout, stderr } = await execAsync(`ollama pull ${modelName}`, {
       timeout: 600000, // 10 minutes timeout for model download (models can be large)
@@ -160,8 +158,8 @@ async function pullModel(modelName: string): Promise<boolean> {
     }
 
     // Wait a moment for Ollama to register the model
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
     // Verify model is now available
     const available = await isModelAvailable(modelName);
     if (available) {
@@ -170,7 +168,7 @@ async function pullModel(modelName: string): Promise<boolean> {
     } else {
       // Model might be available but API hasn't updated yet
       // Try one more time after a longer wait
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       const retryAvailable = await isModelAvailable(modelName);
       if (retryAvailable) {
         logger.info(`Model ${modelName} is now available (after retry)`);
@@ -186,10 +184,10 @@ async function pullModel(modelName: string): Promise<boolean> {
       logger.warn(`Model ${modelName} pull timed out - it may still be downloading`);
       return false;
     }
-    
-    logger.error(`Failed to pull model ${modelName}`, { 
+
+    logger.error(`Failed to pull model ${modelName}`, {
       error: error.message,
-      code: error.code 
+      code: error.code,
     });
     return false;
   }
@@ -216,18 +214,18 @@ async function modelExistsViaCLI(modelName: string): Promise<boolean> {
 async function restartOllama(): Promise<boolean> {
   try {
     logger.info('Restarting Ollama to refresh model registry...');
-    
+
     // Kill existing Ollama processes (but keep the main serve process)
     try {
       await execAsync('pkill -f "ollama runner"', { timeout: 5000 });
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     } catch {
       // Ignore errors - processes might not exist
     }
 
     // Wait for API to be ready again
     for (let i = 0; i < 10; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       if (await isOllamaRunning()) {
         logger.info('Ollama API is ready after restart');
         return true;
@@ -251,7 +249,7 @@ async function registerModel(modelName: string): Promise<boolean> {
       timeout: 10000,
     });
     logger.debug(`Model ${modelName} registered via show`);
-    
+
     // Try to warm up the model by running a tiny generation (forces Ollama to load it)
     try {
       const warmupResponse = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
@@ -264,7 +262,7 @@ async function registerModel(modelName: string): Promise<boolean> {
         }),
         signal: AbortSignal.timeout(10000),
       });
-      
+
       if (warmupResponse.ok || warmupResponse.status === 404) {
         // Even if 404, the attempt might help Ollama recognize the model
         logger.debug(`Model ${modelName} warmup attempted`);
@@ -272,7 +270,7 @@ async function registerModel(modelName: string): Promise<boolean> {
     } catch {
       // Ignore warmup errors - model might not be accessible yet
     }
-    
+
     return true;
   } catch (error) {
     logger.warn(`Failed to register model ${modelName}`, { error });
@@ -292,10 +290,10 @@ async function ensureModelsAvailable(): Promise<string[]> {
     try {
       // First check via CLI (more reliable)
       const existsViaCLI = await modelExistsViaCLI(model);
-      
+
       // Then check via API
       const availableViaAPI = await isModelAvailable(model);
-      
+
       if (availableViaAPI) {
         logger.info(`Model ${model} is available via API`);
         availableModels.push(model);
@@ -325,7 +323,7 @@ async function ensureModelsAvailable(): Promise<string[]> {
     logger.info(`Registering ${modelsToRegister.length} model(s) with Ollama API...`);
     for (const model of modelsToRegister) {
       await registerModel(model);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait between registrations
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait between registrations
     }
   }
 
@@ -333,11 +331,11 @@ async function ensureModelsAvailable(): Promise<string[]> {
   if (needsRestart && availableModels.length > 0) {
     logger.info('Restarting Ollama to make models accessible via API...');
     await restartOllama();
-    
+
     // Verify models are now accessible
     const verifiedModels: string[] = [];
     for (const model of availableModels) {
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait between checks
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait between checks
       const nowAvailable = await isModelAvailable(model);
       if (nowAvailable) {
         verifiedModels.push(model);
@@ -354,7 +352,7 @@ async function ensureModelsAvailable(): Promise<string[]> {
         }
       }
     }
-    
+
     return verifiedModels.length > 0 ? verifiedModels : availableModels;
   }
 
@@ -372,7 +370,7 @@ export async function initializeOllama(): Promise<{
 
   // Check if Ollama is running
   let serverRunning = await isOllamaRunning();
-  
+
   if (!serverRunning) {
     logger.info('Ollama server is not running, attempting to start...');
     serverRunning = await startOllama();
@@ -381,7 +379,7 @@ export async function initializeOllama(): Promise<{
   if (!serverRunning) {
     logger.warn(
       'Ollama server is not running. ' +
-      'Please start it manually: `ollama serve` or install Ollama from https://ollama.com'
+        'Please start it manually: `ollama serve` or install Ollama from https://ollama.com',
     );
     return {
       serverRunning: false,
@@ -393,10 +391,7 @@ export async function initializeOllama(): Promise<{
   const availableModels = await ensureModelsAvailable();
 
   if (availableModels.length === 0) {
-    logger.warn(
-      'No Ollama models are available. ' +
-      'Please install at least one model: `ollama pull qwen3:8b`'
-    );
+    logger.warn('No Ollama models are available. ' + 'Please install at least one model: `ollama pull qwen3:8b`');
   } else {
     logger.info(`Ollama initialized with ${availableModels.length} model(s): ${availableModels.join(', ')}`);
   }
@@ -406,4 +401,3 @@ export async function initializeOllama(): Promise<{
     availableModels,
   };
 }
-

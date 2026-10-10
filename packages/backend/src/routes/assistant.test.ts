@@ -45,9 +45,7 @@ describe('Assistant API Routes', () => {
     mockAssistantService.getMessages.mockResolvedValue([{ id: 'm1', content: 'hi' }]);
     mockAssistantService.listPendingProposals.mockResolvedValue([{ id: 'p1' }]);
 
-    const res = await request(app)
-      .post('/api/assistant/session')
-      .send({ projectId: 'project-123', type: 'concept' });
+    const res = await request(app).post('/api/assistant/session').send({ projectId: 'project-123', type: 'concept' });
 
     expect(res.status).toBe(200);
     expect(res.body.session.id).toBe('session-123');
@@ -64,9 +62,7 @@ describe('Assistant API Routes', () => {
   it('POST /session/:sessionId/message should send a message', async () => {
     mockAssistantService.sendMessage.mockResolvedValue({ message: { id: 'm2', content: 'pong' } });
 
-    const res = await request(app)
-      .post('/api/assistant/session/s-1/message')
-      .send({ content: 'ping' });
+    const res = await request(app).post('/api/assistant/session/s-1/message').send({ content: 'ping' });
 
     expect(res.status).toBe(200);
     expect(res.body.message).toEqual({ id: 'm2', content: 'pong' });
@@ -74,9 +70,7 @@ describe('Assistant API Routes', () => {
   });
 
   it('POST /session/:sessionId/message should 400 without content', async () => {
-    const res = await request(app)
-      .post('/api/assistant/session/s-1/message')
-      .send({});
+    const res = await request(app).post('/api/assistant/session/s-1/message').send({});
     expect(res.status).toBe(400);
   });
 

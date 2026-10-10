@@ -35,7 +35,10 @@ export async function POST(request: NextRequest) {
     console.error('Failed to create project:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });

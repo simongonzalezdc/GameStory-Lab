@@ -11,11 +11,7 @@ import { buildUnifiedPrompt, getMinimaxOptimizationInstructions } from './unifie
 /**
  * Generate refinement prompt
  */
-export function getRefinementPrompt(
-  mechanics?: MechanicsData,
-  lore?: LoreData,
-  focus?: string
-): string {
+export function getRefinementPrompt(mechanics?: MechanicsData, lore?: LoreData, focus?: string): string {
   const context = `REFINEMENT FOCUS: ${focus || 'General quality improvement and coherence'}
 
 CURRENT MECHANICS:

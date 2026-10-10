@@ -244,4 +244,3 @@ export function getPresetById(id: string): GeneratorPreset | undefined {
 export function getPresetsByType(type: GeneratorConfig['type']): GeneratorPreset[] {
   return generatorPresets.filter((preset) => preset.config.type === type);
 }
-

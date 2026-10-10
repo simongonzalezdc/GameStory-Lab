@@ -4,7 +4,14 @@ import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { Input } from '../ui/Input';
-import type { AIClientId, AIConfig, OpenRouterConfig, MinimaxConfig, GLMConfig, LocalConfig } from '@/types';
+import type {
+  AIClientId,
+  AIConfig,
+  OpenRouterConfig,
+  MinimaxConfig,
+  GLMConfig,
+  LocalConfig,
+} from '@/types';
 import { setupOllama } from '@/lib/ai/ollama-setup';
 
 interface AISetupWizardProps {
@@ -71,17 +78,15 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
+    <Dialog
+      open={open}
+      onClose={onClose}
       title="Configure AI Assistant"
       description="Set up your AI provider and API credentials to enable AI-powered music generation"
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            AI Provider
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">AI Provider</label>
           <Select
             value={provider}
             onValueChange={(value: string) => setProvider(value as AIClientId)}
@@ -155,9 +160,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
               onChange={(e) => setModel(e.target.value)}
               placeholder="abab6.5-chat"
             />
-            <p className="text-xs text-gray-500">
-              Available models: abab6.5-chat, abab5.5-chat
-            </p>
+            <p className="text-xs text-gray-500">Available models: abab6.5-chat, abab5.5-chat</p>
           </>
         )}
 
@@ -176,9 +179,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
               onChange={(e) => setModel(e.target.value)}
               placeholder="glm-4-plus"
             />
-            <p className="text-xs text-gray-500">
-              Available models: glm-4-plus, glm-4-0520, glm-4
-            </p>
+            <p className="text-xs text-gray-500">Available models: glm-4-plus, glm-4-0520, glm-4</p>
           </>
         )}
 

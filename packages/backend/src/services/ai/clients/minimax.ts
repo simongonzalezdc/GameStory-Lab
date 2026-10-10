@@ -6,13 +6,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import type {
-  IAIClient,
-  AIClientConfig,
-  AICompletionRequest,
-  AICompletionResponse,
-  AIClientError,
-} from './base.js';
+import type { IAIClient, AIClientConfig, AICompletionRequest, AICompletionResponse, AIClientError } from './base.js';
 import { logger } from '../../../utils/logger.js';
 import { extractJSON, reformatResponse } from '../utils/json-validation.js';
 
@@ -36,16 +30,18 @@ interface AnthropicRequest {
   temperature?: number;
   top_p?: number;
   stream?: boolean;
-  response_format?: {
-    type: 'json_object' | 'text';
-  } | {
-    type: 'json_schema';
-    json_schema: {
-      name: string;
-      description?: string;
-      schema: Record<string, unknown>;
-    };
-  };
+  response_format?:
+    | {
+        type: 'json_object' | 'text';
+      }
+    | {
+        type: 'json_schema';
+        json_schema: {
+          name: string;
+          description?: string;
+          schema: Record<string, unknown>;
+        };
+      };
 }
 
 // Anthropic-compatible response format
@@ -102,14 +98,14 @@ export class MinimaxClient implements IAIClient {
     try {
       // Use MiniMax-M2 as model name (Anthropic-compatible format)
       const modelName = request.model || 'MiniMax-M2';
-      
+
       // Separate system messages from conversation messages
       const systemMessages = request.messages.filter((m) => m.role === 'system');
       const conversationMessages = request.messages.filter((m) => m.role !== 'system');
-      
+
       // Combine system messages into a single system prompt
       const systemPrompt = systemMessages.map((m) => m.content).join('\n\n');
-      
+
       // Convert messages to Anthropic format (content as array)
       const anthropicMessages: AnthropicMessage[] = conversationMessages.map((msg) => ({
         role: msg.role === 'system' ? 'user' : msg.role, // Anthropic doesn't have 'system' in messages array
@@ -142,19 +138,16 @@ export class MinimaxClient implements IAIClient {
       });
 
       // Anthropic-compatible API uses /v1/messages endpoint
-      const response = await this.client.post<AnthropicResponse>(
-        '/v1/messages',
-        anthropicRequest
-      );
+      const response = await this.client.post<AnthropicResponse>('/v1/messages', anthropicRequest);
 
       logger.debug('Minimax API response received', {
         status: response.status,
         statusText: response.statusText,
         headers: response.headers,
         dataKeys: Object.keys(response.data || {}),
-        hasContent: !!(response.data?.content?.length),
+        hasContent: !!response.data?.content?.length,
         contentLength: response.data?.content?.length || 0,
-        hasUsage: !!(response.data?.usage),
+        hasUsage: !!response.data?.usage,
         model: response.data?.model,
       });
 
@@ -166,7 +159,7 @@ export class MinimaxClient implements IAIClient {
       // Elegantly separate thinking blocks from text content
       let content = '';
       let thinkingContent = '';
-      
+
       for (const block of data.content || []) {
         if (block.type === 'text' && block.text) {
           content += block.text;
@@ -175,9 +168,9 @@ export class MinimaxClient implements IAIClient {
           thinkingContent += block.thinking;
         }
       }
-      
+
       const usage = data.usage || { input_tokens: 0, output_tokens: 0 };
-      
+
       // Log thinking content at debug level if present
       if (thinkingContent) {
         logger.debug('Minimax M2 thinking/reasoning content', {
@@ -186,7 +179,7 @@ export class MinimaxClient implements IAIClient {
           thinkingPreview: thinkingContent.substring(0, 200) + (thinkingContent.length > 200 ? '...' : ''),
         });
       }
-      
+
       if (!content) {
         logger.warn('Minimax API returned empty text content', {
           responseData: JSON.stringify(data).substring(0, 1000),
@@ -199,7 +192,10 @@ export class MinimaxClient implements IAIClient {
       }
 
       // Apply JSON validation and reformatting guardrails if response_format was requested
-      if (request.responseFormat && (request.responseFormat.type === 'json_object' || request.responseFormat.type === 'json_schema')) {
+      if (
+        request.responseFormat &&
+        (request.responseFormat.type === 'json_object' || request.responseFormat.type === 'json_schema')
+      ) {
         const jsonResult = extractJSON(content);
         if (jsonResult.isValid && jsonResult.reformatted) {
           // Use reformatted JSON for better consistency
@@ -266,12 +262,10 @@ export class MinimaxClient implements IAIClient {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorData = error.response?.data;
-        const errorMessage = errorData?.error?.message || 
-                           errorData?.message || 
-                           error.message || 
-                           'Unknown Minimax API error';
+        const errorMessage =
+          errorData?.error?.message || errorData?.message || error.message || 'Unknown Minimax API error';
         const statusCode = error.response?.status;
-        
+
         logger.error('Minimax API request failed', {
           statusCode,
           errorMessage,
@@ -282,7 +276,7 @@ export class MinimaxClient implements IAIClient {
           requestHeaderNames: error.config?.headers ? Object.keys(error.config.headers) : undefined,
           baseUrl: this.baseUrl,
         });
-        
+
         const aiError: AIClientError = {
           name: 'AIClientError',
           message: `Minimax generation failed: ${errorMessage}`,
@@ -292,12 +286,12 @@ export class MinimaxClient implements IAIClient {
         };
         throw aiError;
       }
-      
+
       logger.error('Minimax generation failed with non-Axios error', {
         error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
       });
-      
+
       throw {
         name: 'AIClientError',
         message: `Minimax generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -323,11 +317,9 @@ export class MinimaxClient implements IAIClient {
   private estimateCost(inputTokens: number, outputTokens: number): number {
     // Minimax M2 pricing estimates (competitive pricing)
     const costPer1MInput = 0.25; // $0.25 per 1M input tokens (estimated)
-    const costPer1MOutput = 1.50; // $1.50 per 1M output tokens (estimated)
+    const costPer1MOutput = 1.5; // $1.50 per 1M output tokens (estimated)
 
-    const cost =
-      (inputTokens / 1_000_000) * costPer1MInput +
-      (outputTokens / 1_000_000) * costPer1MOutput;
+    const cost = (inputTokens / 1_000_000) * costPer1MInput + (outputTokens / 1_000_000) * costPer1MOutput;
 
     return cost;
   }

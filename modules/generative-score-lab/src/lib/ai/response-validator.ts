@@ -20,10 +20,12 @@ const OpenRouterResponseSchema = z.object({
     })
   ),
   model: z.string().optional(),
-  usage: z.object({
-    prompt_tokens: z.number().optional(),
-    completion_tokens: z.number().optional(),
-  }).optional(),
+  usage: z
+    .object({
+      prompt_tokens: z.number().optional(),
+      completion_tokens: z.number().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -38,10 +40,12 @@ const MinimaxResponseSchema = z.object({
       }),
     })
   ),
-  base_resp: z.object({
-    status_code: z.number().optional(),
-    status_msg: z.string().optional(),
-  }).optional(),
+  base_resp: z
+    .object({
+      status_code: z.number().optional(),
+      status_msg: z.string().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -58,10 +62,12 @@ const GLMResponseSchema = z.object({
     })
   ),
   model: z.string().optional(),
-  usage: z.object({
-    prompt_tokens: z.number().optional(),
-    completion_tokens: z.number().optional(),
-  }).optional(),
+  usage: z
+    .object({
+      prompt_tokens: z.number().optional(),
+      completion_tokens: z.number().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -71,10 +77,12 @@ const GLMResponseSchema = z.object({
  * - Sometimes content might be empty string if model didn't generate anything
  */
 const OllamaResponseSchema = z.object({
-  message: z.object({
-    content: z.string().optional(), // Make optional to handle empty responses gracefully
-    role: z.string().optional(),
-  }).optional(), // Make message optional in case of error responses
+  message: z
+    .object({
+      content: z.string().optional(), // Make optional to handle empty responses gracefully
+      role: z.string().optional(),
+    })
+    .optional(), // Make message optional in case of error responses
   done: z.boolean().optional(),
   model: z.string().optional(),
   error: z.string().optional(), // Ollama sometimes returns errors in the response
@@ -90,25 +98,24 @@ export function validateOpenRouterResponse(data: unknown): {
   try {
     const validated = OpenRouterResponseSchema.parse(data);
     const content = validated.choices[0]?.message?.content;
-    
+
     if (!content) {
       throw new Error('No content in response');
     }
-    
+
     return {
       content,
       model: validated.model,
     };
   } catch (error) {
-    const message = error instanceof z.ZodError
-      ? `Invalid OpenRouter response format: ${error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
-      : error instanceof Error ? error.message : 'Unknown validation error';
-    
-    errorHandler.handle(
-      new Error(message),
-      'AI Response Validation',
-      ErrorSeverity.ERROR
-    );
+    const message =
+      error instanceof z.ZodError
+        ? `Invalid OpenRouter response format: ${error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+        : error instanceof Error
+          ? error.message
+          : 'Unknown validation error';
+
+    errorHandler.handle(new Error(message), 'AI Response Validation', ErrorSeverity.ERROR);
     throw new Error(`Response validation failed: ${message}`);
   }
 }
@@ -122,22 +129,21 @@ export function validateMinimaxResponse(data: unknown): {
   try {
     const validated = MinimaxResponseSchema.parse(data);
     const content = validated.choices[0]?.message?.content;
-    
+
     if (!content) {
       throw new Error('No content in response');
     }
-    
+
     return { content };
   } catch (error) {
-    const message = error instanceof z.ZodError
-      ? `Invalid Minimax response format: ${error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
-      : error instanceof Error ? error.message : 'Unknown validation error';
-    
-    errorHandler.handle(
-      new Error(message),
-      'AI Response Validation',
-      ErrorSeverity.ERROR
-    );
+    const message =
+      error instanceof z.ZodError
+        ? `Invalid Minimax response format: ${error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+        : error instanceof Error
+          ? error.message
+          : 'Unknown validation error';
+
+    errorHandler.handle(new Error(message), 'AI Response Validation', ErrorSeverity.ERROR);
     throw new Error(`Response validation failed: ${message}`);
   }
 }
@@ -152,25 +158,24 @@ export function validateGLMResponse(data: unknown): {
   try {
     const validated = GLMResponseSchema.parse(data);
     const content = validated.choices[0]?.message?.content;
-    
+
     if (!content) {
       throw new Error('No content in response');
     }
-    
+
     return {
       content,
       model: validated.model,
     };
   } catch (error) {
-    const message = error instanceof z.ZodError
-      ? `Invalid GLM response format: ${error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
-      : error instanceof Error ? error.message : 'Unknown validation error';
-    
-    errorHandler.handle(
-      new Error(message),
-      'AI Response Validation',
-      ErrorSeverity.ERROR
-    );
+    const message =
+      error instanceof z.ZodError
+        ? `Invalid GLM response format: ${error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+        : error instanceof Error
+          ? error.message
+          : 'Unknown validation error';
+
+    errorHandler.handle(new Error(message), 'AI Response Validation', ErrorSeverity.ERROR);
     throw new Error(`Response validation failed: ${message}`);
   }
 }
@@ -189,19 +194,21 @@ export function validateOllamaResponse(data: unknown): {
     }
 
     const validated = OllamaResponseSchema.parse(data);
-    
+
     // Check for error in response
     if (validated.error) {
       throw new Error(`Ollama API error: ${validated.error}`);
     }
-    
+
     // Check if message exists
     if (!validated.message) {
-      throw new Error('No message in Ollama response. The model may have failed to generate a response.');
+      throw new Error(
+        'No message in Ollama response. The model may have failed to generate a response.'
+      );
     }
-    
+
     const content = validated.message.content;
-    
+
     // Handle empty or missing content
     if (!content || content.trim() === '') {
       // Log the full response structure for debugging
@@ -214,14 +221,16 @@ export function validateOllamaResponse(data: unknown): {
         error: validated.error,
         rawData: data,
       };
-      
+
       if (import.meta.env.MODE === 'development') {
         console.warn('[Ollama Response] Empty content received:', responseInfo);
       }
-      
-      throw new Error(`No content in response. Response structure: ${JSON.stringify(responseInfo)}`);
+
+      throw new Error(
+        `No content in response. Response structure: ${JSON.stringify(responseInfo)}`
+      );
     }
-    
+
     return {
       content,
       model: validated.model,
@@ -229,31 +238,24 @@ export function validateOllamaResponse(data: unknown): {
   } catch (error) {
     // If it's a Zod validation error, provide more details
     if (error instanceof z.ZodError) {
-      const issues = error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
+      const issues = error.issues
+        .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
+        .join(', ');
       const message = `Invalid Ollama response format: ${issues}. Received: ${JSON.stringify(data)}`;
-      
+
       if (import.meta.env.MODE === 'development') {
         console.error('[Ollama Response] Validation error:', error.issues);
         console.error('[Ollama Response] Raw data:', data);
       }
-      
-      errorHandler.handle(
-        new Error(message),
-        'AI Response Validation',
-        ErrorSeverity.ERROR
-      );
+
+      errorHandler.handle(new Error(message), 'AI Response Validation', ErrorSeverity.ERROR);
       throw new Error(`Response validation failed: ${message}`);
     }
-    
+
     // For other errors (like empty content), pass through the original message
     const message = error instanceof Error ? error.message : 'Unknown validation error';
-    
-    errorHandler.handle(
-      new Error(message),
-      'AI Response Validation',
-      ErrorSeverity.ERROR
-    );
+
+    errorHandler.handle(new Error(message), 'AI Response Validation', ErrorSeverity.ERROR);
     throw new Error(`Response validation failed: ${message}`);
   }
 }
-

@@ -74,120 +74,134 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
         variant="error"
       />
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      {/* Track Header */}
-      <div className="p-4">
-        <div className="flex items-center gap-4">
-          <span className="text-2xl">{ROLE_ICONS[track.role] || '🎵'}</span>
-          <div className="flex-1">
-            <h4 className="font-semibold text-gray-900">{track.name || `${track.role} Track`}</h4>
-            <p className="text-sm text-gray-500">{clipCount} {clipCount === 1 ? 'clip' : 'clips'}</p>
+        {/* Track Header */}
+        <div className="p-4">
+          <div className="flex items-center gap-4">
+            <span className="text-2xl">{ROLE_ICONS[track.role] || '🎵'}</span>
+            <div className="flex-1">
+              <h4 className="font-semibold text-gray-900">{track.name || `${track.role} Track`}</h4>
+              <p className="text-sm text-gray-500">
+                {clipCount} {clipCount === 1 ? 'clip' : 'clips'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant={track.muted ? 'secondary' : 'ghost'}
+                onClick={() => {
+                  updateTrack(sceneId, track.id, { muted: !track.muted });
+                  // Reschedule scene to reflect mute changes
+                  getAudioEngine().rescheduleScene();
+                }}
+                title="Mute/Unmute"
+                aria-label={
+                  track.muted
+                    ? `Unmute ${track.name || track.role} track`
+                    : `Mute ${track.name || track.role} track`
+                }
+              >
+                {track.muted ? '🔇' : '🔊'}
+              </Button>
+              <Button
+                size="sm"
+                variant={track.solo ? 'primary' : 'ghost'}
+                onClick={() => {
+                  updateTrack(sceneId, track.id, { solo: !track.solo });
+                  // Reschedule scene to reflect solo changes
+                  getAudioEngine().rescheduleScene();
+                }}
+                title="Solo"
+                aria-label={
+                  track.solo
+                    ? `Disable solo for ${track.name || track.role} track`
+                    : `Enable solo for ${track.name || track.role} track`
+                }
+              >
+                S
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleExportMidi}
+                disabled={exporting || clipCount === 0}
+                title="Export track as MIDI"
+                aria-label={`Export ${track.name || track.role} track as MIDI file`}
+              >
+                {exporting ? '⏳' : '🎹'}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setExpanded(!expanded)}
+                title="Show/Hide clips"
+                aria-label={
+                  expanded
+                    ? `Hide clips for ${track.name || track.role} track`
+                    : `Show clips for ${track.name || track.role} track`
+                }
+                aria-expanded={expanded}
+              >
+                {expanded ? '▼' : '▶'}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-red-600"
+                title="Delete track"
+                aria-label={`Delete ${track.name || track.role} track`}
+              >
+                🗑
+              </Button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant={track.muted ? 'secondary' : 'ghost'}
-              onClick={() => {
-                updateTrack(sceneId, track.id, { muted: !track.muted });
-                // Reschedule scene to reflect mute changes
-                getAudioEngine().rescheduleScene();
+          {/* Instrument Selector */}
+          <div className="mt-4">
+            <InstrumentSelector
+              sceneId={sceneId}
+              trackId={track.id}
+              role={track.role}
+              currentInstrumentRef={track.instrumentRef}
+            />
+          </div>
+
+          {/* Volume and Pan Controls */}
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <Slider
+              label="Volume"
+              value={[track.volume * 100]}
+              onValueChange={([v]) => {
+                const newVolume = v / 100;
+                updateTrack(sceneId, track.id, { volume: newVolume });
+                // Update audio engine in real-time
+                getAudioEngine().updateVolume(track.id, newVolume);
               }}
-              title="Mute/Unmute"
-              aria-label={track.muted ? `Unmute ${track.name || track.role} track` : `Mute ${track.name || track.role} track`}
-            >
-              {track.muted ? '🔇' : '🔊'}
-            </Button>
-            <Button
-              size="sm"
-              variant={track.solo ? 'primary' : 'ghost'}
-              onClick={() => {
-                updateTrack(sceneId, track.id, { solo: !track.solo });
-                // Reschedule scene to reflect solo changes
-                getAudioEngine().rescheduleScene();
+              min={0}
+              max={100}
+            />
+            <Slider
+              label="Pan"
+              value={[(track.pan + 1) * 50]}
+              onValueChange={([v]) => {
+                const newPan = v / 50 - 1;
+                updateTrack(sceneId, track.id, { pan: newPan });
+                // Update audio engine in real-time
+                getAudioEngine().updatePan(track.id, newPan);
               }}
-              title="Solo"
-              aria-label={track.solo ? `Disable solo for ${track.name || track.role} track` : `Enable solo for ${track.name || track.role} track`}
-            >
-              S
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleExportMidi}
-              disabled={exporting || clipCount === 0}
-              title="Export track as MIDI"
-              aria-label={`Export ${track.name || track.role} track as MIDI file`}
-            >
-              {exporting ? '⏳' : '🎹'}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setExpanded(!expanded)}
-              title="Show/Hide clips"
-              aria-label={expanded ? `Hide clips for ${track.name || track.role} track` : `Show clips for ${track.name || track.role} track`}
-              aria-expanded={expanded}
-            >
-              {expanded ? '▼' : '▶'}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="text-red-600"
-              title="Delete track"
-              aria-label={`Delete ${track.name || track.role} track`}
-            >
-              🗑
-            </Button>
+              min={0}
+              max={100}
+            />
           </div>
         </div>
 
-        {/* Instrument Selector */}
-        <div className="mt-4">
-          <InstrumentSelector
-            sceneId={sceneId}
-            trackId={track.id}
-            role={track.role}
-            currentInstrumentRef={track.instrumentRef}
-          />
-        </div>
-
-        {/* Volume and Pan Controls */}
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <Slider
-            label="Volume"
-            value={[track.volume * 100]}
-            onValueChange={([v]) => {
-              const newVolume = v / 100;
-              updateTrack(sceneId, track.id, { volume: newVolume });
-              // Update audio engine in real-time
-              getAudioEngine().updateVolume(track.id, newVolume);
-            }}
-            min={0}
-            max={100}
-          />
-          <Slider
-            label="Pan"
-            value={[(track.pan + 1) * 50]}
-            onValueChange={([v]) => {
-              const newPan = (v / 50) - 1;
-              updateTrack(sceneId, track.id, { pan: newPan });
-              // Update audio engine in real-time
-              getAudioEngine().updatePan(track.id, newPan);
-            }}
-            min={0}
-            max={100}
-          />
-        </div>
-      </div>
-
-      {/* Expanded: Clips */}
-      {expanded && (
-        <div className="border-t border-gray-200 p-4 bg-gray-50">
-          <ClipList sceneId={sceneId} trackId={track.id} />
-        </div>
-      )}
+        {/* Expanded: Clips */}
+        {expanded && (
+          <div className="border-t border-gray-200 p-4 bg-gray-50">
+            <ClipList sceneId={sceneId} trackId={track.id} />
+          </div>
+        )}
       </div>
     </>
   );

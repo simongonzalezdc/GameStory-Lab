@@ -89,9 +89,9 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
   }, [exporting, onClose]);
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={handleClose} 
+    <Dialog
+      open={open}
+      onClose={handleClose}
       title="Export to MIDI"
       description="Export your scene as a MIDI file that can be used in any DAW or music software"
     >
@@ -151,8 +151,7 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
                           {track.name || track.role}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {clipCount} clip{clipCount !== 1 ? 's' : ''} •{' '}
-                          {track.role}
+                          {clipCount} clip{clipCount !== 1 ? 's' : ''} • {track.role}
                         </div>
                       </div>
                       {track.muted && (
@@ -212,9 +211,14 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
                 <ul className="list-disc list-inside mt-1 space-y-1">
                   <li>Scene: {scene.name}</li>
                   <li>Tempo: {scene.bpm || 120} BPM</li>
-                  <li>Key: {scene.key} {scene.scale}</li>
                   <li>
-                    Format: {separateFiles ? `${selectedTracks.size} separate MIDI files` : 'Multi-track MIDI file'}
+                    Key: {scene.key} {scene.scale}
+                  </li>
+                  <li>
+                    Format:{' '}
+                    {separateFiles
+                      ? `${selectedTracks.size} separate MIDI files`
+                      : 'Multi-track MIDI file'}
                   </li>
                 </ul>
               </div>

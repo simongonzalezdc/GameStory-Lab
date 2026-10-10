@@ -32,7 +32,7 @@ export function ImageUpload({ onConverted }: ImageUploadProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'],
     },
     maxFiles: 1,
     maxSize: 10 * 1024 * 1024, // 10MB
@@ -45,7 +45,7 @@ export function ImageUpload({ onConverted }: ImageUploadProps) {
       } else {
         setError('File rejected. Please try another file.');
       }
-    }
+    },
   });
 
   const handleConvert = async () => {
@@ -101,37 +101,32 @@ export function ImageUpload({ onConverted }: ImageUploadProps) {
           className={`
             border-2 border-dashed rounded-lg p-12 text-center cursor-pointer
             transition-colors duration-200
-            ${isDragActive
-              ? 'border-purple-500 bg-purple-50'
-              : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
+            ${
+              isDragActive
+                ? 'border-purple-500 bg-purple-50'
+                : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
             }
           `}
         >
           <input {...getInputProps()} />
 
           <div className="flex flex-col items-center gap-4">
-            <div className={`
+            <div
+              className={`
               p-4 rounded-full transition-colors
               ${isDragActive ? 'bg-purple-100' : 'bg-gray-100'}
-            `}>
+            `}
+            >
               <ImageIcon size={48} className={isDragActive ? 'text-purple-500' : 'text-gray-400'} />
             </div>
 
             {isDragActive ? (
-              <p className="text-lg font-medium text-purple-600">
-                Drop your image here
-              </p>
+              <p className="text-lg font-medium text-purple-600">Drop your image here</p>
             ) : (
               <>
-                <p className="text-lg font-medium text-gray-700">
-                  Drag & drop an image here
-                </p>
-                <p className="text-sm text-gray-500">
-                  or click to browse files
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  Supported: PNG, JPG, GIF, WebP (max 10MB)
-                </p>
+                <p className="text-lg font-medium text-gray-700">Drag & drop an image here</p>
+                <p className="text-sm text-gray-500">or click to browse files</p>
+                <p className="text-xs text-gray-400 mt-2">Supported: PNG, JPG, GIF, WebP (max 10MB)</p>
               </>
             )}
           </div>
@@ -140,11 +135,7 @@ export function ImageUpload({ onConverted }: ImageUploadProps) {
         <div className="space-y-4">
           {/* Preview */}
           <div className="relative border-2 border-gray-200 rounded-lg overflow-hidden">
-            <img
-              src={previewUrl || ''}
-              alt="Preview"
-              className="w-full h-auto max-h-96 object-contain bg-gray-100"
-            />
+            <img src={previewUrl || ''} alt="Preview" className="w-full h-auto max-h-96 object-contain bg-gray-100" />
             <button
               onClick={handleClear}
               className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition"
@@ -156,32 +147,22 @@ export function ImageUpload({ onConverted }: ImageUploadProps) {
 
           {/* File Info */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-gray-700">
-              {uploadedFile.name}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              {(uploadedFile.size / 1024).toFixed(2)} KB
-            </p>
+            <p className="text-sm font-medium text-gray-700">{uploadedFile.name}</p>
+            <p className="text-xs text-gray-500 mt-1">{(uploadedFile.size / 1024).toFixed(2)} KB</p>
           </div>
 
           {/* Conversion Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>Conversion Process:</strong> Optimizes image for game use with transparent background,
-              automatic resizing, and PNG compression.
+              <strong>Conversion Process:</strong> Optimizes image for game use with transparent background, automatic
+              resizing, and PNG compression.
             </p>
           </div>
 
           {/* Error/Success Messages */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-3">
-              {error}
-            </div>
-          )}
+          {error && <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-3">{error}</div>}
           {success && (
-            <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-3">
-              {success}
-            </div>
+            <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-3">{success}</div>
           )}
 
           {/* Convert Button */}

@@ -10,7 +10,7 @@ import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared
  */
 export async function validateProtagonistMotivation(
   _mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const protagonist = lore.protagonist;
 
@@ -31,7 +31,7 @@ export async function validateProtagonistMotivation(
     return {
       rule: 'protagonist-motivation',
       severity: 'warning',
-      confidence: 0.80,
+      confidence: 0.8,
       message: 'Protagonist lacks clear motivation for their actions',
       suggestion: 'Define WHY the protagonist undertakes this journey: revenge, duty, curiosity, survival, etc.',
       location: {
@@ -48,7 +48,7 @@ export async function validateProtagonistMotivation(
  */
 export async function validateConflictResolution(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const conflict = lore.conflict;
   const winConditions = mechanics.winConditions || [];
@@ -92,7 +92,7 @@ export async function validateConflictResolution(
     return {
       rule: 'conflict-resolution',
       severity: 'info',
-      confidence: 0.70,
+      confidence: 0.7,
       message: 'Win conditions may not directly resolve the primary conflict',
       suggestion: `Ensure victory addresses: ${conflict.primary}`,
       location: {
@@ -110,7 +110,7 @@ export async function validateConflictResolution(
  */
 export async function validateThemeConsistency(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const themes = lore.themes || [];
 
@@ -118,7 +118,7 @@ export async function validateThemeConsistency(
     return {
       rule: 'theme-consistency',
       severity: 'info',
-      confidence: 0.60,
+      confidence: 0.6,
       message: 'No themes defined - themes help unify narrative and mechanics',
       suggestion: 'Define 1-3 central themes: survival, redemption, discovery, sacrifice, etc.',
       location: {
@@ -135,9 +135,7 @@ export async function validateThemeConsistency(
 
   for (const theme of themes) {
     const themeWords = theme.toLowerCase().split(' ');
-    const reinforced = themeWords.some((word) =>
-      mechanicsText.includes(word) || loreText.includes(word)
-    );
+    const reinforced = themeWords.some((word) => mechanicsText.includes(word) || loreText.includes(word));
 
     if (!reinforced) {
       themesNotReinforced.push(theme);

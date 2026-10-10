@@ -18,7 +18,7 @@ export interface JSONValidationResult {
 export function extractJSON(content: string): JSONValidationResult {
   // FAST PATH: Try parsing the raw content directly first (handles most valid JSON responses)
   const trimmed = content.trim();
-  if ((trimmed.startsWith('{') || trimmed.startsWith('['))) {
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
     try {
       const parsed = JSON.parse(trimmed);
       logger.debug('Successfully parsed JSON directly without extraction', {
@@ -165,7 +165,7 @@ function extractFirstJSONSegment(text: string): string | null {
 
   for (let i = 0; i < maxLength; i++) {
     const char = text[i];
-    
+
     // Handle escape sequences
     if (escapeNext) {
       escapeNext = false;
@@ -197,13 +197,11 @@ function extractFirstJSONSegment(text: string): string | null {
       depth++;
     } else if (char === '}' || char === ']') {
       // Only decrement if bracket type matches
-      const isMatchingCloseBracket = 
-        (char === '}' && bracketType === '{') || 
-        (char === ']' && bracketType === '[');
-      
+      const isMatchingCloseBracket = (char === '}' && bracketType === '{') || (char === ']' && bracketType === '[');
+
       if (isMatchingCloseBracket) {
-      depth--;
-      if (depth === 0 && start !== -1) {
+        depth--;
+        if (depth === 0 && start !== -1) {
           const extracted = text.substring(start, i + 1);
           logger.debug('Extracted JSON segment', {
             length: extracted.length,
@@ -212,9 +210,9 @@ function extractFirstJSONSegment(text: string): string | null {
             preview: extracted.substring(0, 100),
           });
           return extracted.trim();
+        }
       }
     }
-  }
   }
 
   // If we reached the end with an incomplete segment, return it for repair
@@ -250,33 +248,33 @@ function repairTruncatedJSON(json: string): string | null {
   let inString = false;
   let escapeNext = false;
   const stack: Array<'{' | '['> = [];
-  
+
   // Safety limit
   const maxLength = Math.min(repaired.length, 1000000);
-  
+
   // First pass: track state and build stack
   for (let i = 0; i < maxLength; i++) {
     const char = repaired[i];
-    
+
     if (escapeNext) {
       escapeNext = false;
       continue;
     }
-    
+
     if (char === '\\') {
       escapeNext = true;
       continue;
     }
-    
+
     if (char === '"' && !escapeNext) {
       inString = !inString;
       continue;
     }
-    
+
     if (inString) {
       continue;
     }
-    
+
     if (char === '{') {
       stack.push('{');
     } else if (char === '[') {
@@ -291,16 +289,16 @@ function repairTruncatedJSON(json: string): string | null {
       }
     }
   }
-  
+
   // Remove trailing comma if present (before any whitespace)
   repaired = repaired.replace(/,\s*$/, '');
-  
+
   // Close unclosed string
   if (inString) {
     repaired += '"';
     logger.debug('Repaired: closed unclosed string');
   }
-  
+
   // Close unclosed arrays/objects in reverse order
   while (stack.length > 0) {
     const opener = stack.pop();
@@ -310,17 +308,17 @@ function repairTruncatedJSON(json: string): string | null {
       repaired += ']';
     }
   }
-  
+
   // Final check: remove any trailing comma before closing braces
   repaired = repaired.replace(/,\s*([}\]])/g, '$1');
-  
+
   logger.debug('Repaired truncated JSON', {
     originalLength: json.length,
     repairedLength: repaired.length,
     closedStrings: inString ? 1 : 0,
     closedBrackets: stack.length,
   });
-  
+
   return repaired;
 }
 
@@ -337,7 +335,7 @@ function tryParseJSONString(jsonSnippet: string, originalContent: string): JSONP
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     // Try basic JSON fix first
     const fixed = attemptJSONFix(jsonSnippet);
     if (fixed) {
@@ -359,7 +357,7 @@ function tryParseJSONString(jsonSnippet: string, originalContent: string): JSONP
         // Continue to repair attempt
       }
     }
-    
+
     // Try truncation repair if basic fix failed
     const repaired = repairTruncatedJSON(jsonSnippet);
     if (repaired && repaired !== jsonSnippet) {
@@ -397,10 +395,13 @@ function tryParseJSONString(jsonSnippet: string, originalContent: string): JSONP
 /**
  * Validate JSON against a schema (basic validation)
  */
-export function validateJSONSchema(json: any, schema: {
-  required?: string[];
-  properties?: Record<string, { type: string; items?: any }>;
-}): { valid: boolean; errors: string[] } {
+export function validateJSONSchema(
+  json: any,
+  schema: {
+    required?: string[];
+    properties?: Record<string, { type: string; items?: any }>;
+  },
+): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   if (!json || typeof json !== 'object') {
@@ -468,4 +469,3 @@ export function reformatResponse(content: string): string | null {
   }
   return null;
 }
-

@@ -13,7 +13,7 @@ export class MarkovGenerator extends BaseGenerator {
     this.validateContext(context);
 
     const params = config.params as MarkovParams;
-    
+
     // Validate markov parameters
     if (params.order < 1 || params.order > 4) {
       throw new Error('Markov order must be between 1 and 4');
@@ -26,20 +26,16 @@ export class MarkovGenerator extends BaseGenerator {
     const scaleNotes = getScaleNotes(context.key, context.scale, 3, 6);
 
     // Use seed melody or generate default
-    const seedMelody = params.seedMelody && params.seedMelody.length > 0
-      ? params.seedMelody
-      : this.generateDefaultSeed(scaleNotes);
+    const seedMelody =
+      params.seedMelody && params.seedMelody.length > 0
+        ? params.seedMelody
+        : this.generateDefaultSeed(scaleNotes);
 
     // Build transition matrix
     const transitionMatrix = this.buildTransitionMatrix(seedMelody, params.order);
 
     // Generate new melody
-    const melody = this.generateMelody(
-      seedMelody,
-      transitionMatrix,
-      params.length,
-      params.order
-    );
+    const melody = this.generateMelody(seedMelody, transitionMatrix, params.length, params.order);
 
     // Convert to notes
     const notes = this.melodyToNotes(melody, context);
@@ -67,10 +63,7 @@ export class MarkovGenerator extends BaseGenerator {
   /**
    * Build Markov chain transition matrix
    */
-  private buildTransitionMatrix(
-    melody: number[],
-    order: number
-  ): Map<string, Map<number, number>> {
+  private buildTransitionMatrix(melody: number[], order: number): Map<string, Map<number, number>> {
     const matrix = new Map<string, Map<number, number>>();
 
     for (let i = 0; i < melody.length - order; i++) {

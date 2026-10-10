@@ -25,10 +25,12 @@ export function SpotlightCard({ children, className }: SpotlightCardProps) {
       ref={cardRef}
       className={cn('spotlight-card notebook-card', className)}
       onMouseMove={handleMouseMove}
-      style={{
-        '--mouse-x': `${mousePosition.x}%`,
-        '--mouse-y': `${mousePosition.y}%`,
-      } as React.CSSProperties}
+      style={
+        {
+          '--mouse-x': `${mousePosition.x}%`,
+          '--mouse-y': `${mousePosition.y}%`,
+        } as React.CSSProperties
+      }
     >
       {children}
     </div>

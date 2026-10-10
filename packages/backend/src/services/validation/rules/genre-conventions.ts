@@ -11,7 +11,7 @@ import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared
 export async function validateGenreConventions(
   mechanics: MechanicsData,
   lore: LoreData,
-  genre?: string
+  genre?: string,
 ): Promise<ValidationIssue | null> {
   if (!genre || genre === 'blank') {
     return null; // No genre to validate against
@@ -36,9 +36,7 @@ export async function validateGenreConventions(
       // FPS should have combat/weapons
       const hasWeapons =
         mechanics.playerActions?.some((action) =>
-          ['shoot', 'fire', 'aim', 'reload', 'weapon'].some((w) =>
-            action.toLowerCase().includes(w)
-          )
+          ['shoot', 'fire', 'aim', 'reload', 'weapon'].some((w) => action.toLowerCase().includes(w)),
         ) || false;
       if (!hasWeapons) {
         issues.push('FPS should have shooting/weapon mechanics');
@@ -64,9 +62,7 @@ export async function validateGenreConventions(
 
     case 'survival': {
       // Survival should have resource scarcity
-      const hasScarcity = mechanics.resourceSystems?.some(
-        (r) => r.scarcity === 'scarce' || r.scarcity === 'balanced'
-      );
+      const hasScarcity = mechanics.resourceSystems?.some((r) => r.scarcity === 'scarce' || r.scarcity === 'balanced');
       if (!hasScarcity) {
         issues.push('Survival games should have scarce resources');
       }

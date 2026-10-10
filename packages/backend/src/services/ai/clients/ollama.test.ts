@@ -8,18 +8,14 @@ import type { AICompletionRequest } from './base.js';
 
 // Mock the Ollama library - vitest v4 compatible syntax
 vi.mock('ollama', () => {
-  const MockOllama = vi.fn(function(this: any) {
+  const MockOllama = vi.fn(function (this: any) {
     this.generate = vi.fn().mockResolvedValue({
       response: 'Generated response',
       prompt_eval_count: 10,
       eval_count: 50,
     });
     this.list = vi.fn().mockResolvedValue({
-      models: [
-        { name: 'qwen3:30b-a3b' },
-        { name: 'phi4:14b' },
-        { name: 'qwen3:7b' },
-      ],
+      models: [{ name: 'qwen3:30b-a3b' }, { name: 'phi4:14b' }, { name: 'qwen3:7b' }],
     });
     this.pull = vi.fn().mockResolvedValue({});
     return this;
@@ -67,7 +63,7 @@ describe('OllamaClient', () => {
 
     it('should return false when unavailable', async () => {
       const { Ollama } = await import('ollama');
-      vi.mocked(Ollama).mockImplementationOnce(function(this: any) {
+      vi.mocked(Ollama).mockImplementationOnce(function (this: any) {
         this.list = vi.fn().mockRejectedValue(new Error('Connection failed'));
         return this;
       });
@@ -90,7 +86,7 @@ describe('OllamaClient', () => {
 
     it('should return empty array on error', async () => {
       const { Ollama } = await import('ollama');
-      vi.mocked(Ollama).mockImplementationOnce(function(this: any) {
+      vi.mocked(Ollama).mockImplementationOnce(function (this: any) {
         this.list = vi.fn().mockRejectedValue(new Error('Failed'));
         return this;
       });
@@ -235,7 +231,7 @@ describe('OllamaClient', () => {
         text: async () => 'fail',
       });
       const { Ollama } = await import('ollama');
-      vi.mocked(Ollama).mockImplementationOnce(function(this: any) {
+      vi.mocked(Ollama).mockImplementationOnce(function (this: any) {
         this.generate = vi.fn().mockRejectedValue(new Error('Generation failed'));
         return this;
       });
@@ -257,7 +253,7 @@ describe('OllamaClient', () => {
 
     it('should handle pull errors', async () => {
       const { Ollama } = await import('ollama');
-      vi.mocked(Ollama).mockImplementationOnce(function(this: any) {
+      vi.mocked(Ollama).mockImplementationOnce(function (this: any) {
         this.pull = vi.fn().mockRejectedValue(new Error('Pull failed'));
         return this;
       });

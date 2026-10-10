@@ -10,7 +10,7 @@ import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared
  */
 export async function validatePlayerAbilitiesMatch(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const playerActions = mechanics.playerActions || [];
   const characterAbilities = lore.protagonist?.abilities || [];
@@ -52,13 +52,13 @@ export async function validatePlayerAbilitiesMatch(
 
   if (unmatchedRatio > 0.5) {
     severity = 'error';
-    confidence = 0.90;
+    confidence = 0.9;
   } else if (unmatchedRatio > 0.25) {
     severity = 'warning';
     confidence = 0.75;
   } else {
     severity = 'info';
-    confidence = 0.60;
+    confidence = 0.6;
   }
 
   return {
@@ -102,10 +102,7 @@ function checkSemanticMatch(action: string, ability: string): boolean {
 /**
  * Validate that resource systems have in-world explanations
  */
-export async function validateResourceLogic(
-  mechanics: MechanicsData,
-  lore: LoreData
-): Promise<ValidationIssue | null> {
+export async function validateResourceLogic(mechanics: MechanicsData, lore: LoreData): Promise<ValidationIssue | null> {
   const resourceSystems = mechanics.resourceSystems || [];
 
   if (resourceSystems.length === 0) {
@@ -132,7 +129,7 @@ export async function validateResourceLogic(
   return {
     rule: 'resource-logic',
     severity: 'warning',
-    confidence: 0.70,
+    confidence: 0.7,
     message: `${unexplainedResources.length} resource(s) not explained in lore: ${unexplainedResources.join(', ')}`,
     suggestion: `Add world rules or setting details that explain these resources: ${unexplainedResources.join(', ')}`,
     location: {
@@ -147,7 +144,7 @@ export async function validateResourceLogic(
  */
 export async function validateWinConditionsNarrativeSound(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const winConditions = mechanics.winConditions || [];
   const conflict = lore.conflict;
@@ -160,7 +157,7 @@ export async function validateWinConditionsNarrativeSound(
     return {
       rule: 'win-conditions-narratively-sound',
       severity: 'warning',
-      confidence: 0.80,
+      confidence: 0.8,
       message: 'Win conditions exist but no primary conflict defined in lore',
       suggestion: 'Define the primary conflict that victory should resolve',
       location: {
@@ -202,7 +199,7 @@ export async function validateWinConditionsNarrativeSound(
  */
 export async function validateProgressionExplainsPowerGrowth(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const progression = mechanics.progressionSystems;
   const protagonist = lore.protagonist;
@@ -215,7 +212,7 @@ export async function validateProgressionExplainsPowerGrowth(
     return {
       rule: 'progression-explains-power-growth',
       severity: 'info',
-      confidence: 0.70,
+      confidence: 0.7,
       message: 'Progression system exists but protagonist lacks background/motivation to explain growth',
       suggestion: 'Add protagonist background that explains why and how they grow in power',
       location: {
@@ -233,7 +230,7 @@ export async function validateProgressionExplainsPowerGrowth(
  */
 export async function validateCombatSystemConsistency(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const playerActions = mechanics.playerActions || [];
   const worldRules = lore.worldRules;
@@ -256,12 +253,8 @@ export async function validateCombatSystemConsistency(
   }
 
   // Check for anachronisms (e.g., guns in medieval setting)
-  const hasGuns = combatActions.some((action) =>
-    action.toLowerCase().match(/gun|rifle|pistol|firearm|shoot/)
-  );
-  const hasMagic = combatActions.some((action) =>
-    action.toLowerCase().match(/magic|spell|cast|enchant/)
-  );
+  const hasGuns = combatActions.some((action) => action.toLowerCase().match(/gun|rifle|pistol|firearm|shoot/));
+  const hasMagic = combatActions.some((action) => action.toLowerCase().match(/magic|spell|cast|enchant/));
 
   const settingText = JSON.stringify(setting).toLowerCase();
   const isMedieval = settingText.includes('medieval') || settingText.includes('fantasy');
@@ -270,9 +263,10 @@ export async function validateCombatSystemConsistency(
     return {
       rule: 'combat-system-consistency',
       severity: 'error',
-      confidence: 0.90,
+      confidence: 0.9,
       message: 'Combat includes guns/firearms but setting is medieval/fantasy',
-      suggestion: 'Either remove guns or change setting to steampunk/modern, OR add world rules explaining anachronistic technology',
+      suggestion:
+        'Either remove guns or change setting to steampunk/modern, OR add world rules explaining anachronistic technology',
       location: {
         mechanics: ['playerActions'],
         lore: ['setting', 'worldRules.technology'],
@@ -302,13 +296,13 @@ export async function validateCombatSystemConsistency(
  */
 export async function validateMagicSystemRules(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const playerActions = mechanics.playerActions || [];
   const worldRules = lore.worldRules;
 
   const hasMagicMechanics = playerActions.some((action) =>
-    action.toLowerCase().match(/magic|spell|cast|enchant|summon|mystical/)
+    action.toLowerCase().match(/magic|spell|cast|enchant|summon|mystical/),
   );
 
   if (!hasMagicMechanics) {
@@ -337,7 +331,7 @@ export async function validateMagicSystemRules(
  */
 export async function validateTechnologyLevelMatch(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const playerActions = mechanics.playerActions || [];
   const worldRules = lore.worldRules;
@@ -345,7 +339,7 @@ export async function validateTechnologyLevelMatch(
 
   // Detect tech level from actions
   const hasAdvancedTech = playerActions.some((action) =>
-    action.toLowerCase().match(/hack|cyber|robot|ai|laser|plasma|digital/)
+    action.toLowerCase().match(/hack|cyber|robot|ai|laser|plasma|digital/),
   );
 
   const settingText = JSON.stringify(setting).toLowerCase();
@@ -354,7 +348,7 @@ export async function validateTechnologyLevelMatch(
     return {
       rule: 'technology-level-match',
       severity: 'error',
-      confidence: 0.90,
+      confidence: 0.9,
       message: 'Mechanics use advanced technology (hacking, AI, lasers) but setting is medieval',
       suggestion: 'Change setting to sci-fi/cyberpunk OR remove advanced tech mechanics OR add magitech explanation',
       location: {
@@ -386,7 +380,7 @@ export async function validateTechnologyLevelMatch(
  */
 export async function validateDeathConsequencesAlign(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const failConditions = mechanics.failConditions || [];
 
@@ -394,9 +388,7 @@ export async function validateDeathConsequencesAlign(
     return null;
   }
 
-  const hasRespawn = failConditions.some((condition) =>
-    condition.toLowerCase().match(/respawn|revive|continue/)
-  );
+  const hasRespawn = failConditions.some((condition) => condition.toLowerCase().match(/respawn|revive|continue/));
 
   const loreText = JSON.stringify(lore).toLowerCase();
 
@@ -423,30 +415,32 @@ export async function validateDeathConsequencesAlign(
  */
 export async function validateMultiplayerJustification(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
-  const hasMultiplayer = mechanicsText.includes('multiplayer') ||
-                        mechanicsText.includes('co-op') ||
-                        mechanicsText.includes('pvp') ||
-                        mechanicsText.includes('other players');
+  const hasMultiplayer =
+    mechanicsText.includes('multiplayer') ||
+    mechanicsText.includes('co-op') ||
+    mechanicsText.includes('pvp') ||
+    mechanicsText.includes('other players');
 
   if (!hasMultiplayer) {
     return null;
   }
 
   const loreText = JSON.stringify(lore).toLowerCase();
-  const hasJustification = loreText.includes('team') ||
-                          loreText.includes('group') ||
-                          loreText.includes('party') ||
-                          loreText.includes('multiple') ||
-                          loreText.includes('companions');
+  const hasJustification =
+    loreText.includes('team') ||
+    loreText.includes('group') ||
+    loreText.includes('party') ||
+    loreText.includes('multiple') ||
+    loreText.includes('companions');
 
   if (!hasJustification) {
     return {
       rule: 'multiplayer-justification',
       severity: 'info',
-      confidence: 0.70,
+      confidence: 0.7,
       message: 'Multiplayer mechanics exist but lore describes solo protagonist',
       suggestion: 'Explain why multiple players exist: team of heroes, parallel dimensions, different timelines, etc.',
       location: {
@@ -464,12 +458,12 @@ export async function validateMultiplayerJustification(
  */
 export async function validateEconomyWorldbuilding(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const resourceSystems = mechanics.resourceSystems || [];
 
   const hasCurrency = resourceSystems.some((resource) =>
-    resource.name.toLowerCase().match(/gold|coin|credit|money|currency|cash/)
+    resource.name.toLowerCase().match(/gold|coin|credit|money|currency|cash/),
   );
 
   if (!hasCurrency) {
@@ -477,17 +471,18 @@ export async function validateEconomyWorldbuilding(
   }
 
   const loreText = JSON.stringify(lore).toLowerCase();
-  const hasEconomyLore = loreText.includes('trade') ||
-                        loreText.includes('merchant') ||
-                        loreText.includes('economy') ||
-                        loreText.includes('market') ||
-                        loreText.includes('shop');
+  const hasEconomyLore =
+    loreText.includes('trade') ||
+    loreText.includes('merchant') ||
+    loreText.includes('economy') ||
+    loreText.includes('market') ||
+    loreText.includes('shop');
 
   if (!hasEconomyLore) {
     return {
       rule: 'economy-worldbuilding',
       severity: 'info',
-      confidence: 0.60,
+      confidence: 0.6,
       message: 'Currency/economy in mechanics but no mention of trade or markets in lore',
       suggestion: 'Add worldbuilding about economy, merchants, or why currency exists',
       location: {
