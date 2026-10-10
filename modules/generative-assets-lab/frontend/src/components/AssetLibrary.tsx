@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { Image as ImageIcon, Download, Trash2, Search, Filter, Star, StarOff, FolderOpen, Wand2, GitBranch, Grid3x3, Grid2x2, LayoutGrid, Tag } from 'lucide-react';
 import { apiClient } from '../services/api';
 import type { Asset } from '../types/asset';

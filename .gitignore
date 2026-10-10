@@ -38,6 +38,24 @@ Thumbs.db
 # Testing
 coverage/
 .nyc_output/
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.envrc
+
+# Next.js
+.next/
+out/
+
+# Vite
+*.local
 
 # Prisma
 packages/backend/prisma/migrations/*_migration/

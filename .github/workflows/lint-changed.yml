@@ -1,0 +1,62 @@
+name: Lint Changed Files
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  run-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Lint changed files (fails on errors)
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_ref="${GITHUB_BASE_REF:-main}"
+          git fetch --no-tags --depth=1 origin "$base_ref"
+          mapfile -t changed_files < <(git diff --name-only "origin/$base_ref...HEAD" -- '*.js' '*.jsx' '*.ts' '*.tsx') || true
+          if [[ ${#changed_files[@]} -eq 0 ]]; then
+            echo "No changed JS/TS files to lint."
+            exit 0
+          fi
+          if [[ -f package-lock.json ]]; then npm ci; else npm install; fi
+          backend_files=()
+          frontend_files=()
+          shared_files=()
+          touched_modules=()
+          for file in "${changed_files[@]}"; do
+            case "$file" in
+              packages/backend/*) backend_files+=("${file#packages/backend/}") ;;
+              packages/frontend/*) frontend_files+=("${file#packages/frontend/}") ;;
+              packages/shared/*) shared_files+=("${file#packages/shared/}") ;;
+              modules/generative-assets-lab/frontend/*) touched_modules+=("modules/generative-assets-lab/frontend") ;;
+              modules/generative-score-lab/*) touched_modules+=("modules/generative-score-lab") ;;
+              modules/shiplab/*) touched_modules+=("modules/shiplab") ;;
+              *) echo "Skipping changed file outside linted projects: $file" ;;
+            esac
+          done
+          [[ ${#backend_files[@]} -eq 0 ]] || npm exec --workspace @gamestory/backend -- eslint "${backend_files[@]}"
+          [[ ${#frontend_files[@]} -eq 0 ]] || npm exec --workspace @gamestory/frontend -- eslint "${frontend_files[@]}"
+          [[ ${#shared_files[@]} -eq 0 ]] || npm exec --workspace @gamestory/shared -- eslint "${shared_files[@]}"
+          if [[ ${#touched_modules[@]} -gt 0 ]]; then
+            mapfile -t unique_modules < <(printf '%s\n' "${touched_modules[@]}" | sort -u)
+            for m in "${unique_modules[@]}"; do
+              echo "=== lint $m ==="
+              (cd "$m" && npm ci && npm run lint)
+            done
+          fi
