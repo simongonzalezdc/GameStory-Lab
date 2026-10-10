@@ -12,10 +12,7 @@ export default function TrackList({ sceneId }: TrackListProps) {
   const { project, addTrack } = useProjectStore();
 
   // Memoize scene lookup
-  const scene = useMemo(
-    () => project?.scenes.find((s) => s.id === sceneId),
-    [project?.scenes, sceneId]
-  );
+  const scene = useMemo(() => project?.scenes.find((s) => s.id === sceneId), [project?.scenes, sceneId]);
 
   const handleAddTrack = useCallback(
     (role: TrackRole) => {
@@ -30,7 +27,7 @@ export default function TrackList({ sceneId }: TrackListProps) {
         solo: false,
       });
     },
-    [addTrack, sceneId]
+    [addTrack, sceneId],
   );
 
   if (!scene) return null;

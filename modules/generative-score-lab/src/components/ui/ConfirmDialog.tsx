@@ -40,10 +40,7 @@ export function ConfirmDialog({
         <Button variant="secondary" onClick={handleCancel}>
           {cancelLabel}
         </Button>
-        <Button
-          onClick={handleConfirm}
-          className={variant === 'danger' ? 'bg-red-600 hover:bg-red-700' : ''}
-        >
+        <Button onClick={handleConfirm} className={variant === 'danger' ? 'bg-red-600 hover:bg-red-700' : ''}>
           {confirmLabel}
         </Button>
       </div>

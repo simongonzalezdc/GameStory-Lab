@@ -153,9 +153,7 @@ export function ChatInterface({
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Press Enter to send, Shift+Enter for new line
-        </p>
+        <p className="mt-2 text-xs text-muted-foreground">Press Enter to send, Shift+Enter for new line</p>
       </form>
     </div>
   );

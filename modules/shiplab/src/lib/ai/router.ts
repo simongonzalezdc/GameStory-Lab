@@ -56,7 +56,7 @@ export class LLMRouter {
       temperature?: number;
       maxTokens?: number;
       projectId?: string;
-    }
+    },
   ): Promise<LLMResponse> {
     const model = getModel(modelId);
     if (!model) {
@@ -80,7 +80,7 @@ export class LLMRouter {
       temperature?: number;
       maxTokens?: number;
       projectId?: string;
-    }
+    },
   ): AsyncGenerator<StreamChunk> {
     const model = getModel(modelId);
     if (!model) {
@@ -101,7 +101,7 @@ export class LLMRouter {
       temperature?: number;
       maxTokens?: number;
       projectId?: string;
-    }
+    },
   ): Promise<LLMResponse> {
     try {
       const response = await this.ollamaClient.chat({
@@ -139,7 +139,7 @@ export class LLMRouter {
     } catch (error) {
       console.error('Ollama error:', error);
       throw new Error(
-        `Failed to connect to Ollama. Make sure Ollama is running at ${process.env.OLLAMA_HOST || 'http://localhost:11434'}`
+        `Failed to connect to Ollama. Make sure Ollama is running at ${process.env.OLLAMA_HOST || 'http://localhost:11434'}`,
       );
     }
   }
@@ -151,7 +151,7 @@ export class LLMRouter {
       temperature?: number;
       maxTokens?: number;
       projectId?: string;
-    }
+    },
   ): Promise<LLMResponse> {
     if (!this.openRouterClient) {
       throw new Error('OpenRouter API key not configured');
@@ -208,7 +208,7 @@ export class LLMRouter {
       temperature?: number;
       maxTokens?: number;
       projectId?: string;
-    }
+    },
   ): AsyncGenerator<StreamChunk> {
     try {
       const stream = await this.ollamaClient.chat({
@@ -253,7 +253,7 @@ export class LLMRouter {
     } catch (error) {
       console.error('Ollama streaming error:', error);
       throw new Error(
-        `Failed to connect to Ollama. Make sure Ollama is running at ${process.env.OLLAMA_HOST || 'http://localhost:11434'}`
+        `Failed to connect to Ollama. Make sure Ollama is running at ${process.env.OLLAMA_HOST || 'http://localhost:11434'}`,
       );
     }
   }
@@ -265,7 +265,7 @@ export class LLMRouter {
       temperature?: number;
       maxTokens?: number;
       projectId?: string;
-    }
+    },
   ): AsyncGenerator<StreamChunk> {
     if (!this.openRouterClient) {
       throw new Error('OpenRouter API key not configured');

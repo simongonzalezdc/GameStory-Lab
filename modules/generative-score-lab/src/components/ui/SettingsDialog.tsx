@@ -15,12 +15,7 @@ export default function SettingsDialog({ open, onOpenChange }: SettingsDialogPro
   const { theme, setTheme } = useThemeStore();
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Settings"
-      description="Configure application settings"
-    >
+    <Dialog open={open} onOpenChange={onOpenChange} title="Settings" description="Configure application settings">
       <div className="space-y-6">
         {/* Theme Settings */}
         <div>
@@ -28,12 +23,8 @@ export default function SettingsDialog({ open, onOpenChange }: SettingsDialogPro
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Theme
-                </label>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Choose your preferred color scheme
-                </p>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Theme</label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Choose your preferred color scheme</p>
               </div>
               <div className="flex items-center gap-2">
                 <ThemeToggle />
@@ -53,9 +44,7 @@ export default function SettingsDialog({ open, onOpenChange }: SettingsDialogPro
 
         {/* Keyboard Shortcuts Info */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Keyboard Shortcuts
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Keyboard Shortcuts</h3>
           <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
             <div className="flex justify-between">
               <span>Undo</span>
@@ -63,9 +52,7 @@ export default function SettingsDialog({ open, onOpenChange }: SettingsDialogPro
             </div>
             <div className="flex justify-between">
               <span>Redo</span>
-              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
-                Ctrl+Shift+Z
-              </kbd>
+              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Ctrl+Shift+Z</kbd>
             </div>
             <div className="flex justify-between">
               <span>Export Project</span>

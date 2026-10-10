@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       project.path,
       project.name,
       validated.platforms,
-      validated.model
+      validated.model,
     );
 
     // Save configs to database
@@ -102,16 +102,10 @@ export async function POST(request: NextRequest) {
     console.error('Deployment config generation error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Generation failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Generation failed' }, { status: 500 });
   }
 }
 
@@ -157,15 +151,9 @@ export async function GET(request: NextRequest) {
     console.error('Platform config generation error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Generation failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Generation failed' }, { status: 500 });
   }
 }

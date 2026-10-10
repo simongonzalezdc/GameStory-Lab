@@ -6,17 +6,13 @@
 import type { Track } from '@/types';
 
 export interface TrackStoreActions {
-  addTrack: (
-    project: any,
-    sceneId: string,
-    trackData: Omit<Track, 'id'>
-  ) => { project: any; selectedTrackId: string };
+  addTrack: (project: any, sceneId: string, trackData: Omit<Track, 'id'>) => { project: any; selectedTrackId: string };
   updateTrack: (project: any, sceneId: string, trackId: string, updates: Partial<Track>) => any;
   deleteTrack: (
     project: any,
     selectedTrackId: string | null,
     sceneId: string,
-    trackId: string
+    trackId: string,
   ) => { project: any; selectedTrackId: string | null };
 }
 
@@ -28,7 +24,7 @@ export const trackStore: TrackStoreActions = {
     };
 
     const updatedScenes = project.scenes.map((scene: any) =>
-      scene.id === sceneId ? { ...scene, tracks: [...scene.tracks, newTrack] } : scene
+      scene.id === sceneId ? { ...scene, tracks: [...scene.tracks, newTrack] } : scene,
     );
 
     return {
@@ -49,11 +45,9 @@ export const trackStore: TrackStoreActions = {
       scene.id === sceneId
         ? {
             ...scene,
-            tracks: scene.tracks.map((track: Track) =>
-              track.id === trackId ? { ...track, ...updates } : track
-            ),
+            tracks: scene.tracks.map((track: Track) => (track.id === trackId ? { ...track, ...updates } : track)),
           }
-        : scene
+        : scene,
     );
 
     return {
@@ -73,7 +67,7 @@ export const trackStore: TrackStoreActions = {
             ...scene,
             tracks: scene.tracks.filter((track: Track) => track.id !== trackId),
           }
-        : scene
+        : scene,
     );
 
     const newSelectedTrackId = selectedTrackId === trackId ? null : selectedTrackId;

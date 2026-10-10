@@ -27,9 +27,7 @@ export class MarkovGenerator extends BaseGenerator {
 
     // Use seed melody or generate default
     const seedMelody =
-      params.seedMelody && params.seedMelody.length > 0
-        ? params.seedMelody
-        : this.generateDefaultSeed(scaleNotes);
+      params.seedMelody && params.seedMelody.length > 0 ? params.seedMelody : this.generateDefaultSeed(scaleNotes);
 
     // Build transition matrix
     const transitionMatrix = this.buildTransitionMatrix(seedMelody, params.order);
@@ -96,7 +94,7 @@ export class MarkovGenerator extends BaseGenerator {
     seed: number[],
     matrix: Map<string, Map<number, number>>,
     length: number,
-    order: number
+    order: number,
   ): number[] {
     const melody = [...seed.slice(0, order)];
 

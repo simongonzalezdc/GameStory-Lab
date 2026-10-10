@@ -17,11 +17,7 @@ interface LicenseSelectorProps {
   onLicenseSelected?: (licenseId: string, licenseText: string) => void;
 }
 
-export function LicenseSelector({
-  projectId,
-  projectType = 'application',
-  onLicenseSelected,
-}: LicenseSelectorProps) {
+export function LicenseSelector({ projectId, projectType = 'application', onLicenseSelected }: LicenseSelectorProps) {
   const [licenses, setLicenses] = useState<License[]>([]);
   const [selectedLicense, setSelectedLicense] = useState<string>('');
   const [recommendation, setRecommendation] = useState<LicenseRecommendation | null>(null);
@@ -112,9 +108,7 @@ export function LicenseSelector({
         setGeneratedLicense(data.license.content);
         onLicenseSelected?.(data.license.licenseId, data.license.content);
         if (data.packageJsonUpdated) {
-          alert(
-            `License generated successfully! package.json has been updated with the ${data.license.name} license.`
-          );
+          alert(`License generated successfully! package.json has been updated with the ${data.license.name} license.`);
         } else {
           alert('License generated successfully!');
         }
@@ -171,9 +165,7 @@ export function LicenseSelector({
           <Card>
             <CardHeader>
               <CardTitle>Get License Recommendation</CardTitle>
-              <CardDescription>
-                Answer a few questions to find the perfect license for your project
-              </CardDescription>
+              <CardDescription>Answer a few questions to find the perfect license for your project</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -213,9 +205,7 @@ export function LicenseSelector({
                     type="checkbox"
                     id="commercial"
                     checked={preferences.allowCommercial}
-                    onChange={(e) =>
-                      setPreferences({ ...preferences, allowCommercial: e.target.checked })
-                    }
+                    onChange={(e) => setPreferences({ ...preferences, allowCommercial: e.target.checked })}
                     className="rounded"
                   />
                   <Label htmlFor="commercial">Allow commercial use</Label>
@@ -226,14 +216,10 @@ export function LicenseSelector({
                     type="checkbox"
                     id="opensource"
                     checked={preferences.requireOpenSource}
-                    onChange={(e) =>
-                      setPreferences({ ...preferences, requireOpenSource: e.target.checked })
-                    }
+                    onChange={(e) => setPreferences({ ...preferences, requireOpenSource: e.target.checked })}
                     className="rounded"
                   />
-                  <Label htmlFor="opensource">
-                    Require derivative works to be open source (copyleft)
-                  </Label>
+                  <Label htmlFor="opensource">Require derivative works to be open source (copyleft)</Label>
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -241,9 +227,7 @@ export function LicenseSelector({
                     type="checkbox"
                     id="patent"
                     checked={preferences.allowPatentUse}
-                    onChange={(e) =>
-                      setPreferences({ ...preferences, allowPatentUse: e.target.checked })
-                    }
+                    onChange={(e) => setPreferences({ ...preferences, allowPatentUse: e.target.checked })}
                     className="rounded"
                   />
                   <Label htmlFor="patent">Include patent protection</Label>
@@ -254,20 +238,14 @@ export function LicenseSelector({
                     type="checkbox"
                     id="simple"
                     checked={preferences.simplicityPreferred}
-                    onChange={(e) =>
-                      setPreferences({ ...preferences, simplicityPreferred: e.target.checked })
-                    }
+                    onChange={(e) => setPreferences({ ...preferences, simplicityPreferred: e.target.checked })}
                     className="rounded"
                   />
                   <Label htmlFor="simple">Prefer simple, short license</Label>
                 </div>
               </div>
 
-              <Button
-                onClick={getRecommendation}
-                disabled={isLoadingRecommendation}
-                className="w-full"
-              >
+              <Button onClick={getRecommendation} disabled={isLoadingRecommendation} className="w-full">
                 {isLoadingRecommendation ? 'Getting Recommendation...' : 'Get Recommendation'}
               </Button>
             </CardContent>
@@ -348,9 +326,7 @@ export function LicenseSelector({
                               <p className="font-medium text-sm">{alt.name}</p>
                               <p className="text-xs text-muted-foreground">{alt.description}</p>
                             </div>
-                            <Badge className={`${categoryColors[alt.category]} text-xs`}>
-                              {alt.category}
-                            </Badge>
+                            <Badge className={`${categoryColors[alt.category]} text-xs`}>{alt.category}</Badge>
                           </div>
                         </div>
                       ))}
@@ -391,13 +367,9 @@ export function LicenseSelector({
                       <div className="flex items-start justify-between">
                         <div>
                           <CardTitle className="text-base">{license.name}</CardTitle>
-                          <CardDescription className="text-xs">
-                            {license.description}
-                          </CardDescription>
+                          <CardDescription className="text-xs">{license.description}</CardDescription>
                         </div>
-                        <Badge className={categoryColors[license.category]}>
-                          {license.category}
-                        </Badge>
+                        <Badge className={categoryColors[license.category]}>{license.category}</Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-2">
@@ -469,9 +441,7 @@ export function LicenseSelector({
             <Card>
               <CardContent className="pt-6 text-center">
                 <Info className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                <p className="text-muted-foreground">
-                  Select a license from the Assistant or Browse tabs first
-                </p>
+                <p className="text-muted-foreground">Select a license from the Assistant or Browse tabs first</p>
               </CardContent>
             </Card>
           )}
@@ -484,23 +454,11 @@ export function LicenseSelector({
                   <CardDescription>Ready to add to your project</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCopy(generatedLicense, 'license')}
-                  >
-                    {copiedItem === 'license' ? (
-                      <Check className="h-4 w-4 mr-2" />
-                    ) : (
-                      <Copy className="h-4 w-4 mr-2" />
-                    )}
+                  <Button variant="outline" size="sm" onClick={() => handleCopy(generatedLicense, 'license')}>
+                    {copiedItem === 'license' ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
                     {copiedItem === 'license' ? 'Copied!' : 'Copy'}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownload(generatedLicense, 'LICENSE')}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => handleDownload(generatedLicense, 'LICENSE')}>
                     <Download className="h-4 w-4 mr-2" />
                     Download
                   </Button>

@@ -45,7 +45,7 @@ export function generateNotes(
   key: string,
   scale: string,
   lengthBars: number,
-  bpm: number = 120
+  bpm: number = 120,
 ): Array<{ note: string; time: number; duration: number; velocity: number }> {
   try {
     const generator = createGenerator(config.type);

@@ -38,11 +38,7 @@ export const CHORD_PROGRESSIONS: Record<string, string[]> = {
 /**
  * Generate a chord progression in a given key
  */
-export function generateProgression(
-  _key: string,
-  progressionName: string,
-  beatsPerChord: number = 4
-): Chord[] {
+export function generateProgression(_key: string, progressionName: string, beatsPerChord: number = 4): Chord[] {
   const pattern = CHORD_PROGRESSIONS[progressionName] || CHORD_PROGRESSIONS['I-IV-V-I'];
 
   return pattern.map((chordSymbol) => ({

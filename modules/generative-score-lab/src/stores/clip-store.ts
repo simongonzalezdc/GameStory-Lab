@@ -8,13 +8,7 @@ import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 
 export interface ClipStoreActions {
   addClip: (project: any, sceneId: string, trackId: string, clipData: Omit<Clip, 'id'>) => any;
-  updateClip: (
-    project: any,
-    sceneId: string,
-    trackId: string,
-    clipId: string,
-    updates: Partial<Clip>
-  ) => any;
+  updateClip: (project: any, sceneId: string, trackId: string, clipId: string, updates: Partial<Clip>) => any;
   deleteClip: (project: any, sceneId: string, trackId: string, clipId: string) => any;
 }
 
@@ -33,10 +27,10 @@ export const clipStore: ClipStoreActions = {
             tracks: scene.tracks.map((track: any) =>
               track.id === trackId
                 ? { ...track, clips: [...(Array.isArray(track.clips) ? track.clips : []), newClip] }
-                : track
+                : track,
             ),
           }
-        : scene
+        : scene,
     );
 
     return {
@@ -52,15 +46,11 @@ export const clipStore: ClipStoreActions = {
   updateClip: (project, sceneId, trackId, clipId, updates) => {
     // Validate clip length if being updated
     if (updates.lengthBars !== undefined) {
-      if (
-        typeof updates.lengthBars !== 'number' ||
-        updates.lengthBars < 1 ||
-        updates.lengthBars > 128
-      ) {
+      if (typeof updates.lengthBars !== 'number' || updates.lengthBars < 1 || updates.lengthBars > 128) {
         errorHandler.handle(
           new Error('Clip length must be between 1 and 128 bars'),
           'Clip Update',
-          ErrorSeverity.WARNING
+          ErrorSeverity.WARNING,
         );
         return project; // Return unchanged
       }
@@ -75,13 +65,13 @@ export const clipStore: ClipStoreActions = {
                 ? {
                     ...track,
                     clips: (Array.isArray(track.clips) ? track.clips : []).map((clip: Clip) =>
-                      clip.id === clipId ? { ...clip, ...updates } : clip
+                      clip.id === clipId ? { ...clip, ...updates } : clip,
                     ),
                   }
-                : track
+                : track,
             ),
           }
-        : scene
+        : scene,
     );
 
     return {
@@ -103,14 +93,12 @@ export const clipStore: ClipStoreActions = {
               track.id === trackId
                 ? {
                     ...track,
-                    clips: (Array.isArray(track.clips) ? track.clips : []).filter(
-                      (clip: Clip) => clip.id !== clipId
-                    ),
+                    clips: (Array.isArray(track.clips) ? track.clips : []).filter((clip: Clip) => clip.id !== clipId),
                   }
-                : track
+                : track,
             ),
           }
-        : scene
+        : scene,
     );
 
     return {

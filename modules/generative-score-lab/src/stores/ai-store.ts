@@ -69,6 +69,6 @@ export const useAIStore = create<AIStoreState>()(
         selectedProvider: state.selectedProvider,
         messages: state.messages.slice(-10), // Only persist last 10 messages
       }),
-    }
-  )
+    },
+  ),
 );

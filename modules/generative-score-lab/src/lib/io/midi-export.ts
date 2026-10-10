@@ -26,17 +26,12 @@ export interface MidiExportOptions {
 /**
  * Convert scene to MIDI and download
  */
-export async function exportSceneToMidi(
-  scene: Scene,
-  options: MidiExportOptions = {}
-): Promise<void> {
+export async function exportSceneToMidi(scene: Scene, options: MidiExportOptions = {}): Promise<void> {
   try {
     const { trackIds, filenamePrefix, separateFiles = false } = options;
 
     // Filter tracks if specific IDs provided
-    const tracksToExport = trackIds
-      ? scene.tracks.filter((t) => trackIds.includes(t.id))
-      : scene.tracks;
+    const tracksToExport = trackIds ? scene.tracks.filter((t) => trackIds.includes(t.id)) : scene.tracks;
 
     if (tracksToExport.length === 0) {
       throw new Error('No tracks to export');
@@ -198,11 +193,7 @@ async function downloadMidi(midi: Midi, filename: string): Promise<void> {
 /**
  * Export individual track as MIDI
  */
-export async function exportTrackToMidi(
-  scene: Scene,
-  trackId: string,
-  filename?: string
-): Promise<void> {
+export async function exportTrackToMidi(scene: Scene, trackId: string, filename?: string): Promise<void> {
   try {
     const track = scene.tracks.find((t) => t.id === trackId);
     if (!track) {

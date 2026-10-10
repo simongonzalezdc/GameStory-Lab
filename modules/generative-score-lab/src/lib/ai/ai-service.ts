@@ -35,7 +35,7 @@ export async function sendAIMessage(
   config: AIConfig,
   messages: ChatMessage[],
   projectContext?: ProjectContext,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<AIResponse> {
   try {
     const client = createAIClient(config);
@@ -45,9 +45,7 @@ export async function sendAIMessage(
 
     // Add system message if not already present
     const messagesWithSystem: ChatMessage[] =
-      messages[0]?.role === 'system'
-        ? messages
-        : [{ role: 'system', content: systemPrompt }, ...messages];
+      messages[0]?.role === 'system' ? messages : [{ role: 'system', content: systemPrompt }, ...messages];
 
     // Send request
     const response = await client.sendMessage({
@@ -140,15 +138,13 @@ function optimizeActions(actions: MusicAction[]): MusicAction[] {
  */
 export function applyMusicActions(
   actions: MusicAction[],
-  projectStore: ProjectStoreActions & { currentSceneId?: string | null }
+  projectStore: ProjectStoreActions & { currentSceneId?: string | null },
 ): { success: number; failed: number; errors: string[] } {
   // Optimize actions to remove duplicates and merge similar actions
   const optimizedActions = optimizeActions(actions);
 
   if (optimizedActions.length < actions.length && import.meta.env.MODE === 'development') {
-    console.info(
-      `[AI Action] Optimized ${actions.length} actions down to ${optimizedActions.length} actions`
-    );
+    console.info(`[AI Action] Optimized ${actions.length} actions down to ${optimizedActions.length} actions`);
   }
 
   // Helper to resolve scene ID (handles "currentScene" placeholder)
@@ -196,10 +192,7 @@ export function applyMusicActions(
   };
 
   // Helper to resolve clip ID by track role (fallback)
-  const resolveClipIdByRole = (
-    sceneId: string,
-    roleName: string
-  ): { trackId: string; clipId: string } | null => {
+  const resolveClipIdByRole = (sceneId: string, roleName: string): { trackId: string; clipId: string } | null => {
     const trackId = resolveTrackIdByRole(sceneId, roleName);
     if (!trackId || !projectStore.project) return null;
 
@@ -271,7 +264,7 @@ export function applyMusicActions(
           const sceneId = resolveSceneId(action.target);
           if (!sceneId) {
             throw new Error(
-              `Invalid scene ID: "${action.target}". Must use exact scene ID from context or "currentScene".`
+              `Invalid scene ID: "${action.target}". Must use exact scene ID from context or "currentScene".`,
             );
           }
 
@@ -279,19 +272,12 @@ export function applyMusicActions(
           const validatedParams: Partial<Scene> = {};
           if (action.params.bpm !== undefined) {
             validatedParams.bpm = validateAndClampBPM(action.params.bpm);
-            if (
-              import.meta.env.MODE === 'development' &&
-              action.params.bpm !== validatedParams.bpm
-            ) {
-              console.info(
-                `[AI Action] Clamped BPM from ${action.params.bpm} to ${validatedParams.bpm}`
-              );
+            if (import.meta.env.MODE === 'development' && action.params.bpm !== validatedParams.bpm) {
+              console.info(`[AI Action] Clamped BPM from ${action.params.bpm} to ${validatedParams.bpm}`);
             }
           }
           if (action.params.intensityRange) {
-            validatedParams.intensityRange = validateIntensityRange(
-              action.params.intensityRange as [number, number]
-            );
+            validatedParams.intensityRange = validateIntensityRange(action.params.intensityRange as [number, number]);
           }
           if (action.params.key !== undefined) {
             const validKey = validateKey(action.params.key);
@@ -299,7 +285,7 @@ export function applyMusicActions(
               validatedParams.key = validKey;
             } else {
               throw new Error(
-                `Invalid key: "${action.params.key}". Must be one of: C, C#, D, D#, E, F, F#, G, G#, A, A#, B`
+                `Invalid key: "${action.params.key}". Must be one of: C, C#, D, D#, E, F, F#, G, G#, A, A#, B`,
               );
             }
           }
@@ -309,7 +295,7 @@ export function applyMusicActions(
               validatedParams.scale = validScale;
             } else {
               throw new Error(
-                `Invalid scale: "${action.params.scale}". Must be one of: major, minor, dorian, phrygian, lydian, mixolydian, locrian`
+                `Invalid scale: "${action.params.scale}". Must be one of: major, minor, dorian, phrygian, lydian, mixolydian, locrian`,
               );
             }
           }
@@ -326,31 +312,19 @@ export function applyMusicActions(
           const sceneId = resolveSceneId(sceneIdPart);
           if (!sceneId || !trackId) {
             throw new Error(
-              `Invalid track target: "${action.target}". Must use format "sceneId/trackId" with exact IDs from context.`
+              `Invalid track target: "${action.target}". Must use format "sceneId/trackId" with exact IDs from context.`,
             );
           }
 
           // Try to resolve role name to actual track ID (fallback)
           let resolvedTrackId = trackId;
-          const roleNames = [
-            'drums',
-            'bass',
-            'pad',
-            'lead',
-            'fx',
-            'other',
-            'snare',
-            'kick',
-            'hihat',
-          ];
+          const roleNames = ['drums', 'bass', 'pad', 'lead', 'fx', 'other', 'snare', 'kick', 'hihat'];
           if (roleNames.includes(trackId.toLowerCase())) {
             const resolved = resolveTrackIdByRole(sceneId, trackId);
             if (resolved) {
               resolvedTrackId = resolved;
               if (import.meta.env.MODE === 'development') {
-                console.info(
-                  `[AI Action] Resolved role "${trackId}" to track ID "${resolvedTrackId}"`
-                );
+                console.info(`[AI Action] Resolved role "${trackId}" to track ID "${resolvedTrackId}"`);
               }
             } else {
               throw new Error(
@@ -359,7 +333,7 @@ export function applyMusicActions(
                     .find((s) => s.id === sceneId)
                     ?.tracks.map((t) => t.role)
                     .join(', ') || 'none'
-                }`
+                }`,
               );
             }
           }
@@ -368,24 +342,14 @@ export function applyMusicActions(
           const validatedParams: Partial<Track> = {};
           if (action.params.volume !== undefined) {
             validatedParams.volume = validateAndClampVolume(action.params.volume);
-            if (
-              import.meta.env.MODE === 'development' &&
-              action.params.volume !== validatedParams.volume
-            ) {
-              console.info(
-                `[AI Action] Clamped volume from ${action.params.volume} to ${validatedParams.volume}`
-              );
+            if (import.meta.env.MODE === 'development' && action.params.volume !== validatedParams.volume) {
+              console.info(`[AI Action] Clamped volume from ${action.params.volume} to ${validatedParams.volume}`);
             }
           }
           if (action.params.pan !== undefined) {
             validatedParams.pan = validateAndClampPan(action.params.pan);
-            if (
-              import.meta.env.MODE === 'development' &&
-              action.params.pan !== validatedParams.pan
-            ) {
-              console.info(
-                `[AI Action] Clamped pan from ${action.params.pan} to ${validatedParams.pan}`
-              );
+            if (import.meta.env.MODE === 'development' && action.params.pan !== validatedParams.pan) {
+              console.info(`[AI Action] Clamped pan from ${action.params.pan} to ${validatedParams.pan}`);
             }
           }
           if (action.params.muted !== undefined) {
@@ -411,7 +375,7 @@ export function applyMusicActions(
           const sceneId = resolveSceneId(sceneIdPart);
           if (!sceneId) {
             throw new Error(
-              `Invalid scene ID: "${sceneIdPart}". Must use exact scene ID from context or "currentScene".`
+              `Invalid scene ID: "${sceneIdPart}". Must use exact scene ID from context or "currentScene".`,
             );
           }
 
@@ -419,17 +383,7 @@ export function applyMusicActions(
           let resolvedTrackId = trackIdPart;
           let resolvedClipId = clipIdPart;
 
-          const roleNames = [
-            'drums',
-            'bass',
-            'pad',
-            'lead',
-            'fx',
-            'other',
-            'snare',
-            'kick',
-            'hihat',
-          ];
+          const roleNames = ['drums', 'bass', 'pad', 'lead', 'fx', 'other', 'snare', 'kick', 'hihat'];
           if (roleNames.includes(trackIdPart?.toLowerCase() || '')) {
             const resolved = resolveClipIdByRole(sceneId, trackIdPart);
             if (resolved) {
@@ -437,7 +391,7 @@ export function applyMusicActions(
               resolvedClipId = resolved.clipId;
               if (import.meta.env.MODE === 'development') {
                 console.info(
-                  `[AI Action] Resolved role "${trackIdPart}" to track ID "${resolvedTrackId}", clip ID "${resolvedClipId}"`
+                  `[AI Action] Resolved role "${trackIdPart}" to track ID "${resolvedTrackId}", clip ID "${resolvedClipId}"`,
                 );
               }
             } else {
@@ -447,14 +401,14 @@ export function applyMusicActions(
                     .find((s) => s.id === sceneId)
                     ?.tracks.map((t) => t.role)
                     .join(', ') || 'none'
-                }`
+                }`,
               );
             }
           }
 
           if (!resolvedTrackId || !resolvedClipId) {
             throw new Error(
-              `Invalid clip target: "${action.target}". Must use format "sceneId/trackId/clipId" with exact IDs from context.`
+              `Invalid clip target: "${action.target}". Must use format "sceneId/trackId/clipId" with exact IDs from context.`,
             );
           }
 
@@ -465,23 +419,15 @@ export function applyMusicActions(
           }
           if (action.params.density !== undefined) {
             validatedParams.density = validateAndClampDensity(action.params.density);
-            if (
-              import.meta.env.MODE === 'development' &&
-              action.params.density !== validatedParams.density
-            ) {
-              console.info(
-                `[AI Action] Clamped density from ${action.params.density} to ${validatedParams.density}`
-              );
+            if (import.meta.env.MODE === 'development' && action.params.density !== validatedParams.density) {
+              console.info(`[AI Action] Clamped density from ${action.params.density} to ${validatedParams.density}`);
             }
           }
           if (action.params.probability !== undefined) {
             validatedParams.probability = validateAndClampProbability(action.params.probability);
-            if (
-              import.meta.env.MODE === 'development' &&
-              action.params.probability !== validatedParams.probability
-            ) {
+            if (import.meta.env.MODE === 'development' && action.params.probability !== validatedParams.probability) {
               console.info(
-                `[AI Action] Clamped probability from ${action.params.probability} to ${validatedParams.probability}`
+                `[AI Action] Clamped probability from ${action.params.probability} to ${validatedParams.probability}`,
               );
             }
           }
@@ -500,7 +446,7 @@ export function applyMusicActions(
           const sceneId = resolveSceneId(action.target);
           if (!sceneId) {
             throw new Error(
-              `Invalid scene ID: "${action.target}". Must use exact scene ID from context or "currentScene".`
+              `Invalid scene ID: "${action.target}". Must use exact scene ID from context or "currentScene".`,
             );
           }
           projectStore.addTrack(sceneId, action.params);
@@ -512,7 +458,7 @@ export function applyMusicActions(
           const sceneId = resolveSceneId(action.target);
           if (!sceneId) {
             throw new Error(
-              `Invalid scene ID: "${action.target}". Must use exact scene ID from context or "currentScene".`
+              `Invalid scene ID: "${action.target}". Must use exact scene ID from context or "currentScene".`,
             );
           }
           if (!action.params.key || !action.params.scale) {
@@ -525,12 +471,12 @@ export function applyMusicActions(
 
           if (!validKey) {
             throw new Error(
-              `Invalid key: "${action.params.key}". Must be one of: C, C#, D, D#, E, F, F#, G, G#, A, A#, B`
+              `Invalid key: "${action.params.key}". Must be one of: C, C#, D, D#, E, F, F#, G, G#, A, A#, B`,
             );
           }
           if (!validScale) {
             throw new Error(
-              `Invalid scale: "${action.params.scale}". Must be one of: major, minor, dorian, phrygian, lydian, mixolydian, locrian`
+              `Invalid scale: "${action.params.scale}". Must be one of: major, minor, dorian, phrygian, lydian, mixolydian, locrian`,
             );
           }
 
@@ -584,8 +530,7 @@ export function applyMusicActions(
       }
 
       if (errorMsg.includes('Invalid scene ID')) {
-        const availableScenes =
-          projectStore.project?.scenes.map((s) => `${s.name} (${s.id})`).join(', ') || 'none';
+        const availableScenes = projectStore.project?.scenes.map((s) => `${s.name} (${s.id})`).join(', ') || 'none';
         enhancedError += `. Available scenes: ${availableScenes}`;
         if (projectStore.currentSceneId) {
           enhancedError += `. Current scene: ${projectStore.currentSceneId}`;

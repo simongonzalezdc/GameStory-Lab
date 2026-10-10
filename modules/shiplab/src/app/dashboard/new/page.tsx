@@ -90,9 +90,7 @@ export default function NewProjectPage() {
                 value={formData.path}
                 onChange={(e) => setFormData({ ...formData, path: e.target.value })}
               />
-              <p className="text-xs text-muted-foreground">
-                Absolute path to your project directory
-              </p>
+              <p className="text-xs text-muted-foreground">Absolute path to your project directory</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

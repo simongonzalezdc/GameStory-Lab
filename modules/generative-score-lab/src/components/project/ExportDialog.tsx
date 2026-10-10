@@ -95,11 +95,7 @@ export default function ExportDialog({ open, onClose, project }: ExportDialogPro
               </div>
             </div>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
+            {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>}
 
             <div className="text-xs text-gray-500">
               The exported file will be saved to your downloads folder as{' '}

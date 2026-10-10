@@ -4,13 +4,7 @@
  */
 
 import { BaseGenerator } from './base-generator';
-import type {
-  GeneratorConfig,
-  GenerationContext,
-  NoteSequence,
-  Note,
-  RandomWalkParams,
-} from '@/types';
+import type { GeneratorConfig, GenerationContext, NoteSequence, Note, RandomWalkParams } from '@/types';
 import { getScaleNotes, quantizeToScale, noteToMidi } from '../theory/scales';
 import { clamp } from '../utils/math';
 
@@ -48,9 +42,7 @@ export class RandomWalkGenerator extends BaseGenerator {
     const melody: number[] = [];
 
     // Pre-compute scale notes for quantization to avoid regenerating on every iteration
-    const scaleNotesForQuantization = params.stayInScale
-      ? getScaleNotes(context.key, context.scale, 0, 10)
-      : null;
+    const scaleNotesForQuantization = params.stayInScale ? getScaleNotes(context.key, context.scale, 0, 10) : null;
 
     // Start with tonic
     let currentPitch = noteToMidi(context.key, 4);
@@ -67,12 +59,7 @@ export class RandomWalkGenerator extends BaseGenerator {
 
       // Quantize to scale if required - pass pre-computed scale for efficiency
       if (params.stayInScale && scaleNotesForQuantization) {
-        nextPitch = quantizeToScale(
-          nextPitch,
-          context.key,
-          context.scale,
-          scaleNotesForQuantization
-        );
+        nextPitch = quantizeToScale(nextPitch, context.key, context.scale, scaleNotesForQuantization);
       }
 
       melody.push(nextPitch);

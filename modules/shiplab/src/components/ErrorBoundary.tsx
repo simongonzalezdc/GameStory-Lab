@@ -50,8 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <CardTitle>Something went wrong</CardTitle>
               </div>
               <CardDescription>
-                An unexpected error occurred. Please try again or contact support if the problem
-                persists.
+                An unexpected error occurred. Please try again or contact support if the problem persists.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

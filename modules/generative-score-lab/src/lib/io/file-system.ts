@@ -38,11 +38,7 @@ export async function exportProject(project: Project): Promise<void> {
     await writable.write(json);
     await writable.close();
 
-    errorHandler.handle(
-      new Error('Project exported successfully'),
-      'Project Export',
-      ErrorSeverity.INFO
-    );
+    errorHandler.handle(new Error('Project exported successfully'), 'Project Export', ErrorSeverity.INFO);
   } catch (error) {
     if ((error as Error).name === 'AbortError') {
       // User cancelled

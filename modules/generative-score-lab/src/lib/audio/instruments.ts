@@ -5,11 +5,7 @@
 import * as Tone from 'tone';
 import type { TrackRole } from '@/types';
 import { AUDIO_FILTER_DEFAULT_FREQUENCY, AUDIO_FILTER_DEFAULT_Q } from '@/lib/utils/constants';
-import {
-  SafeOscillatorType,
-  toToneOscillatorConfig,
-  toPolySynthOptions,
-} from '@/types/tone-helpers';
+import { SafeOscillatorType, toToneOscillatorConfig, toPolySynthOptions } from '@/types/tone-helpers';
 
 export type InstrumentType = 'synth' | 'sampler' | 'fm' | 'am' | 'mono' | 'duo';
 
@@ -144,7 +140,7 @@ export const INSTRUMENT_PRESETS: Record<TrackRole, InstrumentConfig[]> = {
  * Create instrument instance based on config
  */
 export function createInstrument(
-  config: InstrumentConfig
+  config: InstrumentConfig,
 ): Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth {
   const envelope = config.envelope || {
     attack: 0.02,
@@ -164,7 +160,7 @@ export function createInstrument(
           toPolySynthOptions({
             oscillator: oscillatorConfig,
             envelope,
-          })
+          }),
         );
       }
       return new Tone.Sampler({
@@ -258,7 +254,7 @@ export function createInstrument(
           oscillator: oscillatorConfig,
           envelope,
           filter: config.filter,
-        })
+        }),
       );
   }
 }

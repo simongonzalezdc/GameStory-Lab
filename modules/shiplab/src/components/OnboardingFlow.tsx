@@ -1,24 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  CheckCircle2,
-  Sparkles,
-  FileSearch,
-  Megaphone,
-  Rocket,
-  Scale,
-  ArrowRight,
-} from 'lucide-react';
+import { CheckCircle2, Sparkles, FileSearch, Megaphone, Rocket, Scale, ArrowRight } from 'lucide-react';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -65,9 +51,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
               <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium">Marketing Content</p>
-                <p className="text-sm text-muted-foreground">
-                  Landing pages, social media, Product Hunt
-                </p>
+                <p className="text-sm text-muted-foreground">Landing pages, social media, Product Hunt</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -81,9 +65,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
               <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium">License Assistant</p>
-                <p className="text-sm text-muted-foreground">
-                  Choose the right license with AI guidance
-                </p>
+                <p className="text-sm text-muted-foreground">Choose the right license with AI guidance</p>
               </div>
             </div>
           </div>
@@ -106,8 +88,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Add your existing project by providing the local path. ShipLab will analyze it
-                automatically.
+                Add your existing project by providing the local path. ShipLab will analyze it automatically.
               </p>
             </CardContent>
           </Card>
@@ -123,8 +104,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Run quality analysis, generate documentation, create marketing content, and more -
-                all powered by AI.
+                Run quality analysis, generate documentation, create marketing content, and more - all powered by AI.
               </p>
             </CardContent>
           </Card>
@@ -140,8 +120,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Get deployment configs, marketing materials, and everything you need to launch
-                successfully.
+                Get deployment configs, marketing materials, and everything you need to launch successfully.
               </p>
             </CardContent>
           </Card>
@@ -159,9 +138,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
               <CardTitle className="text-sm">Quality Analysis</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Find bugs and code issues with ESLint and Semgrep
-              </p>
+              <p className="text-xs text-muted-foreground">Find bugs and code issues with ESLint and Semgrep</p>
             </CardContent>
           </Card>
 
@@ -171,9 +148,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
               <CardTitle className="text-sm">AI Chat</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Get instant answers about your project
-              </p>
+              <p className="text-xs text-muted-foreground">Get instant answers about your project</p>
             </CardContent>
           </Card>
 
@@ -183,9 +158,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
               <CardTitle className="text-sm">Marketing</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Generate landing pages and social content
-              </p>
+              <p className="text-xs text-muted-foreground">Generate landing pages and social content</p>
             </CardContent>
           </Card>
 
@@ -195,9 +168,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
               <CardTitle className="text-sm">Deployment</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Get configs for Vercel, Docker, and Railway
-              </p>
+              <p className="text-xs text-muted-foreground">Get configs for Vercel, Docker, and Railway</p>
             </CardContent>
           </Card>
 
@@ -207,9 +178,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
               <CardTitle className="text-sm">Licensing</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Choose the right license with AI guidance
-              </p>
+              <p className="text-xs text-muted-foreground">Choose the right license with AI guidance</p>
             </CardContent>
           </Card>
 
@@ -260,10 +229,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
         <div className="flex items-center justify-between pt-4 border-t">
           <div className="flex gap-1">
             {steps.map((_, index) => (
-              <div
-                key={index}
-                className={`h-2 w-2 rounded-full ${index === step ? 'bg-primary' : 'bg-muted'}`}
-              />
+              <div key={index} className={`h-2 w-2 rounded-full ${index === step ? 'bg-primary' : 'bg-muted'}`} />
             ))}
           </div>
 

@@ -33,10 +33,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
   const [showExportError, setShowExportError] = useState(false);
 
   // Memoize scene lookup to avoid recalculation on every render
-  const scene = useMemo(
-    () => project?.scenes.find((s) => s.id === sceneId),
-    [project?.scenes, sceneId]
-  );
+  const scene = useMemo(() => project?.scenes.find((s) => s.id === sceneId), [project?.scenes, sceneId]);
 
   const handleExportMidi = useCallback(async () => {
     if (!scene) return;
@@ -96,9 +93,7 @@ export default function TrackRow({ sceneId, track }: TrackRowProps) {
                 }}
                 title="Mute/Unmute"
                 aria-label={
-                  track.muted
-                    ? `Unmute ${track.name || track.role} track`
-                    : `Mute ${track.name || track.role} track`
+                  track.muted ? `Unmute ${track.name || track.role} track` : `Mute ${track.name || track.role} track`
                 }
               >
                 {track.muted ? '🔇' : '🔊'}

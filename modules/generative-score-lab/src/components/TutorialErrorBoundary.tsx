@@ -14,10 +14,7 @@ interface TutorialErrorBoundaryState {
   hasError: boolean;
 }
 
-export class TutorialErrorBoundary extends Component<
-  TutorialErrorBoundaryProps,
-  TutorialErrorBoundaryState
-> {
+export class TutorialErrorBoundary extends Component<TutorialErrorBoundaryProps, TutorialErrorBoundaryState> {
   constructor(props: TutorialErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };

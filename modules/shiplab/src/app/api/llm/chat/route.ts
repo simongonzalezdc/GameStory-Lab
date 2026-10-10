@@ -86,15 +86,12 @@ export async function POST(request: NextRequest) {
     console.error('Chat API error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
     }
 
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

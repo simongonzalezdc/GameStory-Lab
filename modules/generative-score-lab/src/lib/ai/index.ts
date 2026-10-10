@@ -2,15 +2,7 @@
  * AI client factory and exports
  */
 
-import type {
-  AIClient,
-  AIConfig,
-  AIClientId,
-  OpenRouterConfig,
-  MinimaxConfig,
-  GLMConfig,
-  LocalConfig,
-} from '@/types';
+import type { AIClient, AIConfig, AIClientId, OpenRouterConfig, MinimaxConfig, GLMConfig, LocalConfig } from '@/types';
 import { OpenRouterClient } from './openrouter-client';
 import { MinimaxClient } from './minimax-client';
 import { GLMClient } from './glm-client';

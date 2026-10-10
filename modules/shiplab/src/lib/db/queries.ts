@@ -49,8 +49,7 @@ export async function getAnalysisResults(projectId: string) {
 
 export async function getLatestAnalysisResult(projectId: string, module: string) {
   return await db.query.analysisResults.findFirst({
-    where: (results, { and, eq }) =>
-      and(eq(results.projectId, projectId), eq(results.module, module)),
+    where: (results, { and, eq }) => and(eq(results.projectId, projectId), eq(results.module, module)),
     orderBy: [desc(analysisResults.createdAt)],
   });
 }

@@ -49,8 +49,7 @@ export const POPULAR_LICENSES: Record<string, License> = {
     permissions: ['Commercial use', 'Modification', 'Distribution', 'Patent use', 'Private use'],
     conditions: ['License and copyright notice', 'State changes'],
     limitations: ['Liability', 'Warranty', 'Trademark use'],
-    description:
-      'A permissive license with explicit grants of patent rights and protection against trademark use.',
+    description: 'A permissive license with explicit grants of patent rights and protection against trademark use.',
     bestFor: [
       'Large projects',
       'Projects with potential patent concerns',
@@ -66,15 +65,9 @@ export const POPULAR_LICENSES: Record<string, License> = {
     category: 'copyleft',
     spdxId: 'GPL-3.0',
     permissions: ['Commercial use', 'Modification', 'Distribution', 'Patent use', 'Private use'],
-    conditions: [
-      'Disclose source',
-      'License and copyright notice',
-      'State changes',
-      'Same license (copyleft)',
-    ],
+    conditions: ['Disclose source', 'License and copyright notice', 'State changes', 'Same license (copyleft)'],
     limitations: ['Liability', 'Warranty'],
-    description:
-      'Strong copyleft license requiring derivative works to be open source under the same license.',
+    description: 'Strong copyleft license requiring derivative works to be open source under the same license.',
     bestFor: [
       'Projects ensuring all derivatives remain open source',
       'Community-driven projects',
@@ -101,13 +94,8 @@ export const POPULAR_LICENSES: Record<string, License> = {
       'Network use is distribution',
     ],
     limitations: ['Liability', 'Warranty'],
-    description:
-      'Strongest copyleft license. Like GPL but also requires source disclosure for network/SaaS use.',
-    bestFor: [
-      'Web applications and SaaS',
-      'Projects preventing SaaS proprietary forks',
-      'Strong copyleft advocacy',
-    ],
+    description: 'Strongest copyleft license. Like GPL but also requires source disclosure for network/SaaS use.',
+    bestFor: ['Web applications and SaaS', 'Projects preventing SaaS proprietary forks', 'Strong copyleft advocacy'],
     notRecommendedFor: ['Libraries', 'Projects wanting commercial SaaS adoption'],
     popularProjects: ['MongoDB (historical)', 'Mastodon', 'OnlyOffice'],
   },
@@ -119,13 +107,8 @@ export const POPULAR_LICENSES: Record<string, License> = {
     permissions: ['Commercial use', 'Modification', 'Distribution', 'Private use'],
     conditions: ['License and copyright notice'],
     limitations: ['Liability', 'Warranty', 'Use for endorsement'],
-    description:
-      'Permissive license similar to MIT but explicitly prohibits using contributor names for endorsement.',
-    bestFor: [
-      'Academic projects',
-      'Projects concerned about name misuse',
-      'Simple permissive licensing',
-    ],
+    description: 'Permissive license similar to MIT but explicitly prohibits using contributor names for endorsement.',
+    bestFor: ['Academic projects', 'Projects concerned about name misuse', 'Simple permissive licensing'],
     notRecommendedFor: ['Projects needing patent protection (use Apache 2.0)'],
     popularProjects: ['Flask', 'Django', 'NumPy', 'Go'],
   },
@@ -144,10 +127,7 @@ export const POPULAR_LICENSES: Record<string, License> = {
     limitations: ['Liability', 'Warranty'],
     description:
       'Weak copyleft allowing proprietary use when used as a library, but modifications must be open sourced.',
-    bestFor: [
-      'Libraries in copyleft projects',
-      'Projects wanting derivatives open but allowing proprietary use',
-    ],
+    bestFor: ['Libraries in copyleft projects', 'Projects wanting derivatives open but allowing proprietary use'],
     notRecommendedFor: ['Applications (use GPL)', 'Fully permissive licensing (use MIT/Apache)'],
     popularProjects: ['Qt', 'GTK', 'FFmpeg', 'GNU C Library'],
   },
@@ -157,18 +137,11 @@ export const POPULAR_LICENSES: Record<string, License> = {
     category: 'copyleft',
     spdxId: 'MPL-2.0',
     permissions: ['Commercial use', 'Modification', 'Distribution', 'Patent use', 'Private use'],
-    conditions: [
-      'Disclose source (file-level)',
-      'License and copyright notice',
-      'Same license (file-level)',
-    ],
+    conditions: ['Disclose source (file-level)', 'License and copyright notice', 'Same license (file-level)'],
     limitations: ['Liability', 'Warranty', 'Trademark use'],
     description:
       'Weak copyleft requiring modifications to specific files to remain open, allowing proprietary combinations.',
-    bestFor: [
-      'Projects wanting file-level copyleft',
-      'Balance between permissive and strong copyleft',
-    ],
+    bestFor: ['Projects wanting file-level copyleft', 'Balance between permissive and strong copyleft'],
     notRecommendedFor: ['Simple projects (too complex)', 'Strong copyleft needs (use GPL)'],
     popularProjects: ['Firefox', 'Thunderbird', 'LibreOffice'],
   },
@@ -180,8 +153,7 @@ export const POPULAR_LICENSES: Record<string, License> = {
     permissions: ['Commercial use', 'Modification', 'Distribution', 'Private use'],
     conditions: [],
     limitations: ['Liability', 'Warranty'],
-    description:
-      'Public domain dedication. Releases all rights and imposes no conditions whatsoever.',
+    description: 'Public domain dedication. Releases all rights and imposes no conditions whatsoever.',
     bestFor: ['Public domain dedication', 'Maximum freedom', 'Simple scripts and utilities'],
     notRecommendedFor: ['Jurisdictions without public domain concept', 'Corporate projects'],
     popularProjects: ['SQLite (public domain)', 'stb libraries'],
@@ -199,7 +171,7 @@ export async function getLicenseRecommendation(
     allowPatentUse?: boolean;
     simplicityPreferred?: boolean;
   },
-  model: string = 'smollm2:1.7b'
+  model: string = 'smollm2:1.7b',
 ): Promise<LicenseRecommendation> {
   const {
     allowCommercial = true,
@@ -258,19 +230,19 @@ Provide a brief (2-3 sentence) explanation focusing on the key reasons this lice
       { role: 'user', content: prompt },
     ],
     model,
-    { temperature: 0.6 }
+    { temperature: 0.6 },
   );
 
   // Generate warnings if needed
   const warnings: string[] = [];
   if (recommended.category === 'copyleft' && projectType === 'library') {
     warnings.push(
-      'Copyleft licenses may limit adoption for libraries as they require derivative works to use the same license.'
+      'Copyleft licenses may limit adoption for libraries as they require derivative works to use the same license.',
     );
   }
   if (recommended.id === 'agpl3') {
     warnings.push(
-      'AGPL is the strongest copyleft license and may discourage commercial adoption, especially for SaaS use cases.'
+      'AGPL is the strongest copyleft license and may discourage commercial adoption, especially for SaaS use cases.',
     );
   }
 
@@ -289,7 +261,7 @@ export function generateLicenseText(
   licenseId: string,
   projectName: string,
   copyrightHolder: string,
-  year: number = new Date().getFullYear()
+  year: number = new Date().getFullYear(),
 ): string {
   const templates: Record<string, string> = {
     mit: `MIT License
@@ -461,21 +433,15 @@ export function compareLicenses(licenseIds: string[]): {
   };
 
   allPermissions.forEach((perm) => {
-    comparison.permissions[perm] = licenses
-      .filter((l) => l.permissions.includes(perm))
-      .map((l) => l.id);
+    comparison.permissions[perm] = licenses.filter((l) => l.permissions.includes(perm)).map((l) => l.id);
   });
 
   allConditions.forEach((cond) => {
-    comparison.conditions[cond] = licenses
-      .filter((l) => l.conditions.includes(cond))
-      .map((l) => l.id);
+    comparison.conditions[cond] = licenses.filter((l) => l.conditions.includes(cond)).map((l) => l.id);
   });
 
   allLimitations.forEach((lim) => {
-    comparison.limitations[lim] = licenses
-      .filter((l) => l.limitations.includes(lim))
-      .map((l) => l.id);
+    comparison.limitations[lim] = licenses.filter((l) => l.limitations.includes(lim)).map((l) => l.id);
   });
 
   const permissiveLicenses = licenses.filter((l) => l.category === 'permissive').map((l) => l.name);
@@ -530,7 +496,7 @@ export interface LicenseCompatibilityResult {
  */
 function isLicenseCompatible(
   projectLicense: string,
-  dependencyLicense: string
+  dependencyLicense: string,
 ): { compatible: boolean; warning?: string } {
   // Normalize license strings
   const normProjectLicense = projectLicense.toLowerCase().replace(/\s+/g, '-');
@@ -586,7 +552,7 @@ function isLicenseCompatible(
  */
 export async function checkDependencyLicenseCompatibility(
   projectPath: string,
-  selectedLicense: string
+  selectedLicense: string,
 ): Promise<LicenseCompatibilityResult> {
   const dependencies: DependencyLicense[] = [];
   const warnings: string[] = [];
@@ -672,9 +638,7 @@ export async function checkDependencyLicenseCompatibility(
       compatible: true,
       dependencies: [],
       incompatibleCount: 0,
-      warnings: [
-        `Error checking dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      ],
+      warnings: [`Error checking dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`],
       summary: 'Failed to check dependency licenses',
     };
   }

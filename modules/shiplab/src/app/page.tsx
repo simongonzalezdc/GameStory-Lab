@@ -29,8 +29,8 @@ export default function Home() {
             Transform Finished Code into <span className="text-primary">Shipped Products</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            ShipLab uses AI to generate documentation, marketing content, deployment configs, and
-            more - everything you need to launch your project successfully.
+            ShipLab uses AI to generate documentation, marketing content, deployment configs, and more - everything you
+            need to launch your project successfully.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/dashboard">
@@ -63,8 +63,7 @@ export default function Home() {
               <FileSearch className="h-12 w-12 text-primary mb-4" />
               <CardTitle>Code Quality Analysis</CardTitle>
               <CardDescription>
-                Scan your code with ESLint and Semgrep to find bugs, security issues, and code
-                smells
+                Scan your code with ESLint and Semgrep to find bugs, security issues, and code smells
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -167,9 +166,7 @@ export default function Home() {
             <CardHeader>
               <Scale className="h-12 w-12 text-primary mb-4" />
               <CardTitle>License Assistant</CardTitle>
-              <CardDescription>
-                Choose the perfect open source license with AI-powered recommendations
-              </CardDescription>
+              <CardDescription>Choose the perfect open source license with AI-powered recommendations</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
@@ -192,9 +189,7 @@ export default function Home() {
             <CardHeader>
               <Sparkles className="h-12 w-12 text-primary mb-4" />
               <CardTitle>AI Chat Assistant</CardTitle>
-              <CardDescription>
-                Get instant answers about your project with real-time AI assistance
-              </CardDescription>
+              <CardDescription>Get instant answers about your project with real-time AI assistance</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
@@ -258,9 +253,7 @@ export default function Home() {
               <Code2 className="h-6 w-6 text-primary" />
               <span className="font-semibold">ShipLab</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              © 2025 ShipLab. Built with Next.js 16 and AI.
-            </p>
+            <p className="text-sm text-muted-foreground">© 2025 ShipLab. Built with Next.js 16 and AI.</p>
           </div>
         </div>
       </footer>

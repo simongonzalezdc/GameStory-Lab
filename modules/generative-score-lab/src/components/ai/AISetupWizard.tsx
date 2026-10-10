@@ -4,14 +4,7 @@ import { Dialog } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { Input } from '../ui/Input';
-import type {
-  AIClientId,
-  AIConfig,
-  OpenRouterConfig,
-  MinimaxConfig,
-  GLMConfig,
-  LocalConfig,
-} from '@/types';
+import type { AIClientId, AIConfig, OpenRouterConfig, MinimaxConfig, GLMConfig, LocalConfig } from '@/types';
 import { setupOllama } from '@/lib/ai/ollama-setup';
 
 interface AISetupWizardProps {
@@ -25,10 +18,10 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
   const [apiKey, setApiKey] = useState(config?.apiKey || '');
   const [model, setModel] = useState(config?.model || '');
   const [baseURL, setBaseURL] = useState(
-    (config && config.provider === 'local' ? config.baseURL : undefined) || 'http://localhost:11434'
+    (config && config.provider === 'local' ? config.baseURL : undefined) || 'http://localhost:11434',
   );
   const [groupId, setGroupId] = useState(
-    (config && config.provider === 'minimax' ? (config as MinimaxConfig).groupId : undefined) || ''
+    (config && config.provider === 'minimax' ? (config as MinimaxConfig).groupId : undefined) || '',
   );
   const [validationError, setValidationError] = useState('');
 
@@ -98,16 +91,12 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
             ]}
           />
           <p className="text-xs text-gray-500 mt-1">
-            {provider === 'local'
-              ? 'Run AI models locally using Ollama'
-              : 'Cloud AI providers require an API key'}
+            {provider === 'local' ? 'Run AI models locally using Ollama' : 'Cloud AI providers require an API key'}
           </p>
         </div>
 
         {validationError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {validationError}
-          </div>
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{validationError}</div>
         )}
 
         {provider === 'openrouter' && (
@@ -154,12 +143,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
               onChange={(e) => setGroupId(e.target.value)}
               placeholder="Your Group ID"
             />
-            <Input
-              label="Model"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="abab6.5-chat"
-            />
+            <Input label="Model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="abab6.5-chat" />
             <p className="text-xs text-gray-500">Available models: abab6.5-chat, abab5.5-chat</p>
           </>
         )}
@@ -173,12 +157,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Your GLM API key"
             />
-            <Input
-              label="Model"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="glm-4-plus"
-            />
+            <Input label="Model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="glm-4-plus" />
             <p className="text-xs text-gray-500">Available models: glm-4-plus, glm-4-0520, glm-4</p>
           </>
         )}
@@ -191,12 +170,7 @@ export default function AISetupWizard({ open, onClose }: AISetupWizardProps) {
               onChange={(e) => setBaseURL(e.target.value)}
               placeholder="http://localhost:11434"
             />
-            <Input
-              label="Model Name"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="llama3.1"
-            />
+            <Input label="Model Name" value={model} onChange={(e) => setModel(e.target.value)} placeholder="llama3.1" />
             <TestOllamaConnection baseURL={baseURL} model={model} />
             <p className="text-xs text-gray-500">
               Make sure Ollama is running and the model is downloaded. Install Ollama from{' '}
@@ -279,9 +253,7 @@ function TestOllamaConnection({ baseURL, model }: { baseURL: string; model: stri
               : 'bg-red-50 text-red-800 border border-red-200'
           }`}
         >
-          <div className="font-semibold mb-1">
-            {result.success ? '✓ Connection Successful' : '✗ Connection Failed'}
-          </div>
+          <div className="font-semibold mb-1">{result.success ? '✓ Connection Successful' : '✗ Connection Failed'}</div>
           <div className="whitespace-pre-line">{result.message}</div>
         </div>
       )}

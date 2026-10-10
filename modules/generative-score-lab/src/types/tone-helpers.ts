@@ -4,8 +4,7 @@ import * as Tone from 'tone';
  * Type-safe oscillator configuration
  * Tone.js accepts various oscillator types, but TypeScript is overly strict about the type union
  */
-export type SafeOscillatorType =
-  Tone.ToneOscillatorType | { type: Tone.ToneOscillatorType; partials?: number[] };
+export type SafeOscillatorType = Tone.ToneOscillatorType | { type: Tone.ToneOscillatorType; partials?: number[] };
 
 /**
  * Type guard to check if oscillator config is a string type
@@ -21,7 +20,7 @@ export function isSimpleOscillatorType(osc: SafeOscillatorType): osc is Tone.Ton
  * Always returns a valid object to prevent null/undefined errors
  */
 export function toToneOscillatorConfig(
-  osc: SafeOscillatorType | null | undefined
+  osc: SafeOscillatorType | null | undefined,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any {
   if (!osc) {
@@ -61,7 +60,7 @@ export interface PolySynthOptions {
  * Always returns a valid object to prevent null/undefined errors
  */
 export function toPolySynthOptions(
-  options: PolySynthOptions | null | undefined
+  options: PolySynthOptions | null | undefined,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,9 +80,7 @@ export function toPolySynthOptions(
   }
 
   // Always provide oscillator (required by Tone.js)
-  result.oscillator = options.oscillator
-    ? toToneOscillatorConfig(options.oscillator)
-    : { type: 'sine' };
+  result.oscillator = options.oscillator ? toToneOscillatorConfig(options.oscillator) : { type: 'sine' };
 
   // Always provide envelope (required by Tone.js)
   result.envelope = options.envelope || {

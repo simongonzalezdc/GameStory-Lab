@@ -59,19 +59,13 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
                   size="sm"
                   onClick={() => handleCopy(content.landingPage.fullMarkdown, 'landing')}
                 >
-                  {copiedItem === 'landing' ? (
-                    <Check className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Copy className="h-4 w-4 mr-2" />
-                  )}
+                  {copiedItem === 'landing' ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
                   {copiedItem === 'landing' ? 'Copied!' : 'Copy All'}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    handleDownload(content.landingPage.fullMarkdown, 'landing-page.md')
-                  }
+                  onClick={() => handleDownload(content.landingPage.fullMarkdown, 'landing-page.md')}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Download
@@ -88,11 +82,7 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
                     size="sm"
                     onClick={() => handleCopy(content.landingPage.headline, 'headline')}
                   >
-                    {copiedItem === 'headline' ? (
-                      <Check className="h-3 w-3" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
+                    {copiedItem === 'headline' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
                 <p className="text-2xl font-bold">{content.landingPage.headline}</p>
@@ -107,11 +97,7 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
                     size="sm"
                     onClick={() => handleCopy(content.landingPage.subheadline, 'subheadline')}
                   >
-                    {copiedItem === 'subheadline' ? (
-                      <Check className="h-3 w-3" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
+                    {copiedItem === 'subheadline' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
                 <p className="text-lg text-muted-foreground">{content.landingPage.subheadline}</p>
@@ -121,16 +107,8 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium">Hero Text</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCopy(content.landingPage.heroSection, 'hero')}
-                  >
-                    {copiedItem === 'hero' ? (
-                      <Check className="h-3 w-3" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
+                  <Button variant="ghost" size="sm" onClick={() => handleCopy(content.landingPage.heroSection, 'hero')}>
+                    {copiedItem === 'hero' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
                 <p className="text-sm">{content.landingPage.heroSection}</p>
@@ -148,12 +126,7 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() =>
-                              handleCopy(
-                                `${feature.title}\n${feature.description}`,
-                                `feature-${index}`
-                              )
-                            }
+                            onClick={() => handleCopy(`${feature.title}\n${feature.description}`, `feature-${index}`)}
                           >
                             {copiedItem === `feature-${index}` ? (
                               <Check className="h-3 w-3" />
@@ -173,16 +146,8 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium">Call to Action</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCopy(content.landingPage.cta, 'cta')}
-                  >
-                    {copiedItem === 'cta' ? (
-                      <Check className="h-3 w-3" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
+                  <Button variant="ghost" size="sm" onClick={() => handleCopy(content.landingPage.cta, 'cta')}>
+                    {copiedItem === 'cta' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
                 <Button>{content.landingPage.cta}</Button>
@@ -204,16 +169,8 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between gap-4">
                       <p className="text-sm flex-1 whitespace-pre-wrap">{tweet}</p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleCopy(tweet, `tweet-${index}`)}
-                      >
-                        {copiedItem === `tweet-${index}` ? (
-                          <Check className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
+                      <Button variant="ghost" size="sm" onClick={() => handleCopy(tweet, `tweet-${index}`)}>
+                        {copiedItem === `tweet-${index}` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">{tweet.length} characters</p>
@@ -232,16 +189,8 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
                 <CardTitle>LinkedIn Post</CardTitle>
                 <CardDescription>Professional announcement for LinkedIn</CardDescription>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleCopy(content.socialMedia.linkedin, 'linkedin')}
-              >
-                {copiedItem === 'linkedin' ? (
-                  <Check className="h-4 w-4 mr-2" />
-                ) : (
-                  <Copy className="h-4 w-4 mr-2" />
-                )}
+              <Button variant="outline" size="sm" onClick={() => handleCopy(content.socialMedia.linkedin, 'linkedin')}>
+                {copiedItem === 'linkedin' ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
                 {copiedItem === 'linkedin' ? 'Copied!' : 'Copy'}
               </Button>
             </CardHeader>
@@ -266,15 +215,9 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() =>
-                      handleCopy(content.socialMedia.productHunt.tagline, 'ph-tagline')
-                    }
+                    onClick={() => handleCopy(content.socialMedia.productHunt.tagline, 'ph-tagline')}
                   >
-                    {copiedItem === 'ph-tagline' ? (
-                      <Check className="h-3 w-3" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
+                    {copiedItem === 'ph-tagline' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
                 <p className="text-base font-medium">{content.socialMedia.productHunt.tagline}</p>
@@ -290,15 +233,9 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() =>
-                      handleCopy(content.socialMedia.productHunt.description, 'ph-desc')
-                    }
+                    onClick={() => handleCopy(content.socialMedia.productHunt.description, 'ph-desc')}
                   >
-                    {copiedItem === 'ph-desc' ? (
-                      <Check className="h-3 w-3" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
+                    {copiedItem === 'ph-desc' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
                 <p className="text-sm">{content.socialMedia.productHunt.description}</p>
@@ -314,15 +251,9 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() =>
-                      handleCopy(content.socialMedia.productHunt.features.join('\n'), 'ph-features')
-                    }
+                    onClick={() => handleCopy(content.socialMedia.productHunt.features.join('\n'), 'ph-features')}
                   >
-                    {copiedItem === 'ph-features' ? (
-                      <Check className="h-3 w-3" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
+                    {copiedItem === 'ph-features' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
                 <ul className="space-y-1">
@@ -344,11 +275,7 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>SEO Meta Tags</CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleCopy(content.seo.metaTags, 'seo-tags')}
-                >
+                <Button variant="outline" size="sm" onClick={() => handleCopy(content.seo.metaTags, 'seo-tags')}>
                   {copiedItem === 'seo-tags' ? (
                     <>
                       <Check className="h-3 w-3 mr-1" />
@@ -380,10 +307,7 @@ export function MarketingContent({ content, onCopy, onDownload }: MarketingConte
                 <h3 className="text-sm font-medium mb-2">Keywords</h3>
                 <div className="flex flex-wrap gap-2">
                   {content.seo.keywords.map((keyword, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-primary/10 text-primary text-xs rounded"
-                    >
+                    <span key={index} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
                       {keyword}
                     </span>
                   ))}

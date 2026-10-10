@@ -37,9 +37,7 @@ export default function ErrorNotification() {
       {errors.map((error) => (
         <div
           key={error.id}
-          className={`rounded-lg shadow-lg p-4 animate-slide-in ${getSeverityStyles(
-            error.severity
-          )}`}
+          className={`rounded-lg shadow-lg p-4 animate-slide-in ${getSeverityStyles(error.severity)}`}
           role="alert"
         >
           <div className="flex items-start gap-3">

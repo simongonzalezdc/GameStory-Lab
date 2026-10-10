@@ -60,7 +60,7 @@ export interface ProjectAnalysis {
 async function analyzeProjectForMarketing(
   projectPath: string,
   projectName: string,
-  projectDescription?: string
+  projectDescription?: string,
 ): Promise<ProjectAnalysis> {
   const analysis: ProjectAnalysis = {
     name: projectName,
@@ -143,7 +143,7 @@ export async function generateMarketingContent(
   projectPath: string,
   projectName: string,
   projectDescription?: string,
-  model: string = 'smollm2:1.7b'
+  model: string = 'smollm2:1.7b',
 ): Promise<MarketingContent> {
   const analysis = await analyzeProjectForMarketing(projectPath, projectName, projectDescription);
   const llmRouter = getLLMRouter();
@@ -197,13 +197,12 @@ Be concise, benefit-focused, and use active voice. Highlight what makes this pro
     [
       {
         role: 'system',
-        content:
-          'You are an expert marketing copywriter specializing in developer tools and SaaS products.',
+        content: 'You are an expert marketing copywriter specializing in developer tools and SaaS products.',
       },
       { role: 'user', content: landingPagePrompt },
     ],
     model,
-    { temperature: 0.8 }
+    { temperature: 0.8 },
   );
 
   // Parse landing page response
@@ -252,7 +251,7 @@ Make it engaging, use relevant hashtags, and focus on benefits over features.`;
       { role: 'user', content: socialMediaPrompt },
     ],
     model,
-    { temperature: 0.9 }
+    { temperature: 0.9 },
   );
 
   const socialMedia = parseSocialMediaContent(socialMediaResponse.content);
@@ -270,10 +269,7 @@ Make it engaging, use relevant hashtags, and focus on benefits over features.`;
 /**
  * Parse landing page content from AI response
  */
-function parseLandingPageContent(
-  content: string,
-  projectName: string
-): MarketingContent['landingPage'] {
+function parseLandingPageContent(content: string, projectName: string): MarketingContent['landingPage'] {
   const headlineMatch = content.match(/# Headline\s*\n(.+)/i);
   const subheadlineMatch = content.match(/## Subheadline\s*\n(.+)/i);
   const heroMatch = content.match(/## Hero\s*\n([\s\S]+?)(?=##|$)/i);
@@ -298,8 +294,7 @@ function parseLandingPageContent(
   const headline = headlineMatch?.[1]?.trim() || `${projectName} - Ship Faster, Build Better`;
   const subheadline = subheadlineMatch?.[1]?.trim() || 'The modern toolkit for developers';
   const heroSection =
-    heroMatch?.[1]?.trim() ||
-    `${projectName} helps developers build and ship better software faster.`;
+    heroMatch?.[1]?.trim() || `${projectName} helps developers build and ship better software faster.`;
   const cta = ctaMatch?.[1]?.trim() || 'Get Started Free';
 
   return {
@@ -365,7 +360,7 @@ function parseSocialMediaContent(content: string): MarketingContent['socialMedia
 function generateSEOMetaTags(
   landingPage: MarketingContent['landingPage'],
   projectName: string,
-  projectDescription?: string
+  projectDescription?: string,
 ): MarketingContent['seo'] {
   // Extract keywords from features and description
   const keywords: string[] = [];
@@ -380,10 +375,8 @@ function generateSEOMetaTags(
   });
 
   // Create meta description
-  const description =
-    projectDescription || landingPage.subheadline || landingPage.heroSection.substring(0, 155);
-  const truncatedDescription =
-    description.length > 160 ? description.substring(0, 157) + '...' : description;
+  const description = projectDescription || landingPage.subheadline || landingPage.heroSection.substring(0, 155);
+  const truncatedDescription = description.length > 160 ? description.substring(0, 157) + '...' : description;
 
   // SEO title (optimal length: 50-60 characters)
   const seoTitle = `${projectName} - ${landingPage.headline.substring(0, 50)}`;
@@ -443,7 +436,7 @@ export async function generateMarketingAsset(
   projectName: string,
   assetType: 'landing' | 'twitter' | 'linkedin' | 'producthunt',
   projectDescription?: string,
-  model: string = 'smollm2:1.7b'
+  model: string = 'smollm2:1.7b',
 ): Promise<string> {
   const analysis = await analyzeProjectForMarketing(projectPath, projectName, projectDescription);
   const llmRouter = getLLMRouter();
@@ -468,7 +461,7 @@ Key Features: ${analysis.features.length > 0 ? analysis.features.join(', ') : 'M
       { role: 'user', content: prompts[assetType] },
     ],
     model,
-    { temperature: 0.8 }
+    { temperature: 0.8 },
   );
 
   return response.content;

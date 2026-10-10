@@ -14,12 +14,7 @@ interface InstrumentSelectorProps {
   currentInstrumentRef: string;
 }
 
-export default function InstrumentSelector({
-  sceneId,
-  trackId,
-  role,
-  currentInstrumentRef,
-}: InstrumentSelectorProps) {
+export default function InstrumentSelector({ sceneId, trackId, role, currentInstrumentRef }: InstrumentSelectorProps) {
   const { updateTrack } = useProjectStore();
   const presets = INSTRUMENT_PRESETS[role] || INSTRUMENT_PRESETS.other;
 

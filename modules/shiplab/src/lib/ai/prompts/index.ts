@@ -60,7 +60,7 @@ export function buildChatPrompt(
     projectName?: string;
     projectLanguage?: string;
     projectFramework?: string;
-  }
+  },
 ): string {
   if (!context) {
     return userMessage;

@@ -23,15 +23,7 @@ const ProjectMetadataSchema = z.object({
 });
 
 const GeneratorConfigSchema = z.object({
-  type: z.enum([
-    'euclidean',
-    'arp',
-    'patternDSL',
-    'markov',
-    'randomWalk',
-    'magenta',
-    'audioModelStem',
-  ] as const),
+  type: z.enum(['euclidean', 'arp', 'patternDSL', 'markov', 'randomWalk', 'magenta', 'audioModelStem'] as const),
   params: z.record(z.string(), z.unknown()),
 });
 
