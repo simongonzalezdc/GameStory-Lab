@@ -107,11 +107,7 @@ export class PitchDetector {
       const source = this.audioContext.createMediaStreamSource(this.mediaStream);
       source.connect(this.analyser);
 
-      errorHandler.handle(
-        new Error('Pitch detector initialized'),
-        'Pitch Detection',
-        ErrorSeverity.INFO
-      );
+      errorHandler.handle(new Error('Pitch detector initialized'), 'Pitch Detection', ErrorSeverity.INFO);
     } catch (error) {
       errorHandler.handle(error, 'Pitch Detector Initialization', ErrorSeverity.ERROR);
       throw new Error('Microphone access denied');
@@ -157,10 +153,7 @@ export class PitchDetector {
     this.analyser.getFloatTimeDomainData(this.buffer);
 
     // Detect pitch using autocorrelation
-    const frequency = autoCorrelate(
-      this.buffer as Float32Array<ArrayBuffer>,
-      this.audioContext.sampleRate
-    );
+    const frequency = autoCorrelate(this.buffer as Float32Array<ArrayBuffer>, this.audioContext.sampleRate);
 
     // If valid frequency detected, convert to MIDI and call callback
     if (frequency > 0) {

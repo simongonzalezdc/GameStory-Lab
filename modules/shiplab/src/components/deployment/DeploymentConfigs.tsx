@@ -96,15 +96,9 @@ export function DeploymentConfigs({
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Comprehensive Deployment Guide</CardTitle>
-                <CardDescription>
-                  Step-by-step instructions for deploying your project
-                </CardDescription>
+                <CardDescription>Step-by-step instructions for deploying your project</CardDescription>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDownload(guide, 'deployment-guide.md')}
-              >
+              <Button variant="outline" size="sm" onClick={() => handleDownload(guide, 'deployment-guide.md')}>
                 <Download className="h-4 w-4 mr-2" />
                 Download
               </Button>
@@ -131,11 +125,7 @@ export function DeploymentConfigs({
                   <CardDescription>Configuration file for {config.platform}</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCopy(config.content, config.platform)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => handleCopy(config.content, config.platform)}>
                     {copiedItem === config.platform ? (
                       <Check className="h-4 w-4 mr-2" />
                     ) : (
@@ -143,11 +133,7 @@ export function DeploymentConfigs({
                     )}
                     {copiedItem === config.platform ? 'Copied!' : 'Copy'}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownload(config.content, config.filename)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => handleDownload(config.content, config.filename)}>
                     <Download className="h-4 w-4 mr-2" />
                     Download
                   </Button>
@@ -165,17 +151,12 @@ export function DeploymentConfigs({
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Environment Variables</CardTitle>
-                  <CardDescription>
-                    Required environment variables for {config.platform}
-                  </CardDescription>
+                  <CardDescription>Required environment variables for {config.platform}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
                     {config.environmentVariables.map((envVar) => (
-                      <div
-                        key={envVar.key}
-                        className="flex items-start justify-between p-3 bg-muted rounded-lg"
-                      >
+                      <div key={envVar.key} className="flex items-start justify-between p-3 bg-muted rounded-lg">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <code className="text-sm font-mono">{envVar.key}</code>
@@ -192,11 +173,7 @@ export function DeploymentConfigs({
                             </p>
                           )}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCopy(envVar.key, `env-${envVar.key}`)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => handleCopy(envVar.key, `env-${envVar.key}`)}>
                           {copiedItem === `env-${envVar.key}` ? (
                             <Check className="h-3 w-3" />
                           ) : (
@@ -222,9 +199,7 @@ export function DeploymentConfigs({
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div>
                       <p className="text-sm font-medium">Estimated Monthly Cost</p>
-                      <p className="text-2xl font-bold text-primary">
-                        {config.costEstimate.estimatedMonthlyCost}
-                      </p>
+                      <p className="text-2xl font-bold text-primary">{config.costEstimate.estimatedMonthlyCost}</p>
                     </div>
                     {config.costEstimate.free && (
                       <Badge variant="default" className="text-sm">
@@ -237,9 +212,7 @@ export function DeploymentConfigs({
                   {config.costEstimate.freeTier && (
                     <div>
                       <h4 className="text-sm font-medium mb-2">Free Tier</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {config.costEstimate.freeTier}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{config.costEstimate.freeTier}</p>
                     </div>
                   )}
 
@@ -252,16 +225,11 @@ export function DeploymentConfigs({
                           <div key={index} className="border rounded-lg p-3">
                             <div className="flex items-center justify-between mb-2">
                               <h5 className="font-medium">{tier.name}</h5>
-                              <span className="text-sm font-semibold text-primary">
-                                {tier.pricePerMonth}
-                              </span>
+                              <span className="text-sm font-semibold text-primary">{tier.pricePerMonth}</span>
                             </div>
                             <ul className="space-y-1">
                               {tier.features.map((feature, fIndex) => (
-                                <li
-                                  key={fIndex}
-                                  className="text-xs text-muted-foreground flex items-start"
-                                >
+                                <li key={fIndex} className="text-xs text-muted-foreground flex items-start">
                                   <span className="mr-2">•</span>
                                   <span>{feature}</span>
                                 </li>
@@ -279,10 +247,7 @@ export function DeploymentConfigs({
                       <h4 className="text-sm font-medium mb-2">Important Notes</h4>
                       <ul className="space-y-1">
                         {config.costEstimate.notes.map((note, index) => (
-                          <li
-                            key={index}
-                            className="text-xs text-muted-foreground flex items-start"
-                          >
+                          <li key={index} className="text-xs text-muted-foreground flex items-start">
                             <span className="mr-2">•</span>
                             <span>{note}</span>
                           </li>
@@ -312,9 +277,7 @@ export function DeploymentConfigs({
               </CardHeader>
               <CardContent>
                 <div className="prose prose-sm max-w-none dark:prose-invert">
-                  <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg text-sm">
-                    {config.instructions}
-                  </pre>
+                  <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg text-sm">{config.instructions}</pre>
                 </div>
               </CardContent>
             </Card>
@@ -328,11 +291,7 @@ export function DeploymentConfigs({
                     <CardDescription>Files to exclude from Docker build</CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleCopy(dockerIgnore, 'dockerignore')}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleCopy(dockerIgnore, 'dockerignore')}>
                       {copiedItem === 'dockerignore' ? (
                         <Check className="h-4 w-4 mr-2" />
                       ) : (
@@ -340,11 +299,7 @@ export function DeploymentConfigs({
                       )}
                       {copiedItem === 'dockerignore' ? 'Copied!' : 'Copy'}
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownload(dockerIgnore, '.dockerignore')}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleDownload(dockerIgnore, '.dockerignore')}>
                       <Download className="h-4 w-4 mr-2" />
                       Download
                     </Button>
@@ -370,18 +325,10 @@ export function DeploymentConfigs({
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => handleCopy(envTemplate, 'env')}>
-                  {copiedItem === 'env' ? (
-                    <Check className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Copy className="h-4 w-4 mr-2" />
-                  )}
+                  {copiedItem === 'env' ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
                   {copiedItem === 'env' ? 'Copied!' : 'Copy'}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDownload(envTemplate, '.env.example')}
-                >
+                <Button variant="outline" size="sm" onClick={() => handleDownload(envTemplate, '.env.example')}>
                   <Download className="h-4 w-4 mr-2" />
                   Download
                 </Button>
@@ -393,8 +340,8 @@ export function DeploymentConfigs({
               </pre>
               <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                 <p className="text-sm text-yellow-700 dark:text-yellow-400">
-                  <strong>Note:</strong> Create a <code>.env</code> file in your project root and
-                  fill in these values before deploying.
+                  <strong>Note:</strong> Create a <code>.env</code> file in your project root and fill in these values
+                  before deploying.
                 </p>
               </div>
             </CardContent>

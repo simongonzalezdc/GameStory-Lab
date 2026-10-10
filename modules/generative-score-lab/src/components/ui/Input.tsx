@@ -22,7 +22,7 @@ export const Input = memo(function Input({ label, error, className, ...props }: 
           'focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           error && 'border-red-500 focus:ring-red-500',
-          className
+          className,
         )}
         {...props}
       />

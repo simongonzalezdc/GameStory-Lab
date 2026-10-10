@@ -50,15 +50,9 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
   const [validationError, setValidationError] = useState<string>('');
 
   // Memoize scene and track lookups
-  const scene = useMemo(
-    () => project?.scenes.find((s) => s.id === sceneId),
-    [project?.scenes, sceneId]
-  );
+  const scene = useMemo(() => project?.scenes.find((s) => s.id === sceneId), [project?.scenes, sceneId]);
 
-  const track = useMemo(
-    () => scene?.tracks.find((t) => t.id === trackId),
-    [scene?.tracks, trackId]
-  );
+  const track = useMemo(() => scene?.tracks.find((t) => t.id === trackId), [scene?.tracks, trackId]);
   const trackClips = track?.clips ?? [];
   const sceneKey = scene?.key || project?.defaultKey || 'C';
   const sceneScale = scene?.scale || project?.defaultScale || 'major';
@@ -70,11 +64,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     // Validate clip length
     if (!lengthBars || lengthBars < 1 || lengthBars > 128) {
       setValidationError('Clip length must be between 1 and 128 bars');
-      errorHandler.handle(
-        new Error('Invalid clip length'),
-        'Clip Validation',
-        ErrorSeverity.WARNING
-      );
+      errorHandler.handle(new Error('Invalid clip length'), 'Clip Validation', ErrorSeverity.WARNING);
       return;
     }
 
@@ -84,7 +74,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
       errorHandler.handle(
         new Error(`Track already has maximum number of clips (${MAX_CLIPS_PER_TRACK})`),
         'Clip Validation',
-        ErrorSeverity.WARNING
+        ErrorSeverity.WARNING,
       );
       return;
     }
@@ -119,17 +109,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
     setUsePreset(false);
     setSelectedPreset('');
     setLengthBars(DEFAULT_CLIP_LENGTH_BARS);
-  }, [
-    generatorType,
-    lengthBars,
-    addClip,
-    sceneId,
-    trackId,
-    usePreset,
-    selectedPreset,
-    track,
-    trackClips.length,
-  ]);
+  }, [generatorType, lengthBars, addClip, sceneId, trackId, usePreset, selectedPreset, track, trackClips.length]);
 
   const handleDeleteClick = useCallback((clipId: string) => {
     setClipToDelete(clipId);
@@ -174,11 +154,7 @@ export default function ClipList({ sceneId, trackId }: ClipListProps) {
         ) : (
           <div className="space-y-2" role="list" aria-label="Clip list">
             {trackClips.map((clip) => (
-              <div
-                key={clip.id}
-                className="bg-white p-3 rounded border border-gray-200"
-                role="listitem"
-              >
+              <div key={clip.id} className="bg-white p-3 rounded border border-gray-200" role="listitem">
                 <div className="flex items-center justify-between">
                   <div>
                     <p

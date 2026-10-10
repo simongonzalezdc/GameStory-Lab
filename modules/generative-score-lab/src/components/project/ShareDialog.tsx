@@ -52,8 +52,8 @@ export default function ShareDialog({ open, onClose, project }: ShareDialogProps
         </div>
 
         <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded p-3">
-          <strong>Note:</strong> The project data is encoded in the URL. For very large projects,
-          consider using a file sharing service instead.
+          <strong>Note:</strong> The project data is encoded in the URL. For very large projects, consider using a file
+          sharing service instead.
         </div>
       </div>
     </Dialog>

@@ -11,7 +11,7 @@ export function getClipPlaybackNotes(
   clip: Clip,
   key: string,
   scale: string,
-  bpm: number = DEFAULT_BPM
+  bpm: number = DEFAULT_BPM,
 ): Array<{ note: string; time: number; duration: number; velocity: number }> {
   if (clip.customNotes && clip.customNotes.length > 0) {
     const secondsPerBar = getSecondsPerBar(bpm);

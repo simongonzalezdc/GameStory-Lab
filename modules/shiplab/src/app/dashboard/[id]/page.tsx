@@ -32,14 +32,7 @@ import type { MarketingContent as MarketingContentType } from '@/lib/generators/
 import type { DeploymentConfig } from '@/lib/generators/deployment';
 import type { GitHubWorkflow } from '@/lib/generators/github-actions';
 
-type ActiveTab =
-  | 'chat'
-  | 'quality'
-  | 'docs'
-  | 'marketing'
-  | 'deployment'
-  | 'licensing'
-  | 'github-actions';
+type ActiveTab = 'chat' | 'quality' | 'docs' | 'marketing' | 'deployment' | 'licensing' | 'github-actions';
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -54,9 +47,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const [editedDocsContent, setEditedDocsContent] = useState('');
   const [isSavingToGit, setIsSavingToGit] = useState(false);
   const [qualityResults, setQualityResults] = useState<QualityAnalysisResult | null>(null);
-  const [generatedDocs, setGeneratedDocs] = useState<{ type: string; content: string } | null>(
-    null
-  );
+  const [generatedDocs, setGeneratedDocs] = useState<{ type: string; content: string } | null>(null);
   const [marketingContent, setMarketingContent] = useState<MarketingContentType | null>(null);
   const [deploymentConfigs, setDeploymentConfigs] = useState<{
     configs: DeploymentConfig[];
@@ -137,8 +128,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       setQualityResults(data.result);
       toast({
         title: 'Auto-fix Complete',
-        description:
-          'Fixable issues have been automatically resolved. Re-run analysis to see updated results.',
+        description: 'Fixable issues have been automatically resolved. Re-run analysis to see updated results.',
       });
     } catch (error) {
       console.error('Auto-fix error:', error);
@@ -302,8 +292,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       setMarketingContent(data.content);
       toast({
         title: 'Marketing Content Generated',
-        description:
-          'Your marketing materials are ready for landing pages, social media, and Product Hunt.',
+        description: 'Your marketing materials are ready for landing pages, social media, and Product Hunt.',
       });
     } catch (error) {
       console.error('Marketing generation error:', error);
@@ -398,9 +387,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         <Card className="text-center py-12">
           <CardContent className="pt-6">
             <h3 className="text-lg font-semibold mb-2">Project not found</h3>
-            <p className="text-muted-foreground mb-4">
-              The project you're looking for doesn't exist.
-            </p>
+            <p className="text-muted-foreground mb-4">The project you're looking for doesn't exist.</p>
             <Link href="/dashboard">
               <Button>Back to Dashboard</Button>
             </Link>
@@ -483,12 +470,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               <CardTitle className="text-sm">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                size="sm"
-                onClick={() => setActiveTab('chat')}
-              >
+              <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => setActiveTab('chat')}>
                 <Sparkles className="mr-2 h-4 w-4" />
                 AI Chat
               </Button>
@@ -536,9 +518,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               </Button>
 
               <div className="border-t my-3 pt-3">
-                <p className="text-xs font-medium text-muted-foreground mb-2">
-                  Marketing & Deployment
-                </p>
+                <p className="text-xs font-medium text-muted-foreground mb-2">Marketing & Deployment</p>
               </div>
 
               <Button
@@ -562,11 +542,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                 onClick={generateDeployment}
                 disabled={isGenerating}
               >
-                {isGenerating ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Rocket className="mr-2 h-4 w-4" />
-                )}
+                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
                 Generate Deployment
               </Button>
               <Button
@@ -600,11 +576,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         <div className="flex-1 flex flex-col">
           {/* Tab Navigation */}
           <div className="border-b px-4 py-2 flex gap-2 overflow-x-auto">
-            <Button
-              variant={activeTab === 'chat' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('chat')}
-            >
+            <Button variant={activeTab === 'chat' ? 'default' : 'ghost'} size="sm" onClick={() => setActiveTab('chat')}>
               Chat
             </Button>
             <Button
@@ -687,9 +659,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                       <div className="flex items-center justify-between">
                         <div>
                           <CardTitle>{generatedDocs.type} Documentation</CardTitle>
-                          <CardDescription>
-                            Generated documentation for your project
-                          </CardDescription>
+                          <CardDescription>Generated documentation for your project</CardDescription>
                         </div>
                         <div className="flex gap-2">
                           {isEditingDocs ? (
@@ -703,12 +673,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                             </>
                           ) : (
                             <>
-                              <Button
-                                onClick={saveDocsToGit}
-                                variant="default"
-                                size="sm"
-                                disabled={isSavingToGit}
-                              >
+                              <Button onClick={saveDocsToGit} variant="default" size="sm" disabled={isSavingToGit}>
                                 {isSavingToGit ? 'Saving...' : 'Save to Git'}
                               </Button>
                               <Button onClick={startEditingDocs} variant="outline" size="sm">
@@ -728,9 +693,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                         />
                       ) : (
                         <div className="prose prose-sm max-w-none dark:prose-invert">
-                          <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg">
-                            {generatedDocs.content}
-                          </pre>
+                          <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg">{generatedDocs.content}</pre>
                         </div>
                       )}
                     </CardContent>

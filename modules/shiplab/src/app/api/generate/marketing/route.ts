@@ -5,10 +5,7 @@ import { getProject, createDocument } from '@/lib/db/queries';
 
 const generateMarketingSchema = z.object({
   projectId: z.string(),
-  assetType: z
-    .enum(['full', 'landing', 'twitter', 'linkedin', 'producthunt'])
-    .optional()
-    .default('full'),
+  assetType: z.enum(['full', 'landing', 'twitter', 'linkedin', 'producthunt']).optional().default('full'),
   model: z.string().optional().default('smollm2:1.7b'),
 });
 
@@ -29,7 +26,7 @@ export async function POST(request: NextRequest) {
         project.path,
         project.name,
         project.description || undefined,
-        validated.model
+        validated.model,
       );
 
       // Save landing page to database
@@ -73,7 +70,7 @@ export async function POST(request: NextRequest) {
         project.name,
         validated.assetType,
         project.description || undefined,
-        validated.model
+        validated.model,
       );
 
       // Save to database
@@ -97,15 +94,9 @@ export async function POST(request: NextRequest) {
     console.error('Marketing generation error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Generation failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Generation failed' }, { status: 500 });
   }
 }

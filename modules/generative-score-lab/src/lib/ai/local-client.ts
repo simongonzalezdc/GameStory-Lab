@@ -80,9 +80,7 @@ export class LocalAIClient implements AIClient {
             const errorData = JSON.parse(errorText);
             if (errorData.error?.includes('model') && errorData.error?.includes('not found')) {
               const setupResult = await setupOllama(this.config);
-              errorMessage =
-                setupResult.message ||
-                `Model '${this.config.model}' is not available. ${errorText}`;
+              errorMessage = setupResult.message || `Model '${this.config.model}' is not available. ${errorText}`;
             }
           } catch {
             // If parsing fails, use original error

@@ -14,13 +14,7 @@ interface QualityResultsProps {
   isFixing?: boolean;
 }
 
-export function QualityResults({
-  result,
-  onRunAnalysis,
-  isAnalyzing,
-  onAutoFix,
-  isFixing,
-}: QualityResultsProps) {
+export function QualityResults({ result, onRunAnalysis, isAnalyzing, onAutoFix, isFixing }: QualityResultsProps) {
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
   const [selectedTool, setSelectedTool] = useState<string>('all');
 
@@ -75,11 +69,7 @@ export function QualityResults({
                 </Button>
               )}
               {onRunAnalysis && (
-                <Button
-                  onClick={onRunAnalysis}
-                  disabled={isAnalyzing || isFixing}
-                  variant="outline"
-                >
+                <Button onClick={onRunAnalysis} disabled={isAnalyzing || isFixing} variant="outline">
                   {isAnalyzing ? 'Analyzing...' : 'Re-run Analysis'}
                 </Button>
               )}
@@ -113,9 +103,7 @@ export function QualityResults({
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <span>
                   ESLint: {result.tools.eslint.filesAnalyzed} files analyzed
-                  {result.tools.eslint.error && (
-                    <span className="text-yellow-600"> - {result.tools.eslint.error}</span>
-                  )}
+                  {result.tools.eslint.error && <span className="text-yellow-600"> - {result.tools.eslint.error}</span>}
                 </span>
               </div>
             )}
@@ -181,9 +169,7 @@ export function QualityResults({
               {result.issues.length === 0 ? 'No issues found!' : 'No issues match the filters'}
             </p>
             <p className="text-muted-foreground">
-              {result.issues.length === 0
-                ? 'Your code looks great!'
-                : 'Try adjusting the filters above'}
+              {result.issues.length === 0 ? 'Your code looks great!' : 'Try adjusting the filters above'}
             </p>
           </CardContent>
         </Card>

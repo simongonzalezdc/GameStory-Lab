@@ -74,3 +74,27 @@ dependencies, forges, or the build.
   Root `db:*` scripts already encode this.
 - Counts that drift: 27 validation rules (engine is source of truth),
   15 genre templates, 9 endpoint groups, TypeScript ^6.0.3.
+
+## Known dependency risk (tracked, not fixed)
+
+`npm audit` reports 3 HIGH advisories, all rooted in one transitive chain:
+
+```
+prisma 6.19.3
+└── @prisma/config 6.19.3
+    └── deepmerge-ts 7.1.5   (stack exhaustion on recursive graphs)
+```
+
+Clearing them requires a **Prisma major**, and the first Prisma 8 release is
+still an RC (`8.0.0-rc.22` at time of writing) — installing an RC into a
+project that other repos depend on is not a trade worth making silently.
+Prisma 6 remains supported.
+
+Revisit when Prisma 8 reaches stable. Expect to check:
+
+- `prisma migrate` behavior changes across the major
+- `JsonValue` / `InputJsonValue` type paths (backend uses both)
+- generated-client output differences
+
+Everything else was closed in the security pass that took this repo from 26
+vulnerabilities (3 critical, 14 high) to these 3.

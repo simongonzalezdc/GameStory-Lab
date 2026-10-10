@@ -4,13 +4,7 @@
  */
 
 import { BaseGenerator } from './base-generator';
-import type {
-  GeneratorConfig,
-  GenerationContext,
-  NoteSequence,
-  Note,
-  EuclideanParams,
-} from '@/types';
+import type { GeneratorConfig, GenerationContext, NoteSequence, Note, EuclideanParams } from '@/types';
 import { noteToMidi } from '../theory/scales';
 
 export class EuclideanGenerator extends BaseGenerator {

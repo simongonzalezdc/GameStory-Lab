@@ -41,11 +41,7 @@ class ErrorHandler {
   /**
    * Handle an error
    */
-  handle(
-    error: unknown,
-    context?: string,
-    severity: ErrorSeverity = ErrorSeverity.ERROR
-  ): AppError {
+  handle(error: unknown, context?: string, severity: ErrorSeverity = ErrorSeverity.ERROR): AppError {
     const appError = this.createAppError(error, context, severity);
     this.logError(appError);
     this.notifyListeners(appError);
@@ -61,11 +57,7 @@ class ErrorHandler {
   /**
    * Create standardized app error
    */
-  private createAppError(
-    error: unknown,
-    context?: string,
-    severity: ErrorSeverity = ErrorSeverity.ERROR
-  ): AppError {
+  private createAppError(error: unknown, context?: string, severity: ErrorSeverity = ErrorSeverity.ERROR): AppError {
     const timestamp = new Date();
     const id = `${timestamp.getTime()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -213,10 +205,7 @@ export const errorHandler = new ErrorHandler();
 /**
  * Helper function for handling async errors
  */
-export async function handleAsyncError<T>(
-  promise: Promise<T>,
-  context?: string
-): Promise<[T | null, AppError | null]> {
+export async function handleAsyncError<T>(promise: Promise<T>, context?: string): Promise<[T | null, AppError | null]> {
   try {
     const result = await promise;
     return [result, null];

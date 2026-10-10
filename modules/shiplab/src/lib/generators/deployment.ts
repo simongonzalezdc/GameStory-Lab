@@ -42,10 +42,7 @@ export interface ProjectDeploymentInfo {
 /**
  * Analyze project for deployment configuration
  */
-async function analyzeProjectForDeployment(
-  projectPath: string,
-  projectName: string
-): Promise<ProjectDeploymentInfo> {
+async function analyzeProjectForDeployment(projectPath: string, projectName: string): Promise<ProjectDeploymentInfo> {
   const info: ProjectDeploymentInfo = {
     name: projectName,
     language: 'JavaScript',
@@ -213,12 +210,7 @@ function getCostEstimate(platform: DeploymentConfig['platform']): DeploymentConf
         {
           name: 'Pro',
           pricePerMonth: '$19/user',
-          features: [
-            'Password protection',
-            'Form submissions',
-            'Analytics',
-            'Background functions',
-          ],
+          features: ['Password protection', 'Form submissions', 'Analytics', 'Background functions'],
         },
       ],
       estimatedMonthlyCost: '$0-19 (Free tier for most sites)',
@@ -259,10 +251,7 @@ function getCostEstimate(platform: DeploymentConfig['platform']): DeploymentConf
 /**
  * Generate Vercel deployment configuration
  */
-export async function generateVercelConfig(
-  projectPath: string,
-  projectName: string
-): Promise<DeploymentConfig> {
+export async function generateVercelConfig(projectPath: string, projectName: string): Promise<DeploymentConfig> {
   const info = await analyzeProjectForDeployment(projectPath, projectName);
 
   const config = {
@@ -331,10 +320,7 @@ ${info.hasDatabase ? '\n⚠️ **Database Note**: Make sure to configure your da
 /**
  * Generate Docker configuration
  */
-export async function generateDockerConfig(
-  projectPath: string,
-  projectName: string
-): Promise<DeploymentConfig> {
+export async function generateDockerConfig(projectPath: string, projectName: string): Promise<DeploymentConfig> {
   const info = await analyzeProjectForDeployment(projectPath, projectName);
 
   const nodeVersion = info.nodeVersion || '20';
@@ -498,10 +484,7 @@ ${info.hasDatabase ? '⚠️ **Database**: A PostgreSQL container is included. A
 /**
  * Generate Railway deployment configuration
  */
-export async function generateRailwayConfig(
-  projectPath: string,
-  projectName: string
-): Promise<DeploymentConfig> {
+export async function generateRailwayConfig(projectPath: string, projectName: string): Promise<DeploymentConfig> {
   const info = await analyzeProjectForDeployment(projectPath, projectName);
 
   const config = {
@@ -649,7 +632,7 @@ docs
 export async function generateEnvTemplate(
   projectPath: string,
   projectName: string,
-  model: string = 'smollm2:1.7b'
+  model: string = 'smollm2:1.7b',
 ): Promise<string> {
   const info = await analyzeProjectForDeployment(projectPath, projectName);
 
@@ -680,7 +663,7 @@ Keep it concise (5-10 variables).`;
         { role: 'user', content: prompt },
       ],
       model,
-      { temperature: 0.5 }
+      { temperature: 0.5 },
     );
 
     return response.content;
@@ -696,7 +679,7 @@ export async function generateDeploymentGuide(
   projectPath: string,
   projectName: string,
   platforms: Array<'vercel' | 'docker' | 'railway'> = ['vercel', 'docker', 'railway'],
-  model: string = 'smollm2:1.7b'
+  model: string = 'smollm2:1.7b',
 ): Promise<{
   configs: DeploymentConfig[];
   guide: string;
@@ -750,7 +733,7 @@ Be concise but thorough.`;
       { role: 'user', content: prompt },
     ],
     model,
-    { temperature: 0.6 }
+    { temperature: 0.6 },
   );
 
   return {

@@ -26,8 +26,7 @@ const ShareDialog = lazy(() => import('./components/project/ShareDialog'));
 const TutorialOverlay = lazy(() => import('./components/tutorial/TutorialOverlay'));
 
 function App() {
-  const { project, createNewProject, currentSceneId, undo, redo, canUndo, canRedo } =
-    useProjectStore();
+  const { project, createNewProject, currentSceneId, undo, redo, canUndo, canRedo } = useProjectStore();
   const { isCompleted, startTutorial } = useTutorialStore();
   const { toggleAIChat } = useUIStore();
   const [showExportDialog, setShowExportDialog] = useState(false);
@@ -55,11 +54,7 @@ function App() {
       setupOllama(localConfig, true)
         .then((result) => {
           if (!result.success) {
-            errorHandler.handle(
-              new Error(result.message),
-              'Ollama Setup Check',
-              ErrorSeverity.WARNING
-            );
+            errorHandler.handle(new Error(result.message), 'Ollama Setup Check', ErrorSeverity.WARNING);
           } else {
             // Log success in development mode
             if (import.meta.env.MODE === 'development') {
@@ -89,7 +84,7 @@ function App() {
           errorHandler.handle(
             error instanceof Error ? error : new Error('Tutorial start failed'),
             'Tutorial Auto-Start',
-            ErrorSeverity.WARNING
+            ErrorSeverity.WARNING,
           );
         }
       }, 500); // Small delay to ensure UI is ready
@@ -174,7 +169,7 @@ function App() {
         preventDefault: true,
       },
     ],
-    [handleExport, handleShowShortcuts, handleUndo, handleRedo, toggleAIChat]
+    [handleExport, handleShowShortcuts, handleUndo, handleRedo, toggleAIChat],
   );
 
   // Register global keyboard shortcuts
@@ -195,21 +190,10 @@ function App() {
       {project && (
         <>
           <Suspense fallback={<div />}>
-            <ExportDialog
-              open={showExportDialog}
-              onClose={() => setShowExportDialog(false)}
-              project={project}
-            />
-            <ShareDialog
-              open={showShareDialog}
-              onClose={() => setShowShareDialog(false)}
-              project={project}
-            />
+            <ExportDialog open={showExportDialog} onClose={() => setShowExportDialog(false)} project={project} />
+            <ShareDialog open={showShareDialog} onClose={() => setShowShareDialog(false)} project={project} />
           </Suspense>
-          <KeyboardShortcutsHelp
-            open={showShortcutsHelp}
-            onClose={() => setShowShortcutsHelp(false)}
-          />
+          <KeyboardShortcutsHelp open={showShortcutsHelp} onClose={() => setShowShortcutsHelp(false)} />
           <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
         </>
       )}
@@ -221,8 +205,7 @@ function App() {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{project.name}</h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {project.scenes.length} scene{project.scenes.length !== 1 ? 's' : ''} •{' '}
-                  {project.bpm} BPM
+                  {project.scenes.length} scene{project.scenes.length !== 1 ? 's' : ''} • {project.bpm} BPM
                 </p>
               </div>
               <div className="flex gap-2 items-center">

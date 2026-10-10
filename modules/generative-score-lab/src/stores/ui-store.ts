@@ -71,6 +71,6 @@ export const useUIStore = create<UIStoreState>()(
         isTutorialActive: state.isTutorialActive,
         tutorialStep: state.tutorialStep,
       }),
-    }
-  )
+    },
+  ),
 );

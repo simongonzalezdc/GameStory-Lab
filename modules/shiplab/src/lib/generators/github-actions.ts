@@ -80,8 +80,7 @@ jobs:
     name: 'CI Workflow',
     fileName: 'ci.yml',
     content: workflow,
-    description:
-      'Continuous Integration workflow for running tests and linting on every push and pull request',
+    description: 'Continuous Integration workflow for running tests and linting on every push and pull request',
   };
 }
 
@@ -153,8 +152,7 @@ jobs:
     name: 'CD Workflow',
     fileName: 'cd.yml',
     content: workflow,
-    description:
-      'Continuous Deployment workflow for automatically deploying to production on main branch',
+    description: 'Continuous Deployment workflow for automatically deploying to production on main branch',
   };
 }
 
@@ -214,8 +212,7 @@ jobs:
     name: 'Code Quality Workflow',
     fileName: 'code-quality.yml',
     content: workflow,
-    description:
-      'Automated code quality checks on pull requests including linting, type checking, and security audits',
+    description: 'Automated code quality checks on pull requests including linting, type checking, and security audits',
   };
 }
 
@@ -267,7 +264,7 @@ export function generateGitHubActionsWorkflows(project: Project): {
 ${workflows
   .map(
     (w, i) => `${i + 1}. **${w.name}** (\`.github/workflows/${w.fileName}\`)
-   ${w.description}`
+   ${w.description}`,
   )
   .join('\n\n')}
 

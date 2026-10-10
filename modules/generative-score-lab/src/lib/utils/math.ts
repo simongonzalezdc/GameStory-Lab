@@ -19,13 +19,7 @@ export function lerp(start: number, end: number, t: number): number {
 /**
  * Map a value from one range to another
  */
-export function mapRange(
-  value: number,
-  inMin: number,
-  inMax: number,
-  outMin: number,
-  outMax: number
-): number {
+export function mapRange(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number {
   // Handle edge case: if input range is zero, return middle of output range
   if (inMax === inMin) {
     return (outMin + outMax) / 2;

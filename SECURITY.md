@@ -6,6 +6,7 @@ We provide security updates for the following versions:
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.1.x   | :white_check_mark: |
 | 1.0.x   | :white_check_mark: |
 | < 1.0   | :x:                |
 
@@ -17,15 +18,22 @@ We take security vulnerabilities seriously. If you discover a security vulnerabi
 
 Security vulnerabilities should be reported privately to prevent exploitation.
 
-### 2. Email the security team
+### 2. Open a private security advisory
 
-Open a [private security advisory](https://github.com/simongonzalezdc/GameStory-Lab/security/advisories/new) with:
+Report privately via
+[GitHub private security advisory](https://github.com/simongonzalezdc/GameStory-Lab/security/advisories/new).
 
-- **Subject**: `[SECURITY] Brief description of the vulnerability`
+Include:
+
+- **Summary**: Brief description of the vulnerability
 - **Description**: Detailed explanation of the vulnerability
 - **Steps to reproduce**: Clear steps to reproduce the issue
 - **Impact**: Potential impact of the vulnerability
+- **Affected versions**: Which versions you confirmed
 - **Suggested fix**: If you have ideas for a fix (optional)
+
+> **No email contact is published.** The advisory form is the only private
+> channel, so there is no address to leak or misroute.
 
 ### 3. Response Timeline
 

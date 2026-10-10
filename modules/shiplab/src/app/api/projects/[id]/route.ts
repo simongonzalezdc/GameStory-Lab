@@ -46,10 +46,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     console.error('Failed to update project:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
     }
 
     return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
@@ -57,10 +54,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 }
 
 // DELETE /api/projects/[id] - Delete project
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     await deleteProject(id);

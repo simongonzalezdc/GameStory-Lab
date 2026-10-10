@@ -96,7 +96,7 @@ export const useProjectStore = create<ProjectState>()(
             errorHandler.handle(
               new Error(`BPM must be between ${MIN_BPM} and ${MAX_BPM}`),
               'Project Update',
-              ErrorSeverity.WARNING
+              ErrorSeverity.WARNING,
             );
             return;
           }
@@ -325,6 +325,6 @@ export const useProjectStore = create<ProjectState>()(
     {
       name: 'generative-score-lab-project',
       partialize: (state) => ({ project: state.project }),
-    }
-  )
+    },
+  ),
 );

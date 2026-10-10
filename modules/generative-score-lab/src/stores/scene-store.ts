@@ -8,15 +8,12 @@ import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { MIN_BPM, MAX_BPM } from '@/lib/utils/constants';
 
 export interface SceneStoreActions {
-  addScene: (
-    project: any,
-    sceneData: Omit<Scene, 'id'>
-  ) => { project: any; currentSceneId: string | null };
+  addScene: (project: any, sceneData: Omit<Scene, 'id'>) => { project: any; currentSceneId: string | null };
   updateScene: (project: any, sceneId: string, updates: Partial<Scene>) => any;
   deleteScene: (
     project: any,
     currentSceneId: string | null,
-    sceneId: string
+    sceneId: string,
   ) => { project: any; currentSceneId: string | null };
   duplicateScene: (project: any, sceneId: string) => any;
 }
@@ -48,14 +45,14 @@ export const sceneStore: SceneStoreActions = {
         errorHandler.handle(
           new Error(`Scene BPM must be between ${MIN_BPM} and ${MAX_BPM}`),
           'Scene Update',
-          ErrorSeverity.WARNING
+          ErrorSeverity.WARNING,
         );
         return project; // Return unchanged
       }
     }
 
     const updatedScenes = project.scenes.map((scene: Scene) =>
-      scene.id === sceneId ? { ...scene, ...updates } : scene
+      scene.id === sceneId ? { ...scene, ...updates } : scene,
     );
 
     return {
@@ -73,7 +70,7 @@ export const sceneStore: SceneStoreActions = {
       errorHandler.handle(
         new Error('Cannot delete the last scene in a project'),
         'Scene Deletion',
-        ErrorSeverity.WARNING
+        ErrorSeverity.WARNING,
       );
       return { project, currentSceneId };
     }

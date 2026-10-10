@@ -35,14 +35,7 @@ const DRAW_LENGTH_OPTIONS = [
   { id: '1/2', label: '1/2', steps: 8 },
 ];
 
-export function ClipPianoRoll({
-  sceneId,
-  trackId,
-  clip,
-  sceneKey,
-  sceneScale,
-  sceneBpm,
-}: ClipPianoRollProps) {
+export function ClipPianoRoll({ sceneId, trackId, clip, sceneKey, sceneScale, sceneBpm }: ClipPianoRollProps) {
   const { updateClip } = useProjectStore();
   const manualNotes = useMemo(() => clip.customNotes ?? [], [clip.customNotes]);
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -77,13 +70,7 @@ export function ClipPianoRoll({
 
     try {
       const secondsPerBar = (60 / bpm) * 4;
-      const generated = generateNotes(
-        clip.generator,
-        sceneKey || 'C',
-        sceneScale || 'major',
-        clip.lengthBars,
-        bpm
-      );
+      const generated = generateNotes(clip.generator, sceneKey || 'C', sceneScale || 'major', clip.lengthBars, bpm);
       return generated.map((note) => ({
         pitch: noteNameToMidi(note.note),
         time: note.time / secondsPerBar,
@@ -99,7 +86,7 @@ export function ClipPianoRoll({
       updateClip(sceneId, trackId, clip.id, { customNotes: notes });
       getAudioEngine().rescheduleScene();
     },
-    [clip.id, sceneId, trackId, updateClip]
+    [clip.id, sceneId, trackId, updateClip],
   );
 
   const sortNotes = useCallback((notes: PianoRollNote[]) => {
@@ -114,11 +101,11 @@ export function ClipPianoRoll({
   const removeNote = useCallback(
     (pitch: number, time: number) => {
       const updated = manualNotes.filter(
-        (note) => !(note.pitch === pitch && Math.abs(note.time - time) < STEP_DURATION / 2)
+        (note) => !(note.pitch === pitch && Math.abs(note.time - time) < STEP_DURATION / 2),
       );
       commitNotes(updated);
     },
-    [commitNotes, manualNotes]
+    [commitNotes, manualNotes],
   );
 
   const addNote = useCallback(
@@ -127,7 +114,7 @@ export function ClipPianoRoll({
       if (duration <= 0) return;
 
       const withoutExisting = manualNotes.filter(
-        (note) => !(note.pitch === pitch && Math.abs(note.time - time) < STEP_DURATION / 2)
+        (note) => !(note.pitch === pitch && Math.abs(note.time - time) < STEP_DURATION / 2),
       );
       const updated: PianoRollNote[] = [
         ...withoutExisting,
@@ -141,7 +128,7 @@ export function ClipPianoRoll({
       ];
       commitNotes(sortNotes(updated));
     },
-    [clip.lengthBars, commitNotes, manualNotes, noteLength, sortNotes]
+    [clip.lengthBars, commitNotes, manualNotes, noteLength, sortNotes],
   );
 
   const getGridPosition = useCallback(
@@ -164,7 +151,7 @@ export function ClipPianoRoll({
 
       return { pitch, step, time };
     },
-    [gridWidth, midiRange, totalSteps]
+    [gridWidth, midiRange, totalSteps],
   );
 
   const handlePointerDown = useCallback(
@@ -178,8 +165,7 @@ export function ClipPianoRoll({
       setIsPointerDown(true);
 
       const hasNote = manualNotes.some(
-        (note) =>
-          note.pitch === position.pitch && Math.abs(note.time - position.time) < STEP_DURATION / 2
+        (note) => note.pitch === position.pitch && Math.abs(note.time - position.time) < STEP_DURATION / 2,
       );
       setEraseMode(hasNote);
 
@@ -189,7 +175,7 @@ export function ClipPianoRoll({
         addNote(position.pitch, position.time);
       }
     },
-    [addNote, getGridPosition, manualNotes, removeNote]
+    [addNote, getGridPosition, manualNotes, removeNote],
   );
 
   const handlePointerMove = useCallback(
@@ -208,7 +194,7 @@ export function ClipPianoRoll({
         addNote(position.pitch, position.time);
       }
     },
-    [addNote, eraseMode, getGridPosition, isPointerDown, lastCell, removeNote]
+    [addNote, eraseMode, getGridPosition, isPointerDown, lastCell, removeNote],
   );
 
   const handlePointerUp = useCallback(() => {
@@ -278,12 +264,7 @@ export function ClipPianoRoll({
             />
             <span>Generator preview</span>
           </label>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={handleClear}
-            disabled={manualNotes.length === 0}
-          >
+          <Button size="sm" variant="secondary" onClick={handleClear} disabled={manualNotes.length === 0}>
             Clear Roll
           </Button>
         </div>

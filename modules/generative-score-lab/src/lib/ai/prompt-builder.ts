@@ -22,10 +22,10 @@ Current Scene:
 ${(scene.tracks ?? [])
   .map(
     (
-      track
+      track,
     ) => `  - Track ID: ${track.id} | Role: ${track.role} | Name: ${track.name || 'Unnamed'} | Muted: ${track.muted} | Solo: ${track.solo} | Volume: ${track.volume} | Pan: ${track.pan}
     Clips:
-${(track.clips ?? []).map((clip) => `      - Clip ID: ${clip.id} | Muted: ${clip.muted} | Density: ${clip.density || 'N/A'} | Probability: ${clip.probability || 'N/A'} | Generator: ${clip.generator.type}`).join('\n')}`
+${(track.clips ?? []).map((clip) => `      - Clip ID: ${clip.id} | Muted: ${clip.muted} | Density: ${clip.density || 'N/A'} | Probability: ${clip.probability || 'N/A'} | Generator: ${clip.generator.type}`).join('\n')}`,
   )
   .join('\n')}
 
@@ -40,10 +40,7 @@ IMPORTANT FOR ACTIONS:
     contextInfo += `
 Recent Action Results:
 ${context.recentActions
-  .map(
-    (ra) =>
-      `- ${ra.action.type}: ${ra.success ? 'SUCCESS' : `FAILED: ${ra.error || 'Unknown error'}`}`
-  )
+  .map((ra) => `- ${ra.action.type}: ${ra.success ? 'SUCCESS' : `FAILED: ${ra.error || 'Unknown error'}`}`)
   .join('\n')}
 
 Note: The AI should learn from these results and avoid repeating failed actions or similar patterns.`;

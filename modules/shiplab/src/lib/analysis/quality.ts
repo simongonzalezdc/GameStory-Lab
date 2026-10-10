@@ -198,7 +198,7 @@ export async function analyzeCodeQuality(
   projectPath: string,
   options: {
     tools?: ('eslint' | 'semgrep')[];
-  } = {}
+  } = {},
 ): Promise<QualityAnalysisResult> {
   const enabledTools = options.tools || ['eslint', 'semgrep'];
   const allIssues: QualityIssue[] = [];

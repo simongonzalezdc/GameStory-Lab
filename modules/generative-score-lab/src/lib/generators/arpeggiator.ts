@@ -54,11 +54,7 @@ export class ArpeggiatorGenerator extends BaseGenerator {
   /**
    * Generate arpeggio pattern
    */
-  private generateArpeggio(
-    baseNotes: number[],
-    params: ArpParams,
-    context: GenerationContext
-  ): Note[] {
+  private generateArpeggio(baseNotes: number[], params: ArpParams, context: GenerationContext): Note[] {
     const notes: Note[] = [];
     const totalNotes = context.lengthBars * 4 * params.notesPerBeat; // 4 beats per bar
     const noteDuration = context.lengthBars / totalNotes;
@@ -74,21 +70,15 @@ export class ArpeggiatorGenerator extends BaseGenerator {
         noteSequence = this.repeatArray([...baseNotes].reverse(), totalNotes);
         break;
       case 'upDown':
-        noteSequence = this.repeatArray(
-          [...baseNotes, ...baseNotes.slice(1, -1).reverse()],
-          totalNotes
-        );
+        noteSequence = this.repeatArray([...baseNotes, ...baseNotes.slice(1, -1).reverse()], totalNotes);
         break;
       case 'downUp':
-        noteSequence = this.repeatArray(
-          [[...baseNotes].reverse(), ...baseNotes.slice(1, -1)].flat(),
-          totalNotes
-        );
+        noteSequence = this.repeatArray([[...baseNotes].reverse(), ...baseNotes.slice(1, -1)].flat(), totalNotes);
         break;
       case 'random':
         noteSequence = Array.from(
           { length: totalNotes },
-          () => baseNotes[Math.floor(Math.random() * baseNotes.length)]
+          () => baseNotes[Math.floor(Math.random() * baseNotes.length)],
         );
         break;
       default:

@@ -39,7 +39,7 @@ export const Select = memo(function Select({
             'text-sm text-gray-900',
             'hover:border-gray-400',
             'focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent',
-            'disabled:opacity-50 disabled:cursor-not-allowed'
+            'disabled:opacity-50 disabled:cursor-not-allowed',
           )}
         >
           <SelectPrimitive.Value placeholder={placeholder} />
@@ -63,13 +63,11 @@ export const Select = memo(function Select({
                     'cursor-pointer select-none',
                     'hover:bg-gray-100',
                     'focus:bg-gray-100 focus:outline-none',
-                    'data-[state=checked]:bg-forest-50 data-[state=checked]:text-forest-900'
+                    'data-[state=checked]:bg-forest-50 data-[state=checked]:text-forest-900',
                   )}
                 >
                   <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
-                  <SelectPrimitive.ItemIndicator className="absolute left-2">
-                    ✓
-                  </SelectPrimitive.ItemIndicator>
+                  <SelectPrimitive.ItemIndicator className="absolute left-2">✓</SelectPrimitive.ItemIndicator>
                 </SelectPrimitive.Item>
               ))}
             </SelectPrimitive.Viewport>

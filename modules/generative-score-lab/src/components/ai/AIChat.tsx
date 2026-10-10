@@ -11,8 +11,7 @@ import type { MusicAction } from '@/types/ai';
 
 export default function AIChat() {
   const { isAIChatOpen, toggleAIChat } = useUIStore();
-  const { messages, isLoading, config, addMessage, setLoading, setAbortController, cancelRequest } =
-    useAIStore();
+  const { messages, isLoading, config, addMessage, setLoading, setAbortController, cancelRequest } = useAIStore();
   const projectStore = useProjectStore();
   const [input, setInput] = useState('');
   const [showSetup, setShowSetup] = useState(false);
@@ -53,9 +52,7 @@ export default function AIChat() {
 
     try {
       // Get project context
-      const currentScene = projectStore.project?.scenes.find(
-        (s) => s.id === projectStore.currentSceneId
-      );
+      const currentScene = projectStore.project?.scenes.find((s) => s.id === projectStore.currentSceneId);
 
       // Build optimized context - send only current scene and project metadata
       // This reduces payload size significantly while maintaining functionality
@@ -84,7 +81,7 @@ export default function AIChat() {
         config,
         [...messages, { role: 'user', content: userMessage }],
         contextWithHistory,
-        controller.signal
+        controller.signal,
       );
 
       // Add assistant message (if not cancelled)
@@ -119,7 +116,7 @@ export default function AIChat() {
           errorHandler.handle(
             new Error(`${result.failed} AI actions failed: ${errorDetails}`),
             'AI Actions',
-            ErrorSeverity.WARNING
+            ErrorSeverity.WARNING,
           );
 
           // Show detailed error message to user
@@ -144,17 +141,7 @@ export default function AIChat() {
       setLoading(false);
       setAbortController(null);
     }
-  }, [
-    input,
-    isLoading,
-    config,
-    addMessage,
-    setLoading,
-    setAbortController,
-    messages,
-    projectStore,
-    recentActions,
-  ]);
+  }, [input, isLoading, config, addMessage, setLoading, setAbortController, messages, projectStore, recentActions]);
 
   if (!isAIChatOpen) {
     return (
@@ -178,10 +165,7 @@ export default function AIChat() {
         description="Please configure your AI assistant first. Click the settings icon (⚙️) to get started."
         variant="warning"
       />
-      <aside
-        className="w-96 bg-white border-l border-gray-200 flex flex-col"
-        data-tutorial="ai-chat"
-      >
+      <aside className="w-96 bg-white border-l border-gray-200 flex flex-col" data-tutorial="ai-chat">
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">AI Assistant</h2>
           <div className="flex gap-2">
@@ -193,11 +177,7 @@ export default function AIChat() {
             >
               ⚙️
             </button>
-            <button
-              onClick={toggleAIChat}
-              className="text-gray-500 hover:text-gray-700"
-              aria-label="Close AI Chat"
-            >
+            <button onClick={toggleAIChat} className="text-gray-500 hover:text-gray-700" aria-label="Close AI Chat">
               ✕
             </button>
           </div>
@@ -208,18 +188,11 @@ export default function AIChat() {
             <div className="text-center text-gray-500 mt-8">
               <p className="mb-2">👋 Hi! I'm your music composition assistant.</p>
               <p className="text-sm">Ask me to help create, modify, or improve your music!</p>
-              {!config && (
-                <p className="text-sm text-red-600 mt-4">
-                  ⚠️ Please configure your AI assistant first
-                </p>
-              )}
+              {!config && <p className="text-sm text-red-600 mt-4">⚠️ Please configure your AI assistant first</p>}
             </div>
           ) : (
             messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
+              <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
                     msg.role === 'user' ? 'bg-forest-600 text-white' : 'bg-gray-100 text-gray-900'

@@ -17,7 +17,7 @@ export default function SceneEditor() {
   // Memoize scene lookup - use JSON.stringify to detect deep changes
   const currentScene = useMemo(
     () => project?.scenes.find((s) => s.id === currentSceneId),
-    [project?.scenes, currentSceneId]
+    [project?.scenes, currentSceneId],
   );
 
   // Create a stable reference that changes when scene data changes
@@ -42,17 +42,12 @@ export default function SceneEditor() {
                 generator: c.generator,
                 lengthBars: c.lengthBars,
                 offset: c.offset || 0,
-                customNotes: (c.customNotes ?? []).map((note) => [
-                  note.pitch,
-                  note.time,
-                  note.duration,
-                  note.velocity,
-                ]),
+                customNotes: (c.customNotes ?? []).map((note) => [note.pitch, note.time, note.duration, note.velocity]),
               })),
             })),
           })
         : null,
-    [currentScene]
+    [currentScene],
   );
 
   useEffect(() => {
@@ -186,11 +181,7 @@ export default function SceneEditor() {
 
   return (
     <>
-      <MidiExportDialog
-        open={showMidiExport}
-        onClose={() => setShowMidiExport(false)}
-        scene={currentScene}
-      />
+      <MidiExportDialog open={showMidiExport} onClose={() => setShowMidiExport(false)} scene={currentScene} />
       <div className="h-full flex flex-col">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 p-4">
@@ -204,26 +195,14 @@ export default function SceneEditor() {
                 {currentScene.key} {currentScene.scale} • {currentScene.bpm || project?.bpm} BPM
               </p>
             </div>
-            <div
-              className="flex gap-2"
-              data-tutorial="playback"
-              role="toolbar"
-              aria-label="Playback controls"
-            >
-              <Button
-                onClick={handlePlayPause}
-                aria-label={isPlaying ? 'Pause playback' : 'Start playback'}
-              >
+            <div className="flex gap-2" data-tutorial="playback" role="toolbar" aria-label="Playback controls">
+              <Button onClick={handlePlayPause} aria-label={isPlaying ? 'Pause playback' : 'Start playback'}>
                 {isPlaying ? '⏸ Pause' : '▶ Play'}
               </Button>
               <Button onClick={handleStop} variant="secondary" aria-label="Stop playback">
                 ⏹ Stop
               </Button>
-              <Button
-                onClick={() => setShowMidiExport(true)}
-                variant="secondary"
-                aria-label="Export MIDI file"
-              >
+              <Button onClick={() => setShowMidiExport(true)} variant="secondary" aria-label="Export MIDI file">
                 🎹 Export MIDI
               </Button>
             </div>

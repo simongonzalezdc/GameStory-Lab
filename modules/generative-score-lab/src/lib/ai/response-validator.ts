@@ -17,7 +17,7 @@ const OpenRouterResponseSchema = z.object({
         role: z.string(),
       }),
       finish_reason: z.string().optional(),
-    })
+    }),
   ),
   model: z.string().optional(),
   usage: z
@@ -38,7 +38,7 @@ const MinimaxResponseSchema = z.object({
         content: z.string(),
         role: z.string(),
       }),
-    })
+    }),
   ),
   base_resp: z
     .object({
@@ -59,7 +59,7 @@ const GLMResponseSchema = z.object({
         role: z.string(),
       }),
       finish_reason: z.string().optional(),
-    })
+    }),
   ),
   model: z.string().optional(),
   usage: z
@@ -202,9 +202,7 @@ export function validateOllamaResponse(data: unknown): {
 
     // Check if message exists
     if (!validated.message) {
-      throw new Error(
-        'No message in Ollama response. The model may have failed to generate a response.'
-      );
+      throw new Error('No message in Ollama response. The model may have failed to generate a response.');
     }
 
     const content = validated.message.content;
@@ -226,9 +224,7 @@ export function validateOllamaResponse(data: unknown): {
         console.warn('[Ollama Response] Empty content received:', responseInfo);
       }
 
-      throw new Error(
-        `No content in response. Response structure: ${JSON.stringify(responseInfo)}`
-      );
+      throw new Error(`No content in response. Response structure: ${JSON.stringify(responseInfo)}`);
     }
 
     return {
@@ -238,9 +234,7 @@ export function validateOllamaResponse(data: unknown): {
   } catch (error) {
     // If it's a Zod validation error, provide more details
     if (error instanceof z.ZodError) {
-      const issues = error.issues
-        .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
-        .join(', ');
+      const issues = error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ');
       const message = `Invalid Ollama response format: ${issues}. Received: ${JSON.stringify(data)}`;
 
       if (import.meta.env.MODE === 'development') {

@@ -42,9 +42,7 @@ export default function DashboardPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Projects</h1>
-          <p className="text-muted-foreground">
-            Manage your projects and prepare them for production
-          </p>
+          <p className="text-muted-foreground">Manage your projects and prepare them for production</p>
         </div>
         <Link href="/dashboard/new">
           <Button>
@@ -63,9 +61,7 @@ export default function DashboardPage() {
           <CardContent className="pt-6">
             <FolderOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Create your first project to get started with ShipLab
-            </p>
+            <p className="text-muted-foreground mb-4">Create your first project to get started with ShipLab</p>
             <Link href="/dashboard/new">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
@@ -88,9 +84,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   {project.description && (
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {project.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{project.description}</p>
                   )}
                   <div className="flex items-center text-xs text-muted-foreground">
                     <Clock className="mr-1 h-3 w-3" />

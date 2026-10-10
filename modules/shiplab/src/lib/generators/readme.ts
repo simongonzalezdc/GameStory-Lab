@@ -82,14 +82,7 @@ async function analyzeProject(projectPath: string): Promise<{
  * Generate README using AI
  */
 export async function generateReadme(options: ReadmeGeneratorOptions): Promise<GeneratedReadme> {
-  const {
-    projectName,
-    projectPath,
-    language,
-    framework,
-    description,
-    model = 'smollm2:1.7b',
-  } = options;
+  const { projectName, projectPath, language, framework, description, model = 'smollm2:1.7b' } = options;
 
   // Analyze project
   const analysis = await analyzeProject(projectPath);
@@ -137,7 +130,7 @@ Format in markdown. Be concise but informative. Use emojis for section headers.`
       { role: 'user', content: prompt },
     ],
     model,
-    { temperature: 0.7 }
+    { temperature: 0.7 },
   );
 
   // Parse the generated README to extract sections
@@ -150,8 +143,7 @@ Format in markdown. Be concise but informative. Use emojis for section headers.`
     installation: extractSection(content, 'Installation', 'Usage') || '```bash\nnpm install\n```',
     usage: extractSection(content, 'Usage', 'Scripts') || '```bash\nnpm start\n```',
     features: extractFeatures(content),
-    contributing:
-      extractSection(content, 'Contributing', 'License') || 'Contributions are welcome!',
+    contributing: extractSection(content, 'Contributing', 'License') || 'Contributions are welcome!',
     license: extractSection(content, 'License') || 'MIT',
   };
 
@@ -167,7 +159,7 @@ Format in markdown. Be concise but informative. Use emojis for section headers.`
 function extractSection(content: string, sectionName: string, nextSection?: string): string | null {
   const sectionRegex = new RegExp(
     `#{1,3}\\s*${sectionName}[\\s\\S]*?\\n([\\s\\S]*?)(?=#{1,3}\\s*${nextSection || '$'})`,
-    'i'
+    'i',
   );
   const match = content.match(sectionRegex);
   return match ? match[1].trim() : null;

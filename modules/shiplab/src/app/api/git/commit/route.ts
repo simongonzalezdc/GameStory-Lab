@@ -8,7 +8,7 @@ import { getProject } from '@/lib/db/queries';
 const execAsync = (
   command: string,
   args: string[],
-  options: { cwd: string }
+  options: { cwd: string },
 ): Promise<{ stdout: string; stderr: string }> => {
   return new Promise((resolveExec, reject) => {
     const child = spawn(command, args, {
@@ -63,10 +63,7 @@ export async function POST(request: NextRequest) {
     const projectPathResolved = resolve(project.path);
 
     if (!normalizedPath.startsWith(projectPathResolved)) {
-      return NextResponse.json(
-        { error: 'Invalid file path: path traversal detected' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid file path: path traversal detected' }, { status: 400 });
     }
 
     writeFileSync(normalizedPath, validated.content, 'utf-8');
@@ -75,10 +72,7 @@ export async function POST(request: NextRequest) {
     try {
       await execAsync('git', ['rev-parse', '--git-dir'], { cwd: project.path });
     } catch {
-      return NextResponse.json(
-        { error: 'Not a git repository. Initialize git first with: git init' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Not a git repository. Initialize git first with: git init' }, { status: 400 });
     }
 
     // Git add and commit with safe argument passing
@@ -104,15 +98,12 @@ export async function POST(request: NextRequest) {
     console.error('Git commit error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
     }
 
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to commit file' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

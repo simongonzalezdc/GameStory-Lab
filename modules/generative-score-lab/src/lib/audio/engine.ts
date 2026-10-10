@@ -7,11 +7,7 @@ import type { Scene, Track, Clip } from '@/types';
 import { getClipPlaybackNotes } from '@/lib/audio/clip-note-utils';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { createInstrument, getDefaultInstrument, getInstrumentById } from './instruments';
-import {
-  DEFAULT_BPM,
-  AUDIO_INIT_RETRY_BASE_DELAY_MS,
-  AUDIO_INIT_MAX_RETRIES,
-} from '@/lib/utils/constants';
+import { DEFAULT_BPM, AUDIO_INIT_RETRY_BASE_DELAY_MS, AUDIO_INIT_MAX_RETRIES } from '@/lib/utils/constants';
 import { toPolySynthOptions } from '@/types/tone-helpers';
 
 export class AudioEngine {
@@ -46,18 +42,15 @@ export class AudioEngine {
         this.isInitialized = true;
         return; // Success, exit retry loop
       } catch (error) {
-        lastError =
-          error instanceof Error ? error : new Error('Unknown audio initialization error');
+        lastError = error instanceof Error ? error : new Error('Unknown audio initialization error');
 
         // Don't retry on the last attempt
         if (attempt < maxRetries - 1) {
           const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff: 500ms, 1s, 2s
           errorHandler.handle(
-            new Error(
-              `Audio initialization attempt ${attempt + 1} failed, retrying in ${delay}ms...`
-            ),
+            new Error(`Audio initialization attempt ${attempt + 1} failed, retrying in ${delay}ms...`),
             'Audio Engine Initialization',
-            ErrorSeverity.WARNING
+            ErrorSeverity.WARNING,
           );
 
           // Wait before retrying
@@ -68,11 +61,7 @@ export class AudioEngine {
 
     // All retries failed
     const errorMessage = `Audio initialization failed after ${maxRetries} attempts`;
-    errorHandler.handle(
-      lastError || new Error(errorMessage),
-      'Audio Engine Initialization',
-      ErrorSeverity.ERROR
-    );
+    errorHandler.handle(lastError || new Error(errorMessage), 'Audio Engine Initialization', ErrorSeverity.ERROR);
     throw new Error(errorMessage);
   }
 
@@ -143,7 +132,7 @@ export class AudioEngine {
         errorHandler.handle(
           new Error('Scene tracks is missing or not an array'),
           'Audio Scene Loading',
-          ErrorSeverity.WARNING
+          ErrorSeverity.WARNING,
         );
         return; // Exit early if tracks are invalid
       }
@@ -176,7 +165,7 @@ export class AudioEngine {
       errorHandler.handle(
         new Error('Invalid track provided to loadInstrument'),
         'Audio Instrument Loading',
-        ErrorSeverity.WARNING
+        ErrorSeverity.WARNING,
       );
       return;
     }
@@ -193,7 +182,7 @@ export class AudioEngine {
       errorHandler.handle(
         new Error(`Failed to get instrument config for track ${track.id}`),
         'Audio Instrument Loading',
-        ErrorSeverity.WARNING
+        ErrorSeverity.WARNING,
       );
       return;
     }
@@ -202,8 +191,7 @@ export class AudioEngine {
 
     // Wrap MonoSynth, DuoSynth, FMSynth, AMSynth in PolySynth for polyphonic support
     // Sampler and PolySynth don't need wrapping
-    let polyInstrument:
-      Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth;
+    let polyInstrument: Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth;
     if (instrument instanceof Tone.Sampler || instrument instanceof Tone.PolySynth) {
       // Sampler and PolySynth are already polyphonic
       polyInstrument = instrument;
@@ -215,8 +203,7 @@ export class AudioEngine {
     ) {
       // For monophonic synths, wrap in PolySynth for polyphonic support
       // Determine synth class based on instrument type
-      let SynthClass:
-        typeof Tone.MonoSynth | typeof Tone.DuoSynth | typeof Tone.FMSynth | typeof Tone.AMSynth;
+      let SynthClass: typeof Tone.MonoSynth | typeof Tone.DuoSynth | typeof Tone.FMSynth | typeof Tone.AMSynth;
       if (instrument instanceof Tone.MonoSynth) {
         SynthClass = Tone.MonoSynth;
       } else if (instrument instanceof Tone.DuoSynth) {
@@ -234,7 +221,7 @@ export class AudioEngine {
         toPolySynthOptions({
           oscillator: instrumentConfig.oscillator,
           envelope: instrumentConfig.envelope,
-        })
+        }),
       );
     } else {
       polyInstrument = instrument;
@@ -265,7 +252,7 @@ export class AudioEngine {
       errorHandler.handle(
         new Error('Scene tracks is missing or not an array'),
         'Audio Scene Scheduling',
-        ErrorSeverity.WARNING
+        ErrorSeverity.WARNING,
       );
       return;
     }
@@ -311,8 +298,7 @@ export class AudioEngine {
   private scheduleClip(
     _track: Track,
     clip: Clip,
-    instrument:
-      Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth
+    instrument: Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth,
   ): void {
     if (!this.currentScene) return;
 
@@ -374,11 +360,7 @@ export class AudioEngine {
   play(): void {
     try {
       if (!this.isInitialized) {
-        errorHandler.handle(
-          new Error('Audio engine not initialized'),
-          'Audio Playback',
-          ErrorSeverity.WARNING
-        );
+        errorHandler.handle(new Error('Audio engine not initialized'), 'Audio Playback', ErrorSeverity.WARNING);
         return;
       }
 

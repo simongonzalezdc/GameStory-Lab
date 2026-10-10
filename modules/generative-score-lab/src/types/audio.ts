@@ -28,8 +28,7 @@ export interface Chord {
   duration: number; // In bars
 }
 
-export type ChordType =
-  'major' | 'minor' | 'diminished' | 'augmented' | 'major7' | 'minor7' | 'dominant7';
+export type ChordType = 'major' | 'minor' | 'diminished' | 'augmented' | 'major7' | 'minor7' | 'dominant7';
 
 export interface Instrument {
   id: string;

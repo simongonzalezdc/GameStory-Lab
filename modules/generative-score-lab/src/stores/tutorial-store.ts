@@ -70,6 +70,6 @@ export const useTutorialStore = create<TutorialState>()(
     }),
     {
       name: 'generative-score-lab-tutorial',
-    }
-  )
+    },
+  ),
 );

@@ -103,18 +103,12 @@ export default function VoiceCaptureDialog({ open, onClose, onCapture }: VoiceCa
       description="Hum or sing a melody into your microphone. The app will detect the pitches and convert them to MIDI notes."
     >
       <div className="space-y-4">
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        )}
+        {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>}
 
         {/* Current Note Display */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
           <div className="text-sm text-gray-500 mb-2">Current Note</div>
-          <div className="text-4xl font-bold text-gray-900">
-            {isRecording ? currentNote || '—' : '—'}
-          </div>
+          <div className="text-4xl font-bold text-gray-900">{isRecording ? currentNote || '—' : '—'}</div>
         </div>
 
         {/* Captured Notes Display */}
@@ -126,10 +120,7 @@ export default function VoiceCaptureDialog({ open, onClose, onCapture }: VoiceCa
             ) : (
               <div className="flex flex-wrap gap-2">
                 {capturedNotes.map((midi, idx) => (
-                  <span
-                    key={idx}
-                    className="px-3 py-1 bg-forest-100 text-forest-800 rounded-full text-sm font-medium"
-                  >
+                  <span key={idx} className="px-3 py-1 bg-forest-100 text-forest-800 rounded-full text-sm font-medium">
                     {midiToNoteName(midi)}
                   </span>
                 ))}

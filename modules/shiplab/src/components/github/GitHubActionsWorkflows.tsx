@@ -12,10 +12,7 @@ interface GitHubActionsWorkflowsProps {
   setupInstructions: string;
 }
 
-export function GitHubActionsWorkflows({
-  workflows,
-  setupInstructions,
-}: GitHubActionsWorkflowsProps) {
+export function GitHubActionsWorkflows({ workflows, setupInstructions }: GitHubActionsWorkflowsProps) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [copiedInstructions, setCopiedInstructions] = useState(false);
 
@@ -39,9 +36,7 @@ export function GitHubActionsWorkflows({
       <Card>
         <CardHeader>
           <CardTitle>GitHub Actions Workflows</CardTitle>
-          <CardDescription>
-            CI/CD workflows for automated testing, code quality, and deployment
-          </CardDescription>
+          <CardDescription>CI/CD workflows for automated testing, code quality, and deployment</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="workflows">
@@ -67,11 +62,7 @@ export function GitHubActionsWorkflows({
                         </CardDescription>
                         <p className="text-sm text-muted-foreground mt-2">{workflow.description}</p>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => copyToClipboard(workflow.content, index)}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => copyToClipboard(workflow.content, index)}>
                         {copiedIndex === index ? (
                           <>
                             <CheckCircle className="h-3 w-3 mr-1" />
@@ -100,11 +91,7 @@ export function GitHubActionsWorkflows({
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">Setup Instructions</CardTitle>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyToClipboard(setupInstructions)}
-                    >
+                    <Button size="sm" variant="outline" onClick={() => copyToClipboard(setupInstructions)}>
                       {copiedInstructions ? (
                         <>
                           <CheckCircle className="h-3 w-3 mr-1" />
@@ -121,9 +108,7 @@ export function GitHubActionsWorkflows({
                 </CardHeader>
                 <CardContent>
                   <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg text-xs">
-                      {setupInstructions}
-                    </pre>
+                    <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg text-xs">{setupInstructions}</pre>
                   </div>
                 </CardContent>
               </Card>

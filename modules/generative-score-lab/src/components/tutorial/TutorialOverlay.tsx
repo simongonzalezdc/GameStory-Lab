@@ -10,8 +10,7 @@ import { Button } from '../ui/Button';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 export default function TutorialOverlay() {
-  const { isActive, currentStep, nextStep, previousStep, skipTutorial, completeTutorial } =
-    useTutorialStore();
+  const { isActive, currentStep, nextStep, previousStep, skipTutorial, completeTutorial } = useTutorialStore();
 
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
@@ -148,11 +147,7 @@ export default function TutorialOverlay() {
                 {step?.title}
               </h2>
             </div>
-            <button
-              onClick={handleSkip}
-              className="text-gray-400 hover:text-gray-600 transition"
-              title="Skip tutorial"
-            >
+            <button onClick={handleSkip} className="text-gray-400 hover:text-gray-600 transition" title="Skip tutorial">
               ✕
             </button>
           </div>
@@ -220,10 +215,7 @@ function getPositionClass(step: TutorialStep | undefined, targetRect: DOMRect | 
  * Responsive positioning for mobile viewports
  * Ensures the tutorial card always stays within viewport bounds
  */
-function getPositionStyle(
-  step: TutorialStep | undefined,
-  targetRect: DOMRect | null
-): CSSProperties {
+function getPositionStyle(step: TutorialStep | undefined, targetRect: DOMRect | null): CSSProperties {
   if (!step?.position || !targetRect || step.position === 'center') {
     return {};
   }
@@ -247,10 +239,7 @@ function getPositionStyle(
 
       // Calculate left position ensuring card (with -50% transform) stays in bounds
       // After transform, card extends left by maxCardWidth/2 and right by maxCardWidth/2
-      const left = Math.max(
-        padding + maxCardWidth / 2,
-        Math.min(centerX, viewportWidth - padding - maxCardWidth / 2)
-      );
+      const left = Math.max(padding + maxCardWidth / 2, Math.min(centerX, viewportWidth - padding - maxCardWidth / 2));
 
       // Calculate top position ensuring card (with -100% transform) stays in bounds
       // After transform, card extends upward by full height
@@ -282,10 +271,7 @@ function getPositionStyle(
       const maxCardWidth = Math.min(estimatedCardWidth, viewportWidth - padding * 2);
 
       // Calculate left position ensuring card (with -50% transform) stays in bounds
-      const left = Math.max(
-        padding + maxCardWidth / 2,
-        Math.min(centerX, viewportWidth - padding - maxCardWidth / 2)
-      );
+      const left = Math.max(padding + maxCardWidth / 2, Math.min(centerX, viewportWidth - padding - maxCardWidth / 2));
 
       // Calculate top position ensuring card stays within viewport
       const desiredTop = targetRect.bottom + padding;
@@ -324,7 +310,7 @@ function getPositionStyle(
       // Calculate top position ensuring card (with -50% transform) stays in bounds
       const top = Math.max(
         padding + estimatedCardHeight / 2,
-        Math.min(centerY, viewportHeight - padding - estimatedCardHeight / 2)
+        Math.min(centerY, viewportHeight - padding - estimatedCardHeight / 2),
       );
 
       // If card would go out of bounds, position it to the right instead
@@ -358,7 +344,7 @@ function getPositionStyle(
       // Calculate top position ensuring card (with -50% transform) stays in bounds
       const top = Math.max(
         padding + estimatedCardHeight / 2,
-        Math.min(centerY, viewportHeight - padding - estimatedCardHeight / 2)
+        Math.min(centerY, viewportHeight - padding - estimatedCardHeight / 2),
       );
 
       // If card would go out of bounds, position it to the left instead

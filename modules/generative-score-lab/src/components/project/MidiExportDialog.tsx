@@ -12,9 +12,7 @@ interface MidiExportDialogProps {
 }
 
 export default function MidiExportDialog({ open, onClose, scene }: MidiExportDialogProps) {
-  const [selectedTracks, setSelectedTracks] = useState<Set<string>>(
-    new Set(scene.tracks.map((t) => t.id))
-  );
+  const [selectedTracks, setSelectedTracks] = useState<Set<string>>(new Set(scene.tracks.map((t) => t.id)));
   const [separateFiles, setSeparateFiles] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
@@ -106,27 +104,17 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
               Export your scene as MIDI files that can be imported into any DAW or music software.
             </div>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
+            {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>}
 
             {/* Track Selection */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-sm font-medium text-gray-700">Select Tracks</label>
                 <div className="flex gap-2">
-                  <button
-                    onClick={handleSelectAll}
-                    className="text-xs text-forest-600 hover:underline"
-                  >
+                  <button onClick={handleSelectAll} className="text-xs text-forest-600 hover:underline">
                     Select All
                   </button>
-                  <button
-                    onClick={handleDeselectAll}
-                    className="text-xs text-gray-600 hover:underline"
-                  >
+                  <button onClick={handleDeselectAll} className="text-xs text-gray-600 hover:underline">
                     Deselect All
                   </button>
                 </div>
@@ -136,10 +124,7 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
                 {(scene.tracks ?? []).map((track) => {
                   const clipCount = (track.clips ?? []).length;
                   return (
-                    <label
-                      key={track.id}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer"
-                    >
+                    <label key={track.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={selectedTracks.has(track.id)}
@@ -147,17 +132,13 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
                         className="w-4 h-4 text-forest-600 border-gray-300 rounded focus:ring-forest-500"
                       />
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900">
-                          {track.name || track.role}
-                        </div>
+                        <div className="text-sm font-medium text-gray-900">{track.name || track.role}</div>
                         <div className="text-xs text-gray-500">
                           {clipCount} clip{clipCount !== 1 ? 's' : ''} • {track.role}
                         </div>
                       </div>
                       {track.muted && (
-                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                          Muted
-                        </span>
+                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Muted</span>
                       )}
                     </label>
                   );
@@ -182,9 +163,7 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">Single MIDI file</div>
-                    <div className="text-xs text-gray-500">
-                      All tracks in one file (multi-track MIDI)
-                    </div>
+                    <div className="text-xs text-gray-500">All tracks in one file (multi-track MIDI)</div>
                   </div>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -196,9 +175,7 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">Separate files</div>
-                    <div className="text-xs text-gray-500">
-                      One MIDI file per track ({selectedTracks.size} files)
-                    </div>
+                    <div className="text-xs text-gray-500">One MIDI file per track ({selectedTracks.size} files)</div>
                   </div>
                 </label>
               </div>
@@ -215,10 +192,7 @@ export default function MidiExportDialog({ open, onClose, scene }: MidiExportDia
                     Key: {scene.key} {scene.scale}
                   </li>
                   <li>
-                    Format:{' '}
-                    {separateFiles
-                      ? `${selectedTracks.size} separate MIDI files`
-                      : 'Multi-track MIDI file'}
+                    Format: {separateFiles ? `${selectedTracks.size} separate MIDI files` : 'Multi-track MIDI file'}
                   </li>
                 </ul>
               </div>

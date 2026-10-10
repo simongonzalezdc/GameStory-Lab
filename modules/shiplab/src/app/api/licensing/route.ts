@@ -15,10 +15,7 @@ import { getProject, createDocument } from '@/lib/db/queries';
 // GET endpoint - list all licenses or get recommendation
 const getSchema = z.object({
   projectId: z.string().optional(),
-  action: z
-    .enum(['list', 'recommend', 'compare', 'check-compatibility'])
-    .optional()
-    .default('list'),
+  action: z.enum(['list', 'recommend', 'compare', 'check-compatibility']).optional().default('list'),
   projectType: z.enum(['library', 'application', 'saas', 'utility']).optional(),
   allowCommercial: z
     .string()
@@ -59,10 +56,7 @@ export async function GET(request: NextRequest) {
     if (validated.action === 'compare') {
       // Compare licenses
       if (!validated.compareIds) {
-        return NextResponse.json(
-          { error: 'compareIds parameter required for comparison' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'compareIds parameter required for comparison' }, { status: 400 });
       }
 
       const ids = validated.compareIds.split(',');
@@ -77,10 +71,7 @@ export async function GET(request: NextRequest) {
     if (validated.action === 'recommend') {
       // Get recommendation
       if (!validated.projectType) {
-        return NextResponse.json(
-          { error: 'projectType required for recommendations' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'projectType required for recommendations' }, { status: 400 });
       }
 
       const recommendation = await getLicenseRecommendation(
@@ -91,7 +82,7 @@ export async function GET(request: NextRequest) {
           allowPatentUse: validated.allowPatentUse,
           simplicityPreferred: validated.simplicityPreferred,
         },
-        validated.model
+        validated.model,
       );
 
       return NextResponse.json({
@@ -105,7 +96,7 @@ export async function GET(request: NextRequest) {
       if (!validated.projectId || !validated.licenseId) {
         return NextResponse.json(
           { error: 'projectId and licenseId required for compatibility check' },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -128,16 +119,10 @@ export async function GET(request: NextRequest) {
     console.error('License query error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Query failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Query failed' }, { status: 500 });
   }
 }
 
@@ -158,7 +143,7 @@ export async function POST(request: NextRequest) {
     if (!POPULAR_LICENSES[validated.licenseId]) {
       return NextResponse.json(
         { error: 'Invalid license ID', availableLicenses: Object.keys(POPULAR_LICENSES) },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -173,7 +158,7 @@ export async function POST(request: NextRequest) {
       validated.licenseId,
       project.name,
       validated.copyrightHolder,
-      validated.year
+      validated.year,
     );
 
     // Save to database
@@ -220,15 +205,9 @@ export async function POST(request: NextRequest) {
     console.error('License generation error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Generation failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Generation failed' }, { status: 500 });
   }
 }

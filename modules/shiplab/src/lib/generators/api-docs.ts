@@ -61,11 +61,7 @@ async function detectAPIRoutes(projectPath: string): Promise<{
 
   for (const file of expressFiles) {
     const content = readFileSync(path.join(projectPath, file), 'utf-8');
-    if (
-      content.includes('express()') ||
-      content.includes('app.get') ||
-      content.includes('app.post')
-    ) {
+    if (content.includes('express()') || content.includes('app.get') || content.includes('app.post')) {
       return {
         framework: 'express',
         routes: extractExpressRoutes(content),
@@ -97,10 +93,7 @@ function extractExpressRoutes(content: string): string[] {
 /**
  * Analyze a Next.js route file
  */
-async function analyzeNextJSRoute(
-  routePath: string,
-  filePath: string
-): Promise<APIEndpoint | null> {
+async function analyzeNextJSRoute(routePath: string, filePath: string): Promise<APIEndpoint | null> {
   try {
     const content = readFileSync(filePath, 'utf-8');
 
@@ -152,7 +145,7 @@ async function analyzeNextJSRoute(
 export async function generateAPIDocumentation(
   projectPath: string,
   projectName: string,
-  model: string = 'smollm2:1.7b'
+  model: string = 'smollm2:1.7b',
 ): Promise<APIDocumentation> {
   const detection = await detectAPIRoutes(projectPath);
 
@@ -211,7 +204,7 @@ ${
     ? `Parameters:\n${e.parameters.map((p) => `- ${p.name} (${p.type})${p.required ? ' *required*' : ''}`).join('\n')}`
     : ''
 }
-`
+`,
   )
   .join('\n')}
 
@@ -229,7 +222,7 @@ Format in markdown.`;
       { role: 'user', content: prompt },
     ],
     model,
-    { temperature: 0.5 }
+    { temperature: 0.5 },
   );
 
   return {
@@ -278,7 +271,7 @@ ${endpoint.response.description || ''}
 }
 
 ---
-`
+`,
   )
   .join('\n')}
 

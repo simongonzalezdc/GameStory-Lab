@@ -71,17 +71,13 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="text-center mb-6">
               <div className="text-6xl mb-4">⚠️</div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h1>
-              <p className="text-gray-600">
-                We're sorry, but an unexpected error occurred. The error has been logged.
-              </p>
+              <p className="text-gray-600">We're sorry, but an unexpected error occurred. The error has been logged.</p>
             </div>
 
             {this.state.error && (
               <div className="mb-6">
                 <details className="cursor-pointer">
-                  <summary className="text-sm font-medium text-gray-700 hover:text-gray-900">
-                    Error details
-                  </summary>
+                  <summary className="text-sm font-medium text-gray-700 hover:text-gray-900">Error details</summary>
                   <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-red-600 overflow-auto max-h-40">
                     <div className="font-bold mb-1">{this.state.error.message}</div>
                     <div className="text-gray-600">{this.state.error.stack}</div>
@@ -103,9 +99,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <div className="mt-6 text-xs text-gray-500 text-center">
-              <p>
-                If this problem persists, please try clearing your browser cache or contact support.
-              </p>
+              <p>If this problem persists, please try clearing your browser cache or contact support.</p>
             </div>
           </div>
         </div>

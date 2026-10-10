@@ -83,8 +83,7 @@ export default function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcu
 
         <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded p-3">
           <strong>Tip:</strong> Shortcuts won't work when typing in text fields. Press{' '}
-          <kbd className="px-1 py-0.5 bg-white border border-gray-300 rounded text-xs">?</kbd> to
-          show this help again.
+          <kbd className="px-1 py-0.5 bg-white border border-gray-300 rounded text-xs">?</kbd> to show this help again.
         </div>
       </div>
     </Dialog>

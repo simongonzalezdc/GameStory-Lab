@@ -27,18 +27,11 @@ export default function SceneCard({ scene }: SceneCardProps) {
         confirmLabel="Delete"
         variant="danger"
       />
-      <div
-        className="scene-card bg-white"
-        style={{ borderColor: scene.color || '#ccc' }}
-        data-tutorial="scene-card"
-      >
+      <div className="scene-card bg-white" style={{ borderColor: scene.color || '#ccc' }} data-tutorial="scene-card">
         <div className="mb-3">
           <div className="flex items-start justify-between">
             <h3 className="text-lg font-semibold text-gray-900">{scene.name}</h3>
-            <div
-              className="w-6 h-6 rounded-full border-2"
-              style={{ backgroundColor: scene.color || '#ccc' }}
-            />
+            <div className="w-6 h-6 rounded-full border-2" style={{ backgroundColor: scene.color || '#ccc' }} />
           </div>
           <p className="text-sm text-gray-500 mt-1">
             {scene.key} {scene.scale}
@@ -51,8 +44,7 @@ export default function SceneCard({ scene }: SceneCardProps) {
             {scene.tracks.length} track{scene.tracks.length !== 1 ? 's' : ''}
           </p>
           <p>
-            Intensity: {(scene.intensityRange[0] * 100).toFixed(0)}% -{' '}
-            {(scene.intensityRange[1] * 100).toFixed(0)}%
+            Intensity: {(scene.intensityRange[0] * 100).toFixed(0)}% - {(scene.intensityRange[1] * 100).toFixed(0)}%
           </p>
         </div>
 

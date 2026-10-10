@@ -1,0 +1,114 @@
+name: CI
+
+# Mirrors the canonical Forgejo pipeline (.forgejo/workflows/ci.yml) so
+# GitHub-only contributors see the same signal. Four lanes: node
+# (lint/test/coverage/build), modules, e2e, python.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: Generate Prisma client
+        run: npm run db:generate -w packages/backend
+      - name: Lint workspaces
+        run: npm run lint --workspaces
+      - name: Test workspaces with coverage
+        run: npm run test:coverage
+      - name: Build shared
+        run: npm run build -w packages/shared
+      - name: Build backend
+        run: npm run build -w packages/backend
+      - name: Verify backend runtime assets in dist
+        run: |
+          # tsc emits no non-TS files; the build copies runtime-read assets
+          # (genre templates, architect markdown) into dist/. Assert shipped.
+          missing=0
+          for f in packages/backend/src/services/templates/genres/*.json; do
+            target="packages/backend/dist/services/templates/genres/$(basename "$f")"
+            [ -f "$target" ] || { echo "missing from dist: $target"; missing=1; }
+          done
+          for f in packages/backend/src/services/architect/templates/*.md; do
+            target="packages/backend/dist/services/architect/templates/$(basename "$f")"
+            [ -f "$target" ] || { echo "missing from dist: $target"; missing=1; }
+          done
+          [ "$missing" -eq 0 ] || exit 1
+          echo "all runtime assets present in dist"
+      - name: Build frontend (tsc + vite)
+        run: npm run build -w packages/frontend
+
+  modules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Lint and test JS modules
+        run: |
+          for m in modules/generative-assets-lab/frontend modules/generative-score-lab modules/shiplab; do
+            echo "=== $m ==="
+            (cd "$m" && npm ci && npm run lint && npx vitest run)
+          done
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: Build frontend (production)
+        run: npm run build -w packages/frontend
+      - name: Install Playwright + Chromium
+        run: |
+          cd e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Run E2E journeys
+        run: npm run test:e2e
+
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python deps and run pytest
+        run: |
+          cd modules/generative-assets-lab/backend
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -r requirements-dev.txt
+          python -m pytest
