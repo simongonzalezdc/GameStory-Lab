@@ -10,6 +10,10 @@ jobs:
       CI: "true"
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
@@ -29,6 +33,10 @@ jobs:
       CI: "true"
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Lint and test JS modules
         run: |
           set -euo pipefail
@@ -40,6 +48,10 @@ jobs:
     runs-on: docker
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install Python deps and run pytest
         run: |
           set -euo pipefail
