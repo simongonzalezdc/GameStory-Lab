@@ -81,7 +81,7 @@ router.post('/session/:sessionId/mode', async (req: Request, res: Response) => {
     if (!session) {
       return res.status(404).json({ error: 'Session not found' });
     }
-    
+
     // Update session mode in metadata
     const updatedSession = await service.updateSessionMode(session.id, mode);
     res.json({
@@ -101,12 +101,12 @@ router.post('/session/:sessionId/message', async (req: Request, res: Response) =
   }
   try {
     const service = await getService();
-    
+
     // If mode is provided, update the session mode first
     if (mode && ['concept', 'architect', 'auto'].includes(mode)) {
       await service.updateSessionMode(req.params.sessionId, mode);
     }
-    
+
     const response = await service.sendMessage(req.params.sessionId, content, {
       quickActionId,
     });
@@ -114,15 +114,18 @@ router.post('/session/:sessionId/message', async (req: Request, res: Response) =
   } catch (error: any) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
-    const errorDetails = error instanceof Error ? {
-      name: error.name,
-      message: error.message,
-      stack: errorStack,
-    } : {
-      type: typeof error,
-      value: String(error),
-    };
-    
+    const errorDetails =
+      error instanceof Error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: errorStack,
+          }
+        : {
+            type: typeof error,
+            value: String(error),
+          };
+
     logger.error('Assistant message failed', {
       error: errorMessage,
       stack: errorStack,
@@ -130,11 +133,11 @@ router.post('/session/:sessionId/message', async (req: Request, res: Response) =
       errorType: error?.constructor?.name,
       errorDetails,
     });
-    
+
     console.error('[Assistant Route] Full error:', error);
     console.error('[Assistant Route] Error details:', JSON.stringify(errorDetails, null, 2));
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: errorMessage,
       details: process.env.NODE_ENV === 'development' ? errorStack : undefined,
       errorType: error?.constructor?.name,
@@ -146,7 +149,7 @@ router.post('/proposals/:proposalId/accept', async (req: Request, res: Response)
   try {
     const service = await getService();
     const result = await service.applyProposal(req.params.proposalId);
-    
+
     // Validate that we got a result
     if (!result || (!result.newVersion && !result.documentation)) {
       logger.error('Proposal accepted but no result generated', {
@@ -160,15 +163,15 @@ router.post('/proposals/:proposalId/accept', async (req: Request, res: Response)
         details: 'The proposal does not contain any mechanics, lore, or documentation changes to apply.',
       });
     }
-    
+
     res.json({ success: true, result });
   } catch (error) {
-    logger.error('Failed to apply assistant proposal', { 
+    logger.error('Failed to apply assistant proposal', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
-      proposalId: req.params.proposalId 
+      proposalId: req.params.proposalId,
     });
-    res.status(500).json({ 
+    res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to apply proposal',
       details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined,
     });

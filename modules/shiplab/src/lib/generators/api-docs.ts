@@ -61,7 +61,11 @@ async function detectAPIRoutes(projectPath: string): Promise<{
 
   for (const file of expressFiles) {
     const content = readFileSync(path.join(projectPath, file), 'utf-8');
-    if (content.includes('express()') || content.includes('app.get') || content.includes('app.post')) {
+    if (
+      content.includes('express()') ||
+      content.includes('app.get') ||
+      content.includes('app.post')
+    ) {
       return {
         framework: 'express',
         routes: extractExpressRoutes(content),
@@ -93,7 +97,10 @@ function extractExpressRoutes(content: string): string[] {
 /**
  * Analyze a Next.js route file
  */
-async function analyzeNextJSRoute(routePath: string, filePath: string): Promise<APIEndpoint | null> {
+async function analyzeNextJSRoute(
+  routePath: string,
+  filePath: string
+): Promise<APIEndpoint | null> {
   try {
     const content = readFileSync(filePath, 'utf-8');
 

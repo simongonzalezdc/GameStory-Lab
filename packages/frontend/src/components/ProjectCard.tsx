@@ -12,14 +12,7 @@ interface ProjectCardProps {
   versionsCount: number;
 }
 
-export function ProjectCard({
-  id,
-  name,
-  genre,
-  updatedLabel,
-  accentColor,
-  versionsCount,
-}: ProjectCardProps) {
+export function ProjectCard({ id, name, genre, updatedLabel, accentColor, versionsCount }: ProjectCardProps) {
   return (
     <SpotlightCard className="group relative overflow-hidden border border-[var(--color-border-subtle)] bg-[var(--color-surface-card)] hover:border-[var(--brand-primary)]/40 hover:bg-[var(--color-surface-elevated)] transition">
       <Link to={`/projects/${id}`} className="relative flex items-center gap-3 p-3">
@@ -47,11 +40,8 @@ export function ProjectCard({
             )}
           </div>
         </div>
-        <div className="text-xs text-secondary font-medium">
-          {versionsCount} v
-        </div>
+        <div className="text-xs text-secondary font-medium">{versionsCount} v</div>
       </Link>
     </SpotlightCard>
   );
 }
-

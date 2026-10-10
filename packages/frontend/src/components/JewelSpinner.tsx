@@ -21,4 +21,3 @@ export function JewelSpinner({ size = 'md', className = '' }: JewelSpinnerProps)
     </div>
   );
 }
-

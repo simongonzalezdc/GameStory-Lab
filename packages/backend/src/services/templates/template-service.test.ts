@@ -120,14 +120,7 @@ describe('TemplateService', () => {
   });
 
   describe('Genre Coverage', () => {
-    const expectedGenres: Genre[] = [
-      'rpg',
-      'fps',
-      'strategy',
-      'puzzle',
-      'survival',
-      'action-adventure',
-    ];
+    const expectedGenres: Genre[] = ['rpg', 'fps', 'strategy', 'puzzle', 'survival', 'action-adventure'];
 
     expectedGenres.forEach((genre) => {
       it(`should have template for ${genre}`, () => {

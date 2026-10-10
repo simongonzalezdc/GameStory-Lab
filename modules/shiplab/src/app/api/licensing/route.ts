@@ -15,12 +15,27 @@ import { getProject, createDocument } from '@/lib/db/queries';
 // GET endpoint - list all licenses or get recommendation
 const getSchema = z.object({
   projectId: z.string().optional(),
-  action: z.enum(['list', 'recommend', 'compare', 'check-compatibility']).optional().default('list'),
+  action: z
+    .enum(['list', 'recommend', 'compare', 'check-compatibility'])
+    .optional()
+    .default('list'),
   projectType: z.enum(['library', 'application', 'saas', 'utility']).optional(),
-  allowCommercial: z.string().optional().transform((val) => val === 'true'),
-  requireOpenSource: z.string().optional().transform((val) => val === 'true'),
-  allowPatentUse: z.string().optional().transform((val) => val === 'true'),
-  simplicityPreferred: z.string().optional().transform((val) => val === 'true'),
+  allowCommercial: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true'),
+  requireOpenSource: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true'),
+  allowPatentUse: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true'),
+  simplicityPreferred: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true'),
   compareIds: z.string().optional(),
   licenseId: z.string().optional(),
   model: z.string().optional().default('smollm2:1.7b'),

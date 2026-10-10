@@ -8,7 +8,7 @@ import type { TaskType } from '@gamestory/shared';
 
 // Mock the AI clients - vitest v4 compatible syntax
 vi.mock('./clients/openrouter.js', () => {
-  const MockOpenRouterClient = vi.fn(function(this: any) {
+  const MockOpenRouterClient = vi.fn(function (this: any) {
     this.name = 'OpenRouter';
     this.type = 'openrouter';
     this.isAvailable = vi.fn().mockResolvedValue(true);
@@ -25,7 +25,7 @@ vi.mock('./clients/openrouter.js', () => {
 });
 
 vi.mock('./clients/google.js', () => {
-  const MockGoogleClient = vi.fn(function(this: any) {
+  const MockGoogleClient = vi.fn(function (this: any) {
     this.name = 'Google Gemini';
     this.type = 'google';
     this.isAvailable = vi.fn().mockResolvedValue(true);
@@ -42,7 +42,7 @@ vi.mock('./clients/google.js', () => {
 });
 
 vi.mock('./clients/ollama.js', () => {
-  const MockOllamaClient = vi.fn(function(this: any) {
+  const MockOllamaClient = vi.fn(function (this: any) {
     this.name = 'Ollama';
     this.type = 'ollama';
     this.isAvailable = vi.fn().mockResolvedValue(true);
@@ -60,7 +60,7 @@ vi.mock('./clients/ollama.js', () => {
 });
 
 vi.mock('./clients/minimax.js', () => {
-  const MockMinimaxClient = vi.fn(function(this: any) {
+  const MockMinimaxClient = vi.fn(function (this: any) {
     this.name = 'Minimax M2';
     this.type = 'minimax';
     this.isAvailable = vi.fn().mockResolvedValue(true);
@@ -149,9 +149,7 @@ describe('AIOrchestrator', () => {
         openrouterApiKey: 'test-key',
       });
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate game mechanics' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate game mechanics' }];
 
       const response = await orchestrator.generate('mechanics', messages);
 
@@ -165,9 +163,7 @@ describe('AIOrchestrator', () => {
         openrouterApiKey: 'test-key',
       });
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate game lore' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate game lore' }];
 
       const response = await orchestrator.generate('lore', messages);
 
@@ -180,9 +176,7 @@ describe('AIOrchestrator', () => {
         openrouterApiKey: 'test-key',
       });
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate game title' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate game title' }];
 
       const response = await orchestrator.generate('title', messages);
 
@@ -195,9 +189,7 @@ describe('AIOrchestrator', () => {
         googleApiKey: 'test-key',
       });
 
-      const messages = [
-        { role: 'user' as const, content: 'Check consistency' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Check consistency' }];
 
       const response = await orchestrator.generate('consistency', messages);
 
@@ -208,9 +200,7 @@ describe('AIOrchestrator', () => {
     it('should generate content for refinement task', async () => {
       const orchestrator = new AIOrchestrator();
 
-      const messages = [
-        { role: 'user' as const, content: 'Refine game concept' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Refine game concept' }];
 
       const response = await orchestrator.generate('refinement', messages);
 
@@ -223,9 +213,7 @@ describe('AIOrchestrator', () => {
     it('should respect "ollama" preference', async () => {
       const orchestrator = new AIOrchestrator();
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate content' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate content' }];
 
       const response = await orchestrator.generate('mechanics', messages, 'ollama');
 
@@ -238,9 +226,7 @@ describe('AIOrchestrator', () => {
         openrouterApiKey: 'test-key',
       });
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate content' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate content' }];
 
       const response = await orchestrator.generate('mechanics', messages, 'openrouter');
 
@@ -253,9 +239,7 @@ describe('AIOrchestrator', () => {
         openrouterApiKey: 'test-key',
       });
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate content' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate content' }];
 
       const response = await orchestrator.generate('mechanics', messages);
 
@@ -271,9 +255,7 @@ describe('AIOrchestrator', () => {
         costLimitPerHourUsd: 1.0,
       });
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate content' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate content' }];
 
       // Make multiple requests
       await orchestrator.generate('mechanics', messages);
@@ -291,9 +273,7 @@ describe('AIOrchestrator', () => {
         costLimitPerHourUsd: 0.0001, // Very low limit to trigger fallback
       });
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate content' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate content' }];
 
       // First request to build up cost
       await orchestrator.generate('mechanics', messages);
@@ -312,9 +292,7 @@ describe('AIOrchestrator', () => {
         openrouterApiKey: 'test-key',
       });
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate content' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate content' }];
 
       const response = await orchestrator.generate('mechanics', messages, 'auto', {
         temperature: 0.9,
@@ -328,9 +306,7 @@ describe('AIOrchestrator', () => {
         openrouterApiKey: 'test-key',
       });
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate content' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate content' }];
 
       const response = await orchestrator.generate('mechanics', messages, 'auto', {
         maxTokens: 4000,
@@ -344,9 +320,7 @@ describe('AIOrchestrator', () => {
         openrouterApiKey: 'test-key',
       });
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate content' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate content' }];
 
       const response = await orchestrator.generate('mechanics', messages, 'auto', {
         topP: 0.95,
@@ -366,18 +340,14 @@ describe('AIOrchestrator', () => {
             name: 'Ollama',
             type: 'ollama',
             isAvailable: vi.fn().mockResolvedValue(false),
-          }) as any
+          }) as any,
       );
 
       const orchestrator = new AIOrchestrator();
 
-      const messages = [
-        { role: 'user' as const, content: 'Generate content' },
-      ];
+      const messages = [{ role: 'user' as const, content: 'Generate content' }];
 
-      await expect(orchestrator.generate('mechanics', messages)).rejects.toThrow(
-        'No AI clients available'
-      );
+      await expect(orchestrator.generate('mechanics', messages)).rejects.toThrow('No AI clients available');
     });
   });
 });

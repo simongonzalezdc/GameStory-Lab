@@ -15,7 +15,7 @@ export function generateGDD(
   mechanics: MechanicsData,
   lore: LoreData,
   genre?: string,
-  consistencyScore?: number
+  consistencyScore?: number,
 ): string {
   return `# Game Design Document: ${title}
 
@@ -47,40 +47,63 @@ ${lore.conflict?.primary || 'An engaging interactive experience'}
 - Secondary: General gaming audience
 
 ### Unique Selling Points
-${mechanics.playerActions ? mechanics.playerActions.slice(0, 3).map((a, i) => `${i + 1}. ${a}`).join('\n') : '1. Innovative gameplay\n2. Engaging mechanics\n3. Compelling narrative'}
+${
+  mechanics.playerActions
+    ? mechanics.playerActions
+        .slice(0, 3)
+        .map((a, i) => `${i + 1}. ${a}`)
+        .join('\n')
+    : '1. Innovative gameplay\n2. Engaging mechanics\n3. Compelling narrative'
+}
 
 ---
 
 ## Narrative & Setting
 
 ### World
-${lore.setting ? `
+${
+  lore.setting
+    ? `
 **Era:** ${lore.setting.era || 'TBD'}
 **Location:** ${lore.setting.location || 'TBD'}
 **World Type:** ${lore.setting.worldType || 'TBD'}
-` : 'Setting to be determined'}
+`
+    : 'Setting to be determined'
+}
 
 ### World Rules
-${lore.worldRules ? `
+${
+  lore.worldRules
+    ? `
 **Physics:** ${lore.worldRules.physics || 'Standard physics'}
 **Magic:** ${lore.worldRules.magic || 'None'}
 **Technology:** ${lore.worldRules.technology || 'Contemporary'}
-` : 'World rules to be determined'}
+`
+    : 'World rules to be determined'
+}
 
 ### Story
 
 **Protagonist:**
-${lore.protagonist ? `
+${
+  lore.protagonist
+    ? `
 - **Background:** ${lore.protagonist.background || 'TBD'}
 - **Motivation:** ${lore.protagonist.motivation || 'TBD'}
 - **Abilities:** ${lore.protagonist.abilities?.join(', ') || 'TBD'}
-` : 'Protagonist details to be determined'}
+`
+    : 'Protagonist details to be determined'
+}
 
 **Conflict:**
-${lore.conflict ? `
+${
+  lore.conflict
+    ? `
 - **Primary:** ${lore.conflict.primary || 'TBD'}
 ${lore.conflict.secondary ? `- **Secondary:** ${lore.conflict.secondary.join(', ')}` : ''}
-` : 'Conflict to be determined'}
+`
+    : 'Conflict to be determined'
+}
 
 **Themes:**
 ${lore.themes && lore.themes.length > 0 ? lore.themes.map((t) => `- ${t}`).join('\n') : 'Themes to be explored'}
@@ -96,10 +119,14 @@ ${mechanics.coreLoop || 'Core gameplay loop to be defined'}
 ${mechanics.playerActions && mechanics.playerActions.length > 0 ? mechanics.playerActions.map((a) => `- ${a}`).join('\n') : 'Player actions to be defined'}
 
 ### Progression System
-${mechanics.progressionSystems ? `
+${
+  mechanics.progressionSystems
+    ? `
 **Type:** ${mechanics.progressionSystems.type}
 **Mechanics:** ${mechanics.progressionSystems.mechanics.join(', ')}
-` : 'Progression system to be designed'}
+`
+    : 'Progression system to be designed'
+}
 
 ### Win Conditions
 ${mechanics.winConditions && mechanics.winConditions.length > 0 ? mechanics.winConditions.map((w) => `- ${w}`).join('\n') : 'Victory conditions to be defined'}
@@ -112,11 +139,19 @@ ${mechanics.failConditions && mechanics.failConditions.length > 0 ? mechanics.fa
 ## Systems & Mechanics
 
 ### Resource Systems
-${mechanics.resourceSystems && mechanics.resourceSystems.length > 0 ? mechanics.resourceSystems.map((r) => `
+${
+  mechanics.resourceSystems && mechanics.resourceSystems.length > 0
+    ? mechanics.resourceSystems
+        .map(
+          (r) => `
 #### ${r.name}
 - **Mechanics:** ${r.mechanics}
 - **Scarcity:** ${r.scarcity}
-`).join('\n') : 'Resource systems to be designed'}
+`,
+        )
+        .join('\n')
+    : 'Resource systems to be designed'
+}
 
 ---
 
@@ -170,7 +205,7 @@ export function generatePitch(
   title: string,
   mechanics: MechanicsData,
   lore: LoreData,
-  genre?: string
+  genre?: string,
 ): string {
   return `# ${title}
 ## Game Pitch
@@ -192,7 +227,14 @@ ${lore.conflict?.primary || 'An innovative gaming experience that combines engag
 **In one sentence:** ${mechanics.coreLoop || 'Dynamic, engaging gameplay that keeps players coming back'}
 
 **Key Features:**
-${mechanics.playerActions ? mechanics.playerActions.slice(0, 5).map((a, i) => `${i + 1}. ${a}`).join('\n') : 'Innovative mechanics designed for maximum engagement'}
+${
+  mechanics.playerActions
+    ? mechanics.playerActions
+        .slice(0, 5)
+        .map((a, i) => `${i + 1}. ${a}`)
+        .join('\n')
+    : 'Innovative mechanics designed for maximum engagement'
+}
 
 ---
 
@@ -235,7 +277,7 @@ export function generateTechnical(
   title: string,
   mechanics: MechanicsData,
   lore: LoreData,
-  genre?: string
+  genre?: string,
 ): string {
   return `# Technical Specification: ${title}
 
@@ -253,18 +295,30 @@ export function generateTechnical(
 ${mechanics.playerActions ? mechanics.playerActions.map((a) => `- ${a} system`).join('\n') : 'Core gameplay systems'}
 
 #### Progression System
-${mechanics.progressionSystems ? `
+${
+  mechanics.progressionSystems
+    ? `
 **Type:** ${mechanics.progressionSystems.type}
 **Implementation Requirements:**
 ${mechanics.progressionSystems.mechanics.map((m) => `- ${m}`).join('\n')}
-` : 'Progression system architecture'}
+`
+    : 'Progression system architecture'
+}
 
 #### Resource Management
-${mechanics.resourceSystems ? mechanics.resourceSystems.map((r) => `
+${
+  mechanics.resourceSystems
+    ? mechanics.resourceSystems
+        .map(
+          (r) => `
 **${r.name}:**
 - Scarcity: ${r.scarcity}
 - Mechanics: ${r.mechanics}
-`).join('\n') : 'Resource systems'}
+`,
+        )
+        .join('\n')
+    : 'Resource systems'
+}
 
 ---
 

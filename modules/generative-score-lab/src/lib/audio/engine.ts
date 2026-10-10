@@ -7,11 +7,18 @@ import type { Scene, Track, Clip } from '@/types';
 import { getClipPlaybackNotes } from '@/lib/audio/clip-note-utils';
 import { errorHandler, ErrorSeverity } from '@/lib/errors/error-handler';
 import { createInstrument, getDefaultInstrument, getInstrumentById } from './instruments';
-import { DEFAULT_BPM, AUDIO_INIT_RETRY_BASE_DELAY_MS, AUDIO_INIT_MAX_RETRIES } from '@/lib/utils/constants';
+import {
+  DEFAULT_BPM,
+  AUDIO_INIT_RETRY_BASE_DELAY_MS,
+  AUDIO_INIT_MAX_RETRIES,
+} from '@/lib/utils/constants';
 import { toPolySynthOptions } from '@/types/tone-helpers';
 
 export class AudioEngine {
-  private instruments: Map<string, Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth>;
+  private instruments: Map<
+    string,
+    Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth
+  >;
   private panners: Map<string, Tone.Panner>;
   private scheduledParts: Tone.Part[];
   private currentScene: Scene | null = null;
@@ -39,19 +46,22 @@ export class AudioEngine {
         this.isInitialized = true;
         return; // Success, exit retry loop
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error('Unknown audio initialization error');
-        
+        lastError =
+          error instanceof Error ? error : new Error('Unknown audio initialization error');
+
         // Don't retry on the last attempt
         if (attempt < maxRetries - 1) {
           const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff: 500ms, 1s, 2s
           errorHandler.handle(
-            new Error(`Audio initialization attempt ${attempt + 1} failed, retrying in ${delay}ms...`),
+            new Error(
+              `Audio initialization attempt ${attempt + 1} failed, retrying in ${delay}ms...`
+            ),
             'Audio Engine Initialization',
             ErrorSeverity.WARNING
           );
-          
+
           // Wait before retrying
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }
@@ -83,7 +93,7 @@ export class AudioEngine {
       // Stop current playback and clean up previous scene
       this.stop();
       this.clearScheduledParts();
-      
+
       // Dispose of previous scene's instruments and panners to prevent memory leaks
       if (this.instruments && this.instruments instanceof Map) {
         this.instruments.forEach((instrument) => {
@@ -99,7 +109,7 @@ export class AudioEngine {
       } else {
         this.instruments = new Map();
       }
-      
+
       if (this.panners && this.panners instanceof Map) {
         this.panners.forEach((panner) => {
           if (panner) {
@@ -125,11 +135,7 @@ export class AudioEngine {
           transport.bpm.value = bpm;
         }
       } catch (error) {
-        errorHandler.handle(
-          error,
-          'Audio BPM Setting',
-          ErrorSeverity.WARNING
-        );
+        errorHandler.handle(error, 'Audio BPM Setting', ErrorSeverity.WARNING);
       }
 
       // Validate and load instruments for all tracks
@@ -178,9 +184,10 @@ export class AudioEngine {
     if (this.instruments.has(track.id)) return;
 
     // Get instrument config based on track.instrumentRef or use default for role
-    const instrumentConfig = track.instrumentRef && track.instrumentRef !== 'default-synth'
-      ? getInstrumentById(track.role, track.instrumentRef) || getDefaultInstrument(track.role)
-      : getDefaultInstrument(track.role);
+    const instrumentConfig =
+      track.instrumentRef && track.instrumentRef !== 'default-synth'
+        ? getInstrumentById(track.role, track.instrumentRef) || getDefaultInstrument(track.role)
+        : getDefaultInstrument(track.role);
 
     if (!instrumentConfig) {
       errorHandler.handle(
@@ -192,18 +199,24 @@ export class AudioEngine {
     }
 
     const instrument = createInstrument(instrumentConfig);
-    
+
     // Wrap MonoSynth, DuoSynth, FMSynth, AMSynth in PolySynth for polyphonic support
     // Sampler and PolySynth don't need wrapping
-    let polyInstrument: Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth;
+    let polyInstrument:
+      Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth;
     if (instrument instanceof Tone.Sampler || instrument instanceof Tone.PolySynth) {
       // Sampler and PolySynth are already polyphonic
       polyInstrument = instrument;
-    } else if (instrument instanceof Tone.MonoSynth || instrument instanceof Tone.DuoSynth ||
-        instrument instanceof Tone.FMSynth || instrument instanceof Tone.AMSynth) {
+    } else if (
+      instrument instanceof Tone.MonoSynth ||
+      instrument instanceof Tone.DuoSynth ||
+      instrument instanceof Tone.FMSynth ||
+      instrument instanceof Tone.AMSynth
+    ) {
       // For monophonic synths, wrap in PolySynth for polyphonic support
       // Determine synth class based on instrument type
-      let SynthClass: typeof Tone.MonoSynth | typeof Tone.DuoSynth | typeof Tone.FMSynth | typeof Tone.AMSynth;
+      let SynthClass:
+        typeof Tone.MonoSynth | typeof Tone.DuoSynth | typeof Tone.FMSynth | typeof Tone.AMSynth;
       if (instrument instanceof Tone.MonoSynth) {
         SynthClass = Tone.MonoSynth;
       } else if (instrument instanceof Tone.DuoSynth) {
@@ -230,7 +243,7 @@ export class AudioEngine {
     // Create panner for stereo positioning
     const pan = typeof track.pan === 'number' ? track.pan : 0;
     const volume = typeof track.volume === 'number' ? track.volume : 0.5;
-    
+
     const panner = new Tone.Panner(pan).toDestination();
     polyInstrument.connect(panner);
 
@@ -261,7 +274,7 @@ export class AudioEngine {
     this.clearScheduledParts();
 
     // Check if any track is soloed
-    const hasSoloedTrack = this.currentScene.tracks.some(track => track && track.solo);
+    const hasSoloedTrack = this.currentScene.tracks.some((track) => track && track.solo);
 
     for (const track of this.currentScene.tracks) {
       if (!track) continue;
@@ -298,7 +311,8 @@ export class AudioEngine {
   private scheduleClip(
     _track: Track,
     clip: Clip,
-    instrument: Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth
+    instrument:
+      Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth
   ): void {
     if (!this.currentScene) return;
 
@@ -326,17 +340,17 @@ export class AudioEngine {
       if (!instrument || instrumentAny.disposed === true) {
         return; // Instrument was disposed, skip this note
       }
-      
-      if (instrument instanceof Tone.PolySynth || instrument instanceof Tone.MonoSynth || 
-          instrument instanceof Tone.DuoSynth || instrument instanceof Tone.FMSynth || 
-          instrument instanceof Tone.AMSynth || instrument instanceof Tone.Sampler) {
+
+      if (
+        instrument instanceof Tone.PolySynth ||
+        instrument instanceof Tone.MonoSynth ||
+        instrument instanceof Tone.DuoSynth ||
+        instrument instanceof Tone.FMSynth ||
+        instrument instanceof Tone.AMSynth ||
+        instrument instanceof Tone.Sampler
+      ) {
         try {
-          instrument.triggerAttackRelease(
-            value.note,
-            value.duration,
-            time,
-            value.velocity
-          );
+          instrument.triggerAttackRelease(value.note, value.duration, time, value.velocity);
         } catch {
           // Instrument may have been disposed between check and use
           // Silently ignore - this is expected when scene changes
@@ -453,10 +467,10 @@ export class AudioEngine {
    */
   rescheduleScene(): void {
     if (!this.currentScene) return;
-    
+
     const transport = Tone.getTransport();
     const wasPlaying = transport && transport.state === 'started';
-    
+
     // If playing, reschedule
     if (wasPlaying) {
       this.scheduleScene();

@@ -19,10 +19,7 @@ export interface KeyboardShortcut {
 /**
  * Hook to register global keyboard shortcuts
  */
-export function useKeyboardShortcuts(
-  shortcuts: KeyboardShortcut[],
-  enabled: boolean = true
-): void {
+export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled: boolean = true): void {
   useEffect(() => {
     if (!enabled) return;
 
@@ -34,7 +31,8 @@ export function useKeyboardShortcuts(
 
       for (const shortcut of shortcuts) {
         const keyMatches = event.key.toLowerCase() === shortcut.key.toLowerCase();
-        const ctrlMatches = shortcut.ctrl === undefined || shortcut.ctrl === (event.ctrlKey || event.metaKey);
+        const ctrlMatches =
+          shortcut.ctrl === undefined || shortcut.ctrl === (event.ctrlKey || event.metaKey);
         const shiftMatches = shortcut.shift === undefined || shortcut.shift === event.shiftKey;
         const altMatches = shortcut.alt === undefined || shortcut.alt === event.altKey;
         const metaMatches = shortcut.meta === undefined || shortcut.meta === event.metaKey;
@@ -64,7 +62,7 @@ export function isTypingInInput(event?: KeyboardEvent): boolean {
   if (!event) {
     const activeElement = document.activeElement;
     if (!activeElement) return false;
-    
+
     return (
       activeElement instanceof HTMLInputElement ||
       activeElement instanceof HTMLTextAreaElement ||
@@ -103,14 +101,14 @@ export function formatShortcut(shortcut: KeyboardShortcut): string {
   // Format key display
   const keyDisplay: { [key: string]: string } = {
     ' ': 'Space',
-    'Escape': 'Esc',
-    'ArrowUp': '↑',
-    'ArrowDown': '↓',
-    'ArrowLeft': '←',
-    'ArrowRight': '→',
-    'Enter': '↵',
-    'Delete': 'Del',
-    'Backspace': '⌫',
+    Escape: 'Esc',
+    ArrowUp: '↑',
+    ArrowDown: '↓',
+    ArrowLeft: '←',
+    ArrowRight: '→',
+    Enter: '↵',
+    Delete: 'Del',
+    Backspace: '⌫',
   };
 
   const key = keyDisplay[shortcut.key] || shortcut.key.toUpperCase();

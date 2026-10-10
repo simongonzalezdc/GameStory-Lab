@@ -5,15 +5,12 @@ import * as Tone from 'tone';
  * Tone.js accepts various oscillator types, but TypeScript is overly strict about the type union
  */
 export type SafeOscillatorType =
-  | Tone.ToneOscillatorType
-  | { type: Tone.ToneOscillatorType; partials?: number[] };
+  Tone.ToneOscillatorType | { type: Tone.ToneOscillatorType; partials?: number[] };
 
 /**
  * Type guard to check if oscillator config is a string type
  */
-export function isSimpleOscillatorType(
-  osc: SafeOscillatorType
-): osc is Tone.ToneOscillatorType {
+export function isSimpleOscillatorType(osc: SafeOscillatorType): osc is Tone.ToneOscillatorType {
   return typeof osc === 'string';
 }
 
@@ -30,16 +27,16 @@ export function toToneOscillatorConfig(
   if (!osc) {
     return { type: 'sine' };
   }
-  
+
   if (isSimpleOscillatorType(osc)) {
     return { type: osc };
   }
-  
+
   // Ensure we return a valid object
   if (typeof osc === 'object' && osc !== null) {
     return osc;
   }
-  
+
   // Fallback to default
   return { type: 'sine' };
 }

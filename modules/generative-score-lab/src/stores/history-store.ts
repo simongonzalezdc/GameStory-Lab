@@ -36,7 +36,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     }
 
     const newPast = present ? [...past, present] : past;
-    
+
     // Limit history size
     const trimmedPast = newPast.slice(-maxHistorySize);
 
@@ -95,4 +95,3 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     });
   },
 }));
-

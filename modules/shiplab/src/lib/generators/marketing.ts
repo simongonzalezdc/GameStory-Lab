@@ -105,16 +105,16 @@ async function analyzeProjectForMarketing(
     });
 
     const featureKeywords = {
-      'Authentication': ['auth', 'login', 'signup', 'jwt', 'passport'],
-      'Database': ['database', 'db', 'prisma', 'drizzle', 'mongoose'],
-      'API': ['api', 'rest', 'graphql', 'endpoint'],
+      Authentication: ['auth', 'login', 'signup', 'jwt', 'passport'],
+      Database: ['database', 'db', 'prisma', 'drizzle', 'mongoose'],
+      API: ['api', 'rest', 'graphql', 'endpoint'],
       'Real-time': ['socket', 'websocket', 'realtime', 'sse'],
       'AI/ML': ['ai', 'openai', 'llm', 'machine-learning', 'tensorflow'],
-      'Payment': ['stripe', 'payment', 'checkout', 'billing'],
-      'Email': ['email', 'sendgrid', 'mailgun', 'resend'],
-      'Search': ['search', 'elasticsearch', 'algolia'],
-      'Analytics': ['analytics', 'tracking', 'metrics'],
-      'Testing': ['test', 'jest', 'vitest', 'cypress'],
+      Payment: ['stripe', 'payment', 'checkout', 'billing'],
+      Email: ['email', 'sendgrid', 'mailgun', 'resend'],
+      Search: ['search', 'elasticsearch', 'algolia'],
+      Analytics: ['analytics', 'tracking', 'metrics'],
+      Testing: ['test', 'jest', 'vitest', 'cypress'],
     };
 
     const detectedFeatures = new Set<string>();
@@ -195,7 +195,11 @@ Be concise, benefit-focused, and use active voice. Highlight what makes this pro
 
   const landingPageResponse = await llmRouter.chat(
     [
-      { role: 'system', content: 'You are an expert marketing copywriter specializing in developer tools and SaaS products.' },
+      {
+        role: 'system',
+        content:
+          'You are an expert marketing copywriter specializing in developer tools and SaaS products.',
+      },
       { role: 'user', content: landingPagePrompt },
     ],
     model,
@@ -266,7 +270,10 @@ Make it engaging, use relevant hashtags, and focus on benefits over features.`;
 /**
  * Parse landing page content from AI response
  */
-function parseLandingPageContent(content: string, projectName: string): MarketingContent['landingPage'] {
+function parseLandingPageContent(
+  content: string,
+  projectName: string
+): MarketingContent['landingPage'] {
   const headlineMatch = content.match(/# Headline\s*\n(.+)/i);
   const subheadlineMatch = content.match(/## Subheadline\s*\n(.+)/i);
   const heroMatch = content.match(/## Hero\s*\n([\s\S]+?)(?=##|$)/i);
@@ -290,17 +297,22 @@ function parseLandingPageContent(content: string, projectName: string): Marketin
   // Fallback values
   const headline = headlineMatch?.[1]?.trim() || `${projectName} - Ship Faster, Build Better`;
   const subheadline = subheadlineMatch?.[1]?.trim() || 'The modern toolkit for developers';
-  const heroSection = heroMatch?.[1]?.trim() || `${projectName} helps developers build and ship better software faster.`;
+  const heroSection =
+    heroMatch?.[1]?.trim() ||
+    `${projectName} helps developers build and ship better software faster.`;
   const cta = ctaMatch?.[1]?.trim() || 'Get Started Free';
 
   return {
     headline,
     subheadline,
     heroSection,
-    features: features.length > 0 ? features : [
-      { title: 'Fast Setup', description: 'Get started in minutes' },
-      { title: 'Developer Friendly', description: 'Built by developers, for developers' },
-    ],
+    features:
+      features.length > 0
+        ? features
+        : [
+            { title: 'Fast Setup', description: 'Get started in minutes' },
+            { title: 'Developer Friendly', description: 'Built by developers, for developers' },
+          ],
     cta,
     fullMarkdown: content,
   };
@@ -368,8 +380,10 @@ function generateSEOMetaTags(
   });
 
   // Create meta description
-  const description = projectDescription || landingPage.subheadline || landingPage.heroSection.substring(0, 155);
-  const truncatedDescription = description.length > 160 ? description.substring(0, 157) + '...' : description;
+  const description =
+    projectDescription || landingPage.subheadline || landingPage.heroSection.substring(0, 155);
+  const truncatedDescription =
+    description.length > 160 ? description.substring(0, 157) + '...' : description;
 
   // SEO title (optimal length: 50-60 characters)
   const seoTitle = `${projectName} - ${landingPage.headline.substring(0, 50)}`;

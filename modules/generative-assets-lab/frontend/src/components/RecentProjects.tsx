@@ -32,29 +32,20 @@ export function RecentProjects({ onSelectProject, currentProject }: RecentProjec
     (window as any).recordProjectAccess = (projectName: string | null, assetCount: number = 0) => {
       if (!projectName) return;
 
-      setRecentProjects(prev => {
-        const existing = prev.find(p => p.name === projectName);
+      setRecentProjects((prev) => {
+        const existing = prev.find((p) => p.name === projectName);
         let updated: RecentProject[];
 
         if (existing) {
           // Update existing project
-          updated = prev.map(p =>
-            p.name === projectName
-              ? { ...p, lastAccessed: Date.now(), assetCount }
-              : p
-          );
+          updated = prev.map((p) => (p.name === projectName ? { ...p, lastAccessed: Date.now(), assetCount } : p));
         } else {
           // Add new project
-          updated = [
-            { name: projectName, lastAccessed: Date.now(), assetCount },
-            ...prev
-          ];
+          updated = [{ name: projectName, lastAccessed: Date.now(), assetCount }, ...prev];
         }
 
         // Sort by last accessed and limit
-        updated = updated
-          .sort((a, b) => b.lastAccessed - a.lastAccessed)
-          .slice(0, MAX_RECENT);
+        updated = updated.sort((a, b) => b.lastAccessed - a.lastAccessed).slice(0, MAX_RECENT);
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
         return updated;
@@ -69,7 +60,7 @@ export function RecentProjects({ onSelectProject, currentProject }: RecentProjec
 
   const handleClearProject = (projectName: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const updated = recentProjects.filter(p => p.name !== projectName);
+    const updated = recentProjects.filter((p) => p.name !== projectName);
     setRecentProjects(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   };
@@ -141,9 +132,7 @@ export function RecentProjects({ onSelectProject, currentProject }: RecentProjec
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                  {project.name}
-                </div>
+                <div className="font-medium text-sm text-gray-900 dark:text-white truncate">{project.name}</div>
                 <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   <Clock size={10} />
                   <span>{formatLastAccessed(project.lastAccessed)}</span>

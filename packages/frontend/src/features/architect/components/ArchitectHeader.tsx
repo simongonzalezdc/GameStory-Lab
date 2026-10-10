@@ -34,23 +34,17 @@ export function ArchitectHeader({
             ← Back to Project
           </button>
           <div className="h-4 w-px bg-border-subtle" />
-          <h1 className="text-lg font-bold text-primary">
-            🏗️ AI Project Architect
-          </h1>
+          <h1 className="text-lg font-bold text-primary">🏗️ AI Project Architect</h1>
         </div>
         {(documentationGenerated || isGenerating) && (
           <div className="flex items-center gap-2">
             {isGenerating ? (
               <>
                 <JewelSpinner size="sm" />
-                <span className="text-sm text-secondary">
-                  {generationMessage}
-                </span>
+                <span className="text-sm text-secondary">{generationMessage}</span>
               </>
             ) : (
-              <span className="text-sm text-secondary">
-                {documentCount} documents ready
-              </span>
+              <span className="text-sm text-secondary">{documentCount} documents ready</span>
             )}
           </div>
         )}
@@ -58,4 +52,3 @@ export function ArchitectHeader({
     </div>
   );
 }
-

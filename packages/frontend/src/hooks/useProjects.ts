@@ -44,8 +44,7 @@ export function useCreateProject() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { name: string; genre?: string }) =>
-      projectsAPI.create(data),
+    mutationFn: (data: { name: string; genre?: string }) => projectsAPI.create(data),
     onSuccess: () => {
       // Invalidate and refetch projects list
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
@@ -61,8 +60,7 @@ export function useUpdateProject(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { name?: string; genre?: string }) =>
-      projectsAPI.update(id, data),
+    mutationFn: (data: { name?: string; genre?: string }) => projectsAPI.update(id, data),
     onSuccess: () => {
       // Invalidate both the specific project and the list
       queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) });

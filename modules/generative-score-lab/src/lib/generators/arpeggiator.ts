@@ -14,7 +14,7 @@ export class ArpeggiatorGenerator extends BaseGenerator {
     this.validateContext(context);
 
     const params = config.params as ArpParams;
-    
+
     // Validate arpeggiator parameters
     if (params.notesPerBeat < 1 || params.notesPerBeat > 16) {
       throw new Error('Arpeggiator notesPerBeat must be between 1 and 16');
@@ -86,8 +86,9 @@ export class ArpeggiatorGenerator extends BaseGenerator {
         );
         break;
       case 'random':
-        noteSequence = Array.from({ length: totalNotes }, () =>
-          baseNotes[Math.floor(Math.random() * baseNotes.length)]
+        noteSequence = Array.from(
+          { length: totalNotes },
+          () => baseNotes[Math.floor(Math.random() * baseNotes.length)]
         );
         break;
       default:

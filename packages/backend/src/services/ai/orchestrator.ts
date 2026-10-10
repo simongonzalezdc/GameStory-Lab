@@ -53,9 +53,9 @@ export class AIOrchestrator {
         logger.debug('Minimax API key not found, skipping Minimax client initialization');
       }
     } catch (error) {
-      logger.warn('Minimax client initialization failed', { 
+      logger.warn('Minimax client initialization failed', {
         error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
       });
     }
 
@@ -67,7 +67,7 @@ export class AIOrchestrator {
         logger.info('GLM client initialized (fallback AI provider)');
       }
     } catch (error) {
-      logger.warn('GLM client initialization failed', { 
+      logger.warn('GLM client initialization failed', {
         error: error instanceof Error ? error.message : String(error),
       });
     }
@@ -109,7 +109,7 @@ export class AIOrchestrator {
     taskType: TaskType,
     messages: AICompletionRequest['messages'],
     preference: ModelPreference = 'auto',
-    options?: Partial<AICompletionRequest>
+    options?: Partial<AICompletionRequest>,
   ): Promise<AICompletionResponse> {
     // Check cost limits - only force Ollama if GLM is not available
     const currentHourCost = this.getCurrentHourCost();
@@ -141,8 +141,10 @@ export class AIOrchestrator {
 
     // Execute the completion
     // Auto-set response_format for structured output tasks (MiniMax optimization)
-    const shouldUseJSONFormat = taskType === 'mechanics' || taskType === 'lore' || taskType === 'refinement' || taskType === 'title';
-    const responseFormat = options?.responseFormat || (shouldUseJSONFormat ? { type: 'json_object' as const } : undefined);
+    const shouldUseJSONFormat =
+      taskType === 'mechanics' || taskType === 'lore' || taskType === 'refinement' || taskType === 'title';
+    const responseFormat =
+      options?.responseFormat || (shouldUseJSONFormat ? { type: 'json_object' as const } : undefined);
 
     const request: AICompletionRequest = {
       model: selection.model,
@@ -185,7 +187,7 @@ export class AIOrchestrator {
           });
         }
       }
-      
+
       // If GLM failed, try Minimax fallback if available
       if (selection.client.type === 'glm' && this.clients.has('minimax')) {
         logger.info('GLM generation failed, trying Minimax fallback');
@@ -220,7 +222,7 @@ export class AIOrchestrator {
             logger.debug(`Skipping ${modelName} - already tried`);
             continue; // Skip the one we already tried
           }
-          
+
           try {
             logger.info(`Trying alternative Ollama model: ${modelName}`, {
               previousModel: selection.model,
@@ -238,14 +240,14 @@ export class AIOrchestrator {
             return response;
           } catch (modelError: any) {
             const errorMsg = modelError?.message || String(modelError);
-            logger.warn(`Model ${modelName} failed, trying next`, { 
+            logger.warn(`Model ${modelName} failed, trying next`, {
               error: errorMsg,
               attempt: defaultOllamaModels.indexOf(modelName) + 1,
             });
             continue;
           }
         }
-        
+
         // If all models failed, log detailed error
         logger.error('All Ollama models failed', {
           triedModels: defaultOllamaModels,
@@ -255,10 +257,12 @@ export class AIOrchestrator {
 
       // Fallback to Ollama only if we're not using Minimax/GLM and Ollama is available
       // (Minimax/GLM fallback is handled above)
-      if (selection.client.type !== 'ollama' && 
-          selection.client.type !== 'minimax' &&
-          selection.client.type !== 'glm' && 
-          this.clients.has('ollama')) {
+      if (
+        selection.client.type !== 'ollama' &&
+        selection.client.type !== 'minimax' &&
+        selection.client.type !== 'glm' &&
+        this.clients.has('ollama')
+      ) {
         logger.info('Falling back to Ollama (non-Minimax/GLM provider failed)');
         const ollamaClient = this.clients.get('ollama')!;
         // Try known models in order
@@ -279,7 +283,7 @@ export class AIOrchestrator {
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (errorMessage.includes('model') && errorMessage.includes('not found')) {
         // Provide more helpful error message with troubleshooting steps
-        const helpfulMessage = 
+        const helpfulMessage =
           `Ollama model not accessible. Tried models: ${defaultOllamaModels.join(', ')}. ` +
           `The models may exist locally but not be accessible via the Ollama API. ` +
           `Try: ollama pull qwen3:8b (to re-register the model) or restart Ollama. ` +
@@ -294,10 +298,7 @@ export class AIOrchestrator {
    * Select the optimal model based on task type and preferences
    * Based on November 2025 benchmarks (Qwen 3, Phi-4, Llama 4, DeepSeek R1)
    */
-  private async selectModel(
-    taskType: TaskType,
-    preference: ModelPreference
-  ): Promise<ModelSelection | null> {
+  private async selectModel(taskType: TaskType, preference: ModelPreference): Promise<ModelSelection | null> {
     // Handle explicit preferences
     if (preference === 'ollama') {
       const ollamaClient = this.clients.get('ollama');
@@ -306,7 +307,7 @@ export class AIOrchestrator {
         // Default: qwen3:8b (widely available, good quality)
         let model = 'qwen3:8b';
         try {
-          const availableModels = await ollamaClient.listModels?.() || [];
+          const availableModels = (await ollamaClient.listModels?.()) || [];
           if (availableModels.length > 0) {
             // OPTIMIZED FOR MAC M4 16GB (November 2025):
             // Model selection strategy based on April-November 2025 releases:
@@ -317,20 +318,24 @@ export class AIOrchestrator {
             // - Reasoning: deepseek-r1:8b (shows thinking process, 30-40 tok/s)
             // - Lightweight: llama4:8b (<8GB, 35-45 tok/s)
             const preferredModels = [
-              'qwen3:30b-a3b',     // MoE: 30B quality, 3B memory!
-              'phi4:14b',          // Highest quality reasoning
-              'qwen3-coder:7b',    // Best creative writing
-              'qwen3:7b',          // Best structured JSON
-              'deepseek-r1:8b',    // Best reasoning
-              'llama4:8b',         // Versatile lightweight
-              'mistral:7b',        // Fast workhorse
-              'qwen3:3b',          // Ultra-lightweight
+              'qwen3:30b-a3b', // MoE: 30B quality, 3B memory!
+              'phi4:14b', // Highest quality reasoning
+              'qwen3-coder:7b', // Best creative writing
+              'qwen3:7b', // Best structured JSON
+              'deepseek-r1:8b', // Best reasoning
+              'llama4:8b', // Versatile lightweight
+              'mistral:7b', // Fast workhorse
+              'qwen3:3b', // Ultra-lightweight
             ];
-            const generalPurposeModel = availableModels.find(m =>
-              preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
-              !m.toLowerCase().includes('embed')
+            const generalPurposeModel = availableModels.find(
+              (m) =>
+                preferredModels.some((pref) => m.toLowerCase().includes(pref.toLowerCase())) &&
+                !m.toLowerCase().includes('embed'),
             );
-            model = generalPurposeModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
+            model =
+              generalPurposeModel ||
+              availableModels.find((m) => m.toLowerCase().includes('qwen3')) ||
+              availableModels[0];
           }
         } catch {
           // If we can't list models, use default
@@ -388,7 +393,7 @@ export class AIOrchestrator {
           rationale: 'Minimax M2 (auto-selected, optimal for all tasks)',
         };
       }
-      
+
       // Fallback to GLM 4.6 if Minimax not available
       const glmClient = this.clients.get('glm');
       if (glmClient && (await glmClient.isAvailable())) {
@@ -416,22 +421,26 @@ export class AIOrchestrator {
             // For mechanics: Prefer models with strong structured JSON output
             let model = 'qwen3:8b';
             try {
-              const availableModels = await ollamaClient.listModels?.() || [];
+              const availableModels = (await ollamaClient.listModels?.()) || [];
               if (availableModels.length > 0) {
                 // Mechanics generation needs structured output - Qwen 3 excels, MoE gives best quality/memory
                 const preferredModels = [
-                  'qwen3:30b-a3b',  // MoE: Best quality for JSON (Qwen3-4B rivals Qwen2.5-72B!)
-                  'phi4:14b',       // High quality reasoning (9.8T tokens)
-                  'qwen3:7b',       // Excellent JSON/structured output
+                  'qwen3:30b-a3b', // MoE: Best quality for JSON (Qwen3-4B rivals Qwen2.5-72B!)
+                  'phi4:14b', // High quality reasoning (9.8T tokens)
+                  'qwen3:7b', // Excellent JSON/structured output
                   'deepseek-r1:8b', // Good reasoning for complex mechanics
-                  'qwen3:3b',       // Fast, lightweight
+                  'qwen3:3b', // Fast, lightweight
                 ];
-                const mechanicsModel = availableModels.find(m =>
-                  preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
-                  !m.toLowerCase().includes('embed') &&
-                  !m.toLowerCase().includes('coder')  // Avoid coder variants for pure JSON tasks
+                const mechanicsModel = availableModels.find(
+                  (m) =>
+                    preferredModels.some((pref) => m.toLowerCase().includes(pref.toLowerCase())) &&
+                    !m.toLowerCase().includes('embed') &&
+                    !m.toLowerCase().includes('coder'), // Avoid coder variants for pure JSON tasks
                 );
-                model = mechanicsModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
+                model =
+                  mechanicsModel ||
+                  availableModels.find((m) => m.toLowerCase().includes('qwen3')) ||
+                  availableModels[0];
               }
             } catch {
               // If we can't list models, use default
@@ -462,24 +471,26 @@ export class AIOrchestrator {
             // For lore: Prefer creative writing models (coder variants + MoE excel at narrative)
             let model = 'qwen3:8b';
             try {
-              const availableModels = await ollamaClient.listModels?.() || [];
+              const availableModels = (await ollamaClient.listModels?.()) || [];
               if (availableModels.length > 0) {
                 // Lore needs creative, narrative-focused models
                 // Qwen 3 Coder variants + Phi-4 excel at creative writing
                 // MoE models provide superior quality for worldbuilding
                 const preferredModels = [
-                  'qwen3:30b-a3b',     // MoE: Best quality for deep lore
-                  'phi4:14b',          // Excellent narrative quality (9.8T tokens)
-                  'qwen3-coder:7b',    // Best creative writing in 7B class
-                  'llama4:8b',         // Good narrative, versatile
-                  'qwen3:7b',          // Solid general purpose
-                  'qwen3:3b',          // Lightweight
+                  'qwen3:30b-a3b', // MoE: Best quality for deep lore
+                  'phi4:14b', // Excellent narrative quality (9.8T tokens)
+                  'qwen3-coder:7b', // Best creative writing in 7B class
+                  'llama4:8b', // Good narrative, versatile
+                  'qwen3:7b', // Solid general purpose
+                  'qwen3:3b', // Lightweight
                 ];
-                const loreModel = availableModels.find(m =>
-                  preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
-                  !m.toLowerCase().includes('embed')
+                const loreModel = availableModels.find(
+                  (m) =>
+                    preferredModels.some((pref) => m.toLowerCase().includes(pref.toLowerCase())) &&
+                    !m.toLowerCase().includes('embed'),
                 );
-                model = loreModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
+                model =
+                  loreModel || availableModels.find((m) => m.toLowerCase().includes('qwen3')) || availableModels[0];
               }
             } catch {
               // If we can't list models, use default
@@ -530,49 +541,51 @@ export class AIOrchestrator {
             // Known models that exist (even if API list() returns empty)
             // Ordered by preference for refinement tasks
             const knownModels = [
-              'qwen3:8b',              // Best balance of quality/speed
-              'qwen3:4b',              // Fast and capable
-              'llama3.1:8b',           // Versatile and reliable
-              'phi4-mini:latest',      // Good reasoning
+              'qwen3:8b', // Best balance of quality/speed
+              'qwen3:4b', // Fast and capable
+              'llama3.1:8b', // Versatile and reliable
+              'phi4-mini:latest', // Good reasoning
               'deepseek-coder-v2:latest', // Good for structured output
-              'qwen3:7b',              // Alternative
-              'qwen3:30b-a3b',         // MoE: Best overall quality (if available)
-              'phi4:14b',              // Highest quality reasoning (if available)
+              'qwen3:7b', // Alternative
+              'qwen3:30b-a3b', // MoE: Best overall quality (if available)
+              'phi4:14b', // Highest quality reasoning (if available)
             ];
-            
+
             let model: string | null = null;
             try {
-              const availableModels = await ollamaClient.listModels?.() || [];
+              const availableModels = (await ollamaClient.listModels?.()) || [];
               if (availableModels.length > 0) {
                 // Refinement needs balanced creative + analytical + deep reasoning
                 const preferredModels = [
-                  'qwen3:30b-a3b',     // MoE: Best overall quality
-                  'phi4:14b',          // Highest quality reasoning (9.8T tokens)
-                  'deepseek-r1:8b',    // Explicit reasoning for improvements
-                  'qwen3-coder:7b',    // Excellent all-rounder
-                  'qwen3:7b',          // Strong analytical
-                  'qwen3:8b',          // Strong analytical (alternative)
-                  'qwen3:4b',          // Fast iterations
-                  'qwen3:3b',          // Fast iterations
-                  'phi4-mini',         // Good reasoning (alternative)
-                  'llama3.1:8b',       // Versatile
+                  'qwen3:30b-a3b', // MoE: Best overall quality
+                  'phi4:14b', // Highest quality reasoning (9.8T tokens)
+                  'deepseek-r1:8b', // Explicit reasoning for improvements
+                  'qwen3-coder:7b', // Excellent all-rounder
+                  'qwen3:7b', // Strong analytical
+                  'qwen3:8b', // Strong analytical (alternative)
+                  'qwen3:4b', // Fast iterations
+                  'qwen3:3b', // Fast iterations
+                  'phi4-mini', // Good reasoning (alternative)
+                  'llama3.1:8b', // Versatile
                 ];
-                const refinementModel = availableModels.find(m => {
+                const refinementModel = availableModels.find((m) => {
                   const modelLower = m.toLowerCase();
-                  return preferredModels.some(pref => 
-                    modelLower.includes(pref.toLowerCase()) && 
-                    !modelLower.includes('embed')
+                  return preferredModels.some(
+                    (pref) => modelLower.includes(pref.toLowerCase()) && !modelLower.includes('embed'),
                   );
                 });
-                model = refinementModel || 
-                        availableModels.find(m => m.toLowerCase().includes('qwen3') && !m.toLowerCase().includes('embed')) ||
-                        availableModels.find(m => !m.toLowerCase().includes('embed')) ||
-                        availableModels[0];
+                model =
+                  refinementModel ||
+                  availableModels.find(
+                    (m) => m.toLowerCase().includes('qwen3') && !m.toLowerCase().includes('embed'),
+                  ) ||
+                  availableModels.find((m) => !m.toLowerCase().includes('embed')) ||
+                  availableModels[0];
               }
             } catch (error) {
               logger.warn('Failed to list Ollama models, will try known models', { error });
             }
-            
+
             // If API list() returned empty (common Ollama issue), try known models
             // Ollama API sometimes can't list models but they're still usable
             // We know models exist via CLI, so trust that and use them
@@ -582,7 +595,7 @@ export class AIOrchestrator {
               model = knownModels[0]; // qwen3:4b
               logger.info(`API list() returned empty, but models exist via CLI. Using ${model} directly.`);
             }
-            
+
             return {
               client: ollamaClient,
               model,
@@ -596,17 +609,12 @@ export class AIOrchestrator {
           // GLM 4.6 is already checked above, fallback to Ollama Qwen models
           const ollamaClient = this.clients.get('ollama');
           if (ollamaClient && (await ollamaClient.isAvailable())) {
-            const qwenPreferred = [
-              'qwen3:30b-a3b',
-              'qwen3:8b',
-              'qwen3:7b',
-              'qwen3:4b',
-            ];
+            const qwenPreferred = ['qwen3:30b-a3b', 'qwen3:8b', 'qwen3:7b', 'qwen3:4b'];
             let model = 'qwen3:8b';
             try {
-              const availableModels = await ollamaClient.listModels?.() || [];
+              const availableModels = (await ollamaClient.listModels?.()) || [];
               const qwenModel = availableModels.find((m) =>
-                qwenPreferred.some((pref) => m.toLowerCase().includes(pref.toLowerCase()))
+                qwenPreferred.some((pref) => m.toLowerCase().includes(pref.toLowerCase())),
               );
               if (qwenModel) {
                 model = qwenModel;
@@ -638,20 +646,24 @@ export class AIOrchestrator {
             if (availableModels.length > 0) {
               // Prefer November 2025 models (optimized for Mac M4 16GB)
               const preferredModels = [
-                'qwen3:30b-a3b',     // MoE: Best quality/memory ratio
-                'phi4:14b',          // Highest quality reasoning
-                'qwen3-coder:7b',    // Best creative + analytical
-                'qwen3:7b',          // Best structured output
-                'deepseek-r1:8b',    // Best reasoning
-                'llama4:8b',         // Versatile lightweight
-                'mistral:7b',        // Fast workhorse
-                'qwen3:3b',          // Lightweight, fast
+                'qwen3:30b-a3b', // MoE: Best quality/memory ratio
+                'phi4:14b', // Highest quality reasoning
+                'qwen3-coder:7b', // Best creative + analytical
+                'qwen3:7b', // Best structured output
+                'deepseek-r1:8b', // Best reasoning
+                'llama4:8b', // Versatile lightweight
+                'mistral:7b', // Fast workhorse
+                'qwen3:3b', // Lightweight, fast
               ];
-              const generalPurposeModel = availableModels.find(m =>
-                preferredModels.some(pref => m.toLowerCase().includes(pref.toLowerCase())) &&
-                !m.toLowerCase().includes('embed')
+              const generalPurposeModel = availableModels.find(
+                (m) =>
+                  preferredModels.some((pref) => m.toLowerCase().includes(pref.toLowerCase())) &&
+                  !m.toLowerCase().includes('embed'),
               );
-              model = generalPurposeModel || availableModels.find(m => m.toLowerCase().includes('qwen3')) || availableModels[0];
+              model =
+                generalPurposeModel ||
+                availableModels.find((m) => m.toLowerCase().includes('qwen3')) ||
+                availableModels[0];
             }
           } catch {
             // If we can't list models, use default
@@ -741,11 +753,11 @@ export class AIOrchestrator {
     costLimit: number;
   }> {
     const clientEntries = Array.from(this.clients.entries());
-    logger.debug('getStatus called', { 
+    logger.debug('getStatus called', {
       totalClients: clientEntries.length,
-      clientNames: clientEntries.map(([name]) => name)
+      clientNames: clientEntries.map(([name]) => name),
     });
-    
+
     const clientStatus = await Promise.all(
       clientEntries.map(async ([name, client]) => {
         try {
@@ -757,9 +769,9 @@ export class AIOrchestrator {
             available,
           };
         } catch (error) {
-          logger.warn('Error checking client availability', { 
-            name, 
-            error: error instanceof Error ? error.message : String(error) 
+          logger.warn('Error checking client availability', {
+            name,
+            error: error instanceof Error ? error.message : String(error),
           });
           return {
             name: client.name,
@@ -767,7 +779,7 @@ export class AIOrchestrator {
             available: false,
           };
         }
-      })
+      }),
     );
 
     return {

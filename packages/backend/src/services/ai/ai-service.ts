@@ -62,26 +62,25 @@ export class AIService {
   async generateCompletion(options: GenerateCompletionOptions): Promise<GenerateCompletionResponse> {
     try {
       const messages = [
-        ...(options.systemMessage ? [{
-          role: 'system' as const,
-          content: options.systemMessage
-        }] : []),
+        ...(options.systemMessage
+          ? [
+              {
+                role: 'system' as const,
+                content: options.systemMessage,
+              },
+            ]
+          : []),
         {
           role: 'user' as const,
-          content: options.prompt
-        }
+          content: options.prompt,
+        },
       ];
 
-      const response = await this.orchestrator.generate(
-        'assistant',
-        messages,
-        options.modelPreference || 'auto',
-        {
-          temperature: options.temperature || 0.7,
-          maxTokens: options.maxTokens || 2000,
-          topP: options.topP || 0.9,
-        }
-      );
+      const response = await this.orchestrator.generate('assistant', messages, options.modelPreference || 'auto', {
+        temperature: options.temperature || 0.7,
+        maxTokens: options.maxTokens || 2000,
+        topP: options.topP || 0.9,
+      });
 
       return {
         content: response.content,
@@ -103,12 +102,10 @@ export class AIService {
    */
   async isAvailable(): Promise<boolean> {
     try {
-      const response = await this.orchestrator.generate(
-        'assistant',
-        [{ role: 'user', content: 'Hello' }],
-        'auto',
-        { temperature: 0, maxTokens: 5 }
-      );
+      const response = await this.orchestrator.generate('assistant', [{ role: 'user', content: 'Hello' }], 'auto', {
+        temperature: 0,
+        maxTokens: 5,
+      });
       return !!response.content;
     } catch (error) {
       return false;
@@ -122,7 +119,7 @@ export class AIService {
     const orchestrator = getAIOrchestrator();
     const clients = (orchestrator as any).clients;
     const available: string[] = [];
-    
+
     for (const [name, client] of clients.entries()) {
       try {
         if (await client.isAvailable()) {
@@ -132,7 +129,7 @@ export class AIService {
         // Client not available
       }
     }
-    
+
     return available;
   }
 
@@ -141,7 +138,7 @@ export class AIService {
    */
   async generateCompletionWithRetry(
     options: GenerateCompletionOptions,
-    maxRetries: number = 3
+    maxRetries: number = 3,
   ): Promise<GenerateCompletionResponse> {
     let lastError: Error | null = null;
 
@@ -150,13 +147,13 @@ export class AIService {
         return await this.generateCompletion(options);
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        
+
         if (attempt === maxRetries) {
           throw lastError;
         }
 
         // Wait before retry (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 1000));
       }
     }
 

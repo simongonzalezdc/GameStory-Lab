@@ -18,7 +18,7 @@ export function ErrorMessage({ error, onRetry, suggestion }: ErrorMessageProps) 
     }
 
     if (errorLower.includes('rate limit') || errorLower.includes('429')) {
-      return 'You\'ve hit the API rate limit. Wait a few minutes and try again, or switch to a different AI model.';
+      return "You've hit the API rate limit. Wait a few minutes and try again, or switch to a different AI model.";
     }
 
     if (errorLower.includes('quota') || errorLower.includes('exceeded')) {

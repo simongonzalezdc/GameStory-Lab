@@ -70,9 +70,7 @@ describe('MiniMax M2 Optimization Integration', () => {
       // Replace the client in the orchestrator
       orchestrator['clients'].set('minimax', mockClient as any);
 
-      await orchestrator.generate('mechanics', [
-        { role: 'user', content: 'Generate mechanics' },
-      ]);
+      await orchestrator.generate('mechanics', [{ role: 'user', content: 'Generate mechanics' }]);
 
       expect(mockClient.complete).toHaveBeenCalled();
       const request = mockClient.complete.mock.calls[0][0];
@@ -100,9 +98,7 @@ describe('MiniMax M2 Optimization Integration', () => {
 
       orchestrator['clients'].set('minimax', mockClient as any);
 
-      await orchestrator.generate('lore', [
-        { role: 'user', content: 'Generate lore' },
-      ]);
+      await orchestrator.generate('lore', [{ role: 'user', content: 'Generate lore' }]);
 
       const request = mockClient.complete.mock.calls[0][0];
       expect(request.responseFormat).toEqual({ type: 'json_object' });
@@ -129,9 +125,7 @@ describe('MiniMax M2 Optimization Integration', () => {
 
       orchestrator['clients'].set('minimax', mockClient as any);
 
-      await orchestrator.generate('assistant', [
-        { role: 'user', content: 'Hello' },
-      ]);
+      await orchestrator.generate('assistant', [{ role: 'user', content: 'Hello' }]);
 
       const request = mockClient.complete.mock.calls[0][0];
       expect(request.responseFormat).toBeUndefined();
@@ -186,4 +180,3 @@ describe('MiniMax M2 Optimization Integration', () => {
     });
   });
 });
-

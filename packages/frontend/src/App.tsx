@@ -9,12 +9,18 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AppShell } from './components/AppShell';
 
 // Lazy load page components for code splitting
-const ProjectsPage = lazy(() => import('./pages/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
-const ConceptEditorPage = lazy(() => import('./pages/ConceptEditorPage').then(m => ({ default: m.ConceptEditorPage })));
-const TemplateBrowserPage = lazy(() => import('./pages/TemplateBrowserPage').then(m => ({ default: m.TemplateBrowserPage })));
-const HealthPage = lazy(() => import('./pages/HealthPage').then(m => ({ default: m.HealthPage })));
-const TutorialPage = lazy(() => import('./pages/TutorialPage').then(m => ({ default: m.TutorialPage })));
-const ProjectArchitectPage = lazy(() => import('./pages/ProjectArchitectPage').then(m => ({ default: m.ProjectArchitectPage })));
+const ProjectsPage = lazy(() => import('./pages/ProjectsPage').then((m) => ({ default: m.ProjectsPage })));
+const ConceptEditorPage = lazy(() =>
+  import('./pages/ConceptEditorPage').then((m) => ({ default: m.ConceptEditorPage })),
+);
+const TemplateBrowserPage = lazy(() =>
+  import('./pages/TemplateBrowserPage').then((m) => ({ default: m.TemplateBrowserPage })),
+);
+const HealthPage = lazy(() => import('./pages/HealthPage').then((m) => ({ default: m.HealthPage })));
+const TutorialPage = lazy(() => import('./pages/TutorialPage').then((m) => ({ default: m.TutorialPage })));
+const ProjectArchitectPage = lazy(() =>
+  import('./pages/ProjectArchitectPage').then((m) => ({ default: m.ProjectArchitectPage })),
+);
 
 import { JewelSpinner } from './components/JewelSpinner';
 
@@ -38,24 +44,24 @@ function AnimatedRoutes() {
     initial: {
       opacity: 0,
       y: 20,
-      scale: 0.98
+      scale: 0.98,
     },
     in: {
       opacity: 1,
       y: 0,
-      scale: 1
+      scale: 1,
     },
     out: {
       opacity: 0,
       y: -20,
-      scale: 1.02
-    }
+      scale: 1.02,
+    },
   };
 
   const pageTransition = {
-    type: "tween" as const,
-    ease: "anticipate" as const,
-    duration: 0.4
+    type: 'tween' as const,
+    ease: 'anticipate' as const,
+    duration: 0.4,
   };
 
   return (

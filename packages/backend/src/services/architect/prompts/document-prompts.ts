@@ -55,8 +55,7 @@ const DOCUMENT_CONFIG: Record<
   },
   [DOCUMENT_TYPES.TECHNICAL_SPECIFICATION]: {
     role: 'You are a lead solutions architect writing the implementation blueprint.',
-    description:
-      'Document the technical foundation so the engineering team can build without ambiguity.',
+    description: 'Document the technical foundation so the engineering team can build without ambiguity.',
     sections: [
       {
         heading: 'Architecture & Infrastructure',
@@ -78,8 +77,7 @@ const DOCUMENT_CONFIG: Record<
   },
   [DOCUMENT_TYPES.PRODUCT_REQUIREMENTS]: {
     role: 'You are a senior product manager crafting actionable specs.',
-    description:
-      'Transform the concept into concrete feature requirements, stories, and acceptance criteria.',
+    description: 'Transform the concept into concrete feature requirements, stories, and acceptance criteria.',
     sections: [
       {
         heading: 'Feature Specifications',
@@ -102,8 +100,7 @@ const DOCUMENT_CONFIG: Record<
   },
   [DOCUMENT_TYPES.ROADMAP]: {
     role: 'You are a program manager building the delivery timeline.',
-    description:
-      'Craft a phased roadmap that balances scope, dependencies, and team capacity.',
+    description: 'Craft a phased roadmap that balances scope, dependencies, and team capacity.',
     sections: [
       {
         heading: 'Phase 1 – Core Loop MVP',
@@ -122,8 +119,7 @@ const DOCUMENT_CONFIG: Record<
   },
   [DOCUMENT_TYPES.LAUNCH_CHECKLIST]: {
     role: 'You are a launch director ensuring readiness and coordination.',
-    description:
-      'Produce a launch checklist covering technical validation, go-to-market, and post-launch readiness.',
+    description: 'Produce a launch checklist covering technical validation, go-to-market, and post-launch readiness.',
     sections: [
       {
         heading: 'Technical Validation',
@@ -142,8 +138,7 @@ const DOCUMENT_CONFIG: Record<
         guidance: 'Include KPIs, monitoring, rollback plans, and post-launch actions.',
       },
     ],
-    additional:
-      'Align launch activities with roadmap milestones and highlight outstanding technical constraints.',
+    additional: 'Align launch activities with roadmap milestones and highlight outstanding technical constraints.',
   },
 };
 
@@ -170,21 +165,17 @@ function buildDependencyNotes(documentType: DOCUMENT_TYPES, dependencies: Depend
 export function getDocumentPrompt(
   documentType: DOCUMENT_TYPES,
   context: string,
-  dependencies: Dependencies = {}
+  dependencies: Dependencies = {},
 ): string {
   const config = DOCUMENT_CONFIG[documentType];
   if (!config) {
     throw new Error(`Unknown document type: ${documentType}`);
   }
 
-  const sectionsText = config.sections
-    .map(section => `## ${section.heading}\n${section.guidance}`)
-    .join('\n\n');
+  const sectionsText = config.sections.map((section) => `## ${section.heading}\n${section.guidance}`).join('\n\n');
 
   const dependencyNotes = buildDependencyNotes(documentType, dependencies);
-  const additionalPieces = [dependencyNotes, sectionsText, config.additional]
-    .filter(Boolean)
-    .join('\n\n');
+  const additionalPieces = [dependencyNotes, sectionsText, config.additional].filter(Boolean).join('\n\n');
 
   return buildUnifiedPrompt({
     taskType: 'assistant',
@@ -202,4 +193,3 @@ export const DOCUMENT_GENERATION_ORDER: DOCUMENT_TYPES[] = [
   DOCUMENT_TYPES.ROADMAP,
   DOCUMENT_TYPES.LAUNCH_CHECKLIST,
 ];
-

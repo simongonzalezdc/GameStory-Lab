@@ -17,7 +17,7 @@ describe('Layout', () => {
     render(
       <Layout>
         <div>Test Content</div>
-      </Layout>
+      </Layout>,
     );
 
     expect(screen.getByText('Projects')).toBeTruthy();
@@ -29,7 +29,7 @@ describe('Layout', () => {
     render(
       <Layout>
         <div>Test Child Content</div>
-      </Layout>
+      </Layout>,
     );
 
     expect(screen.getByText('Test Child Content')).toBeTruthy();
@@ -39,7 +39,7 @@ describe('Layout', () => {
     render(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     expect(screen.getByText('GameStory Lab')).toBeTruthy();
@@ -50,7 +50,7 @@ describe('Layout', () => {
     render(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     expect(screen.getByRole('link', { name: /share feedback/i })).toBeTruthy();
@@ -62,7 +62,7 @@ describe('Layout', () => {
     render(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     const nav = screen.getByRole('navigation', { name: /main navigation/i });
@@ -73,7 +73,7 @@ describe('Layout', () => {
     render(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     const logoLink = screen.getByRole('link', { name: /gamestory lab home/i });
@@ -84,7 +84,7 @@ describe('Layout', () => {
     render(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     const exploreButton = screen.getByRole('link', { name: /explore templates/i });
@@ -98,7 +98,7 @@ describe('Layout', () => {
     render(
       <Layout>
         <div>Content</div>
-      </Layout>
+      </Layout>,
     );
 
     const settingsButton = screen.getByRole('button', { name: /settings/i });

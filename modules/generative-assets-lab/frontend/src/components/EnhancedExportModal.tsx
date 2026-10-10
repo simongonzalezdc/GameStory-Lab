@@ -150,7 +150,8 @@ export function EnhancedExportModal({ selectedAssets, onClose, onExport }: Enhan
 
   // Calculate estimated sprite sheet dimensions
   const estimatedWidth = Math.ceil(Math.sqrt(totalAssets)) * 64 * settings.resolutionMultiplier;
-  const estimatedHeight = Math.ceil(totalAssets / Math.ceil(Math.sqrt(totalAssets))) * 64 * settings.resolutionMultiplier;
+  const estimatedHeight =
+    Math.ceil(totalAssets / Math.ceil(Math.sqrt(totalAssets))) * 64 * settings.resolutionMultiplier;
   const fitsInSheet = estimatedWidth <= settings.sheetSize && estimatedHeight <= settings.sheetSize;
 
   return (
@@ -160,7 +161,9 @@ export function EnhancedExportModal({ selectedAssets, onClose, onExport }: Enhan
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Export Assets</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{totalAssets} asset{totalAssets !== 1 ? 's' : ''} selected</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {totalAssets} asset{totalAssets !== 1 ? 's' : ''} selected
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -298,9 +301,7 @@ export function EnhancedExportModal({ selectedAssets, onClose, onExport }: Enhan
 
             {/* Sheet Size */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Sprite Sheet Size
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Sprite Sheet Size</label>
               <select
                 value={settings.sheetSize}
                 onChange={(e) => handleSettingChange('sheetSize', Number(e.target.value))}
@@ -352,14 +353,27 @@ export function EnhancedExportModal({ selectedAssets, onClose, onExport }: Enhan
           <div className="bg-gray-50 rounded-lg p-4 space-y-2">
             <h3 className="font-medium text-gray-900">Export Summary</h3>
             <div className="text-sm text-gray-600 space-y-1">
-              <p>• Format: <span className="font-medium">{selectedFormat?.name}</span></p>
-              <p>• Assets: <span className="font-medium">{totalAssets}</span></p>
-              <p>• Estimated sheet size: <span className="font-medium">{estimatedWidth}x{estimatedHeight}px</span></p>
+              <p>
+                • Format: <span className="font-medium">{selectedFormat?.name}</span>
+              </p>
+              <p>
+                • Assets: <span className="font-medium">{totalAssets}</span>
+              </p>
+              <p>
+                • Estimated sheet size:{' '}
+                <span className="font-medium">
+                  {estimatedWidth}x{estimatedHeight}px
+                </span>
+              </p>
               <p className={fitsInSheet ? 'text-green-600' : 'text-red-600'}>
                 • {fitsInSheet ? '✓ Fits in selected sheet size' : '⚠️ May not fit - increase sheet size'}
               </p>
-              <p>• Resolution: <span className="font-medium">{settings.resolutionMultiplier}x</span></p>
-              <p>• Padding: <span className="font-medium">{settings.padding}px</span></p>
+              <p>
+                • Resolution: <span className="font-medium">{settings.resolutionMultiplier}x</span>
+              </p>
+              <p>
+                • Padding: <span className="font-medium">{settings.padding}px</span>
+              </p>
             </div>
           </div>
         </div>

@@ -53,7 +53,9 @@ describe.skip('GLM Client Integration Tests', () => {
 
     const request: AICompletionRequest = {
       model: 'GLM-4.6',
-      messages: [{ role: 'user' as const, content: 'Hello! Please respond with a simple greeting to test the API connection.' }],
+      messages: [
+        { role: 'user' as const, content: 'Hello! Please respond with a simple greeting to test the API connection.' },
+      ],
       temperature: 0.7,
       maxTokens: 100,
     };
@@ -169,7 +171,12 @@ describe.skip('GLM Client Integration Tests', () => {
     // This test specifically verifies the new endpoint is working
     const request: AICompletionRequest = {
       model: 'GLM-4.6',
-      messages: [{ role: 'user' as const, content: 'Confirm this is using the new coding API endpoint at api.z.ai/api/coding/paas/v4' }],
+      messages: [
+        {
+          role: 'user' as const,
+          content: 'Confirm this is using the new coding API endpoint at api.z.ai/api/coding/paas/v4',
+        },
+      ],
       temperature: 0.3,
       maxTokens: 50,
     };

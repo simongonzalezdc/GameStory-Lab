@@ -41,10 +41,7 @@ export class AIDocumentGenerator {
   /**
    * Generate all documents for a project using dependency-aware phases
    */
-  async generateAllDocuments(
-    sessionId: string,
-    projectContext?: ProjectContext
-  ): Promise<CascadeGenerationResult> {
+  async generateAllDocuments(sessionId: string, projectContext?: ProjectContext): Promise<CascadeGenerationResult> {
     const startTime = Date.now();
     const results: DocumentGenerationResult[] = [];
     const failedDocuments: DOCUMENT_TYPES[] = [];
@@ -82,7 +79,7 @@ export class AIDocumentGenerator {
       baseContext,
       summaries,
       sessionId,
-      context
+      context,
     );
     results.push(execSummaryResult);
     totalTokensUsed += execSummaryResult.tokensUsed;
@@ -97,7 +94,7 @@ export class AIDocumentGenerator {
       baseContext,
       summaries,
       sessionId,
-      context
+      context,
     );
     results.push(techSpecResult);
     totalTokensUsed += techSpecResult.tokensUsed;
@@ -109,24 +106,21 @@ export class AIDocumentGenerator {
 
     // Group 3: Product Requirements + Roadmap (parallel)
     logger.info('[AIDocumentGenerator] Generating Product Requirements and Roadmap', { sessionId });
-    const group3Documents: DOCUMENT_TYPES[] = [
-      DOCUMENT_TYPES.PRODUCT_REQUIREMENTS,
-      DOCUMENT_TYPES.ROADMAP,
-    ];
+    const group3Documents: DOCUMENT_TYPES[] = [DOCUMENT_TYPES.PRODUCT_REQUIREMENTS, DOCUMENT_TYPES.ROADMAP];
 
-    const group3Promises = group3Documents.map(docType => 
-      this.generateDocumentWithRetry(docType, baseContext, summaries, sessionId, context)
+    const group3Promises = group3Documents.map((docType) =>
+      this.generateDocumentWithRetry(docType, baseContext, summaries, sessionId, context),
     );
 
     const group3Results = await Promise.allSettled(group3Promises);
-    
+
     group3Results.forEach((settled, index) => {
       const docType = group3Documents[index];
       if (settled.status === 'fulfilled') {
         const result = settled.value;
         results.push(result);
         totalTokensUsed += result.tokensUsed;
-        
+
         if (!result.success) {
           failedDocuments.push(docType);
         } else {
@@ -160,17 +154,17 @@ export class AIDocumentGenerator {
         sessionId,
       });
     }
-      const launchChecklistResult = await this.generateDocumentWithRetry(
-        DOCUMENT_TYPES.LAUNCH_CHECKLIST,
-        baseContext,
-        summaries,
-        sessionId,
-        context
-      );
-      results.push(launchChecklistResult);
-      totalTokensUsed += launchChecklistResult.tokensUsed;
-      if (!launchChecklistResult.success) {
-        failedDocuments.push(DOCUMENT_TYPES.LAUNCH_CHECKLIST);
+    const launchChecklistResult = await this.generateDocumentWithRetry(
+      DOCUMENT_TYPES.LAUNCH_CHECKLIST,
+      baseContext,
+      summaries,
+      sessionId,
+      context,
+    );
+    results.push(launchChecklistResult);
+    totalTokensUsed += launchChecklistResult.tokensUsed;
+    if (!launchChecklistResult.success) {
+      failedDocuments.push(DOCUMENT_TYPES.LAUNCH_CHECKLIST);
     }
 
     const totalTime = Date.now() - startTime;
@@ -202,10 +196,10 @@ export class AIDocumentGenerator {
     baseContext: string,
     summaries: Record<string, string>,
     sessionId: string,
-    projectContext?: ProjectContext
+    projectContext?: ProjectContext,
   ): Promise<DocumentGenerationResult> {
     const docStartTime = Date.now();
-    
+
     try {
       const prompt = getDocumentPrompt(documentType, baseContext, summaries);
       const result = await this.generateSingleDocument(documentType, prompt);
@@ -221,7 +215,6 @@ export class AIDocumentGenerator {
       });
 
       return result;
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`[AIDocumentGenerator] Failed to generate ${documentType}`, {
@@ -246,7 +239,7 @@ export class AIDocumentGenerator {
   private async generateSingleDocument(
     documentType: DOCUMENT_TYPES,
     prompt: string,
-    maxRetries: number = 3
+    maxRetries: number = 3,
   ): Promise<DocumentGenerationResult> {
     let lastError: Error | null = null;
 
@@ -271,7 +264,6 @@ export class AIDocumentGenerator {
           generationTimeMs: 0, // Will be set by caller
           success: true,
         };
-
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
@@ -284,7 +276,7 @@ export class AIDocumentGenerator {
         // Exponential backoff: 1s, 2s, 4s
         if (attempt < maxRetries) {
           const delayMs = Math.pow(2, attempt - 1) * 1000;
-          await new Promise(resolve => setTimeout(resolve, delayMs));
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
         }
       }
     }
@@ -344,9 +336,7 @@ export class AIDocumentGenerator {
   private extractSummary(content: string): string {
     // Extract first 500 characters or first paragraph, whichever is shorter
     const firstParagraph = content.split('\n\n')[0] || '';
-    const summary = firstParagraph.length > 500
-      ? firstParagraph.substring(0, 500) + '...'
-      : firstParagraph;
+    const summary = firstParagraph.length > 500 ? firstParagraph.substring(0, 500) + '...' : firstParagraph;
 
     return summary;
   }

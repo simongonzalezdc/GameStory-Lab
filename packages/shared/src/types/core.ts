@@ -118,13 +118,7 @@ export interface ConceptMetadata {
 // Enums and Literal Types
 // ============================================================================
 
-export type TaskType =
-  | 'mechanics'
-  | 'lore'
-  | 'title'
-  | 'refinement'
-  | 'consistency'
-  | 'assistant';
+export type TaskType = 'mechanics' | 'lore' | 'title' | 'refinement' | 'consistency' | 'assistant';
 
 export type ValidationSeverity = 'error' | 'warning' | 'info';
 
@@ -150,11 +144,7 @@ export type Genre =
 
 export type ExportTemplate = 'gdd' | 'pitch' | 'technical';
 
-export type RefinementFocus =
-  | 'deepen-mechanics'
-  | 'enrich-lore'
-  | 'improve-consistency'
-  | 'enhance-genre-fit';
+export type RefinementFocus = 'deepen-mechanics' | 'enrich-lore' | 'improve-consistency' | 'enhance-genre-fit';
 
 // ============================================================================
 // AI Provider Types
@@ -317,12 +307,7 @@ export class AppError extends Error {
   readonly _statusCode: number;
   readonly _details?: unknown;
 
-  constructor(
-    code: string,
-    message: string,
-    _statusCode: number = 500,
-    _details?: unknown
-  ) {
+  constructor(code: string, message: string, _statusCode: number = 500, _details?: unknown) {
     super(message);
     this.name = 'AppError';
     this.code = code;

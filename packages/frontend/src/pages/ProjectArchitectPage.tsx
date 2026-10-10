@@ -86,7 +86,7 @@ export function ProjectArchitectPage() {
         // Suppress console errors for expected 404s
         signal: AbortSignal.timeout(5000), // 5 second timeout
       });
-      
+
       if (response.status === 404) {
         // Documentation doesn't exist yet - this is expected and not an error
         // Log only once per projectId to aid debugging
@@ -98,7 +98,7 @@ export function ProjectArchitectPage() {
         setGeneratedDocs(null);
         return;
       }
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
@@ -125,7 +125,7 @@ export function ProjectArchitectPage() {
           // Handle generation status
           // Check if all documents are completed/failed - stop polling if so
           const allCompleted = docs.documents.every(
-            (doc: any) => doc.status === 'completed' || doc.status === 'failed'
+            (doc: any) => doc.status === 'completed' || doc.status === 'failed',
           );
 
           if (generationStatus === 'generating' && !allCompleted) {
@@ -143,9 +143,7 @@ export function ProjectArchitectPage() {
 
             // Load first document by default if completed
             if (docs.documents.length > 0 && (generationStatus === 'completed' || allCompleted)) {
-              const firstCompletedDoc = docs.documents.find(
-                (doc: any) => doc.status === 'completed'
-              );
+              const firstCompletedDoc = docs.documents.find((doc: any) => doc.status === 'completed');
               if (firstCompletedDoc) {
                 loadDocumentContent(firstCompletedDoc.templateName || firstCompletedDoc.name);
                 setSelectedDocIndex(docs.documents.indexOf(firstCompletedDoc));
@@ -181,7 +179,7 @@ export function ProjectArchitectPage() {
         throw new Error('Failed to load document');
       }
       const content = await response.text();
-      setDocumentsContent(prev => new Map(prev).set(documentName, content));
+      setDocumentsContent((prev) => new Map(prev).set(documentName, content));
     } catch (err) {
       console.error('Failed to load document:', err);
     }
@@ -301,9 +299,9 @@ export function ProjectArchitectPage() {
         {/* Left Side - Chat Panel */}
         <div className="flex-1 min-w-0 min-h-0 overflow-hidden border-r border-subtle flex flex-col">
           {projectId && (
-            <ProjectAssistantPanel 
-              projectId={projectId} 
-              type="architect" 
+            <ProjectAssistantPanel
+              projectId={projectId}
+              type="architect"
               onProposalAccepted={async () => {
                 // Force refresh documentation after proposal is accepted
                 checkedProjects.current.delete(projectId);
@@ -317,10 +315,7 @@ export function ProjectArchitectPage() {
         {/* Right Side - Document Preview Panel */}
         <div className="flex-1 min-w-0 flex flex-col bg-surface-card border-l border-subtle">
           {isGenerating && (!generatedDocs || generatedDocs.documents.length === 0) ? (
-            <GenerationStatus
-              isGenerating={isGenerating}
-              generationMessage={generationMessage}
-            />
+            <GenerationStatus isGenerating={isGenerating} generationMessage={generationMessage} />
           ) : generatedDocs && generatedDocs.documents.length > 0 ? (
             <>
               <DocumentList

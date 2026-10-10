@@ -5,11 +5,15 @@ import { writeFileSync } from 'fs';
 import { resolve, normalize } from 'path';
 import { getProject } from '@/lib/db/queries';
 
-const execAsync = (command: string, args: string[], options: { cwd: string }): Promise<{ stdout: string; stderr: string }> => {
+const execAsync = (
+  command: string,
+  args: string[],
+  options: { cwd: string }
+): Promise<{ stdout: string; stderr: string }> => {
   return new Promise((resolveExec, reject) => {
     const child = spawn(command, args, {
       cwd: options.cwd,
-      shell: false
+      shell: false,
     });
 
     let stdout = '';
@@ -59,7 +63,10 @@ export async function POST(request: NextRequest) {
     const projectPathResolved = resolve(project.path);
 
     if (!normalizedPath.startsWith(projectPathResolved)) {
-      return NextResponse.json({ error: 'Invalid file path: path traversal detected' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid file path: path traversal detected' },
+        { status: 400 }
+      );
     }
 
     writeFileSync(normalizedPath, validated.content, 'utf-8');
@@ -97,7 +104,10 @@ export async function POST(request: NextRequest) {
     console.error('Git commit error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json(

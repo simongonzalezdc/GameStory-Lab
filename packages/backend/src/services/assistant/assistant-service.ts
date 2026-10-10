@@ -81,7 +81,7 @@ export class AssistantService {
 
   constructor(
     private prisma: PrismaClient,
-    private aiOrchestrator: AIOrchestrator
+    private aiOrchestrator: AIOrchestrator,
   ) {}
 
   async getOrCreateSession(projectId: string, type: SessionType = 'concept', modeHint?: AssistantMode) {
@@ -103,7 +103,7 @@ export class AssistantService {
       }
       effectiveProjectId = generalProject.id;
     }
-    
+
     // Always use unified 'project' session type
     // Backfill any existing separate sessions by finding the most recent one
     let existing = await this.prisma.chatSession.findFirst({
@@ -200,35 +200,31 @@ export class AssistantService {
     });
   }
 
-  async sendMessage(
-    sessionId: string,
-    content: string,
-    options?: { quickActionId?: string }
-  ) {
+  async sendMessage(sessionId: string, content: string, options?: { quickActionId?: string }) {
     try {
-    const session = await this.getSession(sessionId);
-    if (!session) {
-      throw new Error('Session not found');
-    }
+      const session = await this.getSession(sessionId);
+      if (!session) {
+        throw new Error('Session not found');
+      }
 
-    const quickActionId = options?.quickActionId;
+      const quickActionId = options?.quickActionId;
 
-    // Extract mode from session metadata or default to auto
-    const sessionMetadata = session.metadata as Record<string, any> | null;
-    const currentMode = (sessionMetadata?.mode as AssistantMode) || 'auto';
+      // Extract mode from session metadata or default to auto
+      const sessionMetadata = session.metadata as Record<string, any> | null;
+      const currentMode = (sessionMetadata?.mode as AssistantMode) || 'auto';
 
-    // Store user message with mode context
-    await this.prisma.chatMessage.create({
-      data: {
-        sessionId,
-        role: 'user',
-        content,
-        metadata: {
-          mode: currentMode,
-          quickActionId,
+      // Store user message with mode context
+      await this.prisma.chatMessage.create({
+        data: {
+          sessionId,
+          role: 'user',
+          content,
+          metadata: {
+            mode: currentMode,
+            quickActionId,
+          },
         },
-      },
-    });
+      });
 
       // Handle architect interview flow for unified sessions
       // For architect mode, we need to check and update interview progress
@@ -236,124 +232,168 @@ export class AssistantService {
         await this.handleArchitectInterviewFlow(session, content);
       }
 
-    const context = await this.buildContext({ ...session, id: sessionId });
-    const previousMessages = await this.prisma.chatMessage.findMany({
-      where: { sessionId },
-      orderBy: { createdAt: 'asc' },
-      take: 15,
-    });
+      const context = await this.buildContext({ ...session, id: sessionId });
+      const previousMessages = await this.prisma.chatMessage.findMany({
+        where: { sessionId },
+        orderBy: { createdAt: 'asc' },
+        take: 15,
+      });
 
-    const aiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-      {
-        role: 'system' as const,
-        content: this.buildSystemPrompt(currentMode, context),
-      },
-      ...previousMessages.map((msg: { role: string; content: string }) => ({
-        role: (msg.role === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user',
-        content: msg.content,
-      })),
-      {
-        role: 'user' as const,
-        content: (() => {
-          // Build instruction blocks
-          const instructionBlocks: string[] = [];
-          
-          // Add quick action guidance first if present
-          const quickActionGuidance = this.getQuickActionInstructions(quickActionId, context);
-          if (quickActionGuidance.length > 0) {
-            instructionBlocks.push(...quickActionGuidance);
+      const aiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+        {
+          role: 'system' as const,
+          content: this.buildSystemPrompt(currentMode, context),
+        },
+        ...previousMessages.map((msg: { role: string; content: string }) => ({
+          role: (msg.role === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user',
+          content: msg.content,
+        })),
+        {
+          role: 'user' as const,
+          content: (() => {
+            // Build instruction blocks
+            const instructionBlocks: string[] = [];
+
+            // Add quick action guidance first if present
+            const quickActionGuidance = this.getQuickActionInstructions(quickActionId, context);
+            if (quickActionGuidance.length > 0) {
+              instructionBlocks.push(...quickActionGuidance);
+              instructionBlocks.push('');
+            }
+
+            // Add context information
+            if (context.latestVersion) {
+              instructionBlocks.push('CURRENT PROJECT DATA:');
+              instructionBlocks.push(`Mechanics: ${JSON.stringify(context.latestVersion.mechanics)}`);
+              instructionBlocks.push(`Lore: ${JSON.stringify(context.latestVersion.lore)}`);
+              instructionBlocks.push('');
+            }
+
+            if (context.validationIssues.length > 0) {
+              instructionBlocks.push('VALIDATION ISSUES TO ADDRESS:');
+              context.validationIssues.forEach((issue, idx) => {
+                instructionBlocks.push(`${idx + 1}. [${issue.severity}] ${issue.rule}: ${issue.message}`);
+              });
+              instructionBlocks.push('');
+            }
+
+            // Add critical proposal requirements
+            instructionBlocks.push('🚨 CRITICAL RESPONSE FORMAT:');
+            instructionBlocks.push(
+              'You MUST respond with PURE JSON ONLY - NO tool calls, NO markdown, NO wrapper formats!',
+            );
+            instructionBlocks.push(
+              'Return ONLY valid JSON using this EXACT nested schema (NOTE: proposal comes FIRST to prevent truncation):',
+            );
+            instructionBlocks.push(
+              '{ "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] }, "reply": "string (MAX 2 SENTENCES)" }',
+            );
             instructionBlocks.push('');
-          }
-          
-          // Add context information
-          if (context.latestVersion) {
-            instructionBlocks.push('CURRENT PROJECT DATA:');
-            instructionBlocks.push(`Mechanics: ${JSON.stringify(context.latestVersion.mechanics)}`);
-            instructionBlocks.push(`Lore: ${JSON.stringify(context.latestVersion.lore)}`);
+            instructionBlocks.push(
+              '⚠️ CRITICAL: Put "proposal" FIRST, "reply" SECOND. This ensures truncation cuts the reply (dispensable) instead of the proposal (critical).',
+            );
+            instructionBlocks.push(
+              '⚠️ CRITICAL: Keep "reply" field to MAXIMUM 2 sentences to save tokens for the proposal data.',
+            );
             instructionBlocks.push('');
-          }
-          
-          if (context.validationIssues.length > 0) {
-            instructionBlocks.push('VALIDATION ISSUES TO ADDRESS:');
-            context.validationIssues.forEach((issue, idx) => {
-              instructionBlocks.push(`${idx + 1}. [${issue.severity}] ${issue.rule}: ${issue.message}`);
-            });
+            instructionBlocks.push(
+              'You must output a JSON object containing exactly these keys: title (string), fileName (string ending in .md), and markdownContent (string). Do not invent other keys like "mechanics" or "explanation".',
+            );
+            instructionBlocks.push(
+              'When creating documents, the content values (like "mechanics" or "lore") MUST be formatted as valid Markdown (use # headers, - lists, bold). Do not return plain text blocks.',
+            );
             instructionBlocks.push('');
-          }
-          
-          // Add critical proposal requirements
-          instructionBlocks.push('🚨 CRITICAL RESPONSE FORMAT:');
-          instructionBlocks.push('You MUST respond with PURE JSON ONLY - NO tool calls, NO markdown, NO wrapper formats!');
-          instructionBlocks.push('Return ONLY valid JSON using this EXACT nested schema (NOTE: proposal comes FIRST to prevent truncation):');
-          instructionBlocks.push('{ "proposal": { "explanation": "string", "mechanics": {}, "lore": {}, "architectDocuments": [] }, "reply": "string (MAX 2 SENTENCES)" }');
-          instructionBlocks.push('');
-          instructionBlocks.push('⚠️ CRITICAL: Put "proposal" FIRST, "reply" SECOND. This ensures truncation cuts the reply (dispensable) instead of the proposal (critical).');
-          instructionBlocks.push('⚠️ CRITICAL: Keep "reply" field to MAXIMUM 2 sentences to save tokens for the proposal data.');
-          instructionBlocks.push('');
-          instructionBlocks.push('You must output a JSON object containing exactly these keys: title (string), fileName (string ending in .md), and markdownContent (string). Do not invent other keys like "mechanics" or "explanation".');
-          instructionBlocks.push('When creating documents, the content values (like "mechanics" or "lore") MUST be formatted as valid Markdown (use # headers, - lists, bold). Do not return plain text blocks.');
-          instructionBlocks.push('');
-          instructionBlocks.push('❌ FORBIDDEN FORMATS:');
-          instructionBlocks.push('DO NOT use: [TOOL_CALL], json_build_output, --reply, --proposal, or ANY tool calling syntax');
-          instructionBlocks.push('DO NOT wrap in: ```json```, markdown, or any other format');
-          instructionBlocks.push('ONLY return raw JSON object starting with { and ending with }');
-          instructionBlocks.push('');
-          instructionBlocks.push('⚠️ STRUCTURE REQUIREMENT - CRITICAL:');
-          instructionBlocks.push('The "proposal" object MUST be NESTED under a "proposal" key at the top level.');
-          instructionBlocks.push('CORRECT: { "proposal": { "mechanics": {...}, "lore": {...} }, "reply": "..." }  ← proposal FIRST!');
-          instructionBlocks.push('WRONG:   { "reply": "...", "proposal": {...} }  ← reply first will cause truncation issues!');
-          instructionBlocks.push('WRONG:   { "reply": "...", "mechanics": {...}, "lore": {...} }  ← This will FAIL!');
-          instructionBlocks.push('WRONG:   { "reply": "...", "explanation": "...", "mechanics": {...} }  ← This will FAIL!');
-          instructionBlocks.push('WRONG:   [TOOL_CALL] {tool => "json_build_output"...}  ← This will FAIL!');
-          instructionBlocks.push('');
-          instructionBlocks.push('🚨 CRITICAL PROPOSAL REQUIREMENT:');
-          instructionBlocks.push('If the user asks for ANY of these, you MUST include a proposal object with actual data:');
-          instructionBlocks.push('- "produce", "create", "generate", "build", "make", "implement", "apply"');
-          instructionBlocks.push('- "documents", "documentation", "plan", "proposal", "improvements"');
-          instructionBlocks.push('- "do it", "go ahead", "ok", "yes", "please make"');
-          instructionBlocks.push('- ANY request where the user wants something they can approve');
-          instructionBlocks.push('');
-          instructionBlocks.push('⚠️ PROPOSAL VALIDATION CHECKLIST (check before responding):');
-          instructionBlocks.push('1. Does user want something actionable? → MUST include proposal');
-          instructionBlocks.push('2. Is the proposal nested under "proposal" key AND placed FIRST? → MUST be {proposal: {...}, reply: "..."}');
-          instructionBlocks.push('3. Is the reply field limited to 2 sentences? → MUST be concise to save tokens');
-          instructionBlocks.push('4. Is proposal.mechanics empty {}? → ERROR - include full mechanics object');
-          instructionBlocks.push('5. Is proposal.lore empty {}? → ERROR - include full lore object if proposing lore changes');
-          instructionBlocks.push('6. Is proposal.architectDocuments empty []? → ERROR - include documents if proposing docs');
-          instructionBlocks.push('7. Does proposal only have explanation? → ERROR - must include actual data objects');
-          instructionBlocks.push('');
-          instructionBlocks.push('✅ The proposal object MUST contain:');
-          instructionBlocks.push('- "explanation": A string describing what the proposal does');
-          instructionBlocks.push('- "mechanics": A COMPLETE mechanics object with ALL fields (coreLoop, playerActions, progressionSystems, winConditions, failConditions, resourceSystems) - NOT {}');
-          instructionBlocks.push('- "lore": A COMPLETE lore object with ALL fields (setting, protagonist, conflict, worldRules, themes) - NOT {}');
-          instructionBlocks.push('- "architectDocuments": Array of document objects with "name" and "content" fields - NOT []');
-          instructionBlocks.push('');
-          instructionBlocks.push('❌ DO NOT:');
-          instructionBlocks.push('- Put reply first: {reply: "...", proposal: {...}} ← WRONG! Proposal must come first');
-          instructionBlocks.push('- Make reply longer than 2 sentences ← WRONG! Keep it concise');
-          instructionBlocks.push('- Return flat structure: {reply: "...", mechanics: {...}} ← WRONG! Must nest under proposal');
-          instructionBlocks.push('- Return {proposal: null} or {proposal: {}} or {proposal: {explanation: "..."}}');
-          instructionBlocks.push('- Say "I will create..." without including the proposal data');
-          instructionBlocks.push('- Include only explanation without mechanics/lore/architectDocuments');
-          instructionBlocks.push('- Return empty objects {} for mechanics or lore');
-          instructionBlocks.push('- Skip the proposal if user asks for documents/changes');
-          instructionBlocks.push('');
-          instructionBlocks.push('✅ DO:');
-          instructionBlocks.push('- ALWAYS put proposal FIRST, reply SECOND: {proposal: {...}, reply: "..."}');
-          instructionBlocks.push('- Keep reply to MAXIMUM 2 sentences to reserve tokens for proposal data');
-          instructionBlocks.push('- Include FULL, COMPLETE mechanics and/or lore objects in the proposal');
-          instructionBlocks.push('- For documentation: Include architectDocuments with actual document content');
-          instructionBlocks.push('- Make sure proposal.mechanics and proposal.lore contain REAL data, not empty objects');
-          instructionBlocks.push('- If proposing multiple types, include all applicable objects');
-          instructionBlocks.push('- ALWAYS include actual data structures, not just descriptions');
-          instructionBlocks.push('');
-          instructionBlocks.push('USER MESSAGE:');
-          instructionBlocks.push(content);
-          
-          return instructionBlocks.join('\n');
-        })(),
-      },
-    ];
+            instructionBlocks.push('❌ FORBIDDEN FORMATS:');
+            instructionBlocks.push(
+              'DO NOT use: [TOOL_CALL], json_build_output, --reply, --proposal, or ANY tool calling syntax',
+            );
+            instructionBlocks.push('DO NOT wrap in: ```json```, markdown, or any other format');
+            instructionBlocks.push('ONLY return raw JSON object starting with { and ending with }');
+            instructionBlocks.push('');
+            instructionBlocks.push('⚠️ STRUCTURE REQUIREMENT - CRITICAL:');
+            instructionBlocks.push('The "proposal" object MUST be NESTED under a "proposal" key at the top level.');
+            instructionBlocks.push(
+              'CORRECT: { "proposal": { "mechanics": {...}, "lore": {...} }, "reply": "..." }  ← proposal FIRST!',
+            );
+            instructionBlocks.push(
+              'WRONG:   { "reply": "...", "proposal": {...} }  ← reply first will cause truncation issues!',
+            );
+            instructionBlocks.push('WRONG:   { "reply": "...", "mechanics": {...}, "lore": {...} }  ← This will FAIL!');
+            instructionBlocks.push(
+              'WRONG:   { "reply": "...", "explanation": "...", "mechanics": {...} }  ← This will FAIL!',
+            );
+            instructionBlocks.push('WRONG:   [TOOL_CALL] {tool => "json_build_output"...}  ← This will FAIL!');
+            instructionBlocks.push('');
+            instructionBlocks.push('🚨 CRITICAL PROPOSAL REQUIREMENT:');
+            instructionBlocks.push(
+              'If the user asks for ANY of these, you MUST include a proposal object with actual data:',
+            );
+            instructionBlocks.push('- "produce", "create", "generate", "build", "make", "implement", "apply"');
+            instructionBlocks.push('- "documents", "documentation", "plan", "proposal", "improvements"');
+            instructionBlocks.push('- "do it", "go ahead", "ok", "yes", "please make"');
+            instructionBlocks.push('- ANY request where the user wants something they can approve');
+            instructionBlocks.push('');
+            instructionBlocks.push('⚠️ PROPOSAL VALIDATION CHECKLIST (check before responding):');
+            instructionBlocks.push('1. Does user want something actionable? → MUST include proposal');
+            instructionBlocks.push(
+              '2. Is the proposal nested under "proposal" key AND placed FIRST? → MUST be {proposal: {...}, reply: "..."}',
+            );
+            instructionBlocks.push('3. Is the reply field limited to 2 sentences? → MUST be concise to save tokens');
+            instructionBlocks.push('4. Is proposal.mechanics empty {}? → ERROR - include full mechanics object');
+            instructionBlocks.push(
+              '5. Is proposal.lore empty {}? → ERROR - include full lore object if proposing lore changes',
+            );
+            instructionBlocks.push(
+              '6. Is proposal.architectDocuments empty []? → ERROR - include documents if proposing docs',
+            );
+            instructionBlocks.push(
+              '7. Does proposal only have explanation? → ERROR - must include actual data objects',
+            );
+            instructionBlocks.push('');
+            instructionBlocks.push('✅ The proposal object MUST contain:');
+            instructionBlocks.push('- "explanation": A string describing what the proposal does');
+            instructionBlocks.push(
+              '- "mechanics": A COMPLETE mechanics object with ALL fields (coreLoop, playerActions, progressionSystems, winConditions, failConditions, resourceSystems) - NOT {}',
+            );
+            instructionBlocks.push(
+              '- "lore": A COMPLETE lore object with ALL fields (setting, protagonist, conflict, worldRules, themes) - NOT {}',
+            );
+            instructionBlocks.push(
+              '- "architectDocuments": Array of document objects with "name" and "content" fields - NOT []',
+            );
+            instructionBlocks.push('');
+            instructionBlocks.push('❌ DO NOT:');
+            instructionBlocks.push(
+              '- Put reply first: {reply: "...", proposal: {...}} ← WRONG! Proposal must come first',
+            );
+            instructionBlocks.push('- Make reply longer than 2 sentences ← WRONG! Keep it concise');
+            instructionBlocks.push(
+              '- Return flat structure: {reply: "...", mechanics: {...}} ← WRONG! Must nest under proposal',
+            );
+            instructionBlocks.push('- Return {proposal: null} or {proposal: {}} or {proposal: {explanation: "..."}}');
+            instructionBlocks.push('- Say "I will create..." without including the proposal data');
+            instructionBlocks.push('- Include only explanation without mechanics/lore/architectDocuments');
+            instructionBlocks.push('- Return empty objects {} for mechanics or lore');
+            instructionBlocks.push('- Skip the proposal if user asks for documents/changes');
+            instructionBlocks.push('');
+            instructionBlocks.push('✅ DO:');
+            instructionBlocks.push('- ALWAYS put proposal FIRST, reply SECOND: {proposal: {...}, reply: "..."}');
+            instructionBlocks.push('- Keep reply to MAXIMUM 2 sentences to reserve tokens for proposal data');
+            instructionBlocks.push('- Include FULL, COMPLETE mechanics and/or lore objects in the proposal');
+            instructionBlocks.push('- For documentation: Include architectDocuments with actual document content');
+            instructionBlocks.push(
+              '- Make sure proposal.mechanics and proposal.lore contain REAL data, not empty objects',
+            );
+            instructionBlocks.push('- If proposing multiple types, include all applicable objects');
+            instructionBlocks.push('- ALWAYS include actual data structures, not just descriptions');
+            instructionBlocks.push('');
+            instructionBlocks.push('USER MESSAGE:');
+            instructionBlocks.push(content);
+
+            return instructionBlocks.join('\n');
+          })(),
+        },
+      ];
 
       logger.debug('Sending message to AI orchestrator', {
         sessionId,
@@ -362,34 +402,37 @@ export class AssistantService {
         messageCount: aiMessages.length,
       });
 
-    // Determine if user wants a proposal (before AI call for logging)
-    const quickActionForcesProposal = quickActionId === 'propose-improvements';
-    const userExplicitlyRequestsProposal = /(do it|go ahead|create|make changes|generate|implement|apply|proposal|approve|please make|produce|build)/i.test(content);
-    const userWantsProposal = quickActionForcesProposal || userExplicitlyRequestsProposal;
-    
-    const aiResponse = await this.aiOrchestrator.generate(
-      'assistant',
-      aiMessages,
-      'auto', // Will use MiniMax M2 if available, otherwise falls back
-      { 
-        maxTokens: 35000, // Increased significantly to prevent truncation of large proposals with full mechanics/lore objects
-        // DO NOT set response_format for assistant - it needs to return {reply, proposal} structure
-        // Disable tool calling for assistant mode - we want pure JSON responses
-      }
-    );
-    
-    // Log the raw response for debugging proposal issues
-    logger.debug('Raw AI response received', {
-      sessionId,
-      model: aiResponse.model,
-      contentLength: aiResponse.content.length,
-      contentEndsWithBrace: aiResponse.content.trim().endsWith('}'),
-      hasReply: aiResponse.content.includes('"reply"'),
-      hasProposal: aiResponse.content.includes('"proposal"'),
-      userWantsProposal,
-      contentPreview: aiResponse.content.substring(0, 1000),
-      contentEnd: aiResponse.content.substring(Math.max(0, aiResponse.content.length - 500)),
-    });
+      // Determine if user wants a proposal (before AI call for logging)
+      const quickActionForcesProposal = quickActionId === 'propose-improvements';
+      const userExplicitlyRequestsProposal =
+        /(do it|go ahead|create|make changes|generate|implement|apply|proposal|approve|please make|produce|build)/i.test(
+          content,
+        );
+      const userWantsProposal = quickActionForcesProposal || userExplicitlyRequestsProposal;
+
+      const aiResponse = await this.aiOrchestrator.generate(
+        'assistant',
+        aiMessages,
+        'auto', // Will use MiniMax M2 if available, otherwise falls back
+        {
+          maxTokens: 35000, // Increased significantly to prevent truncation of large proposals with full mechanics/lore objects
+          // DO NOT set response_format for assistant - it needs to return {reply, proposal} structure
+          // Disable tool calling for assistant mode - we want pure JSON responses
+        },
+      );
+
+      // Log the raw response for debugging proposal issues
+      logger.debug('Raw AI response received', {
+        sessionId,
+        model: aiResponse.model,
+        contentLength: aiResponse.content.length,
+        contentEndsWithBrace: aiResponse.content.trim().endsWith('}'),
+        hasReply: aiResponse.content.includes('"reply"'),
+        hasProposal: aiResponse.content.includes('"proposal"'),
+        userWantsProposal,
+        contentPreview: aiResponse.content.substring(0, 1000),
+        contentEnd: aiResponse.content.substring(Math.max(0, aiResponse.content.length - 500)),
+      });
 
       logger.debug('AI response received', {
         sessionId,
@@ -397,166 +440,199 @@ export class AssistantService {
         contentLength: aiResponse.content.length,
       });
 
-    // Log the raw AI response for debugging proposal issues
-    const responseEndsProperly = aiResponse.content.trim().endsWith('}') || aiResponse.content.trim().endsWith('"}');
-    logger.info('Raw AI response', {
-      sessionId,
-      userMessage: content,
-      model: aiResponse.model,
-      responseLength: aiResponse.content.length,
-      responsePreview: aiResponse.content.substring(0, 2000),
-      responseEnd: aiResponse.content.substring(Math.max(0, aiResponse.content.length - 200)),
-      responseEndsProperly,
-      hasProposalKeyword: /proposal/i.test(aiResponse.content),
-      hasMechanicsKeyword: /mechanics/i.test(aiResponse.content),
-      hasLoreKeyword: /lore/i.test(aiResponse.content),
-      mightBeTruncated: !responseEndsProperly && aiResponse.content.includes('"proposal"'),
-    });
-
-    const parsed = this.parseAssistantResponse(aiResponse.content);
-    
-    // DEBUG: Log the full parsed structure to diagnose proposal detection issues
-    logger.info('RECEIVED DATA KEYS:', {
-      sessionId,
-      parsedKeys: Object.keys(parsed),
-      parsedStructure: JSON.stringify(parsed, null, 2).substring(0, 2000),
-      hasProposalKey: 'proposal' in parsed,
-      hasMechanicsAtTopLevel: 'mechanics' in parsed,
-      hasLoreAtTopLevel: 'lore' in parsed,
-      hasArchitectDocumentsAtTopLevel: 'architectDocuments' in parsed,
-      hasExplanationAtTopLevel: 'explanation' in parsed,
-    });
-    
-    // Normalize structure: Handle case where AI returns flat structure instead of nested proposal
-    if (!parsed.proposal && (parsed.mechanics || parsed.lore || parsed.architectDocuments)) {
-      logger.warn('AI returned flat structure - normalizing to nested proposal format', {
+      // Log the raw AI response for debugging proposal issues
+      const responseEndsProperly = aiResponse.content.trim().endsWith('}') || aiResponse.content.trim().endsWith('"}');
+      logger.info('Raw AI response', {
         sessionId,
-        hasMechanics: !!parsed.mechanics,
-        hasLore: !!parsed.lore,
-        hasArchitectDocuments: !!parsed.architectDocuments,
-        hasExplanation: !!parsed.explanation,
+        userMessage: content,
+        model: aiResponse.model,
+        responseLength: aiResponse.content.length,
+        responsePreview: aiResponse.content.substring(0, 2000),
+        responseEnd: aiResponse.content.substring(Math.max(0, aiResponse.content.length - 200)),
+        responseEndsProperly,
+        hasProposalKeyword: /proposal/i.test(aiResponse.content),
+        hasMechanicsKeyword: /mechanics/i.test(aiResponse.content),
+        hasLoreKeyword: /lore/i.test(aiResponse.content),
+        mightBeTruncated: !responseEndsProperly && aiResponse.content.includes('"proposal"'),
       });
-      parsed.proposal = {
-        explanation: parsed.explanation || 'Proposal generated by AI assistant',
-        ...(parsed.mechanics && { mechanics: parsed.mechanics }),
-        ...(parsed.lore && { lore: parsed.lore }),
-        ...(parsed.architectDocuments && { architectDocuments: parsed.architectDocuments }),
-      };
-      // Remove top-level keys to avoid confusion
-      delete (parsed as any).mechanics;
-      delete (parsed as any).lore;
-      delete (parsed as any).architectDocuments;
-      delete (parsed as any).explanation;
-    }
-    
-    const assistantMessage = await this.prisma.chatMessage.create({
-      data: {
+
+      const parsed = this.parseAssistantResponse(aiResponse.content);
+
+      // DEBUG: Log the full parsed structure to diagnose proposal detection issues
+      logger.info('RECEIVED DATA KEYS:', {
         sessionId,
-        role: 'assistant',
-        content: parsed.reply,
-        metadata: {
-          model: aiResponse.model,
-          // Include thinking content if available (from Minimax M2)
-          ...(aiResponse.metadata?.thinking ? { thinking: aiResponse.metadata.thinking } : {}),
+        parsedKeys: Object.keys(parsed),
+        parsedStructure: JSON.stringify(parsed, null, 2).substring(0, 2000),
+        hasProposalKey: 'proposal' in parsed,
+        hasMechanicsAtTopLevel: 'mechanics' in parsed,
+        hasLoreAtTopLevel: 'lore' in parsed,
+        hasArchitectDocumentsAtTopLevel: 'architectDocuments' in parsed,
+        hasExplanationAtTopLevel: 'explanation' in parsed,
+      });
+
+      // Normalize structure: Handle case where AI returns flat structure instead of nested proposal
+      if (!parsed.proposal && (parsed.mechanics || parsed.lore || parsed.architectDocuments)) {
+        logger.warn('AI returned flat structure - normalizing to nested proposal format', {
+          sessionId,
+          hasMechanics: !!parsed.mechanics,
+          hasLore: !!parsed.lore,
+          hasArchitectDocuments: !!parsed.architectDocuments,
+          hasExplanation: !!parsed.explanation,
+        });
+        parsed.proposal = {
+          explanation: parsed.explanation || 'Proposal generated by AI assistant',
+          ...(parsed.mechanics && { mechanics: parsed.mechanics }),
+          ...(parsed.lore && { lore: parsed.lore }),
+          ...(parsed.architectDocuments && { architectDocuments: parsed.architectDocuments }),
+        };
+        // Remove top-level keys to avoid confusion
+        delete (parsed as any).mechanics;
+        delete (parsed as any).lore;
+        delete (parsed as any).architectDocuments;
+        delete (parsed as any).explanation;
+      }
+
+      const assistantMessage = await this.prisma.chatMessage.create({
+        data: {
+          sessionId,
+          role: 'assistant',
+          content: parsed.reply,
+          metadata: {
+            model: aiResponse.model,
+            // Include thinking content if available (from Minimax M2)
+            ...(aiResponse.metadata?.thinking ? { thinking: aiResponse.metadata.thinking } : {}),
+          },
         },
-      },
-    });
+      });
 
       // For architect sessions, handle interview flow after getting response
       if (session.type === 'architect') {
         await this.handleArchitectInterview(sessionId, session.projectId, content);
       }
 
-    let createdProposal: Awaited<ReturnType<typeof this.prisma.assistantProposal.create>> | null = null;
-    
-    // Log what we got from parsing (after normalization)
-    logger.info('Parsed assistant response', {
-      sessionId,
-      quickActionId,
-      hasProposal: !!parsed.proposal,
-      proposalType: typeof parsed.proposal,
-      proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
-      hasMechanics: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.mechanics),
-      hasLore: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.lore),
-      hasArchitectDocuments: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.architectDocuments),
-      userWantsProposal,
-      aiResponsePreview: aiResponse.content.substring(0, 1000),
-    });
-    
-    if (parsed.proposal && typeof parsed.proposal === 'object' && (parsed.proposal.mechanics || parsed.proposal.lore || parsed.proposal.architectDocuments)) {
-      logger.info('Creating proposal from AI response', {
+      let createdProposal: Awaited<ReturnType<typeof this.prisma.assistantProposal.create>> | null = null;
+
+      // Log what we got from parsing (after normalization)
+      logger.info('Parsed assistant response', {
         sessionId,
-        hasMechanics: !!parsed.proposal.mechanics,
-        hasLore: !!parsed.proposal.lore,
-        hasArchitectDocuments: !!parsed.proposal.architectDocuments,
-      });
-      createdProposal = await this.createProposal(session, parsed.proposal);
-    } else if (userWantsProposal) {
-      // User asked for action but no proposal was generated
-      const responseMightBeTruncated = !aiResponse.content.trim().endsWith('}') && aiResponse.content.includes('"proposal"');
-      const isDocumentationRequest = /documentation|document|gdd|technical.*spec|implementation.*guide/i.test(content);
-      
-      logger.warn('User requested proposal but AI did not generate one', {
-        sessionId,
-        userMessage: content,
+        quickActionId,
         hasProposal: !!parsed.proposal,
         proposalType: typeof parsed.proposal,
         proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
         hasMechanics: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.mechanics),
         hasLore: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.lore),
-        hasArchitectDocuments: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.architectDocuments),
-        proposalIsEmpty: parsed.proposal && typeof parsed.proposal === 'object' && Object.keys(parsed.proposal).length === 0,
-        aiResponsePreview: aiResponse.content.substring(0, 2000),
-        parsedReplyPreview: parsed.reply?.substring(0, 500),
-        responseMightBeTruncated,
-        isDocumentationRequest,
+        hasArchitectDocuments: !!(
+          parsed.proposal &&
+          typeof parsed.proposal === 'object' &&
+          parsed.proposal.architectDocuments
+        ),
+        userWantsProposal,
+        aiResponsePreview: aiResponse.content.substring(0, 1000),
       });
-      
-      // If the response mentions creating a proposal but doesn't include it, log this for debugging
-      if (parsed.reply && /created.*proposal|proposal.*created|I've.*proposal/i.test(parsed.reply)) {
-        logger.error('AI claimed to create proposal but proposal object is missing or empty', {
+
+      if (
+        parsed.proposal &&
+        typeof parsed.proposal === 'object' &&
+        (parsed.proposal.mechanics || parsed.proposal.lore || parsed.proposal.architectDocuments)
+      ) {
+        logger.info('Creating proposal from AI response', {
           sessionId,
-          replyContainsProposalMention: true,
-          proposalExists: !!parsed.proposal,
+          hasMechanics: !!parsed.proposal.mechanics,
+          hasLore: !!parsed.proposal.lore,
+          hasArchitectDocuments: !!parsed.proposal.architectDocuments,
+        });
+        createdProposal = await this.createProposal(session, parsed.proposal);
+      } else if (userWantsProposal) {
+        // User asked for action but no proposal was generated
+        const responseMightBeTruncated =
+          !aiResponse.content.trim().endsWith('}') && aiResponse.content.includes('"proposal"');
+        const isDocumentationRequest = /documentation|document|gdd|technical.*spec|implementation.*guide/i.test(
+          content,
+        );
+
+        logger.warn('User requested proposal but AI did not generate one', {
+          sessionId,
+          userMessage: content,
+          hasProposal: !!parsed.proposal,
           proposalType: typeof parsed.proposal,
           proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
-          fullResponse: aiResponse.content,
+          hasMechanics: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.mechanics),
+          hasLore: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.lore),
+          hasArchitectDocuments: !!(
+            parsed.proposal &&
+            typeof parsed.proposal === 'object' &&
+            parsed.proposal.architectDocuments
+          ),
+          proposalIsEmpty:
+            parsed.proposal && typeof parsed.proposal === 'object' && Object.keys(parsed.proposal).length === 0,
+          aiResponsePreview: aiResponse.content.substring(0, 2000),
+          parsedReplyPreview: parsed.reply?.substring(0, 500),
           responseMightBeTruncated,
           isDocumentationRequest,
         });
-        
-        // If it's a documentation request and the response was truncated, update the reply to suggest using the architect service
-        if (isDocumentationRequest && responseMightBeTruncated) {
-          parsed.reply = (parsed.reply || '') + '\n\n⚠️ The response was too long and may have been truncated. For comprehensive documentation generation, please use the Project Architect feature, or try asking for a more specific document.';
+
+        // If the response mentions creating a proposal but doesn't include it, log this for debugging
+        if (parsed.reply && /created.*proposal|proposal.*created|I've.*proposal/i.test(parsed.reply)) {
+          logger.error('AI claimed to create proposal but proposal object is missing or empty', {
+            sessionId,
+            replyContainsProposalMention: true,
+            proposalExists: !!parsed.proposal,
+            proposalType: typeof parsed.proposal,
+            proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
+            fullResponse: aiResponse.content,
+            responseMightBeTruncated,
+            isDocumentationRequest,
+          });
+
+          // If it's a documentation request and the response was truncated, update the reply to suggest using the architect service
+          if (isDocumentationRequest && responseMightBeTruncated) {
+            parsed.reply =
+              (parsed.reply || '') +
+              '\n\n⚠️ The response was too long and may have been truncated. For comprehensive documentation generation, please use the Project Architect feature, or try asking for a more specific document.';
+          }
         }
       }
-    }
 
-    // Include debug info in development mode
-    const debugInfo = process.env.NODE_ENV === 'development' ? {
-      debug: {
-        userWantsProposal,
-        hasProposal: !!parsed.proposal,
-        proposalType: typeof parsed.proposal,
-        proposalKeys: parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
-        hasMechanics: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.mechanics),
-        hasLore: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.lore),
-        hasArchitectDocuments: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.architectDocuments),
-        proposalIsEmpty: parsed.proposal && typeof parsed.proposal === 'object' && Object.keys(parsed.proposal).length === 0,
-        proposalHasOnlyExplanation: parsed.proposal && typeof parsed.proposal === 'object' && 
-          Object.keys(parsed.proposal).length === 1 && parsed.proposal.explanation,
-        aiResponseLength: aiResponse.content.length,
-        aiResponseEndsProperly: aiResponse.content.trim().endsWith('}'),
-        aiResponsePreview: aiResponse.content.substring(0, 2000),
-        parsedProposalPreview: parsed.proposal && typeof parsed.proposal === 'object' ? JSON.stringify(parsed.proposal).substring(0, 1000) : String(parsed.proposal),
-      }
-    } : {};
+      // Include debug info in development mode
+      const debugInfo =
+        process.env.NODE_ENV === 'development'
+          ? {
+              debug: {
+                userWantsProposal,
+                hasProposal: !!parsed.proposal,
+                proposalType: typeof parsed.proposal,
+                proposalKeys:
+                  parsed.proposal && typeof parsed.proposal === 'object' ? Object.keys(parsed.proposal) : [],
+                hasMechanics: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.mechanics),
+                hasLore: !!(parsed.proposal && typeof parsed.proposal === 'object' && parsed.proposal.lore),
+                hasArchitectDocuments: !!(
+                  parsed.proposal &&
+                  typeof parsed.proposal === 'object' &&
+                  parsed.proposal.architectDocuments
+                ),
+                proposalIsEmpty:
+                  parsed.proposal && typeof parsed.proposal === 'object' && Object.keys(parsed.proposal).length === 0,
+                proposalHasOnlyExplanation:
+                  parsed.proposal &&
+                  typeof parsed.proposal === 'object' &&
+                  Object.keys(parsed.proposal).length === 1 &&
+                  parsed.proposal.explanation,
+                aiResponseLength: aiResponse.content.length,
+                aiResponseEndsProperly: aiResponse.content.trim().endsWith('}'),
+                aiResponsePreview: aiResponse.content.substring(0, 2000),
+                parsedProposalPreview:
+                  parsed.proposal && typeof parsed.proposal === 'object'
+                    ? JSON.stringify(parsed.proposal).substring(0, 1000)
+                    : String(parsed.proposal),
+              },
+            }
+          : {};
 
-    return {
-      message: assistantMessage,
-      proposal: createdProposal,
-      ...debugInfo,
-    };
+      return {
+        message: assistantMessage,
+        proposal: createdProposal,
+        ...debugInfo,
+      };
     } catch (error) {
       logger.error('Error in sendMessage', {
         error: error instanceof Error ? error.message : String(error),
@@ -608,24 +684,25 @@ export class AssistantService {
       // The proposal should contain complete objects, but we'll merge to be safe
       const baseMechanics = (latestVersion.mechanics || {}) as MechanicsData;
       const baseLore = (latestVersion.lore || {}) as LoreData;
-      
-      const newMechanics = payload.mechanics && Object.keys(payload.mechanics).length > 0
-        ? (payload.mechanics as MechanicsData)
-        : baseMechanics;
-      const newLore = payload.lore && Object.keys(payload.lore).length > 0
-        ? (payload.lore as LoreData)
-        : baseLore;
+
+      const newMechanics =
+        payload.mechanics && Object.keys(payload.mechanics).length > 0
+          ? (payload.mechanics as MechanicsData)
+          : baseMechanics;
+      const newLore = payload.lore && Object.keys(payload.lore).length > 0 ? (payload.lore as LoreData) : baseLore;
 
       // Validate that we actually have changes with actual content
-      const hasMechanics = payload.mechanics && typeof payload.mechanics === 'object' && Object.keys(payload.mechanics).length > 0;
+      const hasMechanics =
+        payload.mechanics && typeof payload.mechanics === 'object' && Object.keys(payload.mechanics).length > 0;
       const hasLore = payload.lore && typeof payload.lore === 'object' && Object.keys(payload.lore).length > 0;
-      
+
       if (!hasMechanics && !hasLore) {
         logger.warn('Proposal accepted but contains no mechanics or lore changes', {
           proposalId: proposal.id,
           hasMechanics,
           hasLore,
-          mechanicsKeys: payload.mechanics && typeof payload.mechanics === 'object' ? Object.keys(payload.mechanics) : [],
+          mechanicsKeys:
+            payload.mechanics && typeof payload.mechanics === 'object' ? Object.keys(payload.mechanics) : [],
           loreKeys: payload.lore && typeof payload.lore === 'object' ? Object.keys(payload.lore) : [],
           payloadKeys: Object.keys(payload),
         });
@@ -677,7 +754,11 @@ export class AssistantService {
       result = { newVersion };
 
       // Optionally apply architect documents alongside mechanics/lore changes
-      if (payload.architectDocuments && Array.isArray(payload.architectDocuments) && payload.architectDocuments.length > 0) {
+      if (
+        payload.architectDocuments &&
+        Array.isArray(payload.architectDocuments) &&
+        payload.architectDocuments.length > 0
+      ) {
         logger.info('Applying architect documents from proposal', {
           proposalId: proposal.id,
           projectId: proposal.projectId,
@@ -685,18 +766,17 @@ export class AssistantService {
           documentNames: payload.architectDocuments.map((d: any) => d.name || 'unknown'),
         });
         try {
-          const updated = architectService.applyAssistantUpdates(
-            proposal.projectId,
-            payload.architectDocuments
-          );
+          const updated = architectService.applyAssistantUpdates(proposal.projectId, payload.architectDocuments);
           result.documentation = updated;
           logger.info('Architect documents applied successfully', {
             proposalId: proposal.id,
             projectId: proposal.projectId,
-            documentationPackage: updated ? {
-              documentCount: updated.documents.length,
-              documentNames: updated.documents.map(d => d.templateName),
-            } : null,
+            documentationPackage: updated
+              ? {
+                  documentCount: updated.documents.length,
+                  documentNames: updated.documents.map((d) => d.templateName),
+                }
+              : null,
           });
         } catch (error) {
           logger.error('Failed to apply architect documents', {
@@ -710,7 +790,12 @@ export class AssistantService {
       }
     }
 
-    if (proposal.proposalType === 'architect-document' && payload.architectDocuments && Array.isArray(payload.architectDocuments) && payload.architectDocuments.length > 0) {
+    if (
+      proposal.proposalType === 'architect-document' &&
+      payload.architectDocuments &&
+      Array.isArray(payload.architectDocuments) &&
+      payload.architectDocuments.length > 0
+    ) {
       logger.info('Applying architect-document proposal', {
         proposalId: proposal.id,
         projectId: proposal.projectId,
@@ -718,18 +803,17 @@ export class AssistantService {
         documentNames: payload.architectDocuments.map((d: any) => d.name || 'unknown'),
       });
       try {
-        const updated = architectService.applyAssistantUpdates(
-          proposal.projectId,
-          payload.architectDocuments
-        );
+        const updated = architectService.applyAssistantUpdates(proposal.projectId, payload.architectDocuments);
         result = { documentation: updated };
         logger.info('Architect-document proposal applied successfully', {
           proposalId: proposal.id,
           projectId: proposal.projectId,
-          documentationPackage: updated ? {
-            documentCount: updated.documents.length,
-            documentNames: updated.documents.map(d => d.templateName),
-          } : null,
+          documentationPackage: updated
+            ? {
+                documentCount: updated.documents.length,
+                documentNames: updated.documents.map((d) => d.templateName),
+              }
+            : null,
         });
       } catch (error) {
         logger.error('Failed to apply architect-document proposal', {
@@ -781,7 +865,12 @@ export class AssistantService {
     });
   }
 
-  private async buildContext(session: { id: string; projectId: string; type: string; metadata?: any }): Promise<AssistantContext> {
+  private async buildContext(session: {
+    id: string;
+    projectId: string;
+    type: string;
+    metadata?: any;
+  }): Promise<AssistantContext> {
     const project = await this.prisma.project.findUnique({
       where: { id: session.projectId },
     });
@@ -794,14 +883,11 @@ export class AssistantService {
     const validationResults = latestVersion
       ? await this.prisma.validationResult.findMany({
           where: { conceptId: latestVersion.id, dismissed: false },
-          orderBy: [
-            { severity: 'asc' },
-            { createdAt: 'desc' },
-          ],
+          orderBy: [{ severity: 'asc' }, { createdAt: 'desc' }],
           take: 10,
         })
       : [];
-    
+
     const metrics: AssistantContext['metrics'] = {};
     const versionMetadata = (latestVersion?.metadata as Record<string, any>) || {};
     if (typeof versionMetadata.consistencyScore === 'number' && !Number.isNaN(versionMetadata.consistencyScore)) {
@@ -825,7 +911,7 @@ export class AssistantService {
     const currentMode = (session.metadata?.mode as AssistantMode) || 'auto';
 
     let architectData: AssistantContext['architect'] = undefined;
-    
+
     // Always get architect data if we have mode hints or existing documentation
     try {
       const documentation = architectService.getDocumentation(session.projectId);
@@ -839,8 +925,9 @@ export class AssistantService {
 
       // Calculate interview progress from persisted data
       const answeredCount = interviewData.answeredQuestions?.length || 0;
-      const completionPercentage = interviewData.completionPercentage || Math.round((answeredCount / interviewData.totalQuestions) * 100);
-      
+      const completionPercentage =
+        interviewData.completionPercentage || Math.round((answeredCount / interviewData.totalQuestions) * 100);
+
       // Get current question based on progress
       const answersMap = new Map<string, string | string[]>();
       if (interviewData.answeredQuestions) {
@@ -913,8 +1000,8 @@ export class AssistantService {
       '"I see 3 main opportunities to improve your RPG concept:',
       '',
       '**1. Combat depth** - Add resource management (mana/stamina)',
-      '**2. Character progression** - Define skill tree structure',  
-      '**3. Conflict clarity** - Specify antagonist\'s motivation',
+      '**2. Character progression** - Define skill tree structure',
+      "**3. Conflict clarity** - Specify antagonist's motivation",
       '',
       'Which area would you like to explore first?"',
       '',
@@ -983,7 +1070,7 @@ export class AssistantService {
           '1. ALWAYS ask the current question in your reply - do not wait for the user to ask',
           '2. If this is the first message in the conversation, IMMEDIATELY ask the first question - do not just greet them',
           '3. When the user provides an answer, acknowledge it briefly (e.g., "Got it!" or "Perfect!")',
-          '4. Then IMMEDIATELY ask the next question - do not wait, do not ask if they\'re ready',
+          "4. Then IMMEDIATELY ask the next question - do not wait, do not ask if they're ready",
           '5. Ask questions conversationally and naturally - make it feel like a friendly chat, not a form',
           '6. If the user asks questions, answer them briefly, then return to asking the current interview question',
           '7. Keep the conversation flowing - always end your message with the next question',
@@ -1003,7 +1090,7 @@ export class AssistantService {
           '5. Monetization Audit (monetization-audit.md) - if open source',
           '6. Launch Checklist (launch-checklist.md) - if open source',
           '',
-          'Keep the conversation natural and friendly. Guide them through all questions to ensure complete documentation can be generated.'
+          'Keep the conversation natural and friendly. Guide them through all questions to ensure complete documentation can be generated.',
         );
       } else if (context.architect?.interviewComplete) {
         // Interview complete - can help with documents
@@ -1019,27 +1106,27 @@ export class AssistantService {
           '',
           'When creating document proposals, include the full content in architectDocuments array.',
           'You may propose document edits by including architectDocuments array.',
-          'Explain how document changes improve project clarity and development readiness.'
+          'Explain how document changes improve project clarity and development readiness.',
         );
       } else {
         // No interview started yet - but we may have pre-filled some answers
         const hasPrefilled = (context.architect?.interviewProgress?.answeredCount ?? 0) > 0;
-        
+
         if (hasPrefilled) {
           const answeredCount = context.architect?.interviewProgress?.answeredCount ?? 0;
           unifiedInstructions.push(
             '',
             'ARCHITECT MODE - INITIALIZING INTERVIEW:',
-            'I\'ve automatically filled in some answers from your existing project data (mechanics, lore, etc.).',
+            "I've automatically filled in some answers from your existing project data (mechanics, lore, etc.).",
             `You've already answered ${answeredCount} questions automatically.`,
-            'Now I\'ll guide you through the remaining questions to complete the interview.',
+            "Now I'll guide you through the remaining questions to complete the interview.",
             '',
             'Ask the next unanswered question conversationally.',
             'Be friendly and acknowledge that some information was already gathered from their project.',
             '',
             'You may also help with concept refinement while conducting the interview.',
             'You may propose document edits by including architectDocuments array.',
-            'Explain how document changes improve project clarity and development readiness.'
+            'Explain how document changes improve project clarity and development readiness.',
           );
         } else {
           unifiedInstructions.push(
@@ -1047,14 +1134,14 @@ export class AssistantService {
             'ARCHITECT MODE - STARTING INTERVIEW:',
             'Welcome the user and explain that you will guide them through a structured interview.',
             'The interview will collect all necessary information to generate comprehensive project documentation.',
-            'I\'ll try to extract answers from existing project data first, then ask only the remaining questions.',
+            "I'll try to extract answers from existing project data first, then ask only the remaining questions.",
             'Start by asking the first unanswered question.',
             '',
             'Be friendly and conversational. Guide them through all questions systematically.',
             '',
             'You may also help with concept refinement (mechanics/lore) while conducting the interview.',
             'You may propose document edits by including architectDocuments array.',
-            'Explain how document changes improve project clarity and development readiness.'
+            'Explain how document changes improve project clarity and development readiness.',
           );
         }
       }
@@ -1079,34 +1166,29 @@ export class AssistantService {
         '- Include the COMPLETE updated lore object (not just changes, the full object)',
         '- Provide a clear explanation of what improvements were made and why',
         '- Address validation issues explicitly in your explanation',
-        '- Ensure all changes maintain consistency between mechanics and lore'
+        '- Ensure all changes maintain consistency between mechanics and lore',
       );
     }
 
     // Add context information
-    unifiedInstructions.push(
-      '',
-      `Project name: ${context.project.name}`,
-    );
-    
+    unifiedInstructions.push('', `Project name: ${context.project.name}`);
+
     if (context.latestVersion) {
       unifiedInstructions.push(
         `Latest mechanics JSON: ${JSON.stringify(context.latestVersion.mechanics)}`,
-        `Latest lore JSON: ${JSON.stringify(context.latestVersion.lore)}`
+        `Latest lore JSON: ${JSON.stringify(context.latestVersion.lore)}`,
       );
     }
 
     if (context.validationIssues.length > 0) {
       unifiedInstructions.push(
         `Current validation issues: ${JSON.stringify(context.validationIssues)}`,
-        'Address these issues in your proposals and explain how your changes resolve them.'
+        'Address these issues in your proposals and explain how your changes resolve them.',
       );
     }
 
     if (context.architect?.documents && context.architect.documents.length > 0) {
-      unifiedInstructions.push(
-        `Existing architect documents: ${JSON.stringify(context.architect.documents)}`
-      );
+      unifiedInstructions.push(`Existing architect documents: ${JSON.stringify(context.architect.documents)}`);
     }
 
     return unifiedInstructions.join('\n');
@@ -1120,15 +1202,13 @@ export class AssistantService {
     const metricLines: string[] = [];
     if (context?.metrics?.consistencyScore !== undefined) {
       metricLines.push(
-        `OFFICIAL CONSISTENCY SCORE: ${context.metrics.consistencyScore}% (from the validation engine). You MUST reuse this exact number in any scorecard or readiness discussion—never invent or change it.`
+        `OFFICIAL CONSISTENCY SCORE: ${context.metrics.consistencyScore}% (from the validation engine). You MUST reuse this exact number in any scorecard or readiness discussion—never invent or change it.`,
       );
     }
     if (context?.metrics?.complexityScore !== undefined) {
-      const complexityDescriptor = context.metrics.complexityLabel
-        ? ` ${context.metrics.complexityLabel}`
-        : '';
+      const complexityDescriptor = context.metrics.complexityLabel ? ` ${context.metrics.complexityLabel}` : '';
       metricLines.push(
-        `OFFICIAL COMPLEXITY SCORE: ${context.metrics.complexityScore}${complexityDescriptor ? ` (${complexityDescriptor})` : ''}. Reference this score directly instead of estimating complexity yourself.`
+        `OFFICIAL COMPLEXITY SCORE: ${context.metrics.complexityScore}${complexityDescriptor ? ` (${complexityDescriptor})` : ''}. Reference this score directly instead of estimating complexity yourself.`,
       );
     }
 
@@ -1170,7 +1250,7 @@ export class AssistantService {
         where: { id: projectId },
       });
       const latestVersion = await this.getLatestVersion(projectId);
-      
+
       if (!project && !latestVersion) {
         return; // No data to extract
       }
@@ -1220,15 +1300,17 @@ export class AssistantService {
       // q1-key-features: From player actions and protagonist abilities
       const features: string[] = [];
       if (mechanics?.playerActions && mechanics.playerActions.length > 0) {
-        features.push(...mechanics.playerActions.slice(0, 5).map(action => {
-          // Extract action name (before colon if present)
-          return action.split(':')[0].trim();
-        }));
+        features.push(
+          ...mechanics.playerActions.slice(0, 5).map((action) => {
+            // Extract action name (before colon if present)
+            return action.split(':')[0].trim();
+          }),
+        );
       }
       if (lore?.protagonist?.abilities && lore.protagonist.abilities.length > 0 && features.length < 5) {
         const abilityFeatures = lore.protagonist.abilities
           .slice(0, 5 - features.length)
-          .map(ability => ability.split(':')[0].trim());
+          .map((ability) => ability.split(':')[0].trim());
         features.push(...abilityFeatures);
       }
       if (features.length > 0) {
@@ -1249,7 +1331,7 @@ export class AssistantService {
       // q2-data-model: From resource systems and progression
       const dataModelParts: string[] = [];
       if (mechanics?.resourceSystems && mechanics.resourceSystems.length > 0) {
-        const resources = mechanics.resourceSystems.map(r => r.name || 'Unknown resource').join(', ');
+        const resources = mechanics.resourceSystems.map((r) => r.name || 'Unknown resource').join(', ');
         dataModelParts.push(`Resource tracking: ${resources}`);
       }
       if (mechanics?.progressionSystems) {
@@ -1283,7 +1365,7 @@ export class AssistantService {
           projectId,
           interviewSessionId,
           answersCount: prefillAnswers.length,
-          questions: prefillAnswers.map(a => a.questionId),
+          questions: prefillAnswers.map((a) => a.questionId),
         });
       }
     } catch (err) {
@@ -1306,10 +1388,10 @@ export class AssistantService {
         const interviewSession = architectService.startInterview(projectId);
         interviewSessionId = interviewSession.sessionId;
         this.interviewSessions.set(assistantSessionId, interviewSessionId);
-        
+
         // Pre-fill answers from existing project data
         await this.prefillInterviewFromProjectData(projectId, interviewSessionId);
-        
+
         logger.info('Created new interview session for architect assistant', {
           assistantSessionId,
           interviewSessionId,
@@ -1399,12 +1481,12 @@ export class AssistantService {
 
       // Extract any answers from the user message using existing logic
       const extractedAnswers = this.extractAnswersFromMessage(userMessage);
-      
+
       if (extractedAnswers.length > 0) {
         // Update interview progress with new answers
         const updatedAnswers = [...currentInterview.answeredQuestions, ...extractedAnswers];
         const completionPercentage = Math.round((updatedAnswers.length / currentInterview.totalQuestions) * 100);
-        
+
         // Determine current phase based on progress
         let currentPhase = currentInterview.currentPhase;
         if (completionPercentage >= 80) {
@@ -1454,10 +1536,10 @@ export class AssistantService {
    */
   private extractAnswersFromMessage(message: string): Array<{ questionId: string; answer: string | string[] }> {
     const answers: Array<{ questionId: string; answer: string | string[] }> = [];
-    
+
     // Simple pattern matching for common answer types
     // This is a basic implementation - the full logic would be more sophisticated
-    
+
     // Project name mentions
     const nameMatch = message.match(/(?:called|named|is)\s+["']?([^"'\n,.]+)["']?/i);
     if (nameMatch) {
@@ -1465,7 +1547,9 @@ export class AssistantService {
     }
 
     // Genre mentions
-    const genreMatch = message.match(/\b(RPG|Action|Adventure|Strategy|Simulation|Puzzle|Racing|Sports|Shooter|Roguelike|Fantasy|Sci-Fi|Medieval|Modern|Historical)\b/i);
+    const genreMatch = message.match(
+      /\b(RPG|Action|Adventure|Strategy|Simulation|Puzzle|Racing|Sports|Shooter|Roguelike|Fantasy|Sci-Fi|Medieval|Modern|Historical)\b/i,
+    );
     if (genreMatch) {
       answers.push({ questionId: 'q2-genre', answer: genreMatch[1] });
     }
@@ -1476,15 +1560,20 @@ export class AssistantService {
   /**
    * Extract answer from user message for the current question
    */
-  private extractAnswerFromMessage(message: string, question: { id: string; question: string; options?: string[] }): string | string[] | null {
+  private extractAnswerFromMessage(
+    message: string,
+    question: { id: string; question: string; options?: string[] },
+  ): string | string[] | null {
     const lowerMessage = message.toLowerCase().trim();
-    
+
     // If question has options, try to match them
     if (question.options && question.options.length > 0) {
       for (const option of question.options) {
-        if (lowerMessage.includes(option.toLowerCase()) || 
-            lowerMessage === option.toLowerCase() ||
-            lowerMessage.startsWith(option.toLowerCase().substring(0, 3))) {
+        if (
+          lowerMessage.includes(option.toLowerCase()) ||
+          lowerMessage === option.toLowerCase() ||
+          lowerMessage.startsWith(option.toLowerCase().substring(0, 3))
+        ) {
           return option;
         }
       }
@@ -1528,7 +1617,7 @@ export class AssistantService {
           endsProperlyWithBracket: content.trim().endsWith(']'),
         });
       }
-      
+
       // Strip explicit model reasoning tags before JSON extraction; otherwise a leading
       // [REASONING] block can be mistaken for an array-like JSON candidate.
       const parseableContent = content
@@ -1538,7 +1627,7 @@ export class AssistantService {
 
       // Use the extractJSON utility which handles markdown, thinking blocks, and common JSON issues
       const jsonResult = extractJSON(parseableContent);
-      
+
       if (!jsonResult.isValid || !jsonResult.parsed) {
         logger.warn('Failed to extract JSON from assistant response', {
           error: jsonResult.error,
@@ -1546,17 +1635,19 @@ export class AssistantService {
           hasReply: content.includes('"reply"'),
           hasProposal: content.includes('"proposal"'),
           isTruncated,
-          suggestedAction: isTruncated ? 'Response was truncated - increase maxTokens or simplify prompt' : 'Invalid JSON format',
+          suggestedAction: isTruncated
+            ? 'Response was truncated - increase maxTokens or simplify prompt'
+            : 'Invalid JSON format',
         });
-        
+
         // Return fallback response with cleaned content as reply
         return {
           reply: this.extractTextFromResponse(content),
         };
       }
-      
+
       const parsed = jsonResult.parsed;
-      
+
       // Validate that we got meaningful content
       if (!parsed || (typeof parsed === 'object' && Object.keys(parsed).length === 0)) {
         logger.error('Empty or invalid content in assistant response', {
@@ -1568,14 +1659,17 @@ export class AssistantService {
           reply: this.extractTextFromResponse(content),
         };
       }
-      
+
       const reply = this.extractReplyFromParsed(parsed, content);
       const proposal = this.buildNormalizedProposal(parsed);
 
       if (!proposal) {
         const hasProposalInContent =
           content.includes('"proposal"') &&
-          (content.includes('"mechanics"') || content.includes('"lore"') || content.includes('"architectDocuments"') || content.includes('"markdownContent"'));
+          (content.includes('"mechanics"') ||
+            content.includes('"lore"') ||
+            content.includes('"architectDocuments"') ||
+            content.includes('"markdownContent"'));
 
         if (hasProposalInContent) {
           logger.error('Proposal exists in content but was not parsed correctly - likely truncated JSON', {
@@ -1592,7 +1686,7 @@ export class AssistantService {
             parsedPreview: JSON.stringify(parsed).substring(0, 500),
             last500Chars: content.substring(Math.max(0, content.length - 500)),
           });
-          
+
           const proposalMatch = content.match(/"proposal"\s*:\s*(\{[\s\S]*)/);
           if (proposalMatch) {
             logger.warn('Found proposal start in content but JSON parsing failed - response likely truncated', {
@@ -1607,13 +1701,13 @@ export class AssistantService {
             fullParsed: JSON.stringify(parsed).substring(0, 500),
           });
         }
-        
+
         return {
           reply,
           proposal: undefined,
         };
       }
-      
+
       logger.debug('Successfully parsed assistant response', {
         hasReply: !!reply,
         hasProposal: !!proposal,
@@ -1623,25 +1717,28 @@ export class AssistantService {
       });
 
       const proposalIsTruncated =
-        proposal.explanation && 
+        proposal.explanation &&
         !proposal.mechanics &&
         !proposal.lore &&
         !proposal.architectDocuments &&
         (content.includes('"mechanics"') || content.includes('"lore"') || content.includes('"architectDocuments"'));
-      
+
       if (proposalIsTruncated) {
-        logger.error('Proposal appears to be truncated - has explanation but missing mechanics/lore/architectDocuments', {
-          proposalKeys: Object.keys(proposal),
-          hasExplanation: !!proposal.explanation,
-          contentHasMechanics: content.includes('"mechanics"'),
-          contentHasLore: content.includes('"lore"'),
-          contentHasArchitectDocuments: content.includes('"architectDocuments"'),
-          contentLength: content.length,
-          contentEndsWithBrace: content.trim().endsWith('}'),
-          last200Chars: content.substring(Math.max(0, content.length - 200)),
-        });
+        logger.error(
+          'Proposal appears to be truncated - has explanation but missing mechanics/lore/architectDocuments',
+          {
+            proposalKeys: Object.keys(proposal),
+            hasExplanation: !!proposal.explanation,
+            contentHasMechanics: content.includes('"mechanics"'),
+            contentHasLore: content.includes('"lore"'),
+            contentHasArchitectDocuments: content.includes('"architectDocuments"'),
+            contentLength: content.length,
+            contentEndsWithBrace: content.trim().endsWith('}'),
+            last200Chars: content.substring(Math.max(0, content.length - 200)),
+          },
+        );
       }
-      
+
       logger.info('Parsed response result', {
         hasReply: !!reply,
         replyLength: reply?.length || 0,
@@ -1654,7 +1751,7 @@ export class AssistantService {
         proposalIsTruncated,
         proposalPreview: JSON.stringify(proposal).substring(0, 1000),
       });
-      
+
       return {
         reply,
         proposal,
@@ -1662,9 +1759,9 @@ export class AssistantService {
     } catch (error) {
       logger.error('Failed to parse AI response in assistant service', {
         error: error instanceof Error ? error.message : String(error),
-        contentPreview: content.substring(0, 1000)
+        contentPreview: content.substring(0, 1000),
       });
-      
+
       // Return fallback response with extracted text as reply
       return {
         reply: this.extractTextFromResponse(content),
@@ -1678,7 +1775,7 @@ export class AssistantService {
   private detectTruncation(content: string): boolean {
     const trimmed = content.trim();
     const last50 = trimmed.substring(Math.max(0, trimmed.length - 50));
-    
+
     // Check for incomplete JSON structures
     const endsWithOpenBrace = /[{,]\s*$/.test(trimmed);
     const endsWithOpenBracket = /\[\s*$/.test(trimmed);
@@ -1687,24 +1784,24 @@ export class AssistantService {
     const endsWithQuote = /"$/.test(trimmed);
     const endsWithIncompleteString = /"[^"]{0,20}$/.test(trimmed);
     const endsWithPartialWord = /\b\w{3,}$/.test(last50);
-    
+
     // Check if it looks like JSON was started but not completed
     const hasProposalKeyword = content.includes('"proposal"');
     const hasMechanicsKeyword = content.includes('"mechanics"');
     const endsWithProperBrace = trimmed.endsWith('}') || trimmed.endsWith(']}') || trimmed.endsWith('}}');
-    
+
     // If it has proposal/mechanics but doesn't end properly, likely truncated
     const likelyTruncated = (hasProposalKeyword || hasMechanicsKeyword) && !endsWithProperBrace;
-    
+
     // Check for obvious truncation markers
-    const hasTruncationMarkers = 
-      endsWithOpenBrace || 
-      endsWithOpenBracket || 
-      endsWithColon || 
+    const hasTruncationMarkers =
+      endsWithOpenBrace ||
+      endsWithOpenBracket ||
+      endsWithColon ||
       endsWithComma ||
       endsWithIncompleteString ||
       (endsWithPartialWord && !endsWithProperBrace);
-    
+
     return likelyTruncated || hasTruncationMarkers;
   }
 
@@ -1714,17 +1811,17 @@ export class AssistantService {
    */
   private extractTextFromResponse(content: string): string {
     let cleaned = content.trim();
-    
+
     // Remove markdown code blocks
     cleaned = cleaned.replace(/```json\n?/gi, '').replace(/```\n?/g, '');
-    
+
     // Remove thinking/reasoning blocks
     cleaned = cleaned
       .replace(/<think>[\s\S]*?<\/think>/gi, '')
       .replace(/\[REASONING\][\s\S]*?\[\/REASONING\]/gi, '')
       .replace(/Let me think[\s\S]*?(?=\{)/gi, '')
       .replace(/First, let me[\s\S]*?(?=\{)/gi, '');
-    
+
     // Try to extract the "reply" field value from JSON even if malformed
     const replyMatch = cleaned.match(/"reply"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
     if (replyMatch && replyMatch[1]) {
@@ -1738,7 +1835,7 @@ export class AssistantService {
         return reply;
       }
     }
-    
+
     // Try to extract text from JSON if present
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
@@ -1761,24 +1858,24 @@ export class AssistantService {
         // JSON parsing failed, continue with text extraction
       }
     }
-    
+
     // Remove any remaining JSON-like structures
     cleaned = cleaned.replace(/\{[^}]*\}/g, '');
-    
+
     // Remove common explanatory phrases
     cleaned = cleaned
       .replace(/^(Here is|Here's|Based on|I have|I've) [\w\s]*:(.*)$/i, '$2')
       .replace(/^(The|This) [\w\s]* (is|contains|includes): (.*)$/i, '$3')
       .replace(/^[\w\s]* (response|answer|suggestion): (.*)$/i, '$2');
-    
+
     // Clean up whitespace and line breaks
     cleaned = cleaned.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
-    
+
     // If the cleaned content is too short, return a default message
     if (cleaned.length < 10) {
       return 'I have processed your request. Please let me know if you need any clarification or would like me to make specific suggestions for your game concept.';
     }
-    
+
     return cleaned;
   }
 
@@ -1806,9 +1903,8 @@ export class AssistantService {
   }
 
   private buildNormalizedProposal(parsed: any): AssistantModelResponse['proposal'] | null {
-    const rawProposal = parsed && typeof parsed.proposal === 'object' && parsed.proposal !== null
-      ? { ...parsed.proposal }
-      : {};
+    const rawProposal =
+      parsed && typeof parsed.proposal === 'object' && parsed.proposal !== null ? { ...parsed.proposal } : {};
 
     const normalizedDocs = this.normalizeArchitectDocuments(parsed, rawProposal);
     if (normalizedDocs.length > 0) {
@@ -1816,7 +1912,8 @@ export class AssistantService {
     }
 
     const fallbackDocument = this.buildDocumentFromParsed(rawProposal || parsed);
-    const hasArchitectDocuments = Array.isArray(rawProposal.architectDocuments) && rawProposal.architectDocuments.length > 0;
+    const hasArchitectDocuments =
+      Array.isArray(rawProposal.architectDocuments) && rawProposal.architectDocuments.length > 0;
 
     if (!hasArchitectDocuments && fallbackDocument) {
       rawProposal.architectDocuments = [fallbackDocument];
@@ -1859,7 +1956,7 @@ export class AssistantService {
 
       const fileName = this.ensureMdFileName(
         this.stringifyField(parsedEntry.fileName) || this.stringifyField(parsedEntry.name),
-        this.stringifyField(parsedEntry.title) || `assistant-document-${index + 1}`
+        this.stringifyField(parsedEntry.title) || `assistant-document-${index + 1}`,
       );
 
       documents.push({
@@ -1927,10 +2024,7 @@ export class AssistantService {
     if (parsed.architectDocuments && Array.isArray(parsed.architectDocuments)) {
       const docs = parsed.architectDocuments
         .map((doc: any, index: number) => {
-          const docContent =
-            typeof doc.content === 'string'
-              ? doc.content
-              : this.stringifyField(doc);
+          const docContent = typeof doc.content === 'string' ? doc.content : this.stringifyField(doc);
           return docContent ? `### Document ${index + 1}\n${docContent}` : '';
         })
         .filter(Boolean);
@@ -1982,17 +2076,21 @@ export class AssistantService {
 
   private async createProposal(
     session: { id: string; projectId: string },
-    proposal: AssistantModelResponse['proposal']
+    proposal: AssistantModelResponse['proposal'],
   ) {
     const latestVersion = await this.getLatestVersion(session.projectId);
     const baseMechanics = (latestVersion?.mechanics || {}) as MechanicsData;
     const baseLore = (latestVersion?.lore || {}) as LoreData;
-    
+
     // Validate that proposal has actual content (not just empty objects)
-    const hasMechanics = proposal?.mechanics && typeof proposal.mechanics === 'object' && Object.keys(proposal.mechanics).length > 0;
+    const hasMechanics =
+      proposal?.mechanics && typeof proposal.mechanics === 'object' && Object.keys(proposal.mechanics).length > 0;
     const hasLore = proposal?.lore && typeof proposal.lore === 'object' && Object.keys(proposal.lore).length > 0;
-    const hasArchitectDocuments = proposal?.architectDocuments && Array.isArray(proposal.architectDocuments) && proposal.architectDocuments.length > 0;
-    
+    const hasArchitectDocuments =
+      proposal?.architectDocuments &&
+      Array.isArray(proposal.architectDocuments) &&
+      proposal.architectDocuments.length > 0;
+
     if (!hasMechanics && !hasLore && !hasArchitectDocuments) {
       logger.warn('Attempted to create proposal with no actual content', {
         sessionId: session.id,
@@ -2004,7 +2102,7 @@ export class AssistantService {
       });
       throw new Error('Proposal must contain mechanics, lore, or architectDocuments with actual content');
     }
-    
+
     const newMechanics = hasMechanics ? (proposal.mechanics as MechanicsData) : baseMechanics;
     const newLore = hasLore ? (proposal.lore as LoreData) : baseLore;
 

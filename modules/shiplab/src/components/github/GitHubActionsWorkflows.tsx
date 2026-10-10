@@ -12,7 +12,10 @@ interface GitHubActionsWorkflowsProps {
   setupInstructions: string;
 }
 
-export function GitHubActionsWorkflows({ workflows, setupInstructions }: GitHubActionsWorkflowsProps) {
+export function GitHubActionsWorkflows({
+  workflows,
+  setupInstructions,
+}: GitHubActionsWorkflowsProps) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [copiedInstructions, setCopiedInstructions] = useState(false);
 
@@ -62,9 +65,7 @@ export function GitHubActionsWorkflows({ workflows, setupInstructions }: GitHubA
                             .github/workflows/{workflow.fileName}
                           </code>
                         </CardDescription>
-                        <p className="text-sm text-muted-foreground mt-2">
-                          {workflow.description}
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-2">{workflow.description}</p>
                       </div>
                       <Button
                         size="sm"

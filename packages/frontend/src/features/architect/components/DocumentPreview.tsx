@@ -14,12 +14,7 @@ interface DocumentPreviewProps {
   onClose: () => void;
 }
 
-export function DocumentPreview({
-  documentName,
-  content,
-  onDownload,
-  onClose,
-}: DocumentPreviewProps) {
+export function DocumentPreview({ documentName, content, onDownload, onClose }: DocumentPreviewProps) {
   // Memoize the rendered markdown to prevent re-renders when content hasn't changed
   const renderedContent = useMemo(() => {
     if (!content) return null;
@@ -43,22 +38,12 @@ export function DocumentPreview({
     <div className="flex-1 flex flex-col border-t border-subtle min-h-0">
       {/* Preview Header */}
       <div className="px-4 py-2 border-b border-subtle flex items-center justify-between flex-shrink-0 bg-surface-elevated">
-        <h3 className="text-sm font-bold text-primary truncate flex-1">
-          {displayName}
-        </h3>
+        <h3 className="text-sm font-bold text-primary truncate flex-1">{displayName}</h3>
         <div className="flex gap-1 ml-2">
-          <button
-            onClick={onDownload}
-            className="btn btn-primary px-2 py-1 text-xs"
-            title="Download"
-          >
+          <button onClick={onDownload} className="btn btn-primary px-2 py-1 text-xs" title="Download">
             📥
           </button>
-          <button
-            onClick={onClose}
-            className="btn btn-secondary px-2 py-1 text-xs"
-            title="Close preview"
-          >
+          <button onClick={onClose} className="btn btn-secondary px-2 py-1 text-xs" title="Close preview">
             ✕
           </button>
         </div>
@@ -67,9 +52,7 @@ export function DocumentPreview({
       {/* Preview Content */}
       <div className="flex-1 overflow-y-auto p-4 bg-surface">
         {content ? (
-          <div className="prose prose-invert max-w-none">
-            {renderedContent}
-          </div>
+          <div className="prose prose-invert max-w-none">{renderedContent}</div>
         ) : (
           <div className="flex items-center justify-center h-full text-tertiary">
             <div className="text-center">
@@ -82,4 +65,3 @@ export function DocumentPreview({
     </div>
   );
 }
-

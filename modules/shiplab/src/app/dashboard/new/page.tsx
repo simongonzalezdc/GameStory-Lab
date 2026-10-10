@@ -62,9 +62,7 @@ export default function NewProjectPage() {
       <Card>
         <CardHeader>
           <CardTitle>Create New Project</CardTitle>
-          <CardDescription>
-            Add a project to analyze and prepare for production
-          </CardDescription>
+          <CardDescription>Add a project to analyze and prepare for production</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

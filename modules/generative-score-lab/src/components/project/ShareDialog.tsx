@@ -27,14 +27,13 @@ export default function ShareDialog({ open, onClose, project }: ShareDialogProps
   }, [project]);
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
+    <Dialog
+      open={open}
+      onClose={onClose}
       title="Share Project"
       description="Share this project by copying the link below. Anyone with the link can import the project."
     >
       <div className="space-y-4">
-
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
           <input
             type="text"
@@ -49,17 +48,14 @@ export default function ShareDialog({ open, onClose, project }: ShareDialogProps
           <Button variant="secondary" onClick={onClose}>
             Close
           </Button>
-          <Button onClick={handleCopy}>
-            {copied ? '✓ Copied!' : 'Copy Link'}
-          </Button>
+          <Button onClick={handleCopy}>{copied ? '✓ Copied!' : 'Copy Link'}</Button>
         </div>
 
         <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded p-3">
-          <strong>Note:</strong> The project data is encoded in the URL. For very large projects, 
+          <strong>Note:</strong> The project data is encoded in the URL. For very large projects,
           consider using a file sharing service instead.
         </div>
       </div>
     </Dialog>
   );
 }
-

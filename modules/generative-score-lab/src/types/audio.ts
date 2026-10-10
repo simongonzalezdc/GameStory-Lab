@@ -29,13 +29,7 @@ export interface Chord {
 }
 
 export type ChordType =
-  | 'major'
-  | 'minor'
-  | 'diminished'
-  | 'augmented'
-  | 'major7'
-  | 'minor7'
-  | 'dominant7';
+  'major' | 'minor' | 'diminished' | 'augmented' | 'major7' | 'minor7' | 'dominant7';
 
 export interface Instrument {
   id: string;

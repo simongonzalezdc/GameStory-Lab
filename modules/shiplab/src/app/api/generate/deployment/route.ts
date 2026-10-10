@@ -10,7 +10,10 @@ import { getProject, createDocument } from '@/lib/db/queries';
 
 const generateDeploymentSchema = z.object({
   projectId: z.string(),
-  platforms: z.array(z.enum(['vercel', 'docker', 'railway'])).optional().default(['vercel', 'docker', 'railway']),
+  platforms: z
+    .array(z.enum(['vercel', 'docker', 'railway']))
+    .optional()
+    .default(['vercel', 'docker', 'railway']),
   model: z.string().optional().default('smollm2:1.7b'),
 });
 

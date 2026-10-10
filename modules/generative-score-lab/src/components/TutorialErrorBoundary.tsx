@@ -28,12 +28,8 @@ export class TutorialErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    errorHandler.handle(
-      error,
-      'Tutorial Error Boundary',
-      ErrorSeverity.ERROR
-    );
-    
+    errorHandler.handle(error, 'Tutorial Error Boundary', ErrorSeverity.ERROR);
+
     // Mark tutorial as completed to prevent auto-start loop
     // Use getState() to access store outside of React component
     try {
@@ -45,7 +41,7 @@ export class TutorialErrorBoundary extends Component<
       // If store access fails, at least log the error
       console.error('Failed to mark tutorial as complete:', storeError);
     }
-    
+
     console.error('Tutorial error caught:', error, errorInfo);
   }
 

@@ -8,7 +8,7 @@ import { MIN_BPM, MAX_BPM } from '@/lib/utils/constants';
 export function buildMusicSystemPrompt(context?: ProjectContext): string {
   // Build detailed context with IDs for actions
   let contextInfo = 'No project loaded yet.';
-  
+
   if (context?.currentScene) {
     const scene = context.currentScene;
     contextInfo = `
@@ -19,9 +19,15 @@ Current Scene:
 - BPM: ${scene.bpm || 'default'}
 - Intensity Range: [${scene.intensityRange[0]}, ${scene.intensityRange[1]}]
 - Tracks:
-${(scene.tracks ?? []).map(track => `  - Track ID: ${track.id} | Role: ${track.role} | Name: ${track.name || 'Unnamed'} | Muted: ${track.muted} | Solo: ${track.solo} | Volume: ${track.volume} | Pan: ${track.pan}
+${(scene.tracks ?? [])
+  .map(
+    (
+      track
+    ) => `  - Track ID: ${track.id} | Role: ${track.role} | Name: ${track.name || 'Unnamed'} | Muted: ${track.muted} | Solo: ${track.solo} | Volume: ${track.volume} | Pan: ${track.pan}
     Clips:
-${(track.clips ?? []).map(clip => `      - Clip ID: ${clip.id} | Muted: ${clip.muted} | Density: ${clip.density || 'N/A'} | Probability: ${clip.probability || 'N/A'} | Generator: ${clip.generator.type}`).join('\n')}`).join('\n')}
+${(track.clips ?? []).map((clip) => `      - Clip ID: ${clip.id} | Muted: ${clip.muted} | Density: ${clip.density || 'N/A'} | Probability: ${clip.probability || 'N/A'} | Generator: ${clip.generator.type}`).join('\n')}`
+  )
+  .join('\n')}
 
 IMPORTANT FOR ACTIONS:
 - For updateTrack: Use format "${scene.id}/${scene.tracks[0]?.id || 'track-id'}" (scene ID + track ID)
@@ -33,19 +39,22 @@ IMPORTANT FOR ACTIONS:
   if (context?.recentActions && context.recentActions.length > 0) {
     contextInfo += `
 Recent Action Results:
-${context.recentActions.map(ra => 
-  `- ${ra.action.type}: ${ra.success ? 'SUCCESS' : `FAILED: ${ra.error || 'Unknown error'}`}`
-).join('\n')}
+${context.recentActions
+  .map(
+    (ra) =>
+      `- ${ra.action.type}: ${ra.success ? 'SUCCESS' : `FAILED: ${ra.error || 'Unknown error'}`}`
+  )
+  .join('\n')}
 
 Note: The AI should learn from these results and avoid repeating failed actions or similar patterns.`;
   }
-  
+
   if (context?.projectSnapshot) {
     const project = context.projectSnapshot; // Full project
     contextInfo += `
 Project Overview:
 - Total Scenes: ${project.scenes?.length || 0}
-- Scenes: ${project.scenes?.map(s => `${s.name} (${s.id})`).join(', ') || 'No scenes'}
+- Scenes: ${project.scenes?.map((s) => `${s.name} (${s.id})`).join(', ') || 'No scenes'}
 - Global BPM: ${project.bpm || 'Not set'}
 - Default Key: ${project.defaultKey || 'Not set'} ${project.defaultScale || ''}
 `;

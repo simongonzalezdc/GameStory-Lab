@@ -27,7 +27,7 @@ function getSystemTheme(): 'light' | 'dark' {
  */
 function applyTheme(theme: 'light' | 'dark'): void {
   if (typeof document === 'undefined') return;
-  
+
   const root = document.documentElement;
   if (theme === 'dark') {
     root.classList.add('dark');
@@ -41,12 +41,13 @@ export const useThemeStore = create<ThemeState>()(
     (set, get) => {
       // Initialize effective theme
       const systemTheme = getSystemTheme();
-      const initialTheme = (localStorage.getItem('generative-score-lab-theme') as Theme) || 'system';
+      const initialTheme =
+        (localStorage.getItem('generative-score-lab-theme') as Theme) || 'system';
       const effectiveTheme = initialTheme === 'system' ? systemTheme : initialTheme;
-      
+
       // Apply theme immediately
       applyTheme(effectiveTheme);
-      
+
       // Listen for system theme changes
       if (typeof window !== 'undefined') {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -71,7 +72,8 @@ export const useThemeStore = create<ThemeState>()(
         },
         toggleTheme: () => {
           const { theme } = get();
-          const newTheme: Theme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
+          const newTheme: Theme =
+            theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
           const effectiveTheme = newTheme === 'system' ? getSystemTheme() : newTheme;
           set({ theme: newTheme, effectiveTheme });
           applyTheme(effectiveTheme);
@@ -83,4 +85,3 @@ export const useThemeStore = create<ThemeState>()(
     }
   )
 );
-

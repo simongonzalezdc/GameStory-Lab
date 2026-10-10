@@ -53,7 +53,9 @@ export default function SettingsDialog({ open, onOpenChange }: SettingsDialogPro
 
         {/* Keyboard Shortcuts Info */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Keyboard Shortcuts</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            Keyboard Shortcuts
+          </h3>
           <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
             <div className="flex justify-between">
               <span>Undo</span>
@@ -61,7 +63,9 @@ export default function SettingsDialog({ open, onOpenChange }: SettingsDialogPro
             </div>
             <div className="flex justify-between">
               <span>Redo</span>
-              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Ctrl+Shift+Z</kbd>
+              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+                Ctrl+Shift+Z
+              </kbd>
             </div>
             <div className="flex justify-between">
               <span>Export Project</span>
@@ -81,4 +85,3 @@ export default function SettingsDialog({ open, onOpenChange }: SettingsDialogPro
     </Dialog>
   );
 }
-

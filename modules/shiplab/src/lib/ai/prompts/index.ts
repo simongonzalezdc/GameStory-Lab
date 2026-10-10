@@ -54,11 +54,14 @@ export function getSystemPrompt(module: string): string {
   return SYSTEM_PROMPTS[module as keyof typeof SYSTEM_PROMPTS] || SYSTEM_PROMPTS.general;
 }
 
-export function buildChatPrompt(userMessage: string, context?: {
-  projectName?: string;
-  projectLanguage?: string;
-  projectFramework?: string;
-}): string {
+export function buildChatPrompt(
+  userMessage: string,
+  context?: {
+    projectName?: string;
+    projectLanguage?: string;
+    projectFramework?: string;
+  }
+): string {
   if (!context) {
     return userMessage;
   }

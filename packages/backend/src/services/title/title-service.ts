@@ -47,14 +47,14 @@ export class TitleService {
         { role: 'system', content: this.getSystemMessage(style) },
         { role: 'user', content: prompt },
       ],
-      'auto'
+      'auto',
     );
 
     // Parse response
     const rawTitles = this.parseAIResponse(response.content);
 
     // Analyze and score titles
-    const scoredTitles = rawTitles.map(title => this.analyzeTitleQuality(title, request));
+    const scoredTitles = rawTitles.map((title) => this.analyzeTitleQuality(title, request));
 
     // Sort by overall score
     scoredTitles.sort((a, b) => b.overallScore - a.overallScore);
@@ -84,7 +84,7 @@ Return as JSON array:
         { role: 'system', content: 'You are an expert at creating memorable game title variations.' },
         { role: 'user', content: prompt },
       ],
-      'auto'
+      'auto',
     );
 
     const parsed = this.parseAIResponse(response.content);
@@ -112,7 +112,10 @@ Return as JSON array:
   /**
    * Analyze SEO potential of a title
    */
-  analyzeSEO(title: string, genre?: Genre): {
+  analyzeSEO(
+    title: string,
+    genre?: Genre,
+  ): {
     score: number;
     suggestions: string[];
   } {
@@ -147,7 +150,7 @@ Return as JSON array:
 
     // Check for common game-related keywords
     const gameKeywords = ['quest', 'legend', 'chronicles', 'saga', 'adventure', 'war', 'battle'];
-    const hasKeyword = gameKeywords.some(kw => title.toLowerCase().includes(kw));
+    const hasKeyword = gameKeywords.some((kw) => title.toLowerCase().includes(kw));
     if (hasKeyword) {
       score += 0.1;
     } else {
@@ -243,7 +246,7 @@ Return as JSON array:
     } else if (style === 'action-oriented') {
       return 'You are an expert at creating bold, action-packed game titles with strong verbs and energy.';
     } else if (style === 'descriptive') {
-      return 'You are an expert at creating clear, descriptive game titles that immediately communicate the game\'s concept.';
+      return "You are an expert at creating clear, descriptive game titles that immediately communicate the game's concept.";
     } else if (style === 'evocative') {
       return 'You are an expert at creating poetic, evocative game titles that capture emotions and atmosphere.';
     } else if (style === 'numeric') {
@@ -276,7 +279,7 @@ Return as JSON array:
    */
   private analyzeTitleQuality(
     titleData: { title: string; rationale: string; style?: string },
-    request: TitleGenerationRequest
+    request: TitleGenerationRequest,
   ): TitleSuggestion {
     const { title, rationale, style } = titleData;
 
@@ -326,7 +329,7 @@ Return as JSON array:
     };
 
     const keywords = genreKeywords[genre] || [];
-    const hasKeyword = keywords.some(kw => lower.includes(kw));
+    const hasKeyword = keywords.some((kw) => lower.includes(kw));
     if (hasKeyword) {
       score += 0.3;
     }
@@ -353,7 +356,7 @@ Return as JSON array:
     // Alliteration bonus
     const words = title.split(' ');
     if (words.length >= 2) {
-      const firstLetters = words.map(w => w[0].toLowerCase());
+      const firstLetters = words.map((w) => w[0].toLowerCase());
       if (new Set(firstLetters).size < firstLetters.length) {
         score += 0.1; // Some alliteration
       }

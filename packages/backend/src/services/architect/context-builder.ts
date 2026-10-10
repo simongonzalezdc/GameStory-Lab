@@ -51,7 +51,7 @@ export class ContextBuilder {
 
     if (context.keyFeatures && context.keyFeatures.length > 0) {
       lines.push('', '**Key Features:**');
-      context.keyFeatures.forEach(feature => {
+      context.keyFeatures.forEach((feature) => {
         lines.push(`- ${feature}`);
       });
     }
@@ -73,9 +73,9 @@ export class ContextBuilder {
     // Group answers by phase
     const phases = ['quick-discovery', 'deep-dive', 'open-source'] as const;
 
-    phases.forEach(phase => {
-      const phaseAnswers = session.answers.filter(answer => {
-        const question = INTERVIEW_QUESTIONS.find(q => q.id === answer.questionId);
+    phases.forEach((phase) => {
+      const phaseAnswers = session.answers.filter((answer) => {
+        const question = INTERVIEW_QUESTIONS.find((q) => q.id === answer.questionId);
         return question?.phase === phase;
       });
 
@@ -83,13 +83,11 @@ export class ContextBuilder {
         lines.push(`### ${phase.replace('-', ' ').toUpperCase()} PHASE`);
         lines.push('');
 
-        phaseAnswers.forEach(answer => {
-          const question = INTERVIEW_QUESTIONS.find(q => q.id === answer.questionId);
+        phaseAnswers.forEach((answer) => {
+          const question = INTERVIEW_QUESTIONS.find((q) => q.id === answer.questionId);
           if (question) {
             lines.push(`**${question.question}**`);
-            const answerText = Array.isArray(answer.answer)
-              ? answer.answer.join(', ')
-              : answer.answer;
+            const answerText = Array.isArray(answer.answer) ? answer.answer.join(', ') : answer.answer;
             lines.push(`${answerText}`);
             lines.push('');
           }
@@ -104,10 +102,7 @@ export class ContextBuilder {
    * Build technical requirements section
    */
   private buildTechnicalRequirements(context: ProjectContext): string {
-    const lines = [
-      '## TECHNICAL REQUIREMENTS',
-      '',
-    ];
+    const lines = ['## TECHNICAL REQUIREMENTS', ''];
 
     if (context.coreWorkflow) {
       lines.push(`**Core Workflow:** ${context.coreWorkflow}`);
@@ -139,7 +134,7 @@ export class ContextBuilder {
 
     if (context.integrations && context.integrations.length > 0) {
       lines.push('', '**Integrations:**');
-      context.integrations.forEach(integration => {
+      context.integrations.forEach((integration) => {
         lines.push(`- ${integration}`);
       });
     }
@@ -151,10 +146,7 @@ export class ContextBuilder {
    * Build business constraints section
    */
   private buildBusinessConstraints(context: ProjectContext): string {
-    const lines = [
-      '## BUSINESS CONSTRAINTS',
-      '',
-    ];
+    const lines = ['## BUSINESS CONSTRAINTS', ''];
 
     if (context.constraints?.timeline) {
       lines.push(`**Timeline:** ${context.constraints.timeline}`);
@@ -186,7 +178,6 @@ export class ContextBuilder {
 
     return lines.join('\n');
   }
-
 }
 
 // Export singleton instance

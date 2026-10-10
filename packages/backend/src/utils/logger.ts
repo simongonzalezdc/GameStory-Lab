@@ -12,7 +12,7 @@ const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
   winston.format.splat(),
-  winston.format.json()
+  winston.format.json(),
 );
 
 // Console format for development
@@ -25,7 +25,7 @@ const consoleFormat = winston.format.combine(
       msg += ` ${JSON.stringify(meta)}`;
     }
     return msg;
-  })
+  }),
 );
 
 // Create logger instance
@@ -49,7 +49,7 @@ if (process.env.NODE_ENV === 'production') {
       level: 'error',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
-    })
+    }),
   );
 
   logger.add(
@@ -57,10 +57,9 @@ if (process.env.NODE_ENV === 'production') {
       filename: 'logs/combined.log',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
-    })
+    }),
   );
 }
 
 // Export convenience methods
 export default logger;
-

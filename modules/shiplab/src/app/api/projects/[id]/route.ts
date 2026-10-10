@@ -12,10 +12,7 @@ const updateProjectSchema = z.object({
 });
 
 // GET /api/projects/[id] - Get project by ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const project = await getProject(id);
@@ -32,10 +29,7 @@ export async function GET(
 }
 
 // PATCH /api/projects/[id] - Update project
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();
@@ -52,7 +46,10 @@ export async function PATCH(
     console.error('Failed to update project:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });

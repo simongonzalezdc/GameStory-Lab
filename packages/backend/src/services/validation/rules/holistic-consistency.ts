@@ -10,7 +10,7 @@ import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared
  */
 export async function validateContentCompleteness(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const missingMechanics: string[] = [];
   const missingLore: string[] = [];
@@ -62,7 +62,8 @@ export async function validateContentCompleteness(
     severity,
     confidence,
     message: `Key sections are incomplete: ${messageParts.join(' and ')}. Validation accuracy is reduced until these are filled in.`,
-    suggestion: 'Add the missing sections so other validation rules have enough context. Start with core loop, player actions, primary conflict, and world rules.',
+    suggestion:
+      'Add the missing sections so other validation rules have enough context. Start with core loop, player actions, primary conflict, and world rules.',
     location: {
       mechanics: ['coreLoop', 'playerActions', 'winConditions'],
       lore: ['setting', 'protagonist', 'conflict', 'worldRules'],

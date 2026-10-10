@@ -35,7 +35,8 @@ export function TutorialPage() {
                     <span>What is a Project?</span>
                   </h3>
                   <p className="text-secondary">
-                    A <strong>Project</strong> is a container for your game ideas. Think of it as a folder where you keep all your concepts for a single game.
+                    A <strong>Project</strong> is a container for your game ideas. Think of it as a folder where you
+                    keep all your concepts for a single game.
                   </p>
                 </div>
 
@@ -48,11 +49,17 @@ export function TutorialPage() {
                     A <strong>Concept</strong> is a complete game design that includes:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-secondary">
-                    <li><strong>Mechanics</strong>: How the game plays (core loop, player actions, progression systems, win/lose conditions)</li>
-                    <li><strong>Lore</strong>: The story and world (setting, protagonist, conflict, themes, world rules)</li>
+                    <li>
+                      <strong>Mechanics</strong>: How the game plays (core loop, player actions, progression systems,
+                      win/lose conditions)
+                    </li>
+                    <li>
+                      <strong>Lore</strong>: The story and world (setting, protagonist, conflict, themes, world rules)
+                    </li>
                   </ul>
                   <p className="text-secondary mt-3">
-                    Concepts are <strong>versioned</strong>, meaning you can create multiple versions and refine them over time.
+                    Concepts are <strong>versioned</strong>, meaning you can create multiple versions and refine them
+                    over time.
                   </p>
                 </div>
 
@@ -61,11 +68,21 @@ export function TutorialPage() {
                     <span>🔄</span> The Workflow
                   </h3>
                   <ol className="list-decimal list-inside space-y-2 text-emerald-800 dark:text-emerald-200">
-                    <li><strong>Create a Project</strong> → Give your game a name and genre</li>
-                    <li><strong>Generate a Concept</strong> → Use AI to create mechanics and/or lore</li>
-                    <li><strong>Validate</strong> → Check for consistency issues</li>
-                    <li><strong>Refine</strong> → Improve your concept with AI assistance</li>
-                    <li><strong>Export</strong> → Generate professional documentation (GDD, pitch deck, etc.)</li>
+                    <li>
+                      <strong>Create a Project</strong> → Give your game a name and genre
+                    </li>
+                    <li>
+                      <strong>Generate a Concept</strong> → Use AI to create mechanics and/or lore
+                    </li>
+                    <li>
+                      <strong>Validate</strong> → Check for consistency issues
+                    </li>
+                    <li>
+                      <strong>Refine</strong> → Improve your concept with AI assistance
+                    </li>
+                    <li>
+                      <strong>Export</strong> → Generate professional documentation (GDD, pitch deck, etc.)
+                    </li>
                   </ol>
                 </div>
               </div>
@@ -77,10 +94,10 @@ export function TutorialPage() {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Creating Your First Project</h2>
-            
+
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Step-by-Step Guide</h3>
-              
+
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
@@ -88,7 +105,10 @@ export function TutorialPage() {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">Navigate to Projects</h4>
-                    <p className="text-slate-600 dark:text-slate-300">When you first open GameStory Lab, you'll see the <strong>Projects</strong> page. This is your dashboard where all your game projects are listed.</p>
+                    <p className="text-slate-600 dark:text-slate-300">
+                      When you first open GameStory Lab, you'll see the <strong>Projects</strong> page. This is your
+                      dashboard where all your game projects are listed.
+                    </p>
                   </div>
                 </div>
 
@@ -99,19 +119,25 @@ export function TutorialPage() {
                   <div className="flex-1">
                     <h4 className="font-semibold text-primary mb-1">Create a New Project</h4>
                     <ol className="list-decimal list-inside space-y-1 text-secondary ml-4">
-                      <li>Click the <strong>"+ Create New Project"</strong> button (top of the page)</li>
-                      <li>Enter a <strong>Project Title</strong> (required)
+                      <li>
+                        Click the <strong>"+ Create New Project"</strong> button (top of the page)
+                      </li>
+                      <li>
+                        Enter a <strong>Project Title</strong> (required)
                         <ul className="list-disc list-inside ml-4 mt-1 text-sm">
                           <li>Example: "My Epic RPG" or "Cozy Farming Sim"</li>
                         </ul>
                       </li>
-                      <li>Optionally add a <strong>Genre or Mood</strong>
+                      <li>
+                        Optionally add a <strong>Genre or Mood</strong>
                         <ul className="list-disc list-inside ml-4 mt-1 text-sm">
                           <li>Example: "RPG", "cozy sim", "tactical strategy"</li>
                           <li>This helps AI generate more appropriate content</li>
                         </ul>
                       </li>
-                      <li>Click the <strong>"Create Project"</strong> button</li>
+                      <li>
+                        Click the <strong>"Create Project"</strong> button
+                      </li>
                     </ol>
                   </div>
                 </div>
@@ -120,7 +146,8 @@ export function TutorialPage() {
 
             <div className="surface-card p-4 border border-subtle rounded-lg mt-4">
               <p className="text-sm text-info">
-                <strong>💡 Tip:</strong> You'll now see your project in the list! Click on it to open and start creating concepts.
+                <strong>💡 Tip:</strong> You'll now see your project in the list! Click on it to open and start creating
+                concepts.
               </p>
             </div>
 
@@ -136,8 +163,10 @@ export function TutorialPage() {
       case 'generate-concept':
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Generating Your First Concept</h2>
-            
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+              Generating Your First Concept
+            </h2>
+
             <div className="grid md:grid-cols-2 gap-6">
               <div className="surface-card border border-subtle rounded-xl p-6 shadow-sm">
                 <h3 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
@@ -146,10 +175,14 @@ export function TutorialPage() {
                 <p className="text-secondary mb-4">Recommended for first-time users</p>
                 <ol className="list-decimal list-inside space-y-2 text-secondary">
                   <li>Click on your project to open it</li>
-                  <li>Click the <strong>"Generate Concept with AI"</strong> button</li>
+                  <li>
+                    Click the <strong>"Generate Concept with AI"</strong> button
+                  </li>
                   <li>Answer the AI's questions about your game idea</li>
                   <li>Review the generated concept</li>
-                  <li>Use the <strong>"Validate"</strong> button to check for issues</li>
+                  <li>
+                    Use the <strong>"Validate"</strong> button to check for issues
+                  </li>
                 </ol>
               </div>
 
@@ -159,14 +192,19 @@ export function TutorialPage() {
                 </h3>
                 <p className="text-slate-600 dark:text-slate-300 mb-4">Use pre-built genre templates</p>
                 <ol className="list-decimal list-inside space-y-2 text-slate-600 dark:text-slate-300">
-                  <li>Click <strong>"Templates"</strong> in navigation</li>
-                  <li>Browse available templates:
+                  <li>
+                    Click <strong>"Templates"</strong> in navigation
+                  </li>
+                  <li>
+                    Browse available templates:
                     <ul className="list-disc list-inside ml-4 mt-1 text-sm">
                       <li>RPG, FPS, Strategy, Puzzle, Survival</li>
                     </ul>
                   </li>
                   <li>Click a template to preview</li>
-                  <li>Click <strong>"Create Project from Template"</strong></li>
+                  <li>
+                    Click <strong>"Create Project from Template"</strong>
+                  </li>
                   <li>Enter a project name</li>
                 </ol>
               </div>
@@ -174,7 +212,8 @@ export function TutorialPage() {
 
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
               <p className="text-sm text-amber-800 dark:text-amber-200">
-                <strong>💡 Pro Tip:</strong> The more detail you provide in your description, the better the AI can tailor the concept to your vision!
+                <strong>💡 Pro Tip:</strong> The more detail you provide in your description, the better the AI can
+                tailor the concept to your vision!
               </p>
             </div>
 
@@ -195,7 +234,7 @@ export function TutorialPage() {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Validating Your Concept</h2>
-            
+
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-primary mb-4">Understanding Validation</h3>
               <p className="text-secondary mb-4">
@@ -205,37 +244,53 @@ export function TutorialPage() {
                 <div className="space-y-2">
                   <div className="flex items-start gap-2">
                     <span className="text-brand">•</span>
-                    <span className="text-primary"><strong>Mechanics-Lore Alignment</strong>: Do gameplay actions match story?</span>
+                    <span className="text-primary">
+                      <strong>Mechanics-Lore Alignment</strong>: Do gameplay actions match story?
+                    </span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-brand">•</span>
-                    <span className="text-primary"><strong>Genre Conventions</strong>: Does it follow genre expectations?</span>
+                    <span className="text-primary">
+                      <strong>Genre Conventions</strong>: Does it follow genre expectations?
+                    </span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-brand">•</span>
-                    <span className="text-primary"><strong>World Physics</strong>: Are world rules consistent?</span>
+                    <span className="text-primary">
+                      <strong>World Physics</strong>: Are world rules consistent?
+                    </span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-brand">•</span>
-                    <span className="text-primary"><strong>Progression Coherence</strong>: Does progression make sense?</span>
+                    <span className="text-primary">
+                      <strong>Progression Coherence</strong>: Does progression make sense?
+                    </span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-brand">•</span>
-                    <span className="text-primary"><strong>Narrative Structure</strong>: Is story well-structured?</span>
+                    <span className="text-primary">
+                      <strong>Narrative Structure</strong>: Is story well-structured?
+                    </span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-brand">•</span>
-                    <span className="text-primary"><strong>Technical Feasibility</strong>: Can this actually be built?</span>
+                    <span className="text-primary">
+                      <strong>Technical Feasibility</strong>: Can this actually be built?
+                    </span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-start gap-2">
                     <span className="text-brand">•</span>
-                    <span className="text-primary"><strong>Content Completeness</strong>: All required sections present?</span>
+                    <span className="text-primary">
+                      <strong>Content Completeness</strong>: All required sections present?
+                    </span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-brand">•</span>
-                    <span className="text-primary"><strong>Logical Consistency</strong>: No internal contradictions?</span>
+                    <span className="text-primary">
+                      <strong>Logical Consistency</strong>: No internal contradictions?
+                    </span>
                   </div>
                 </div>
               </div>
@@ -275,9 +330,15 @@ export function TutorialPage() {
                 <div>
                   <h4 className="font-semibold text-primary mb-2">3. Review Issues</h4>
                   <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-300">
-                    <li><strong className="text-red-600">Errors</strong> (red): Critical problems that should be fixed</li>
-                    <li><strong className="text-yellow-600">Warnings</strong> (yellow): Potential issues to consider</li>
-                    <li><strong className="text-blue-600">Info</strong> (blue): Suggestions for improvement</li>
+                    <li>
+                      <strong className="text-red-600">Errors</strong> (red): Critical problems that should be fixed
+                    </li>
+                    <li>
+                      <strong className="text-yellow-600">Warnings</strong> (yellow): Potential issues to consider
+                    </li>
+                    <li>
+                      <strong className="text-blue-600">Info</strong> (blue): Suggestions for improvement
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -289,19 +350,23 @@ export function TutorialPage() {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Refining Your Concept</h2>
-            
+
             <div className="surface-card border border-subtle rounded-xl p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-primary mb-3">What is Refinement?</h3>
               <p className="text-secondary mb-4">
-                Refinement uses AI to improve your concept while keeping what works. It creates a <strong>new version</strong> so you can compare changes.
+                Refinement uses AI to improve your concept while keeping what works. It creates a{' '}
+                <strong>new version</strong> so you can compare changes.
               </p>
             </div>
 
             <div className="surface-card border border-subtle rounded-xl p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-primary mb-4">How to Refine</h3>
               <ol className="list-decimal list-inside space-y-3 text-secondary">
-                <li>Click the <strong>"✨ Refine"</strong> button (top right of concept page)</li>
-                <li>Choose a focus:
+                <li>
+                  Click the <strong>"✨ Refine"</strong> button (top right of concept page)
+                </li>
+                <li>
+                  Choose a focus:
                   <div className="grid md:grid-cols-2 gap-3 mt-3">
                     <div className="p-3 bg-info/20 border border-info rounded-lg">
                       <strong className="text-info">Deepen Mechanics</strong>
@@ -329,7 +394,8 @@ export function TutorialPage() {
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>💡 Tip:</strong> Each refinement creates a new version. You can see all versions in your project, and the latest is shown by default.
+                <strong>💡 Tip:</strong> Each refinement creates a new version. You can see all versions in your
+                project, and the latest is shown by default.
               </p>
             </div>
           </div>
@@ -339,15 +405,18 @@ export function TutorialPage() {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-primary mb-4">Exporting Your Concept</h2>
-            
+
             <div className="surface-card border border-subtle rounded-xl p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-primary mb-4">Export Formats</h3>
               <p className="text-secondary mb-4">
                 Once you're happy with your concept, export it to professional documentation:
               </p>
               <ol className="list-decimal list-inside space-y-3 text-secondary">
-                <li>Click the <strong>"📄 Export"</strong> button (top right)</li>
-                <li>Choose a template:
+                <li>
+                  Click the <strong>"📄 Export"</strong> button (top right)
+                </li>
+                <li>
+                  Choose a template:
                   <div className="grid md:grid-cols-3 gap-3 mt-3">
                     <div className="p-4 surface-elevated border border-subtle rounded-lg">
                       <strong className="text-primary block mb-1">GDD</strong>
@@ -386,14 +455,16 @@ export function TutorialPage() {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">Advanced Features</h2>
-            
+
             <div className="grid md:grid-cols-2 gap-6">
               <div className="surface-card border border-subtle rounded-xl p-6 shadow-sm">
                 <h3 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
                   <span>🔄</span> Multiple Concepts
                 </h3>
                 <ul className="list-disc list-inside space-y-1 text-secondary">
-                  <li>A project can have <strong>multiple concepts</strong> (versions)</li>
+                  <li>
+                    A project can have <strong>multiple concepts</strong> (versions)
+                  </li>
                   <li>Each concept is independent</li>
                   <li>Use refinement to create new versions</li>
                   <li>Compare different approaches</li>
@@ -406,9 +477,15 @@ export function TutorialPage() {
                 </h3>
                 <ul className="list-disc list-inside space-y-1 text-secondary">
                   <li>Templates are pre-built starting points</li>
-                  <li><strong>Browse Templates</strong>: See all available genres</li>
-                  <li><strong>Preview</strong>: Check what's included before creating</li>
-                  <li><strong>Customize</strong>: Templates can be modified after creation</li>
+                  <li>
+                    <strong>Browse Templates</strong>: See all available genres
+                  </li>
+                  <li>
+                    <strong>Preview</strong>: Check what's included before creating
+                  </li>
+                  <li>
+                    <strong>Customize</strong>: Templates can be modified after creation
+                  </li>
                 </ul>
               </div>
 
@@ -418,9 +495,15 @@ export function TutorialPage() {
                 </h3>
                 <p className="text-secondary mb-2">The system automatically selects optimally for you:</p>
                 <ul className="list-disc list-inside space-y-1 text-secondary">
-                  <li><strong>Ollama</strong> (free, local): Used when available</li>
-                  <li><strong>OpenRouter</strong> (cloud): Access to multiple models</li>
-                  <li><strong>Google Gemini</strong>: Fast validation</li>
+                  <li>
+                    <strong>Ollama</strong> (free, local): Used when available
+                  </li>
+                  <li>
+                    <strong>OpenRouter</strong> (cloud): Access to multiple models
+                  </li>
+                  <li>
+                    <strong>Google Gemini</strong>: Fast validation
+                  </li>
                 </ul>
                 <p className="text-sm text-tertiary mt-2">The system chooses optimally for you.</p>
               </div>
@@ -432,28 +515,46 @@ export function TutorialPage() {
                 <div className="space-y-3 text-sm">
                   <div>
                     <strong className="text-slate-900 dark:text-slate-100">Workflow 1: Start Fresh</strong>
-                    <p className="text-slate-600 dark:text-slate-300">Create → Generate Both → Validate → Refine → Export</p>
+                    <p className="text-slate-600 dark:text-slate-300">
+                      Create → Generate Both → Validate → Refine → Export
+                    </p>
                   </div>
                   <div>
                     <strong className="text-slate-900 dark:text-slate-100">Workflow 2: Mechanics First</strong>
-                    <p className="text-slate-600 dark:text-slate-300">Generate Mechanics → Review → Generate Lore → Validate</p>
+                    <p className="text-slate-600 dark:text-slate-300">
+                      Generate Mechanics → Review → Generate Lore → Validate
+                    </p>
                   </div>
                   <div>
                     <strong className="text-slate-900 dark:text-slate-100">Workflow 3: Template-Based</strong>
-                    <p className="text-slate-600 dark:text-slate-300">Browse → Create from Template → Customize → Refine</p>
+                    <p className="text-slate-600 dark:text-slate-300">
+                      Browse → Create from Template → Customize → Refine
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-200 mb-3">Tips & Best Practices</h3>
+              <h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-200 mb-3">
+                Tips & Best Practices
+              </h3>
               <ul className="list-disc list-inside space-y-2 text-emerald-800 dark:text-emerald-200">
-                <li><strong>Be Specific</strong>: The more detail in your prompt, the better</li>
-                <li><strong>Use Genre</strong>: Always set a genre for better AI guidance</li>
-                <li><strong>Iterate</strong>: Don't expect perfection on the first try</li>
-                <li><strong>Validate Early</strong>: Check consistency before refining too much</li>
-                <li><strong>Refine Strategically</strong>: Use the right refinement focus for your needs</li>
+                <li>
+                  <strong>Be Specific</strong>: The more detail in your prompt, the better
+                </li>
+                <li>
+                  <strong>Use Genre</strong>: Always set a genre for better AI guidance
+                </li>
+                <li>
+                  <strong>Iterate</strong>: Don't expect perfection on the first try
+                </li>
+                <li>
+                  <strong>Validate Early</strong>: Check consistency before refining too much
+                </li>
+                <li>
+                  <strong>Refine Strategically</strong>: Use the right refinement focus for your needs
+                </li>
               </ul>
             </div>
           </div>
@@ -519,5 +620,3 @@ export function TutorialPage() {
     </div>
   );
 }
-
-

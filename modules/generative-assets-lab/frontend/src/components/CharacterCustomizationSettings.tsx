@@ -44,12 +44,14 @@ const EQUIPMENT_PRESETS = [
   },
 ];
 
-export function CharacterCustomizationSettings({ enabled, onToggle, onSettingsChange }: CharacterCustomizationSettingsProps) {
-  const [equipmentSlots, setEquipmentSlots] = useState<('helmet' | 'chest' | 'legs' | 'weapon' | 'shield' | 'cape' | 'boots' | 'gloves')[]>([
-    'helmet',
-    'chest',
-    'weapon',
-  ]);
+export function CharacterCustomizationSettings({
+  enabled,
+  onToggle,
+  onSettingsChange,
+}: CharacterCustomizationSettingsProps) {
+  const [equipmentSlots, setEquipmentSlots] = useState<
+    ('helmet' | 'chest' | 'legs' | 'weapon' | 'shield' | 'cape' | 'boots' | 'gloves')[]
+  >(['helmet', 'chest', 'weapon']);
   const [variationsPerSlot, setVariationsPerSlot] = useState<number>(3);
   const [maintainConsistency, setMaintainConsistency] = useState(true);
   const [generateBase, setGenerateBase] = useState(true);
@@ -72,14 +74,14 @@ export function CharacterCustomizationSettings({ enabled, onToggle, onSettingsCh
     onSettingsChange(settings);
   };
 
-  const toggleEquipmentSlot = (slot: typeof EQUIPMENT_SLOTS[0]['id']) => {
+  const toggleEquipmentSlot = (slot: (typeof EQUIPMENT_SLOTS)[0]['id']) => {
     const newSlots = equipmentSlots.includes(slot)
-      ? equipmentSlots.filter(s => s !== slot)
+      ? equipmentSlots.filter((s) => s !== slot)
       : [...equipmentSlots, slot];
     handleChange({ equipmentSlots: newSlots });
   };
 
-  const selectPreset = (preset: typeof EQUIPMENT_PRESETS[0]) => {
+  const selectPreset = (preset: (typeof EQUIPMENT_PRESETS)[0]) => {
     handleChange({ equipmentSlots: [...preset.slots] });
   };
 
@@ -115,9 +117,7 @@ export function CharacterCustomizationSettings({ enabled, onToggle, onSettingsCh
         <>
           {/* Equipment Presets */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Quick Presets
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quick Presets</label>
             <div className="grid grid-cols-3 gap-2">
               {EQUIPMENT_PRESETS.map((preset) => (
                 <button
@@ -215,7 +215,9 @@ export function CharacterCustomizationSettings({ enabled, onToggle, onSettingsCh
             <p className="font-medium mb-1">Character Customization Active:</p>
             <ul className="space-y-1 text-xs">
               <li>• Will generate {getTotalGenerations()} total variations</li>
-              <li>• {equipmentSlots.length} equipment slots × {variationsPerSlot} variations each</li>
+              <li>
+                • {equipmentSlots.length} equipment slots × {variationsPerSlot} variations each
+              </li>
               {generateBase && <li>• Includes 1 base unequipped character</li>}
               {maintainConsistency && <li>• Character appearance will stay consistent across all variations</li>}
               <li>• Perfect for RPGs, character creators, and customization systems</li>

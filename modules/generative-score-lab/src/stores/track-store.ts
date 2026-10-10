@@ -6,9 +6,18 @@
 import type { Track } from '@/types';
 
 export interface TrackStoreActions {
-  addTrack: (project: any, sceneId: string, trackData: Omit<Track, 'id'>) => { project: any; selectedTrackId: string };
+  addTrack: (
+    project: any,
+    sceneId: string,
+    trackData: Omit<Track, 'id'>
+  ) => { project: any; selectedTrackId: string };
   updateTrack: (project: any, sceneId: string, trackId: string, updates: Partial<Track>) => any;
-  deleteTrack: (project: any, selectedTrackId: string | null, sceneId: string, trackId: string) => { project: any; selectedTrackId: string | null };
+  deleteTrack: (
+    project: any,
+    selectedTrackId: string | null,
+    sceneId: string,
+    trackId: string
+  ) => { project: any; selectedTrackId: string | null };
 }
 
 export const trackStore: TrackStoreActions = {
@@ -19,9 +28,7 @@ export const trackStore: TrackStoreActions = {
     };
 
     const updatedScenes = project.scenes.map((scene: any) =>
-      scene.id === sceneId
-        ? { ...scene, tracks: [...scene.tracks, newTrack] }
-        : scene
+      scene.id === sceneId ? { ...scene, tracks: [...scene.tracks, newTrack] } : scene
     );
 
     return {
@@ -84,4 +91,3 @@ export const trackStore: TrackStoreActions = {
     };
   },
 };
-

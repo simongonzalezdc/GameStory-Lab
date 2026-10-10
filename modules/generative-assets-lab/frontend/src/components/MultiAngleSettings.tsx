@@ -155,9 +155,7 @@ export function MultiAngleSettings({ enabled, onToggle, onSettingsChange }: Mult
 
           {/* Generation Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Generation Type
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Generation Type</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => handleChange({ generationType: 'batch' })}
@@ -191,7 +189,12 @@ export function MultiAngleSettings({ enabled, onToggle, onSettingsChange }: Mult
               <li>• Generates {includeAngles.length} directional views of your sprite</li>
               <li>• Perfect for top-down RPG characters and objects</li>
               <li>• Each angle is saved as a separate asset</li>
-              <li>• {generationType === 'batch' ? 'Batch mode generates all angles simultaneously' : 'Sequential mode generates angles one at a time'}</li>
+              <li>
+                •{' '}
+                {generationType === 'batch'
+                  ? 'Batch mode generates all angles simultaneously'
+                  : 'Sequential mode generates angles one at a time'}
+              </li>
             </ul>
           </div>
         </>

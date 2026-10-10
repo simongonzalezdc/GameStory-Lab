@@ -8,7 +8,9 @@ const chatRequestSchema = z.object({
   projectId: z.string().optional(),
   provider: z.enum(['ollama', 'openrouter']).default('ollama'),
   model: z.string().default('smollm2:1.7b'),
-  module: z.enum(['general', 'codeQuality', 'documentation', 'licensing', 'marketing', 'deployment']).default('general'),
+  module: z
+    .enum(['general', 'codeQuality', 'documentation', 'licensing', 'marketing', 'deployment'])
+    .default('general'),
   context: z
     .object({
       projectName: z.string().optional(),
@@ -84,7 +86,10 @@ export async function POST(request: NextRequest) {
     console.error('Chat API error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json(

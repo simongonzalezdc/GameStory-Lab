@@ -77,7 +77,13 @@ export function ClipPianoRoll({
 
     try {
       const secondsPerBar = (60 / bpm) * 4;
-      const generated = generateNotes(clip.generator, sceneKey || 'C', sceneScale || 'major', clip.lengthBars, bpm);
+      const generated = generateNotes(
+        clip.generator,
+        sceneKey || 'C',
+        sceneScale || 'major',
+        clip.lengthBars,
+        bpm
+      );
       return generated.map((note) => ({
         pitch: noteNameToMidi(note.note),
         time: note.time / secondsPerBar,
@@ -172,7 +178,8 @@ export function ClipPianoRoll({
       setIsPointerDown(true);
 
       const hasNote = manualNotes.some(
-        (note) => note.pitch === position.pitch && Math.abs(note.time - position.time) < STEP_DURATION / 2
+        (note) =>
+          note.pitch === position.pitch && Math.abs(note.time - position.time) < STEP_DURATION / 2
       );
       setEraseMode(hasNote);
 
@@ -271,7 +278,12 @@ export function ClipPianoRoll({
             />
             <span>Generator preview</span>
           </label>
-          <Button size="sm" variant="secondary" onClick={handleClear} disabled={manualNotes.length === 0}>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleClear}
+            disabled={manualNotes.length === 0}
+          >
             Clear Roll
           </Button>
         </div>

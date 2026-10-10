@@ -18,19 +18,17 @@ export function BulkTaggingModal({ selectedAssets, onClose, onUpdate }: BulkTagg
   const getCommonTags = (): string[] => {
     if (selectedAssets.length === 0) return [];
 
-    const tagSets = selectedAssets.map(asset => new Set(asset.style_tags || []));
+    const tagSets = selectedAssets.map((asset) => new Set(asset.style_tags || []));
     const firstSet = tagSets[0];
 
-    return Array.from(firstSet).filter(tag =>
-      tagSets.every(set => set.has(tag))
-    );
+    return Array.from(firstSet).filter((tag) => tagSets.every((set) => set.has(tag)));
   };
 
   // Get all tags (union) across selected assets
   const getAllTags = (): string[] => {
     const allTags = new Set<string>();
-    selectedAssets.forEach(asset => {
-      (asset.style_tags || []).forEach(tag => allTags.add(tag));
+    selectedAssets.forEach((asset) => {
+      (asset.style_tags || []).forEach((tag) => allTags.add(tag));
     });
     return Array.from(allTags).sort();
   };
@@ -47,14 +45,14 @@ export function BulkTaggingModal({ selectedAssets, onClose, onUpdate }: BulkTagg
 
     try {
       // Add tag to all selected assets
-      const promises = selectedAssets.map(asset => {
+      const promises = selectedAssets.map((asset) => {
         const existingTags = asset.style_tags || [];
         if (existingTags.includes(tag)) {
           return Promise.resolve(); // Already has this tag
         }
 
         return apiClient.updateAsset(asset.id, {
-          style_tags: [...existingTags, tag]
+          style_tags: [...existingTags, tag],
         });
       });
 
@@ -74,14 +72,14 @@ export function BulkTaggingModal({ selectedAssets, onClose, onUpdate }: BulkTagg
 
     try {
       // Remove tag from all selected assets that have it
-      const promises = selectedAssets.map(asset => {
+      const promises = selectedAssets.map((asset) => {
         const existingTags = asset.style_tags || [];
         if (!existingTags.includes(tagToRemove)) {
           return Promise.resolve(); // Doesn't have this tag
         }
 
         return apiClient.updateAsset(asset.id, {
-          style_tags: existingTags.filter(t => t !== tagToRemove)
+          style_tags: existingTags.filter((t) => t !== tagToRemove),
         });
       });
 
@@ -111,10 +109,7 @@ export function BulkTaggingModal({ selectedAssets, onClose, onUpdate }: BulkTagg
               <Tag className="text-purple-600 dark:text-purple-400" size={24} />
               Bulk Tagging
             </h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
-            >
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
               <X size={20} className="text-gray-500 dark:text-gray-400" />
             </button>
           </div>
@@ -127,9 +122,7 @@ export function BulkTaggingModal({ selectedAssets, onClose, onUpdate }: BulkTagg
         <div className="p-6 overflow-y-auto flex-1">
           {/* Add Tag Input */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Add New Tag
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add New Tag</label>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -149,9 +142,7 @@ export function BulkTaggingModal({ selectedAssets, onClose, onUpdate }: BulkTagg
                 Add
               </button>
             </div>
-            {error && (
-              <p className="text-sm text-red-600 dark:text-red-400 mt-2">{error}</p>
-            )}
+            {error && <p className="text-sm text-red-600 dark:text-red-400 mt-2">{error}</p>}
           </div>
 
           {/* Common Tags (present in ALL selected assets) */}
@@ -188,22 +179,24 @@ export function BulkTaggingModal({ selectedAssets, onClose, onUpdate }: BulkTagg
                 All Tags (in some selected assets)
               </h3>
               <div className="flex flex-wrap gap-2">
-                {allTags.filter(tag => !commonTags.includes(tag)).map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm border border-gray-300 dark:border-gray-600"
-                  >
-                    {tag}
-                    <button
-                      onClick={() => handleRemoveTag(tag)}
-                      disabled={loading}
-                      className="hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full p-0.5 transition"
-                      title="Remove from all"
+                {allTags
+                  .filter((tag) => !commonTags.includes(tag))
+                  .map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm border border-gray-300 dark:border-gray-600"
                     >
-                      <Trash2 size={12} />
-                    </button>
-                  </span>
-                ))}
+                      {tag}
+                      <button
+                        onClick={() => handleRemoveTag(tag)}
+                        disabled={loading}
+                        className="hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full p-0.5 transition"
+                        title="Remove from all"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </span>
+                  ))}
               </div>
             </div>
           )}

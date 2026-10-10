@@ -115,12 +115,8 @@ export function OllamaModelSelector() {
       {!status?.available && (
         <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-sm text-yellow-800 dark:text-yellow-300">
           <p className="font-medium">Ollama not running</p>
-          <p className="text-xs mt-1">
-            Start Ollama to use local AI models for prompt enhancement and chat features.
-          </p>
-          <p className="text-xs mt-1 text-yellow-700 dark:text-yellow-400">
-            URL: {status?.url}
-          </p>
+          <p className="text-xs mt-1">Start Ollama to use local AI models for prompt enhancement and chat features.</p>
+          <p className="text-xs mt-1 text-yellow-700 dark:text-yellow-400">URL: {status?.url}</p>
         </div>
       )}
 
@@ -134,17 +130,13 @@ export function OllamaModelSelector() {
       {/* Model Selector */}
       {status?.available && status.models.length > 0 && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Selected Model
-          </label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Selected Model</label>
           <div className="relative">
             <button
               onClick={() => setShowDropdown(!showDropdown)}
               className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-left flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-600 transition"
             >
-              <span className="text-gray-900 dark:text-white font-mono text-sm">
-                {selectedModel}
-              </span>
+              <span className="text-gray-900 dark:text-white font-mono text-sm">{selectedModel}</span>
               <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" />
             </button>
 
@@ -155,23 +147,15 @@ export function OllamaModelSelector() {
                     key={model.name}
                     onClick={() => handleModelSelect(model.name)}
                     className={`w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-600 transition border-b border-gray-200 dark:border-gray-600 last:border-b-0 ${
-                      selectedModel === model.name
-                        ? 'bg-blue-50 dark:bg-blue-900/20'
-                        : ''
+                      selectedModel === model.name ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <div className="font-mono text-sm text-gray-900 dark:text-white">
-                          {model.name}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          Size: {model.size}
-                        </div>
+                        <div className="font-mono text-sm text-gray-900 dark:text-white">{model.name}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Size: {model.size}</div>
                       </div>
-                      {selectedModel === model.name && (
-                        <Check size={16} className="text-blue-600 dark:text-blue-400" />
-                      )}
+                      {selectedModel === model.name && <Check size={16} className="text-blue-600 dark:text-blue-400" />}
                     </div>
                   </button>
                 ))}

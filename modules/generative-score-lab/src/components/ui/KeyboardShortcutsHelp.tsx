@@ -60,14 +60,13 @@ export default function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcu
   ];
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
+    <Dialog
+      open={open}
+      onClose={onClose}
       title="Keyboard Shortcuts"
       description="Use these keyboard shortcuts to speed up your workflow"
     >
       <div className="space-y-4">
-
         <div className="space-y-2">
           {shortcuts.map((shortcut, idx) => (
             <div
@@ -83,7 +82,9 @@ export default function KeyboardShortcutsHelp({ open, onClose }: KeyboardShortcu
         </div>
 
         <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded p-3">
-          <strong>Tip:</strong> Shortcuts won't work when typing in text fields. Press <kbd className="px-1 py-0.5 bg-white border border-gray-300 rounded text-xs">?</kbd> to show this help again.
+          <strong>Tip:</strong> Shortcuts won't work when typing in text fields. Press{' '}
+          <kbd className="px-1 py-0.5 bg-white border border-gray-300 rounded text-xs">?</kbd> to
+          show this help again.
         </div>
       </div>
     </Dialog>

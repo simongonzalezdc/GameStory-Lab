@@ -16,7 +16,6 @@ export function initAnalytics(): void {
   //   script.src = 'https://plausible.io/js/script.js';
   //   document.head.appendChild(script);
   // }
-  
   // Example for PostHog:
   // if (import.meta.env.PROD && import.meta.env.VITE_POSTHOG_KEY) {
   //   posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
@@ -71,37 +70,36 @@ export const analytics = {
   projectCreated: (name: string) => trackEvent('project_created', { name }),
   projectExported: (format: string) => trackEvent('project_exported', { format }),
   projectLoaded: () => trackEvent('project_loaded'),
-  
+
   // Scene events
   sceneCreated: () => trackEvent('scene_created'),
   sceneDeleted: () => trackEvent('scene_deleted'),
   scenePlayed: () => trackEvent('scene_played'),
-  
+
   // Track events
   trackAdded: (role: string) => trackEvent('track_added', { role }),
   trackDeleted: () => trackEvent('track_deleted'),
-  
+
   // Clip events
   clipAdded: (generatorType: string) => trackEvent('clip_added', { generatorType }),
   clipDeleted: () => trackEvent('clip_deleted'),
-  
+
   // Generator events
   generatorUsed: (type: string, preset?: string) => trackEvent('generator_used', { type, preset }),
-  
+
   // AI events
   aiMessageSent: () => trackEvent('ai_message_sent'),
   aiActionApplied: (actionType: string) => trackEvent('ai_action_applied', { actionType }),
-  
+
   // Tutorial events
   tutorialStarted: () => trackEvent('tutorial_started'),
   tutorialCompleted: () => trackEvent('tutorial_completed'),
   tutorialSkipped: () => trackEvent('tutorial_skipped'),
-  
+
   // Export events
   midiExported: () => trackEvent('midi_exported'),
   projectSaved: () => trackEvent('project_saved'),
-  
+
   // Error events (non-sensitive)
   errorOccurred: (severity: string) => trackEvent('error_occurred', { severity }),
 };
-

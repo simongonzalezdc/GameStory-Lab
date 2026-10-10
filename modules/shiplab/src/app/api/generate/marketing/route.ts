@@ -5,7 +5,10 @@ import { getProject, createDocument } from '@/lib/db/queries';
 
 const generateMarketingSchema = z.object({
   projectId: z.string(),
-  assetType: z.enum(['full', 'landing', 'twitter', 'linkedin', 'producthunt']).optional().default('full'),
+  assetType: z
+    .enum(['full', 'landing', 'twitter', 'linkedin', 'producthunt'])
+    .optional()
+    .default('full'),
   model: z.string().optional().default('smollm2:1.7b'),
 });
 

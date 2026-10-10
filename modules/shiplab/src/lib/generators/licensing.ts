@@ -180,7 +180,8 @@ export const POPULAR_LICENSES: Record<string, License> = {
     permissions: ['Commercial use', 'Modification', 'Distribution', 'Private use'],
     conditions: [],
     limitations: ['Liability', 'Warranty'],
-    description: 'Public domain dedication. Releases all rights and imposes no conditions whatsoever.',
+    description:
+      'Public domain dedication. Releases all rights and imposes no conditions whatsoever.',
     bestFor: ['Public domain dedication', 'Maximum freedom', 'Simple scripts and utilities'],
     notRecommendedFor: ['Jurisdictions without public domain concept', 'Corporate projects'],
     popularProjects: ['SQLite (public domain)', 'stb libraries'],
@@ -200,7 +201,12 @@ export async function getLicenseRecommendation(
   },
   model: string = 'smollm2:1.7b'
 ): Promise<LicenseRecommendation> {
-  const { allowCommercial = true, requireOpenSource = false, allowPatentUse = true, simplicityPreferred = false } = preferences;
+  const {
+    allowCommercial = true,
+    requireOpenSource = false,
+    allowPatentUse = true,
+    simplicityPreferred = false,
+  } = preferences;
 
   // Rule-based initial recommendation
   let recommendedId: string;
@@ -522,7 +528,10 @@ export interface LicenseCompatibilityResult {
 /**
  * Check if a dependency license is compatible with the selected license
  */
-function isLicenseCompatible(projectLicense: string, dependencyLicense: string): { compatible: boolean; warning?: string } {
+function isLicenseCompatible(
+  projectLicense: string,
+  dependencyLicense: string
+): { compatible: boolean; warning?: string } {
   // Normalize license strings
   const normProjectLicense = projectLicense.toLowerCase().replace(/\s+/g, '-');
   const normDepLicense = dependencyLicense.toLowerCase().replace(/\s+/g, '-');
@@ -530,7 +539,12 @@ function isLicenseCompatible(projectLicense: string, dependencyLicense: string):
   // GPL licenses are very restrictive - dependencies must be GPL-compatible
   if (normProjectLicense.includes('gpl') || normProjectLicense.includes('agpl')) {
     // Permissive licenses are compatible with GPL
-    if (normDepLicense.includes('mit') || normDepLicense.includes('bsd') || normDepLicense.includes('apache') || normDepLicense.includes('isc')) {
+    if (
+      normDepLicense.includes('mit') ||
+      normDepLicense.includes('bsd') ||
+      normDepLicense.includes('apache') ||
+      normDepLicense.includes('isc')
+    ) {
       return { compatible: true };
     }
     // Same GPL version or LGPL is compatible
@@ -544,7 +558,11 @@ function isLicenseCompatible(projectLicense: string, dependencyLicense: string):
   }
 
   // Permissive licenses (MIT, BSD, Apache) are generally compatible with most licenses
-  if (normProjectLicense.includes('mit') || normProjectLicense.includes('bsd') || normProjectLicense.includes('apache')) {
+  if (
+    normProjectLicense.includes('mit') ||
+    normProjectLicense.includes('bsd') ||
+    normProjectLicense.includes('apache')
+  ) {
     // GPL dependencies in permissive projects can be problematic
     if (normDepLicense.includes('gpl') && !normDepLicense.includes('lgpl')) {
       return {
@@ -654,7 +672,9 @@ export async function checkDependencyLicenseCompatibility(
       compatible: true,
       dependencies: [],
       incompatibleCount: 0,
-      warnings: [`Error checking dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`],
+      warnings: [
+        `Error checking dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      ],
       summary: 'Failed to check dependency licenses',
     };
   }

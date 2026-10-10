@@ -20,12 +20,7 @@ interface DocumentListProps {
   onDownloadAll: () => void;
 }
 
-export function DocumentList({
-  documents,
-  selectedIndex,
-  onDocumentSelect,
-  onDownloadAll,
-}: DocumentListProps) {
+export function DocumentList({ documents, selectedIndex, onDocumentSelect, onDownloadAll }: DocumentListProps) {
   if (documents.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center p-6 text-center">
@@ -42,9 +37,7 @@ export function DocumentList({
     <>
       {/* Document List Header */}
       <div className="px-4 py-3 border-b border-subtle flex items-center justify-between flex-shrink-0">
-        <h2 className="text-base font-bold text-primary">
-          📄 Documents ({documents.length})
-        </h2>
+        <h2 className="text-base font-bold text-primary">📄 Documents ({documents.length})</h2>
         <button
           onClick={onDownloadAll}
           className="btn btn-primary px-3 py-1.5 text-xs font-medium"
@@ -83,22 +76,18 @@ export function DocumentList({
                 <div className="flex items-center justify-between">
                   <div className="font-medium truncate flex-1">{displayName}</div>
                   <div className="flex items-center gap-1 ml-2">
-                    {status === 'generating' && (
-                      <JewelSpinner size="sm" />
-                    )}
-                    {status === 'failed' && (
-                      <span className="text-red-500 text-xs">⚠️</span>
-                    )}
-                    {status === 'completed' && (
-                      <span className="text-green-500 text-xs">✓</span>
-                    )}
+                    {status === 'generating' && <JewelSpinner size="sm" />}
+                    {status === 'failed' && <span className="text-red-500 text-xs">⚠️</span>}
+                    {status === 'completed' && <span className="text-green-500 text-xs">✓</span>}
                   </div>
                 </div>
                 <div className="text-xs text-tertiary mt-0.5 flex items-center justify-between">
                   <span>
-                    {status === 'generating' ? 'Generating...' :
-                     status === 'failed' ? 'Failed' :
-                     `${(doc.size / 1024).toFixed(1)} KB`}
+                    {status === 'generating'
+                      ? 'Generating...'
+                      : status === 'failed'
+                        ? 'Failed'
+                        : `${(doc.size / 1024).toFixed(1)} KB`}
                   </span>
                   {doc.error && (
                     <span className="text-red-400 text-xs truncate ml-2" title={doc.error}>
@@ -114,4 +103,3 @@ export function DocumentList({
     </>
   );
 }
-

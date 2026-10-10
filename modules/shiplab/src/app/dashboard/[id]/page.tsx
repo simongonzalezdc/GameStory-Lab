@@ -12,14 +12,34 @@ import { LicenseSelector } from '@/components/licensing/LicenseSelector';
 import { GitHubActionsWorkflows } from '@/components/github/GitHubActionsWorkflows';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, FolderOpen, GitBranch, Calendar, FileSearch, FileText, Sparkles, Loader2, Megaphone, Rocket, Scale, Workflow } from 'lucide-react';
+import {
+  ArrowLeft,
+  FolderOpen,
+  GitBranch,
+  Calendar,
+  FileSearch,
+  FileText,
+  Sparkles,
+  Loader2,
+  Megaphone,
+  Rocket,
+  Scale,
+  Workflow,
+} from 'lucide-react';
 import type { Project } from '@/lib/db/schema';
 import type { QualityAnalysisResult } from '@/lib/analysis/quality';
 import type { MarketingContent as MarketingContentType } from '@/lib/generators/marketing';
 import type { DeploymentConfig } from '@/lib/generators/deployment';
 import type { GitHubWorkflow } from '@/lib/generators/github-actions';
 
-type ActiveTab = 'chat' | 'quality' | 'docs' | 'marketing' | 'deployment' | 'licensing' | 'github-actions';
+type ActiveTab =
+  | 'chat'
+  | 'quality'
+  | 'docs'
+  | 'marketing'
+  | 'deployment'
+  | 'licensing'
+  | 'github-actions';
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -34,7 +54,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const [editedDocsContent, setEditedDocsContent] = useState('');
   const [isSavingToGit, setIsSavingToGit] = useState(false);
   const [qualityResults, setQualityResults] = useState<QualityAnalysisResult | null>(null);
-  const [generatedDocs, setGeneratedDocs] = useState<{ type: string; content: string } | null>(null);
+  const [generatedDocs, setGeneratedDocs] = useState<{ type: string; content: string } | null>(
+    null
+  );
   const [marketingContent, setMarketingContent] = useState<MarketingContentType | null>(null);
   const [deploymentConfigs, setDeploymentConfigs] = useState<{
     configs: DeploymentConfig[];
@@ -83,15 +105,15 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       const data = await response.json();
       setQualityResults(data.result);
       toast({
-        title: "Analysis Complete",
+        title: 'Analysis Complete',
         description: `Found ${data.result.issues.length} issues in your code.`,
       });
     } catch (error) {
       console.error('Analysis error:', error);
       toast({
-        variant: "destructive",
-        title: "Analysis Failed",
-        description: "Failed to run quality analysis. Make sure the project path is valid.",
+        variant: 'destructive',
+        title: 'Analysis Failed',
+        description: 'Failed to run quality analysis. Make sure the project path is valid.',
       });
     } finally {
       setIsAnalyzing(false);
@@ -114,15 +136,16 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       const data = await response.json();
       setQualityResults(data.result);
       toast({
-        title: "Auto-fix Complete",
-        description: "Fixable issues have been automatically resolved. Re-run analysis to see updated results.",
+        title: 'Auto-fix Complete',
+        description:
+          'Fixable issues have been automatically resolved. Re-run analysis to see updated results.',
       });
     } catch (error) {
       console.error('Auto-fix error:', error);
       toast({
-        variant: "destructive",
-        title: "Auto-fix Failed",
-        description: "Failed to apply automatic fixes. Please try again.",
+        variant: 'destructive',
+        title: 'Auto-fix Failed',
+        description: 'Failed to apply automatic fixes. Please try again.',
       });
     } finally {
       setIsFixing(false);
@@ -141,8 +164,8 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       setGeneratedDocs({ ...generatedDocs, content: editedDocsContent });
       setIsEditingDocs(false);
       toast({
-        title: "Changes Saved",
-        description: "Your documentation has been updated.",
+        title: 'Changes Saved',
+        description: 'Your documentation has been updated.',
       });
     }
   };
@@ -158,9 +181,10 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     setIsSavingToGit(true);
     try {
       const fileName = generatedDocs.type === 'README' ? 'README.md' : 'API_DOCS.md';
-      const commitMessage = generatedDocs.type === 'README'
-        ? 'docs: Update README.md with ShipLab'
-        : 'docs: Update API documentation with ShipLab';
+      const commitMessage =
+        generatedDocs.type === 'README'
+          ? 'docs: Update README.md with ShipLab'
+          : 'docs: Update API documentation with ShipLab';
 
       const response = await fetch('/api/git/commit', {
         method: 'POST',
@@ -180,16 +204,16 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       }
 
       toast({
-        title: data.warning ? "File Saved" : "Committed to Git",
+        title: data.warning ? 'File Saved' : 'Committed to Git',
         description: data.warning || `${fileName} has been committed to your repository.`,
-        variant: data.warning ? "default" : "default",
+        variant: data.warning ? 'default' : 'default',
       });
     } catch (error) {
       console.error('Save to git error:', error);
       toast({
-        variant: "destructive",
-        title: "Save Failed",
-        description: error instanceof Error ? error.message : "Failed to save file to git.",
+        variant: 'destructive',
+        title: 'Save Failed',
+        description: error instanceof Error ? error.message : 'Failed to save file to git.',
       });
     } finally {
       setIsSavingToGit(false);
@@ -213,15 +237,15 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       const data = await response.json();
       setGeneratedDocs({ type: 'README', content: data.document.content });
       toast({
-        title: "README Generated",
-        description: "Your README documentation has been created successfully.",
+        title: 'README Generated',
+        description: 'Your README documentation has been created successfully.',
       });
     } catch (error) {
       console.error('README generation error:', error);
       toast({
-        variant: "destructive",
-        title: "Generation Failed",
-        description: "Failed to generate README. The AI service may be unavailable.",
+        variant: 'destructive',
+        title: 'Generation Failed',
+        description: 'Failed to generate README. The AI service may be unavailable.',
       });
     } finally {
       setIsGenerating(false);
@@ -245,15 +269,15 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       const data = await response.json();
       setGeneratedDocs({ type: 'API', content: data.document.content });
       toast({
-        title: "API Docs Generated",
-        description: "Your API documentation has been created successfully.",
+        title: 'API Docs Generated',
+        description: 'Your API documentation has been created successfully.',
       });
     } catch (error) {
       console.error('API docs generation error:', error);
       toast({
-        variant: "destructive",
-        title: "Generation Failed",
-        description: "Failed to generate API docs. Please try again.",
+        variant: 'destructive',
+        title: 'Generation Failed',
+        description: 'Failed to generate API docs. Please try again.',
       });
     } finally {
       setIsGenerating(false);
@@ -277,15 +301,16 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       const data = await response.json();
       setMarketingContent(data.content);
       toast({
-        title: "Marketing Content Generated",
-        description: "Your marketing materials are ready for landing pages, social media, and Product Hunt.",
+        title: 'Marketing Content Generated',
+        description:
+          'Your marketing materials are ready for landing pages, social media, and Product Hunt.',
       });
     } catch (error) {
       console.error('Marketing generation error:', error);
       toast({
-        variant: "destructive",
-        title: "Generation Failed",
-        description: "Failed to generate marketing content. Please try again.",
+        variant: 'destructive',
+        title: 'Generation Failed',
+        description: 'Failed to generate marketing content. Please try again.',
       });
     } finally {
       setIsGenerating(false);
@@ -309,15 +334,15 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       const data = await response.json();
       setDeploymentConfigs(data.guide);
       toast({
-        title: "Deployment Configs Generated",
-        description: "Deployment configurations for Vercel, Docker, and Railway are ready.",
+        title: 'Deployment Configs Generated',
+        description: 'Deployment configurations for Vercel, Docker, and Railway are ready.',
       });
     } catch (error) {
       console.error('Deployment config generation error:', error);
       toast({
-        variant: "destructive",
-        title: "Generation Failed",
-        description: "Failed to generate deployment configs. Please try again.",
+        variant: 'destructive',
+        title: 'Generation Failed',
+        description: 'Failed to generate deployment configs. Please try again.',
       });
     } finally {
       setIsGenerating(false);
@@ -344,15 +369,15 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         setupInstructions: data.setupInstructions,
       });
       toast({
-        title: "GitHub Actions Generated",
-        description: "CI/CD workflow files have been created.",
+        title: 'GitHub Actions Generated',
+        description: 'CI/CD workflow files have been created.',
       });
     } catch (error) {
       console.error('GitHub Actions generation error:', error);
       toast({
-        variant: "destructive",
-        title: "Generation Failed",
-        description: "Failed to generate GitHub Actions workflows. Please try again.",
+        variant: 'destructive',
+        title: 'Generation Failed',
+        description: 'Failed to generate GitHub Actions workflows. Please try again.',
       });
     } finally {
       setIsGenerating(false);
@@ -511,7 +536,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               </Button>
 
               <div className="border-t my-3 pt-3">
-                <p className="text-xs font-medium text-muted-foreground mb-2">Marketing & Deployment</p>
+                <p className="text-xs font-medium text-muted-foreground mb-2">
+                  Marketing & Deployment
+                </p>
               </div>
 
               <Button
@@ -660,7 +687,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                       <div className="flex items-center justify-between">
                         <div>
                           <CardTitle>{generatedDocs.type} Documentation</CardTitle>
-                          <CardDescription>Generated documentation for your project</CardDescription>
+                          <CardDescription>
+                            Generated documentation for your project
+                          </CardDescription>
                         </div>
                         <div className="flex gap-2">
                           {isEditingDocs ? (
@@ -674,7 +703,12 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                             </>
                           ) : (
                             <>
-                              <Button onClick={saveDocsToGit} variant="default" size="sm" disabled={isSavingToGit}>
+                              <Button
+                                onClick={saveDocsToGit}
+                                variant="default"
+                                size="sm"
+                                disabled={isSavingToGit}
+                              >
                                 {isSavingToGit ? 'Saving...' : 'Save to Git'}
                               </Button>
                               <Button onClick={startEditingDocs} variant="outline" size="sm">

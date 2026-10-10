@@ -10,17 +10,13 @@ import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared
  */
 export async function validateGravityConsistency(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const playerActions = mechanics.playerActions || [];
   const worldRules = lore.worldRules;
 
-  const hasJump = playerActions.some((action) =>
-    action.toLowerCase().match(/jump|leap|fall|drop/)
-  );
-  const hasFly = playerActions.some((action) =>
-    action.toLowerCase().match(/fly|float|hover|levitate/)
-  );
+  const hasJump = playerActions.some((action) => action.toLowerCase().match(/jump|leap|fall|drop/));
+  const hasFly = playerActions.some((action) => action.toLowerCase().match(/fly|float|hover|levitate/));
 
   if (!hasJump && !hasFly) {
     return null; // No gravity-related mechanics
@@ -32,7 +28,7 @@ export async function validateGravityConsistency(
     return {
       rule: 'gravity-consistency',
       severity: 'warning',
-      confidence: 0.70,
+      confidence: 0.7,
       message: 'Flight mechanics exist but physics rules do not explain how (anti-gravity, magic, wings, etc.)',
       suggestion: 'Add world rules explaining flight capability: magic, technology, natural ability, etc.',
       location: {
@@ -50,7 +46,7 @@ export async function validateGravityConsistency(
  */
 export async function validateMaterialProperties(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
 
@@ -83,12 +79,13 @@ export async function validateMaterialProperties(
  */
 export async function validateTimeConsistency(
   mechanics: MechanicsData,
-  lore: LoreData
+  lore: LoreData,
 ): Promise<ValidationIssue | null> {
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
-  const hasTimeTravel = mechanicsText.includes('time travel') ||
-                       mechanicsText.includes('rewind time') ||
-                       mechanicsText.includes('temporal');
+  const hasTimeTravel =
+    mechanicsText.includes('time travel') ||
+    mechanicsText.includes('rewind time') ||
+    mechanicsText.includes('temporal');
 
   if (!hasTimeTravel) {
     return null;
@@ -102,7 +99,7 @@ export async function validateTimeConsistency(
     return {
       rule: 'time-consistency',
       severity: 'warning',
-      confidence: 0.80,
+      confidence: 0.8,
       message: 'Time manipulation mechanics exist but world rules do not define temporal physics',
       suggestion: 'Add world rules explaining how time travel/manipulation works and its limitations',
       location: {
@@ -118,26 +115,22 @@ export async function validateTimeConsistency(
 /**
  * Validate spatial logic (inventory, distance)
  */
-export async function validateSpatialLogic(
-  mechanics: MechanicsData,
-  lore: LoreData
-): Promise<ValidationIssue | null> {
+export async function validateSpatialLogic(mechanics: MechanicsData, lore: LoreData): Promise<ValidationIssue | null> {
   const mechanicsText = JSON.stringify(mechanics).toLowerCase();
-  const hasInventory = mechanicsText.includes('inventory') ||
-                      mechanicsText.includes('carry') ||
-                      mechanicsText.includes('collect items');
+  const hasInventory =
+    mechanicsText.includes('inventory') || mechanicsText.includes('carry') || mechanicsText.includes('collect items');
 
   if (!hasInventory) {
     return null;
   }
 
-  const hasUnlimitedStorage = mechanicsText.includes('unlimited') ||
-                             mechanicsText.includes('infinite inventory');
+  const hasUnlimitedStorage = mechanicsText.includes('unlimited') || mechanicsText.includes('infinite inventory');
 
   const worldRules = lore.worldRules;
-  const hasMagicStorage = worldRules?.magic?.toLowerCase().includes('storage') ||
-                         worldRules?.magic?.toLowerCase().includes('pocket dimension') ||
-                         worldRules?.magic?.toLowerCase().includes('bag of holding');
+  const hasMagicStorage =
+    worldRules?.magic?.toLowerCase().includes('storage') ||
+    worldRules?.magic?.toLowerCase().includes('pocket dimension') ||
+    worldRules?.magic?.toLowerCase().includes('bag of holding');
 
   if (hasUnlimitedStorage && !hasMagicStorage) {
     return {
@@ -159,10 +152,7 @@ export async function validateSpatialLogic(
 /**
  * Validate cause and effect (causality)
  */
-export async function validateCausality(
-  mechanics: MechanicsData,
-  _lore: LoreData
-): Promise<ValidationIssue | null> {
+export async function validateCausality(mechanics: MechanicsData, _lore: LoreData): Promise<ValidationIssue | null> {
   const winConditions = mechanics.winConditions || [];
   const failConditions = mechanics.failConditions || [];
 
@@ -173,7 +163,7 @@ export async function validateCausality(
     return {
       rule: 'causality',
       severity: 'info',
-      confidence: 0.60,
+      confidence: 0.6,
       message: 'Game has win conditions but no defined fail conditions or consequences',
       suggestion: 'Define what happens when player fails: death, game over, setbacks, etc.',
       location: {

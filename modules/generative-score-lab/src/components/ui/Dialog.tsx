@@ -12,7 +12,15 @@ interface DialogProps {
   className?: string;
 }
 
-export function Dialog({ open, onOpenChange, onClose, title, description, children, className }: DialogProps) {
+export function Dialog({
+  open,
+  onOpenChange,
+  onClose,
+  title,
+  description,
+  children,
+  className,
+}: DialogProps) {
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen && onClose) {
       onClose();
@@ -38,11 +46,8 @@ export function Dialog({ open, onOpenChange, onClose, title, description, childr
             <DialogPrimitive.Title className="text-lg font-semibold text-gray-900 mb-2">
               {title}
             </DialogPrimitive.Title>
-            <DialogPrimitive.Description 
-              className={clsx(
-                'text-sm text-gray-500 mb-4',
-                !description && 'sr-only'
-              )}
+            <DialogPrimitive.Description
+              className={clsx('text-sm text-gray-500 mb-4', !description && 'sr-only')}
             >
               {description || 'Dialog content'}
             </DialogPrimitive.Description>

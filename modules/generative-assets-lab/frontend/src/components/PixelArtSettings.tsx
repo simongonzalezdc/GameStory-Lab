@@ -77,9 +77,7 @@ export function PixelArtSettings({ enabled, onToggle, onSettingsChange }: PixelA
         <>
           {/* Pixel Size */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Canvas Size
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Canvas Size</label>
             <div className="grid grid-cols-4 gap-2">
               {PIXEL_SIZES.map((ps) => (
                 <button

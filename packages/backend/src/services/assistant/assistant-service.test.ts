@@ -109,7 +109,8 @@ describe('AssistantService', () => {
       };
 
       mockPrisma.chatSession.findUnique = vi.fn().mockResolvedValue(session);
-      mockPrisma.chatMessage.create = vi.fn()
+      mockPrisma.chatMessage.create = vi
+        .fn()
         .mockResolvedValueOnce({
           id: 'msg-123',
           sessionId: 'session-123',
@@ -289,9 +290,7 @@ describe('AssistantService', () => {
     it('should throw error if session not found when sending message', async () => {
       mockPrisma.chatSession.findUnique = vi.fn().mockResolvedValue(null);
 
-      await expect(
-        service.sendMessage('invalid-session', 'Test message')
-      ).rejects.toThrow('Session not found');
+      await expect(service.sendMessage('invalid-session', 'Test message')).rejects.toThrow('Session not found');
     });
 
     it('should handle AI generation errors gracefully', async () => {
@@ -319,9 +318,7 @@ describe('AssistantService', () => {
       mockPrisma.version.findFirst = vi.fn().mockResolvedValue(null);
       mockAIOrchestrator.generate = vi.fn().mockRejectedValue(new Error('AI error'));
 
-      await expect(
-        service.sendMessage('session-123', 'Test message')
-      ).rejects.toThrow();
+      await expect(service.sendMessage('session-123', 'Test message')).rejects.toThrow();
     });
   });
 
@@ -334,7 +331,7 @@ describe('AssistantService', () => {
     it('should handle responses with explanatory text before JSON', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `Based on your request, I'll analyze the game concept and provide suggestions.
 
 Here's my analysis:
@@ -342,7 +339,7 @@ Here's my analysis:
 {"reply": "I've reviewed your game concept and have some suggestions for improvement.", "proposal": {"explanation": "The core mechanics need better balance with the lore elements.", "mechanics": {"coreLoop": "Enhanced combat system with strategic elements"}, "lore": {"setting": {"era": "Medieval fantasy with unique magic system"}}}}`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('reviewed your game concept');
@@ -354,7 +351,7 @@ Here's my analysis:
     it('should handle responses with markdown code blocks', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `I'll provide you with a structured response:
 
 \`\`\`json
@@ -380,7 +377,7 @@ Here's my analysis:
 This should help improve your game design.`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('analysis of your game concept');
@@ -391,7 +388,7 @@ This should help improve your game design.`;
     it('should handle responses with reasoning blocks', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `<think>
 Let me analyze this game concept step by step:
 1. The mechanics seem solid but need refinement
@@ -404,7 +401,7 @@ Based on my analysis, here are my suggestions:
 {"reply": "I've analyzed your game concept and have recommendations.", "proposal": {"explanation": "Better integration between mechanics and lore will create a more cohesive experience.", "mechanics": {"combat": {"system": "Turn-based with tactical elements"}}, "lore": {"history": {"timeline": "Detailed historical events that influence current gameplay"}}}}`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('analyzed your game concept');
@@ -415,7 +412,7 @@ Based on my analysis, here are my suggestions:
     it('should handle malformed JSON that needs fixing', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `Here's my response with some JSON formatting issues:
 
 {
@@ -434,7 +431,7 @@ Based on my analysis, here are my suggestions:
 }`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('suggestions for your game concept');
@@ -444,11 +441,11 @@ Based on my analysis, here are my suggestions:
     it('should handle completely invalid responses with fallback handling', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `This is not a valid JSON response at all. The AI model seems to have failed to generate the proper format. There's no JSON structure here, just plain text explaining that something went wrong with the response generation.`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result.reply).toContain('AI model seems to have failed');
       expect(result.proposal).toBeUndefined();
@@ -457,7 +454,7 @@ Based on my analysis, here are my suggestions:
     it('should handle responses with [REASONING] blocks', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `[REASONING]
 I need to analyze the game concept carefully:
 - Check the mechanics for balance
@@ -468,7 +465,7 @@ I need to analyze the game concept carefully:
 {"reply": "I've completed my analysis of your game concept.", "proposal": {"explanation": "Balancing the mechanics will improve gameplay flow.", "mechanics": {"difficulty": {"scaling": "Adaptive difficulty based on player progress"}}, "lore": {"characters": {"development": "Deeper character backstories"}}}}`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('completed my analysis');
@@ -479,7 +476,7 @@ I need to analyze the game concept carefully:
     it('should handle responses with "Let me think" prefixes', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `Let me think about your game concept and provide some valuable feedback...
 
 First, let me analyze the core mechanics and how they align with your lore.
@@ -487,7 +484,7 @@ First, let me analyze the core mechanics and how they align with your lore.
 {"reply": "After careful consideration, here are my thoughts on your game concept.", "proposal": {"explanation": "Strengthening the connection between mechanics and narrative will enhance player immersion.", "mechanics": {"narrative": {"integration": "Story elements that directly influence gameplay mechanics"}}, "lore": {"themes": {"consistency": "Ensure all lore elements support the core gameplay themes"}}}}`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('After careful consideration');
@@ -498,11 +495,11 @@ First, let me analyze the core mechanics and how they align with your lore.
     it('should handle responses with only reply field (no proposal)', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `{"reply": "I understand your request but don't have specific changes to propose at this time. Your current game concept looks solid."}`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result.reply).toContain("don't have specific changes to propose");
       expect(result.proposal).toBeUndefined();
@@ -511,7 +508,7 @@ First, let me analyze the core mechanics and how they align with your lore.
     it('should handle responses with trailing commas in JSON', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `{
   "reply": "I have some suggestions for your game concept.",
   "proposal": {
@@ -526,7 +523,7 @@ First, let me analyze the core mechanics and how they align with your lore.
 }`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('suggestions for your game concept');
@@ -536,7 +533,7 @@ First, let me analyze the core mechanics and how they align with your lore.
     it('should handle responses with nested JSON structures', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `Here's my comprehensive analysis:
 
 \`\`\`json
@@ -576,7 +573,7 @@ First, let me analyze the core mechanics and how they align with your lore.
 \`\`\``;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('analyzed your complex game concept');
@@ -587,7 +584,7 @@ First, let me analyze the core mechanics and how they align with your lore.
     it('should handle responses with mixed quote styles and escaped characters', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `Here's my analysis with various quote styles:
 
 {
@@ -609,7 +606,7 @@ First, let me analyze the core mechanics and how they align with your lore.
 }`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('analyzed your game');
@@ -620,7 +617,7 @@ First, let me analyze the core mechanics and how they align with your lore.
     it('should handle responses with deeply nested objects and arrays', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `Complex game concept analysis:
 
 \`\`\`json
@@ -692,7 +689,7 @@ First, let me analyze the core mechanics and how they align with your lore.
 \`\`\``;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('analyzed your complex game concept');
@@ -704,7 +701,7 @@ First, let me analyze the core mechanics and how they align with your lore.
     it('should handle responses with Unicode and special characters', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `Analysis with Unicode characters:
 
 {
@@ -729,7 +726,7 @@ First, let me analyze the core mechanics and how they align with your lore.
 }`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('ñ');
@@ -741,7 +738,7 @@ First, let me analyze the core mechanics and how they align with your lore.
     it('should handle responses with malformed structure but valid content', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       const response = `Here's my response with some structural issues:
 
 {
@@ -761,7 +758,7 @@ First, let me analyze the core mechanics and how they align with your lore.
 Some additional text after the JSON.`;
 
       const result = parseMethod(response);
-      
+
       expect(result).toHaveProperty('reply');
       expect(result).toHaveProperty('proposal');
       expect(result.reply).toContain('suggestions despite the formatting');
@@ -773,7 +770,7 @@ Some additional text after the JSON.`;
     it('should demonstrate the fix resolves original formatting issue', () => {
       const service = new AssistantService(mockPrisma, mockAIOrchestrator);
       const parseMethod = getParseMethod(service);
-      
+
       // Test the exact type of response that would have failed before the fix
       const problematicResponse = `Here's my analysis:
 
@@ -784,7 +781,7 @@ Based on your request, I'll provide some suggestions.
 This should help with your game development.`;
 
       const result = parseMethod(problematicResponse);
-      
+
       // Before the fix, this would have failed or returned malformed data
       // After the fix, it should properly extract the JSON
       expect(result).toHaveProperty('reply');
@@ -796,4 +793,3 @@ This should help with your game development.`;
     });
   });
 });
-

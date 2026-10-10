@@ -44,7 +44,7 @@ export function CursorGlow() {
           transition={{ duration: 0.3 }}
         />
       )}
-      
+
       {/* Floating ambient orbs */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <motion.div

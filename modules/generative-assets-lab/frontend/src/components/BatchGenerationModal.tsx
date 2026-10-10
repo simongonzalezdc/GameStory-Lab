@@ -79,9 +79,7 @@ export function BatchGenerationModal({ basePrompt, onClose, onComplete }: BatchG
         <div className="p-6 space-y-6">
           {/* Prompt */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Base Prompt
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Base Prompt</label>
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -99,9 +97,7 @@ export function BatchGenerationModal({ basePrompt, onClose, onComplete }: BatchG
           <div className="grid grid-cols-2 gap-4">
             {/* AI Model */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                AI Model
-              </label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">AI Model</label>
               <select
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
@@ -161,9 +157,7 @@ export function BatchGenerationModal({ basePrompt, onClose, onComplete }: BatchG
 
         {/* Footer */}
         <div className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Estimated time: ~{count * 6} seconds
-          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Estimated time: ~{count * 6} seconds</p>
           <div className="flex gap-3">
             <button
               onClick={onClose}

@@ -81,11 +81,15 @@ async function analyzeProject(projectPath: string): Promise<{
 /**
  * Generate README using AI
  */
-export async function generateReadme(
-  options: ReadmeGeneratorOptions
-): Promise<GeneratedReadme> {
-  const { projectName, projectPath, language, framework, description, model = 'smollm2:1.7b' } =
-    options;
+export async function generateReadme(options: ReadmeGeneratorOptions): Promise<GeneratedReadme> {
+  const {
+    projectName,
+    projectPath,
+    language,
+    framework,
+    description,
+    model = 'smollm2:1.7b',
+  } = options;
 
   // Analyze project
   const analysis = await analyzeProject(projectPath);

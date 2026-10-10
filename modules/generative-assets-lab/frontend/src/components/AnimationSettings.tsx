@@ -145,9 +145,7 @@ export function AnimationSettings({ enabled, onToggle, onSettingsChange }: Anima
 
           {/* Frame Duration */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Frame Duration
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Frame Duration</label>
             <div className="space-y-2">
               {FRAME_DURATIONS.map((duration) => (
                 <button
@@ -192,8 +190,12 @@ export function AnimationSettings({ enabled, onToggle, onSettingsChange }: Anima
           <div className="bg-pink-100 dark:bg-pink-900/30 border border-pink-300 dark:border-pink-700 rounded p-3 text-sm text-pink-800 dark:text-pink-300">
             <p className="font-medium mb-1">Animation Mode Active:</p>
             <ul className="space-y-1 text-xs">
-              <li>• Generates {frameCount} animation frames for {currentAnimation.name}</li>
-              <li>• Frame timing: {frameDuration}ms ({FRAME_DURATIONS.find((d) => d.ms === frameDuration)?.fps})</li>
+              <li>
+                • Generates {frameCount} animation frames for {currentAnimation.name}
+              </li>
+              <li>
+                • Frame timing: {frameDuration}ms ({FRAME_DURATIONS.find((d) => d.ms === frameDuration)?.fps})
+              </li>
               <li>• Total duration: ~{(frameCount * frameDuration) / 1000}s per cycle</li>
               <li>• {looping ? 'Looping enabled - seamless repeat' : 'One-shot animation - plays once'}</li>
             </ul>

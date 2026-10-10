@@ -31,15 +31,18 @@ if (typeof window !== 'undefined') {
     } as any);
 
   window.showOpenFilePicker = () =>
-    Promise.resolve([{
-      getFile: () => Promise.resolve(new File([], 'test.json')),
-    }] as any);
+    Promise.resolve([
+      {
+        getFile: () => Promise.resolve(new File([], 'test.json')),
+      },
+    ] as any);
 
   window.showSaveFilePicker = () =>
     Promise.resolve({
-      createWritable: () => Promise.resolve({
-        write: () => Promise.resolve(),
-        close: () => Promise.resolve(),
-      }),
+      createWritable: () =>
+        Promise.resolve({
+          write: () => Promise.resolve(),
+          close: () => Promise.resolve(),
+        }),
     } as any);
 }

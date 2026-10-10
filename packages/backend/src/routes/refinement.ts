@@ -84,21 +84,22 @@ router.post('/', async (req: Request, res: Response) => {
     } else {
       errorMessage = String(error);
     }
-    
-    logger.error('Refinement request failed', { 
+
+    logger.error('Refinement request failed', {
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
-      conceptId: req.body.conceptId 
+      conceptId: req.body.conceptId,
     });
-    
+
     // Provide helpful error message for Ollama model issues
     let userFriendlyError = errorMessage;
     if (errorMessage.includes('model') && errorMessage.includes('not found')) {
-      userFriendlyError = 'Ollama models exist locally but are not accessible via the API. ' +
+      userFriendlyError =
+        'Ollama models exist locally but are not accessible via the API. ' +
         'This is a known Ollama issue. Try: `pkill -9 ollama && ollama serve` then wait 10 seconds. ' +
         'Or configure cloud AI providers (OpenRouter/Google) in your .env file for more reliable access.';
     }
-    
+
     res.status(500).json({
       error: userFriendlyError,
       details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,

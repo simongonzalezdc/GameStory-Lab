@@ -76,13 +76,7 @@ export interface GeneratorConfig {
 }
 
 export type GeneratorType =
-  | 'euclidean'
-  | 'arp'
-  | 'patternDSL'
-  | 'markov'
-  | 'randomWalk'
-  | 'magenta'
-  | 'audioModelStem';
+  'euclidean' | 'arp' | 'patternDSL' | 'markov' | 'randomWalk' | 'magenta' | 'audioModelStem';
 
 // Generator-specific parameter types
 export interface EuclideanParams {

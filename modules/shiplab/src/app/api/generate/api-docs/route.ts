@@ -20,11 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate API documentation
-    const apiDocs = await generateAPIDocumentation(
-      project.path,
-      project.name,
-      validated.model
-    );
+    const apiDocs = await generateAPIDocumentation(project.path, project.name, validated.model);
 
     // Save to database
     const document = await createDocument({
@@ -51,7 +47,10 @@ export async function POST(request: NextRequest) {
     console.error('API docs generation error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json(

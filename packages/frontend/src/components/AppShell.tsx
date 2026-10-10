@@ -67,16 +67,19 @@ function AppShellComponent({ children }: AppShellProps) {
   const activeProjectId = projectMatch ? projectMatch[1] : null;
   const [syncState, setSyncState] = useState<SyncState>('idle');
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
-  
+
   // Determine assistant type based on route
-  const assistantType = location.pathname.includes('/architect') ? 'architect' : 
-                        activeProjectId ? 'concept' : 'project';
-  
+  const assistantType = location.pathname.includes('/architect')
+    ? 'architect'
+    : activeProjectId
+      ? 'concept'
+      : 'project';
+
   // Pages that have their own embedded assistant (should hide AppShell right panel)
   // ConceptEditorPage (/projects/:id) and ProjectArchitectPage (/projects/:id/architect) have embedded assistants
-  const hasEmbeddedAssistant = (activeProjectId && !location.pathname.includes('/architect')) || 
-                               location.pathname.includes('/architect');
-  
+  const hasEmbeddedAssistant =
+    (activeProjectId && !location.pathname.includes('/architect')) || location.pathname.includes('/architect');
+
   // Hide right panel on pages with embedded assistants
   const effectiveShowRightPanel = showRightPanel && !hasEmbeddedAssistant;
 
@@ -107,18 +110,14 @@ function AppShellComponent({ children }: AppShellProps) {
   }, [location.pathname, triggerSync]);
 
   const syncDescription =
-    syncState === 'syncing'
-      ? 'Syncing workspace'
-      : syncState === 'error'
-      ? 'Sync paused'
-      : 'Workspace up to date';
+    syncState === 'syncing' ? 'Syncing workspace' : syncState === 'error' ? 'Sync paused' : 'Workspace up to date';
 
   const syncMeta =
     syncState === 'syncing'
       ? 'Collecting latest drafts'
       : syncState === 'error'
-      ? 'Tap to retry'
-      : `Updated ${formatRelativeTime(lastSyncedAt)}`;
+        ? 'Tap to retry'
+        : `Updated ${formatRelativeTime(lastSyncedAt)}`;
 
   useEffect(() => {
     document.documentElement.classList.add('dark');
@@ -157,7 +156,7 @@ function AppShellComponent({ children }: AppShellProps) {
   const getBreadcrumbs = () => {
     const paths = location.pathname.split('/').filter(Boolean);
     const crumbs: Array<{ label: string; path: string }> = [{ label: 'Home', path: '/' }];
-    
+
     if (paths[0] === 'projects') {
       crumbs.push({ label: 'Projects', path: '/projects' });
       if (paths[1]) {
@@ -170,7 +169,7 @@ function AppShellComponent({ children }: AppShellProps) {
       const label = paths[0].charAt(0).toUpperCase() + paths[0].slice(1);
       crumbs.push({ label, path: `/${paths[0]}` });
     }
-    
+
     return crumbs;
   };
 
@@ -223,8 +222,8 @@ function AppShellComponent({ children }: AppShellProps) {
                         showSettingsMenu
                           ? 'bg-[var(--brand-primary)]/20 text-primary border-l-2 border-l-[var(--jewel-garnet)]'
                           : isActive
-                          ? 'bg-[var(--brand-primary)]/15 text-primary border-l-2 border-l-[var(--jewel-garnet)]'
-                          : 'text-secondary border-l-2 border-l-transparent hover:border-l-[var(--color-border-subtle)] hover:bg-[var(--color-surface-elevated)]'
+                            ? 'bg-[var(--brand-primary)]/15 text-primary border-l-2 border-l-[var(--jewel-garnet)]'
+                            : 'text-secondary border-l-2 border-l-transparent hover:border-l-[var(--color-border-subtle)] hover:bg-[var(--color-surface-elevated)]'
                       }`}
                       aria-expanded={showSettingsMenu}
                       aria-haspopup="menu"
@@ -420,9 +419,7 @@ function AppShellComponent({ children }: AppShellProps) {
         </header>
 
         {/* Workspace */}
-        <main className="flex-1 min-h-0 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 min-h-0 overflow-auto">{children}</main>
       </div>
 
       {/* Right Panel - AI Assistant (Collapsible) - Hidden on pages with embedded assistants */}

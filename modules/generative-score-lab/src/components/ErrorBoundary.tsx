@@ -70,9 +70,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
             <div className="text-center mb-6">
               <div className="text-6xl mb-4">⚠️</div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Something went wrong
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h1>
               <p className="text-gray-600">
                 We're sorry, but an unexpected error occurred. The error has been logged.
               </p>
@@ -97,7 +95,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 Reload Application
               </Button>
               <button
-                onClick={() => window.location.href = '/'}
+                onClick={() => (window.location.href = '/')}
                 className="w-full px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
               >
                 Go to Home
@@ -106,8 +104,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
             <div className="mt-6 text-xs text-gray-500 text-center">
               <p>
-                If this problem persists, please try clearing your browser cache or contact
-                support.
+                If this problem persists, please try clearing your browser cache or contact support.
               </p>
             </div>
           </div>

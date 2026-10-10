@@ -85,7 +85,11 @@ export const INSTRUMENT_PRESETS: Record<TrackRole, InstrumentConfig[]> = {
       description: 'Smooth pad sound',
       oscillator: { type: 'sawtooth' },
       envelope: { attack: 0.5, decay: 0.3, sustain: 0.7, release: 1.0 },
-      filter: { type: 'lowpass', frequency: AUDIO_FILTER_DEFAULT_FREQUENCY, Q: AUDIO_FILTER_DEFAULT_Q },
+      filter: {
+        type: 'lowpass',
+        frequency: AUDIO_FILTER_DEFAULT_FREQUENCY,
+        Q: AUDIO_FILTER_DEFAULT_Q,
+      },
     },
     {
       id: 'bright-pad',
@@ -139,7 +143,9 @@ export const INSTRUMENT_PRESETS: Record<TrackRole, InstrumentConfig[]> = {
 /**
  * Create instrument instance based on config
  */
-export function createInstrument(config: InstrumentConfig): Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth {
+export function createInstrument(
+  config: InstrumentConfig
+): Tone.PolySynth | Tone.Sampler | Tone.MonoSynth | Tone.DuoSynth | Tone.FMSynth | Tone.AMSynth {
   const envelope = config.envelope || {
     attack: 0.02,
     decay: 0.1,
@@ -181,7 +187,7 @@ export function createInstrument(config: InstrumentConfig): Tone.PolySynth | Ton
           release: 0.5,
         },
       };
-      
+
       if (config.filter) {
         options.filter = {
           type: config.filter.type,
@@ -189,7 +195,7 @@ export function createInstrument(config: InstrumentConfig): Tone.PolySynth | Ton
           Q: config.filter.Q,
         };
       }
-      
+
       return new Tone.MonoSynth(options);
     }
 
@@ -201,7 +207,7 @@ export function createInstrument(config: InstrumentConfig): Tone.PolySynth | Ton
         sustain: 0.3,
         release: 0.5,
       };
-      
+
       return new Tone.DuoSynth({
         voice0: {
           oscillator,
@@ -222,7 +228,7 @@ export function createInstrument(config: InstrumentConfig): Tone.PolySynth | Ton
         sustain: 0.3,
         release: 0.5,
       };
-      
+
       return new Tone.FMSynth({
         oscillator,
         envelope: safeEnvelope,
@@ -237,7 +243,7 @@ export function createInstrument(config: InstrumentConfig): Tone.PolySynth | Ton
         sustain: 0.3,
         release: 0.5,
       };
-      
+
       return new Tone.AMSynth({
         oscillator,
         envelope: safeEnvelope,
@@ -270,6 +276,5 @@ export function getDefaultInstrument(role: TrackRole): InstrumentConfig {
  */
 export function getInstrumentById(role: TrackRole, id: string): InstrumentConfig | null {
   const presets = INSTRUMENT_PRESETS[role];
-  return presets.find(p => p.id === id) || null;
+  return presets.find((p) => p.id === id) || null;
 }
-

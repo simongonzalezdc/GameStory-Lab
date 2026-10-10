@@ -7,17 +7,9 @@ interface IconProps extends Omit<LucideProps, 'ref'> {
   className?: string;
 }
 
-export const Icon = forwardRef<SVGSVGElement, IconProps>(
-  ({ icon: IconComponent, className, ...props }, ref) => {
-    return (
-      <IconComponent
-        ref={ref}
-        className={cn('h-4 w-4', className)}
-        {...props}
-      />
-    );
-  }
-);
+export const Icon = forwardRef<SVGSVGElement, IconProps>(({ icon: IconComponent, className, ...props }, ref) => {
+  return <IconComponent ref={ref} className={cn('h-4 w-4', className)} {...props} />;
+});
 
 Icon.displayName = 'Icon';
 

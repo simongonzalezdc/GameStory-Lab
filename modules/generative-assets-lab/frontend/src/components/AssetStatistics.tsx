@@ -123,9 +123,8 @@ export function AssetStatistics() {
     };
   }, [stats]);
 
-  const successRate = stats.totalGenerations > 0
-    ? Math.round((stats.successfulGenerations / stats.totalGenerations) * 100)
-    : 0;
+  const successRate =
+    stats.totalGenerations > 0 ? Math.round((stats.successfulGenerations / stats.totalGenerations) * 100) : 0;
 
   const topModel = Object.entries(stats.modelBreakdown).sort((a, b) => b[1] - a[1])[0];
   const topFeature = Object.entries(stats.featureUsage).sort((a, b) => b[1] - a[1])[0];
@@ -169,9 +168,7 @@ export function AssetStatistics() {
             <Zap size={14} />
             <span className="text-xs font-medium">Total</span>
           </div>
-          <p className="text-2xl font-bold text-purple-900 dark:text-purple-300">
-            {stats.totalGenerations}
-          </p>
+          <p className="text-2xl font-bold text-purple-900 dark:text-purple-300">{stats.totalGenerations}</p>
         </div>
 
         {/* Success Rate */}
@@ -180,9 +177,7 @@ export function AssetStatistics() {
             <TrendingUp size={14} />
             <span className="text-xs font-medium">Success</span>
           </div>
-          <p className="text-2xl font-bold text-green-900 dark:text-green-300">
-            {successRate}%
-          </p>
+          <p className="text-2xl font-bold text-green-900 dark:text-green-300">{successRate}%</p>
         </div>
 
         {/* Average Time */}
@@ -192,9 +187,7 @@ export function AssetStatistics() {
             <span className="text-xs font-medium">Avg Time</span>
           </div>
           <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">
-            {stats.averageGenerationTime > 0
-              ? `${(stats.averageGenerationTime / 1000).toFixed(1)}s`
-              : '—'}
+            {stats.averageGenerationTime > 0 ? `${(stats.averageGenerationTime / 1000).toFixed(1)}s` : '—'}
           </p>
         </div>
 
@@ -216,9 +209,7 @@ export function AssetStatistics() {
           {/* Model Breakdown */}
           {Object.keys(stats.modelBreakdown).length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                By Model
-              </h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">By Model</h4>
               <div className="space-y-2">
                 {Object.entries(stats.modelBreakdown)
                   .sort((a, b) => b[1] - a[1])
@@ -227,9 +218,7 @@ export function AssetStatistics() {
                     return (
                       <div key={model}>
                         <div className="flex items-center justify-between text-sm mb-1">
-                          <span className="text-gray-700 dark:text-gray-300">
-                            {modelNames[model] || model}
-                          </span>
+                          <span className="text-gray-700 dark:text-gray-300">{modelNames[model] || model}</span>
                           <span className="text-gray-500 dark:text-gray-400">
                             {count} ({percentage}%)
                           </span>
@@ -250,9 +239,7 @@ export function AssetStatistics() {
           {/* Feature Usage */}
           {Object.keys(stats.featureUsage).length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Feature Usage
-              </h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Feature Usage</h4>
               <div className="space-y-2">
                 {Object.entries(stats.featureUsage)
                   .sort((a, b) => b[1] - a[1])
@@ -262,9 +249,7 @@ export function AssetStatistics() {
                     return (
                       <div key={feature}>
                         <div className="flex items-center justify-between text-sm mb-1">
-                          <span className="text-gray-700 dark:text-gray-300">
-                            {featureNames[feature] || feature}
-                          </span>
+                          <span className="text-gray-700 dark:text-gray-300">{featureNames[feature] || feature}</span>
                           <span className="text-gray-500 dark:text-gray-400">
                             {count} ({percentage}%)
                           </span>

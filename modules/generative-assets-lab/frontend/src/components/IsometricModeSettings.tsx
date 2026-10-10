@@ -127,9 +127,7 @@ export function IsometricModeSettings({ enabled, onToggle, onSettingsChange }: I
 
           {/* Perspective Ratio */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Tile Aspect Ratio
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tile Aspect Ratio</label>
             <div className="grid grid-cols-3 gap-2">
               {PERSPECTIVES.map((persp) => (
                 <button
@@ -150,9 +148,7 @@ export function IsometricModeSettings({ enabled, onToggle, onSettingsChange }: I
 
           {/* Shadow Style */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Shadow Style
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Shadow Style</label>
             <div className="grid grid-cols-3 gap-2">
               {SHADOW_STYLES.map((shadow) => (
                 <button
@@ -192,8 +188,12 @@ export function IsometricModeSettings({ enabled, onToggle, onSettingsChange }: I
           <div className="bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-300 dark:border-indigo-700 rounded p-3 text-sm text-indigo-800 dark:text-indigo-300">
             <p className="font-medium mb-1">Isometric Mode Active:</p>
             <ul className="space-y-1 text-xs">
-              <li>• Generates sprites in {VIEW_ANGLES.find((a) => a.id === viewAngle)?.name.toLowerCase()} projection</li>
-              <li>• {perspective} aspect ratio for {PERSPECTIVES.find((p) => p.id === perspective)?.description}</li>
+              <li>
+                • Generates sprites in {VIEW_ANGLES.find((a) => a.id === viewAngle)?.name.toLowerCase()} projection
+              </li>
+              <li>
+                • {perspective} aspect ratio for {PERSPECTIVES.find((p) => p.id === perspective)?.description}
+              </li>
               <li>• {SHADOW_STYLES.find((s) => s.id === shadowStyle)?.description} lighting</li>
               <li>• Perfect for strategy games, city builders, and tactical RPGs</li>
             </ul>

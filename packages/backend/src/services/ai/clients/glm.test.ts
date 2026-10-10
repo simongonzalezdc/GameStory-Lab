@@ -38,16 +38,16 @@ describe('GLMClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
-    
+
     // Create mock for axios.post
     mockPost = vi.fn();
     (axios.create as any).mockReturnValue({ post: mockPost });
     (axios as any).isAxiosError = (err: any) => !!err?.isAxiosError;
-    
+
     // Mock environment variables
     vi.stubEnv('GLM_API_KEY', mockCredential);
     vi.stubEnv('GLM_API_BASE_URL', 'https://api.z.ai/api/coding/paas/v4');
-    
+
     client = new GLMClient({
       apiKey: mockCredential,
       baseUrl: 'https://api.z.ai/api/coding/paas/v4',
@@ -168,7 +168,7 @@ describe('GLMClient', () => {
       expect(axios.create).toHaveBeenCalledWith({
         baseURL: 'https://api.z.ai/api/coding/paas/v4',
         headers: {
-          'Authorization': `Bearer ${mockCredential}`,
+          Authorization: `Bearer ${mockCredential}`,
           'Content-Type': 'application/json',
         },
         timeout: 300000,
@@ -180,7 +180,7 @@ describe('GLMClient', () => {
         expect.objectContaining({
           model: 'GLM-4.6',
           messages: [{ role: 'user', content: 'Test' }],
-        })
+        }),
       );
     });
 
@@ -207,10 +207,10 @@ describe('GLMClient', () => {
       expect(axios.create).toHaveBeenCalledWith(
         expect.objectContaining({
           headers: {
-            'Authorization': `Bearer ${mockCredential}`,
+            Authorization: `Bearer ${mockCredential}`,
             'Content-Type': 'application/json',
           },
-        })
+        }),
       );
     });
   });
@@ -402,7 +402,7 @@ describe('GLMClient', () => {
         isAxiosError: true,
         response: { status: 503, data: { message: 'down' } },
       });
-      
+
       mockPost.mockRejectedValue(networkError);
 
       const request: AICompletionRequest = {
@@ -424,7 +424,7 @@ describe('GLMClient', () => {
       const envClient = new GLMClient();
       expect(envClient).toBeDefined();
       expect(await envClient.isAvailable()).toBe(true);
-      
+
       const models = await envClient.listModels();
       expect(models).toContain('glm-4.6');
     });

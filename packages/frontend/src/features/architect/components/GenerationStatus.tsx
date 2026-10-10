@@ -10,10 +10,7 @@ interface GenerationStatusProps {
   generationMessage: string;
 }
 
-export function GenerationStatus({
-  isGenerating,
-  generationMessage,
-}: GenerationStatusProps) {
+export function GenerationStatus({ isGenerating, generationMessage }: GenerationStatusProps) {
   if (!isGenerating) {
     return null;
   }
@@ -29,4 +26,3 @@ export function GenerationStatus({
     </div>
   );
 }
-

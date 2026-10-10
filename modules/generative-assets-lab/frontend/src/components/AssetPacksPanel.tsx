@@ -100,9 +100,7 @@ export function AssetPacksPanel() {
 
         {/* Pack List */}
         {packs.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            No packs yet. Create your first asset pack!
-          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No packs yet. Create your first asset pack!</p>
         ) : (
           <div className="space-y-2">
             {packs.map((pack) => (
@@ -112,13 +110,9 @@ export function AssetPacksPanel() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                      {pack.name}
-                    </div>
+                    <div className="font-medium text-sm text-gray-900 dark:text-white truncate">{pack.name}</div>
                     {pack.description && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                        {pack.description}
-                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{pack.description}</div>
                     )}
                     <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-1">
                       <span>{pack.asset_count} assets</span>

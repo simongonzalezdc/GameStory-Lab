@@ -25,10 +25,7 @@ export async function POST(request: NextRequest) {
     if (validated.autoFix) {
       const fixResult = await applyAutoFixes(project.path);
       if (fixResult.error) {
-        return NextResponse.json(
-          { error: `Auto-fix failed: ${fixResult.error}` },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: `Auto-fix failed: ${fixResult.error}` }, { status: 500 });
       }
     }
 
@@ -53,7 +50,10 @@ export async function POST(request: NextRequest) {
     console.error('Quality analysis error:', error);
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      );
     }
 
     // Save error to database

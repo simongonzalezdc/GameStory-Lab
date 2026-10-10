@@ -35,7 +35,7 @@ export interface ChangeLog {
 export class RefinementService {
   constructor(
     private prisma: PrismaClient,
-    private aiOrchestrator: AIOrchestrator
+    private aiOrchestrator: AIOrchestrator,
   ) {}
 
   /**
@@ -62,9 +62,9 @@ export class RefinementService {
 
     if (request.focus === 'improve-consistency') {
       console.log('[REFINEMENT DEBUG] Fetching validation issues for improve-consistency', {
-        conceptId: request.conceptId
+        conceptId: request.conceptId,
       });
-      
+
       const validationResults = await this.prisma.validationResult.findMany({
         where: {
           conceptId: request.conceptId,
@@ -82,8 +82,8 @@ export class RefinementService {
           ruleName: r.ruleName,
           severity: r.severity,
           confidence: Number(r.confidence),
-          message: r.message?.substring(0, 100) + '...'
-        }))
+          message: r.message?.substring(0, 100) + '...',
+        })),
       });
 
       validationIssues = validationResults.map((result: any) => ({
@@ -100,12 +100,12 @@ export class RefinementService {
         errors: validationIssues.filter((i) => i.severity === 'error').length,
         warnings: validationIssues.filter((i) => i.severity === 'warning').length,
         info: validationIssues.filter((i) => i.severity === 'info').length,
-        issues: validationIssues.map(i => ({
+        issues: validationIssues.map((i) => ({
           rule: i.rule,
           severity: i.severity,
           confidence: i.confidence,
-          message: i.message.substring(0, 100) + '...'
-        }))
+          message: i.message.substring(0, 100) + '...',
+        })),
       });
 
       logger.info('Fetched validation issues for consistency refinement', {
@@ -124,7 +124,7 @@ export class RefinementService {
       request.focus,
       request.specificInstructions,
       request.preserveFields,
-      validationIssues
+      validationIssues,
     );
 
     // 3. Call AI to refine
@@ -136,27 +136,27 @@ export class RefinementService {
         { role: 'user', content: refinementPrompt },
       ],
       'auto',
-      { maxTokens: 8000 } // Increased from default 2000 to handle full refined concepts
+      { maxTokens: 8000 }, // Increased from default 2000 to handle full refined concepts
     );
 
     // Parse AI response - pass existing mechanics/lore for fallback reconstruction
     console.log('[REFINEMENT DEBUG] AI response received:', {
       contentLength: aiResponse.content.length,
       contentPreview: aiResponse.content.substring(0, 500) + '...',
-      model: aiResponse.model
+      model: aiResponse.model,
     });
-    
+
     const refined = this.parseRefinementResponse(
       aiResponse.content,
       existingVersion.mechanics as MechanicsData,
-      existingVersion.lore as LoreData
+      existingVersion.lore as LoreData,
     );
-    
+
     console.log('[REFINEMENT DEBUG] Parsed refinement response:', {
       hasMechanics: !!refined.mechanics,
       hasLore: !!refined.lore,
       mechanicsKeys: refined.mechanics ? Object.keys(refined.mechanics) : [],
-      loreKeys: refined.lore ? Object.keys(refined.lore) : []
+      loreKeys: refined.lore ? Object.keys(refined.lore) : [],
     });
 
     // 4. Track changes
@@ -164,7 +164,7 @@ export class RefinementService {
       existingVersion.mechanics as MechanicsData,
       existingVersion.lore as LoreData,
       refined.mechanics,
-      refined.lore
+      refined.lore,
     );
 
     // 5. Create new version
@@ -176,7 +176,7 @@ export class RefinementService {
         mechanics: refined.mechanics as any,
         lore: refined.lore as any,
         metadata: {
-          ...(existingVersion.metadata as Record<string, unknown> || {}),
+          ...((existingVersion.metadata as Record<string, unknown>) || {}),
           aiModel: aiResponse.model,
           userEdited: false,
           refinedFrom: request.conceptId,
@@ -205,7 +205,7 @@ export class RefinementService {
       newVersion: newVersion.version,
       previousVersion: existingVersion.version,
       changesCount: changes.length,
-      focus: request.focus
+      focus: request.focus,
     });
 
     return {
@@ -254,7 +254,7 @@ export class RefinementService {
       version1.mechanics as MechanicsData,
       version1.lore as LoreData,
       version2.mechanics as MechanicsData,
-      version2.lore as LoreData
+      version2.lore as LoreData,
     );
 
     return {
@@ -298,7 +298,7 @@ export class RefinementService {
         mechanics: targetVersionRecord.mechanics as any,
         lore: targetVersionRecord.lore as any,
         metadata: {
-          ...(targetVersionRecord.metadata as Record<string, unknown> || {}),
+          ...((targetVersionRecord.metadata as Record<string, unknown>) || {}),
           rolledBackFrom: latestVersion?.id,
           rolledBackToVersion: targetVersion,
           userEdited: false,
@@ -329,7 +329,7 @@ export class RefinementService {
       message: string;
       suggestion: string | null;
       confidence: number;
-    }>
+    }>,
   ): string {
     let focusInstruction = '';
 
@@ -505,12 +505,12 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
   private parseRefinementResponse(
     content: string,
     fallbackMechanics?: MechanicsData,
-    fallbackLore?: LoreData
+    fallbackLore?: LoreData,
   ): { mechanics: MechanicsData; lore: LoreData } {
     try {
       // Clean the response (remove markdown code blocks if present)
       let cleanedContent = content.trim();
-      
+
       // For Qwen models, strip any chain-of-thought/reasoning patterns
       // Qwen sometimes outputs thinking tags or reasoning blocks
       cleanedContent = cleanedContent
@@ -519,12 +519,12 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
         .replace(/Let me think[\s\S]*?(?=\{)/gi, '') // Remove "Let me think..." prefixes
         .replace(/First, let me[\s\S]*?(?=\{)/gi, '') // Remove "First, let me..." prefixes
         .trim();
-      
+
       // Try to extract JSON from markdown code blocks first
       // Handle both ```json and ``` formats
       // Find code block markers and extract the JSON between them
       let extractedJson: string | null = null;
-      
+
       // Look for markdown code blocks
       const codeBlockStart = content.indexOf('```');
       if (codeBlockStart !== -1) {
@@ -541,30 +541,30 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
             let depth = 0;
             let inString = false;
             let escapeNext = false;
-            
+
             for (let i = jsonStartIndex; i < codeBlockEnd; i++) {
               const char = content[i];
-              
+
               if (escapeNext) {
                 jsonContent += char;
                 escapeNext = false;
                 continue;
               }
-              
+
               if (char === '\\') {
                 jsonContent += char;
                 escapeNext = true;
                 continue;
               }
-              
+
               if (char === '"' && !escapeNext) {
                 jsonContent += char;
                 inString = !inString;
                 continue;
               }
-              
+
               jsonContent += char;
-              
+
               if (!inString) {
                 if (char === '{') depth++;
                 if (char === '}') {
@@ -577,25 +577,25 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
                 }
               }
             }
-            
+
             if (extractedJson) {
-              logger.info('Extracted JSON from markdown code block', { 
+              logger.info('Extracted JSON from markdown code block', {
                 length: extractedJson.length,
                 hasMechanics: extractedJson.includes('"mechanics"'),
-                hasLore: extractedJson.includes('"lore"')
+                hasLore: extractedJson.includes('"lore"'),
               });
             }
           }
         }
       }
-      
+
       // If we found JSON in a code block, use it
       if (extractedJson) {
         cleanedContent = extractedJson.trim();
       } else {
         // Remove markdown code blocks (handle both ```json and ```)
         cleanedContent = cleanedContent.replace(/```json\n?/gi, '').replace(/```\n?/g, '');
-        
+
         // Look for JSON object that contains both "mechanics" and "lore" keys
         // This handles cases where the model returns markdown with JSON embedded
         const mechanicsLoreJson = cleanedContent.match(/\{[^{]*"mechanics"[\s\S]*"lore"[\s\S]*\}/);
@@ -608,21 +608,21 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
           cleanedContent = cleanedContent.replace(/^[^{]*?(?=\{[^{]*"mechanics"|"lore")/i, '');
         }
       }
-      
+
       // Try multiple strategies to find the correct JSON object
       // Strategy 1: Look for the top-level object containing both "mechanics" and "lore"
       let jsonStart = -1;
       let jsonEnd = -1;
-      
+
       // First, try to find an object that contains both "mechanics" and "lore" keys
       const mechanicsIndex = cleanedContent.indexOf('"mechanics"');
       const loreIndex = cleanedContent.indexOf('"lore"');
-      
+
       if (mechanicsIndex !== -1 && loreIndex !== -1) {
         // Find the opening brace before the first of these keys
         const firstKeyIndex = Math.min(mechanicsIndex, loreIndex);
         jsonStart = cleanedContent.lastIndexOf('{', firstKeyIndex);
-        
+
         if (jsonStart === -1) {
           // If no brace before, look for the first brace in the content
           jsonStart = cleanedContent.indexOf('{');
@@ -631,36 +631,36 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
         // Fallback: just find the first brace
         jsonStart = cleanedContent.indexOf('{');
       }
-      
+
       if (jsonStart === -1) {
         logger.error('No JSON found in refinement response', { content: content.substring(0, 500) });
         throw new Error('No JSON found in response');
       }
-      
+
       // Track bracket depth to find the matching closing brace
       let depth = 0;
       jsonEnd = jsonStart;
       let inString = false;
       let escapeNext = false;
-      
+
       for (let i = jsonStart; i < cleanedContent.length; i++) {
         const char = cleanedContent[i];
-        
+
         if (escapeNext) {
           escapeNext = false;
           continue;
         }
-        
+
         if (char === '\\') {
           escapeNext = true;
           continue;
         }
-        
+
         if (char === '"' && !escapeNext) {
           inString = !inString;
           continue;
         }
-        
+
         if (!inString) {
           if (char === '{') {
             depth++;
@@ -673,14 +673,14 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
           }
         }
       }
-      
+
       if (depth !== 0) {
         logger.error('Incomplete JSON object in refinement response', { content: content.substring(0, 500) });
         throw new Error('Incomplete JSON object in response');
       }
-      
+
       cleanedContent = cleanedContent.substring(jsonStart, jsonEnd);
-      
+
       // Clean up common JSON formatting issues before parsing
       // First, ensure we only have the JSON object (remove any trailing text)
       // Find the last closing brace that matches the first opening brace
@@ -690,7 +690,7 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
         // Extract only the JSON portion
         cleanedContent = cleanedContent.substring(firstBrace, lastBrace + 1);
       }
-      
+
       // Fix single quotes to double quotes for property names (but be careful with apostrophes in strings)
       // Only replace single quotes around property names, not in string values
       cleanedContent = cleanedContent.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
@@ -704,7 +704,7 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
       if (closingBraceIndex !== -1) {
         cleanedContent = cleanedContent.substring(0, closingBraceIndex + 1);
       }
-      
+
       // Parse JSON
       let parsed: any;
       try {
@@ -714,9 +714,9 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
         logger.warn('Initial JSON parse failed, attempting to fix and retry', {
           error: parseError instanceof Error ? parseError.message : String(parseError),
           contentPreview: cleanedContent.substring(0, 500),
-          errorPosition: parseError instanceof SyntaxError ? (parseError as any).position : undefined
+          errorPosition: parseError instanceof SyntaxError ? (parseError as any).position : undefined,
         });
-        
+
         // Try to fix the specific error position if available
         if (parseError instanceof SyntaxError) {
           const errorMsg = parseError.message;
@@ -728,40 +728,40 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
             logger.debug('JSON error context', {
               beforeError: beforeError.substring(Math.max(0, beforeError.length - 100)),
               atError,
-              errorMessage: errorMsg
+              errorMessage: errorMsg,
             });
           }
         }
-        
+
         // Try to find and extract a valid JSON object by tracking braces properly
         // The regex approach doesn't work well for nested objects, so use brace tracking
         let bestJson: string | null = null;
         let jsonStartPos = cleanedContent.indexOf('{');
-        
+
         while (jsonStartPos !== -1) {
           let depth = 0;
           let jsonEndPos = jsonStartPos;
           let inString = false;
           let escapeNext = false;
-          
+
           for (let i = jsonStartPos; i < cleanedContent.length; i++) {
             const char = cleanedContent[i];
-            
+
             if (escapeNext) {
               escapeNext = false;
               continue;
             }
-            
+
             if (char === '\\') {
               escapeNext = true;
               continue;
             }
-            
+
             if (char === '"' && !escapeNext) {
               inString = !inString;
               continue;
             }
-            
+
             if (!inString) {
               if (char === '{') depth++;
               if (char === '}') {
@@ -773,7 +773,7 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
               }
             }
           }
-          
+
           if (depth === 0 && jsonEndPos > jsonStartPos) {
             const candidateJson = cleanedContent.substring(jsonStartPos, jsonEndPos);
             try {
@@ -796,16 +796,16 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
               // Try next JSON object
             }
           }
-          
+
           // Find next potential JSON start
           jsonStartPos = cleanedContent.indexOf('{', jsonStartPos + 1);
         }
-        
+
         // If we found a JSON object but it doesn't have mechanics/lore, try to reconstruct
         if (parsed && (!parsed.mechanics || !parsed.lore)) {
           logger.warn('Found JSON but missing mechanics or lore, will use reconstruction logic');
         }
-        
+
         if (!parsed) {
           // Log the problematic content for debugging
           logger.error('Failed to parse JSON after all attempts', {
@@ -813,23 +813,23 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
             contentLength: cleanedContent.length,
             contentPreview: cleanedContent.substring(0, 1000),
             firstBrace: cleanedContent.indexOf('{'),
-            lastBrace: cleanedContent.lastIndexOf('}')
+            lastBrace: cleanedContent.lastIndexOf('}'),
           });
           throw parseError;
         }
       }
-      
+
       // Validate that we got meaningful content
       if (!parsed || (typeof parsed === 'object' && Object.keys(parsed).length === 0)) {
-        logger.error('Empty or invalid content in refinement response', { 
+        logger.error('Empty or invalid content in refinement response', {
           parsed,
-          contentPreview: cleanedContent.substring(0, 500)
+          contentPreview: cleanedContent.substring(0, 500),
         });
         throw new Error('Empty or invalid content in AI response');
       }
-      
+
       // Log what we actually got for debugging
-      logger.debug('Parsed refinement response', { 
+      logger.debug('Parsed refinement response', {
         keys: Object.keys(parsed),
         hasMechanics: !!parsed.mechanics,
         hasLore: !!parsed.lore,
@@ -838,26 +838,34 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
         mechanicsKeys: parsed.mechanics && typeof parsed.mechanics === 'object' ? Object.keys(parsed.mechanics) : null,
         loreKeys: parsed.lore && typeof parsed.lore === 'object' ? Object.keys(parsed.lore) : null,
       });
-      
+
       // Handle case where model returns only lore fields directly (not wrapped in "lore" key)
       // Sometimes models return {themes: ..., setting: ..., conflict: ...} instead of {mechanics: ..., lore: {...}}
       if (parsed.mechanics === undefined || parsed.mechanics === null) {
         // Check if the parsed object contains lore fields directly (themes, setting, conflict, protagonist, etc.)
-        const loreFieldNames = ['themes', 'setting', 'conflict', 'protagonist', 'worldRules', 'progression', 'narrative'];
-        const hasLoreFields = loreFieldNames.some(field => parsed[field] !== undefined);
-        
+        const loreFieldNames = [
+          'themes',
+          'setting',
+          'conflict',
+          'protagonist',
+          'worldRules',
+          'progression',
+          'narrative',
+        ];
+        const hasLoreFields = loreFieldNames.some((field) => parsed[field] !== undefined);
+
         if (hasLoreFields && !parsed.mechanics) {
           // Model returned lore fields directly, not wrapped in {mechanics: ..., lore: ...}
           // Reconstruct the proper structure using fallback mechanics and wrapping lore fields
-          logger.warn('Model returned lore fields directly without mechanics wrapper - reconstructing response', { 
+          logger.warn('Model returned lore fields directly without mechanics wrapper - reconstructing response', {
             keys: Object.keys(parsed),
             hasLoreFields,
-            usingFallbackMechanics: !!fallbackMechanics
+            usingFallbackMechanics: !!fallbackMechanics,
           });
-          
+
           // Use existing mechanics as fallback (model didn't provide new ones)
           const mechanics = fallbackMechanics || {};
-          
+
           // Wrap the lore fields into a proper lore object
           const lore: LoreData = {
             themes: parsed.themes,
@@ -870,19 +878,19 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
             // Preserve any other lore fields from fallback that weren't in the response
             ...(fallbackLore && typeof fallbackLore === 'object' ? fallbackLore : {}),
           };
-          
+
           // Remove undefined fields
-          Object.keys(lore).forEach(key => {
+          Object.keys(lore).forEach((key) => {
             if (lore[key as keyof LoreData] === undefined) {
               delete lore[key as keyof LoreData];
             }
           });
-          
+
           logger.info('Successfully reconstructed response from malformed model output', {
             mechanicsKeys: Object.keys(mechanics),
-            loreKeys: Object.keys(lore)
+            loreKeys: Object.keys(lore),
           });
-          
+
           return {
             mechanics: mechanics as MechanicsData,
             lore: lore as LoreData,
@@ -894,7 +902,7 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
           }
           // Use fallback mechanics and lore
           logger.warn('Model response missing mechanics, using fallback', {
-            keys: Object.keys(parsed)
+            keys: Object.keys(parsed),
           });
           return {
             mechanics: fallbackMechanics,
@@ -902,33 +910,31 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
           };
         }
       }
-      
+
       if (parsed.lore === undefined || parsed.lore === null) {
-        logger.error('Missing lore in refinement response', { 
+        logger.error('Missing lore in refinement response', {
           keys: Object.keys(parsed),
-          parsedPreview: JSON.stringify(parsed).substring(0, 500)
+          parsedPreview: JSON.stringify(parsed).substring(0, 500),
         });
         throw new Error('Response missing required lore field');
       }
-      
+
       // Ensure mechanics and lore are objects (even if empty)
-      const mechanics = typeof parsed.mechanics === 'object' && parsed.mechanics !== null 
-        ? parsed.mechanics 
-        : {};
-      const lore = typeof parsed.lore === 'object' && parsed.lore !== null 
-        ? parsed.lore 
-        : {};
-      
+      const mechanics = typeof parsed.mechanics === 'object' && parsed.mechanics !== null ? parsed.mechanics : {};
+      const lore = typeof parsed.lore === 'object' && parsed.lore !== null ? parsed.lore : {};
+
       return {
         mechanics: mechanics as MechanicsData,
         lore: lore as LoreData,
       };
     } catch (error) {
-      logger.error('Failed to parse AI response in refinement service', { 
+      logger.error('Failed to parse AI response in refinement service', {
         error: error instanceof Error ? error.message : String(error),
-        contentPreview: content.substring(0, 1000)
+        contentPreview: content.substring(0, 1000),
       });
-      throw new Error(`Failed to parse refinement response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to parse refinement response: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -939,7 +945,7 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
     oldMechanics: MechanicsData,
     oldLore: LoreData,
     newMechanics: MechanicsData,
-    newLore: LoreData
+    newLore: LoreData,
   ): ChangeLog[] {
     const changes: ChangeLog[] = [];
 
@@ -996,9 +1002,9 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
    * Generate human-readable change summary
    */
   private generateChangeSummary(changes: ChangeLog[]): string {
-    const added = changes.filter(c => c.changeType === 'added').length;
-    const modified = changes.filter(c => c.changeType === 'modified').length;
-    const removed = changes.filter(c => c.changeType === 'removed').length;
+    const added = changes.filter((c) => c.changeType === 'added').length;
+    const modified = changes.filter((c) => c.changeType === 'modified').length;
+    const removed = changes.filter((c) => c.changeType === 'removed').length;
 
     return `${added} fields added, ${modified} fields modified, ${removed} fields removed`;
   }

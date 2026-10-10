@@ -5,13 +5,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import type {
-  IAIClient,
-  AIClientConfig,
-  AICompletionRequest,
-  AICompletionResponse,
-  AIClientError,
-} from './base.js';
+import type { IAIClient, AIClientConfig, AICompletionRequest, AICompletionResponse, AIClientError } from './base.js';
 import { logger } from '../../../utils/logger.js';
 
 interface GLMMessage {
@@ -65,7 +59,7 @@ export class GLMClient implements IAIClient {
     this.client = axios.create({
       baseURL: this.baseUrl,
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
       },
       timeout: config.timeout || 300000, // 5 minutes timeout for long generations
@@ -100,10 +94,7 @@ export class GLMClient implements IAIClient {
         model: modelName,
       });
 
-      const response = await this.client.post<GLMResponse>(
-        '/chat/completions',
-        glmRequest
-      );
+      const response = await this.client.post<GLMResponse>('/chat/completions', glmRequest);
 
       // Log successful response details
       logger.debug('GLM API response received', {
@@ -111,9 +102,9 @@ export class GLMClient implements IAIClient {
         statusText: response.statusText,
         headers: response.headers,
         dataKeys: Object.keys(response.data || {}),
-        hasChoices: !!(response.data?.choices?.length),
+        hasChoices: !!response.data?.choices?.length,
         choicesLength: response.data?.choices?.length || 0,
-        hasUsage: !!(response.data?.usage),
+        hasUsage: !!response.data?.usage,
         model: response.data?.model,
       });
 
@@ -123,22 +114,22 @@ export class GLMClient implements IAIClient {
       // Extract content and tokens - handle both content and reasoning_content
       const choice = data.choices?.[0];
       const message = choice?.message;
-      
+
       // Try content first, then reasoning_content if content is empty
       let content = message?.content || '';
       if (!content && message?.reasoning_content) {
         content = message.reasoning_content;
       }
-      
+
       const usage = data.usage || { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
-      
+
       if (!content) {
         logger.warn('GLM API returned empty content', {
           responseData: JSON.stringify(data).substring(0, 1000),
           choicesLength: data.choices?.length || 0,
           model: modelName,
-          hasContent: !!(message?.content),
-          hasReasoningContent: !!(message?.reasoning_content),
+          hasContent: !!message?.content,
+          hasReasoningContent: !!message?.reasoning_content,
         });
         throw new Error('GLM API returned empty content');
       }
@@ -147,7 +138,7 @@ export class GLMClient implements IAIClient {
         durationMs,
         tokensUsed: usage.total_tokens,
         contentLength: content.length,
-        contentType: message?.content ? 'content' : 'reasoning_content'
+        contentType: message?.content ? 'content' : 'reasoning_content',
       });
 
       // Estimate cost (GLM 4.6 pricing - based on actual pricing from Zhipu AI)
@@ -163,8 +154,8 @@ export class GLMClient implements IAIClient {
           completion: usage.completion_tokens,
           total: usage.total_tokens,
         },
-        finishReason: choice?.finish_reason === 'stop' ? 'stop' : 
-                     choice?.finish_reason === 'length' ? 'length' : 'error',
+        finishReason:
+          choice?.finish_reason === 'stop' ? 'stop' : choice?.finish_reason === 'length' ? 'length' : 'error',
         metadata: {
           provider: 'glm',
           costUsd,
@@ -174,12 +165,10 @@ export class GLMClient implements IAIClient {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorData = error.response?.data;
-        const errorMessage = errorData?.error?.message || 
-                           errorData?.message || 
-                           error.message || 
-                           'Unknown GLM API error';
+        const errorMessage =
+          errorData?.error?.message || errorData?.message || error.message || 'Unknown GLM API error';
         const statusCode = error.response?.status;
-        
+
         // Enhanced error logging for debugging
         logger.error('GLM API request failed', {
           statusCode,
@@ -192,7 +181,7 @@ export class GLMClient implements IAIClient {
           apiKeyFormat: this.apiKey.includes('.') ? 'contains.dots' : 'simple',
           baseUrl: this.baseUrl,
         });
-        
+
         const aiError: AIClientError = {
           name: 'AIClientError',
           message: `GLM generation failed: ${errorMessage}`,
@@ -202,12 +191,12 @@ export class GLMClient implements IAIClient {
         };
         throw aiError;
       }
-      
+
       logger.error('GLM generation failed with non-Axios error', {
         error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
       });
-      
+
       throw {
         name: 'AIClientError',
         message: `GLM generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -239,12 +228,10 @@ export class GLMClient implements IAIClient {
     // Claude 3.5 Sonnet: ~$3.00 per 1M input tokens, ~$15.00 per 1M output tokens
     // GLM-4.5: ~$0.30 per 1M input tokens, ~$1.50 per 1M output tokens
     // GLM-4.6: Estimated at ~$0.40 per 1M input tokens, ~$2.00 per 1M output tokens
-    const costPer1MPrompt = 0.40; // $0.40 per 1M prompt tokens (estimated)
-    const costPer1MCompletion = 2.00; // $2.00 per 1M completion tokens (estimated)
+    const costPer1MPrompt = 0.4; // $0.40 per 1M prompt tokens (estimated)
+    const costPer1MCompletion = 2.0; // $2.00 per 1M completion tokens (estimated)
 
-    const cost =
-      (promptTokens / 1_000_000) * costPer1MPrompt +
-      (completionTokens / 1_000_000) * costPer1MCompletion;
+    const cost = (promptTokens / 1_000_000) * costPer1MPrompt + (completionTokens / 1_000_000) * costPer1MCompletion;
 
     return cost;
   }

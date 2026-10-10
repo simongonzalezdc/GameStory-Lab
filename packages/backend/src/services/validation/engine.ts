@@ -295,7 +295,7 @@ export class ValidationEngine {
   async validate(
     mechanics: MechanicsData,
     lore: LoreData,
-    genre?: string
+    genre?: string,
   ): Promise<{
     issues: ValidationIssue[];
     overallScore: number;
@@ -310,13 +310,11 @@ export class ValidationEngine {
           logger.error('Validation rule failed', { rule: rule.name, error });
           return { rule, issue: null };
         }
-      })
+      }),
     );
 
     // Filter out null results (rules that passed)
-    const issues: ValidationIssue[] = results
-      .filter(({ issue }) => issue !== null)
-      .map(({ issue }) => issue!);
+    const issues: ValidationIssue[] = results.filter(({ issue }) => issue !== null).map(({ issue }) => issue!);
 
     // Calculate overall score
     const overallScore = this.calculateOverallScore(issues, this.rules);
@@ -333,7 +331,7 @@ export class ValidationEngine {
   private calculateOverallScore(issues: ValidationIssue[], rules: ValidationRule[]): number {
     console.log('[VALIDATION DEBUG] Calculating score:', {
       totalIssues: issues.length,
-      rulesCount: rules.length
+      rulesCount: rules.length,
     });
 
     // Start with perfect score
@@ -349,11 +347,11 @@ export class ValidationEngine {
         severity: issue.severity,
         confidence: issue.confidence,
         weight,
-        currentScore: score
+        currentScore: score,
       });
 
       if (issue.severity === 'error') {
-        score -= 0.10 * weight * issue.confidence;
+        score -= 0.1 * weight * issue.confidence;
       } else if (issue.severity === 'warning') {
         score -= 0.05 * weight * issue.confidence;
       } else if (issue.severity === 'info') {
@@ -365,7 +363,7 @@ export class ValidationEngine {
     const finalScore = Math.max(0, Math.min(1, score));
     console.log('[VALIDATION DEBUG] Final score calculated:', {
       finalScore,
-      finalScorePercent: Math.round(finalScore * 100)
+      finalScorePercent: Math.round(finalScore * 100),
     });
 
     return finalScore;

@@ -111,4 +111,3 @@ describe('buildUnifiedPrompt', () => {
     expect(prompt).toContain('STRICT OUTPUT REQUIREMENTS');
   });
 });
-

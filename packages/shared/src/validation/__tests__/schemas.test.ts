@@ -225,12 +225,7 @@ describe('RefinementRequestSchema', () => {
   const validUUID = '550e8400-e29b-41d4-a716-446655440000';
 
   it('should validate all focus types', () => {
-    const focuses = [
-      'deepen-mechanics',
-      'enrich-lore',
-      'improve-consistency',
-      'enhance-genre-fit',
-    ];
+    const focuses = ['deepen-mechanics', 'enrich-lore', 'improve-consistency', 'enhance-genre-fit'];
 
     focuses.forEach((focus) => {
       const result = RefinementRequestSchema.safeParse({
@@ -527,8 +522,7 @@ describe('EnvironmentSchema', () => {
   });
 
   it('should reject missing required DATABASE_URL', () => {
-    const result = EnvironmentSchema.safeParse({
-    });
+    const result = EnvironmentSchema.safeParse({});
     expect(result.success).toBe(false);
   });
 

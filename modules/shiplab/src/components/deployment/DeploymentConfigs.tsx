@@ -64,7 +64,8 @@ export function DeploymentConfigs({
         <CardHeader>
           <CardTitle>Deployment Guide</CardTitle>
           <CardDescription>
-            Generated deployment configurations for {configs.length} platform{configs.length !== 1 ? 's' : ''}
+            Generated deployment configurations for {configs.length} platform
+            {configs.length !== 1 ? 's' : ''}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -95,7 +96,9 @@ export function DeploymentConfigs({
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Comprehensive Deployment Guide</CardTitle>
-                <CardDescription>Step-by-step instructions for deploying your project</CardDescription>
+                <CardDescription>
+                  Step-by-step instructions for deploying your project
+                </CardDescription>
               </div>
               <Button
                 variant="outline"
@@ -162,7 +165,9 @@ export function DeploymentConfigs({
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Environment Variables</CardTitle>
-                  <CardDescription>Required environment variables for {config.platform}</CardDescription>
+                  <CardDescription>
+                    Required environment variables for {config.platform}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -210,16 +215,16 @@ export function DeploymentConfigs({
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Cost Estimate</CardTitle>
-                  <CardDescription>
-                    Estimated hosting costs for {config.platform}
-                  </CardDescription>
+                  <CardDescription>Estimated hosting costs for {config.platform}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Estimated Monthly Cost */}
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div>
                       <p className="text-sm font-medium">Estimated Monthly Cost</p>
-                      <p className="text-2xl font-bold text-primary">{config.costEstimate.estimatedMonthlyCost}</p>
+                      <p className="text-2xl font-bold text-primary">
+                        {config.costEstimate.estimatedMonthlyCost}
+                      </p>
                     </div>
                     {config.costEstimate.free && (
                       <Badge variant="default" className="text-sm">
@@ -232,7 +237,9 @@ export function DeploymentConfigs({
                   {config.costEstimate.freeTier && (
                     <div>
                       <h4 className="text-sm font-medium mb-2">Free Tier</h4>
-                      <p className="text-sm text-muted-foreground">{config.costEstimate.freeTier}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {config.costEstimate.freeTier}
+                      </p>
                     </div>
                   )}
 
@@ -251,7 +258,10 @@ export function DeploymentConfigs({
                             </div>
                             <ul className="space-y-1">
                               {tier.features.map((feature, fIndex) => (
-                                <li key={fIndex} className="text-xs text-muted-foreground flex items-start">
+                                <li
+                                  key={fIndex}
+                                  className="text-xs text-muted-foreground flex items-start"
+                                >
                                   <span className="mr-2">•</span>
                                   <span>{feature}</span>
                                 </li>
@@ -269,7 +279,10 @@ export function DeploymentConfigs({
                       <h4 className="text-sm font-medium mb-2">Important Notes</h4>
                       <ul className="space-y-1">
                         {config.costEstimate.notes.map((note, index) => (
-                          <li key={index} className="text-xs text-muted-foreground flex items-start">
+                          <li
+                            key={index}
+                            className="text-xs text-muted-foreground flex items-start"
+                          >
                             <span className="mr-2">•</span>
                             <span>{note}</span>
                           </li>
@@ -356,11 +369,7 @@ export function DeploymentConfigs({
                 <CardDescription>Environment variables template for your project</CardDescription>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleCopy(envTemplate, 'env')}
-                >
+                <Button variant="outline" size="sm" onClick={() => handleCopy(envTemplate, 'env')}>
                   {copiedItem === 'env' ? (
                     <Check className="h-4 w-4 mr-2" />
                   ) : (
@@ -384,8 +393,8 @@ export function DeploymentConfigs({
               </pre>
               <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                 <p className="text-sm text-yellow-700 dark:text-yellow-400">
-                  <strong>Note:</strong> Create a <code>.env</code> file in your project root and fill in these
-                  values before deploying.
+                  <strong>Note:</strong> Create a <code>.env</code> file in your project root and
+                  fill in these values before deploying.
                 </p>
               </div>
             </CardContent>

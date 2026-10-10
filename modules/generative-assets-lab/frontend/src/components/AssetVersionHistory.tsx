@@ -41,19 +41,11 @@ export function AssetVersionHistory({ assetId, currentVersion, onVersionSelect }
   }
 
   if (error) {
-    return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-        {error}
-      </div>
-    );
+    return <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>;
   }
 
   if (versions.length === 0) {
-    return (
-      <div className="p-4 text-sm text-gray-500 text-center">
-        No version history available
-      </div>
-    );
+    return <div className="p-4 text-sm text-gray-500 text-center">No version history available</div>;
   }
 
   return (
@@ -73,16 +65,12 @@ export function AssetVersionHistory({ assetId, currentVersion, onVersionSelect }
             <div
               key={version.id}
               className={`relative group cursor-pointer transition-all ${
-                isCurrentVersion
-                  ? 'ring-2 ring-purple-500 bg-purple-50'
-                  : 'hover:bg-gray-50 border border-gray-200'
+                isCurrentVersion ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:bg-gray-50 border border-gray-200'
               } rounded-lg p-3`}
               onClick={() => onVersionSelect(version)}
             >
               {/* Connection Line */}
-              {index < versions.length - 1 && (
-                <div className="absolute left-14 top-full h-2 w-0.5 bg-gray-300" />
-              )}
+              {index < versions.length - 1 && <div className="absolute left-14 top-full h-2 w-0.5 bg-gray-300" />}
 
               <div className="flex gap-3">
                 {/* Thumbnail */}
@@ -102,13 +90,9 @@ export function AssetVersionHistory({ assetId, currentVersion, onVersionSelect }
                 {/* Version Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm text-gray-900">
-                      Version {version.version_number}
-                    </span>
+                    <span className="font-medium text-sm text-gray-900">Version {version.version_number}</span>
                     {isCurrentVersion && (
-                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-                        Current
-                      </span>
+                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Current</span>
                     )}
                   </div>
 
@@ -116,9 +100,7 @@ export function AssetVersionHistory({ assetId, currentVersion, onVersionSelect }
                   {version.refinement_instruction ? (
                     <div className="flex items-start gap-1 mb-1">
                       <MessageSquare className="h-3 w-3 text-gray-400 mt-0.5 flex-shrink-0" />
-                      <p className="text-xs text-gray-600 italic">
-                        "{version.refinement_instruction}"
-                      </p>
+                      <p className="text-xs text-gray-600 italic">"{version.refinement_instruction}"</p>
                     </div>
                   ) : (
                     <p className="text-xs text-gray-500 mb-1">Original generation</p>
@@ -131,7 +113,9 @@ export function AssetVersionHistory({ assetId, currentVersion, onVersionSelect }
 
                   {/* Metadata */}
                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                    <span>{version.width} × {version.height}</span>
+                    <span>
+                      {version.width} × {version.height}
+                    </span>
                     <span>{new Date(version.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
@@ -154,13 +138,11 @@ export function AssetVersionHistory({ assetId, currentVersion, onVersionSelect }
       <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
         {versions.length > 1 ? (
           <>
-            This asset has been refined {versions.length - 1} time{versions.length - 1 !== 1 ? 's' : ''}.
-            Click any version to view or continue refining from that point.
+            This asset has been refined {versions.length - 1} time{versions.length - 1 !== 1 ? 's' : ''}. Click any
+            version to view or continue refining from that point.
           </>
         ) : (
-          <>
-            This is the original asset. Use the refine button to create variations.
-          </>
+          <>This is the original asset. Use the refine button to create variations.</>
         )}
       </div>
     </div>

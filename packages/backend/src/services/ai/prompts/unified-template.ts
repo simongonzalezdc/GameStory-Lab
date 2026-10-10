@@ -47,7 +47,9 @@ export function getUnifiedOutputFormatInstructions(): string {
  * Get MiniMax M2 optimization instructions
  * Tailored for different task types
  */
-export function getMinimaxOptimizationInstructions(taskType: 'mechanics' | 'lore' | 'refinement' | 'title' | 'assistant'): string {
+export function getMinimaxOptimizationInstructions(
+  taskType: 'mechanics' | 'lore' | 'refinement' | 'title' | 'assistant',
+): string {
   const base = `MINIMAX M2 OPTIMIZATION: Leverage your advanced reasoning and creative capabilities. Use your analytical mind to ensure perfect internal consistency, innovative design patterns, and engaging experiences. Your strength lies in balancing creativity with logical structure.`;
 
   const specific: Record<string, string> = {
@@ -152,4 +154,3 @@ export function buildUnifiedPrompt(options: {
 
   return parts.join('\n\n');
 }
-

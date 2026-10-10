@@ -44,11 +44,9 @@ const DEPTH_EFFECTS = [
 
 export function BackgroundLayersSettings({ enabled, onToggle, onSettingsChange }: BackgroundLayersSettingsProps) {
   const [layerCount, setLayerCount] = useState<number>(3);
-  const [layerTypes, setLayerTypes] = useState<('sky' | 'far-background' | 'background' | 'midground' | 'foreground')[]>([
-    'background',
-    'midground',
-    'foreground',
-  ]);
+  const [layerTypes, setLayerTypes] = useState<
+    ('sky' | 'far-background' | 'background' | 'midground' | 'foreground')[]
+  >(['background', 'midground', 'foreground']);
   const [depthEffect, setDepthEffect] = useState<'subtle' | 'moderate' | 'dramatic'>('moderate');
   const [generateAsSet, setGenerateAsSet] = useState(true);
 
@@ -70,7 +68,7 @@ export function BackgroundLayersSettings({ enabled, onToggle, onSettingsChange }
     onSettingsChange(settings);
   };
 
-  const selectPreset = (preset: typeof LAYER_PRESETS[0]) => {
+  const selectPreset = (preset: (typeof LAYER_PRESETS)[0]) => {
     handleChange({
       layerCount: preset.count,
       layerTypes: [...preset.layers],
@@ -127,15 +125,13 @@ export function BackgroundLayersSettings({ enabled, onToggle, onSettingsChange }
 
           {/* Layer Types Display */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Layer Structure
-            </label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Layer Structure</label>
             <div className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded p-3 space-y-2">
               {layerTypes.map((layer, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between text-sm"
-                  style={{ opacity: 1 - (index * 0.15) }}
+                  style={{ opacity: 1 - index * 0.15 }}
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded flex items-center justify-center text-white text-xs font-bold">

@@ -91,7 +91,7 @@ export const handlers = [
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
-      { status: 201 }
+      { status: 201 },
     );
   }),
 

@@ -36,13 +36,7 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
     phase: 'quick-discovery',
     category: 'basics',
     question: 'What type of project is this?',
-    options: [
-      'Desktop game',
-      'Mobile game',
-      'Web-based game',
-      'Console game',
-      'Multi-platform',
-    ],
+    options: ['Desktop game', 'Mobile game', 'Web-based game', 'Console game', 'Multi-platform'],
     required: true,
   },
   {
@@ -155,13 +149,7 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
     phase: 'deep-dive',
     category: 'technical-preferences',
     question: 'Which AI coding agent will you use for development?',
-    options: [
-      'Claude Code',
-      'Cursor',
-      'GitHub Copilot',
-      'Other',
-      'No AI agent',
-    ],
+    options: ['Claude Code', 'Cursor', 'GitHub Copilot', 'Other', 'No AI agent'],
     required: true,
   },
 
@@ -291,16 +279,12 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
 ];
 
 // Helper function to get questions for a specific phase
-export function getQuestionsByPhase(
-  phase: 'quick-discovery' | 'deep-dive' | 'open-source'
-): InterviewQuestion[] {
+export function getQuestionsByPhase(phase: 'quick-discovery' | 'deep-dive' | 'open-source'): InterviewQuestion[] {
   return INTERVIEW_QUESTIONS.filter((q) => q.phase === phase);
 }
 
 // Helper function to get next question based on current answers
-export function getNextQuestion(
-  answers: Map<string, string | string[]>
-): InterviewQuestion | null {
+export function getNextQuestion(answers: Map<string, string | string[]>): InterviewQuestion | null {
   for (const question of INTERVIEW_QUESTIONS) {
     // Skip if already answered
     if (answers.has(question.id)) {
@@ -335,9 +319,7 @@ export function getNextQuestion(
 // Get completion percentage
 export function getCompletionPercentage(answers: Map<string, string | string[]>): number {
   const totalRequired = INTERVIEW_QUESTIONS.filter((q) => q.required).length;
-  const answeredRequired = INTERVIEW_QUESTIONS.filter(
-    (q) => q.required && answers.has(q.id)
-  ).length;
+  const answeredRequired = INTERVIEW_QUESTIONS.filter((q) => q.required && answers.has(q.id)).length;
 
   return Math.round((answeredRequired / totalRequired) * 100);
 }

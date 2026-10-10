@@ -80,7 +80,8 @@ jobs:
     name: 'CI Workflow',
     fileName: 'ci.yml',
     content: workflow,
-    description: 'Continuous Integration workflow for running tests and linting on every push and pull request',
+    description:
+      'Continuous Integration workflow for running tests and linting on every push and pull request',
   };
 }
 
@@ -152,7 +153,8 @@ jobs:
     name: 'CD Workflow',
     fileName: 'cd.yml',
     content: workflow,
-    description: 'Continuous Deployment workflow for automatically deploying to production on main branch',
+    description:
+      'Continuous Deployment workflow for automatically deploying to production on main branch',
   };
 }
 
@@ -212,7 +214,8 @@ jobs:
     name: 'Code Quality Workflow',
     fileName: 'code-quality.yml',
     content: workflow,
-    description: 'Automated code quality checks on pull requests including linting, type checking, and security audits',
+    description:
+      'Automated code quality checks on pull requests including linting, type checking, and security audits',
   };
 }
 
@@ -261,8 +264,12 @@ export function generateGitHubActionsWorkflows(project: Project): {
 
 ## Workflows Generated
 
-${workflows.map((w, i) => `${i + 1}. **${w.name}** (\`.github/workflows/${w.fileName}\`)
-   ${w.description}`).join('\n\n')}
+${workflows
+  .map(
+    (w, i) => `${i + 1}. **${w.name}** (\`.github/workflows/${w.fileName}\`)
+   ${w.description}`
+  )
+  .join('\n\n')}
 
 ## Setup Instructions
 
@@ -277,12 +284,16 @@ ${workflows.map((w, i) => `${i + 1}. **${w.name}** (\`.github/workflows/${w.file
 3. **Configure secrets (if needed):**
    Go to your repository **Settings → Secrets and variables → Actions** and add:
 
-   ${project.framework?.toLowerCase().includes('next') ? `
+   ${
+     project.framework?.toLowerCase().includes('next')
+       ? `
    For Vercel deployment:
    - \`VERCEL_TOKEN\`: Your Vercel API token
    - \`VERCEL_ORG_ID\`: Your Vercel organization ID
    - \`VERCEL_PROJECT_ID\`: Your Vercel project ID
-   ` : ''}
+   `
+       : ''
+   }
 
 4. **Enable GitHub Actions:**
    - Go to repository **Settings → Actions → General**

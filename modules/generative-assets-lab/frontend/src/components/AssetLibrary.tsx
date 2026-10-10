@@ -1,5 +1,20 @@
 import { useState, useEffect, useMemo, memo } from 'react';
-import { Image as ImageIcon, Download, Trash2, Search, Filter, Star, StarOff, FolderOpen, Wand2, GitBranch, Grid3x3, Grid2x2, LayoutGrid, Tag } from 'lucide-react';
+import {
+  Image as ImageIcon,
+  Download,
+  Trash2,
+  Search,
+  Filter,
+  Star,
+  StarOff,
+  FolderOpen,
+  Wand2,
+  GitBranch,
+  Grid3x3,
+  Grid2x2,
+  LayoutGrid,
+  Tag,
+} from 'lucide-react';
 import { apiClient } from '../services/api';
 import type { Asset } from '../types/asset';
 import { ChatInterface } from './ChatInterface';
@@ -13,7 +28,10 @@ interface AssetLibraryProps {
   selectedProject?: string | null;
 }
 
-export const AssetLibrary = memo(function AssetLibrary({ refreshTrigger, selectedProject: externalSelectedProject }: AssetLibraryProps) {
+export const AssetLibrary = memo(function AssetLibrary({
+  refreshTrigger,
+  selectedProject: externalSelectedProject,
+}: AssetLibraryProps) {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -255,11 +273,7 @@ export const AssetLibrary = memo(function AssetLibrary({ refreshTrigger, selecte
   }
 
   if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
-        Error: {error}
-      </div>
-    );
+    return <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">Error: {error}</div>;
   }
 
   if (assets.length === 0) {
@@ -282,35 +296,44 @@ export const AssetLibrary = memo(function AssetLibrary({ refreshTrigger, selecte
             <button
               onClick={() => handleGridSizeChange('small')}
               className={`p-2 rounded transition ${
-                gridSize === 'small'
-                  ? 'bg-white dark:bg-gray-600 shadow'
-                  : 'hover:bg-gray-200 dark:hover:bg-gray-600'
+                gridSize === 'small' ? 'bg-white dark:bg-gray-600 shadow' : 'hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               title="Small thumbnails"
             >
-              <Grid3x3 size={16} className={gridSize === 'small' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'} />
+              <Grid3x3
+                size={16}
+                className={
+                  gridSize === 'small' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'
+                }
+              />
             </button>
             <button
               onClick={() => handleGridSizeChange('medium')}
               className={`p-2 rounded transition ${
-                gridSize === 'medium'
-                  ? 'bg-white dark:bg-gray-600 shadow'
-                  : 'hover:bg-gray-200 dark:hover:bg-gray-600'
+                gridSize === 'medium' ? 'bg-white dark:bg-gray-600 shadow' : 'hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               title="Medium thumbnails"
             >
-              <Grid2x2 size={16} className={gridSize === 'medium' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'} />
+              <Grid2x2
+                size={16}
+                className={
+                  gridSize === 'medium' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'
+                }
+              />
             </button>
             <button
               onClick={() => handleGridSizeChange('large')}
               className={`p-2 rounded transition ${
-                gridSize === 'large'
-                  ? 'bg-white dark:bg-gray-600 shadow'
-                  : 'hover:bg-gray-200 dark:hover:bg-gray-600'
+                gridSize === 'large' ? 'bg-white dark:bg-gray-600 shadow' : 'hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               title="Large thumbnails"
             >
-              <LayoutGrid size={16} className={gridSize === 'large' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'} />
+              <LayoutGrid
+                size={16}
+                className={
+                  gridSize === 'large' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'
+                }
+              />
             </button>
           </div>
 
@@ -352,10 +375,7 @@ export const AssetLibrary = memo(function AssetLibrary({ refreshTrigger, selecte
           <Filter size={20} className="text-gray-600" />
           <h3 className="font-semibold text-gray-800">Filters</h3>
           {(searchQuery || selectedProject || selectedStyleTag) && (
-            <button
-              onClick={clearFilters}
-              className="ml-auto text-sm text-purple-600 hover:text-purple-700"
-            >
+            <button onClick={clearFilters} className="ml-auto text-sm text-purple-600 hover:text-purple-700">
               Clear All
             </button>
           )}
@@ -414,10 +434,7 @@ export const AssetLibrary = memo(function AssetLibrary({ refreshTrigger, selecte
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <Filter className="mx-auto text-gray-400 mb-4" size={48} />
           <p className="text-gray-600">No assets match your filters</p>
-          <button
-            onClick={clearFilters}
-            className="mt-4 text-purple-600 hover:text-purple-700 font-medium"
-          >
+          <button onClick={clearFilters} className="mt-4 text-purple-600 hover:text-purple-700 font-medium">
             Clear Filters
           </button>
         </div>
@@ -511,8 +528,7 @@ export const AssetLibrary = memo(function AssetLibrary({ refreshTrigger, selecte
                         className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded text-sm flex items-center justify-center gap-1"
                         title="View details and version history"
                       >
-                        <GitBranch size={14} />
-                        v{asset.version_number}
+                        <GitBranch size={14} />v{asset.version_number}
                       </button>
                     </div>
 
@@ -593,7 +609,9 @@ export const AssetLibrary = memo(function AssetLibrary({ refreshTrigger, selecte
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Dimensions:</span>
-                      <span className="font-medium">{detailAsset.width} × {detailAsset.height}</span>
+                      <span className="font-medium">
+                        {detailAsset.width} × {detailAsset.height}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Model:</span>
@@ -620,10 +638,7 @@ export const AssetLibrary = memo(function AssetLibrary({ refreshTrigger, selecte
                         <span className="text-gray-600 block mb-2">Tags:</span>
                         <div className="flex flex-wrap gap-2">
                           {detailAsset.style_tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded"
-                            >
+                            <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
                               {tag}
                             </span>
                           ))}

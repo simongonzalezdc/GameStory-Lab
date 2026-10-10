@@ -4,7 +4,13 @@
  */
 
 import { BaseGenerator } from './base-generator';
-import type { GeneratorConfig, GenerationContext, NoteSequence, Note, RandomWalkParams } from '@/types';
+import type {
+  GeneratorConfig,
+  GenerationContext,
+  NoteSequence,
+  Note,
+  RandomWalkParams,
+} from '@/types';
 import { getScaleNotes, quantizeToScale, noteToMidi } from '../theory/scales';
 import { clamp } from '../utils/math';
 
@@ -14,7 +20,7 @@ export class RandomWalkGenerator extends BaseGenerator {
     this.validateContext(context);
 
     const params = config.params as RandomWalkParams;
-    
+
     // Validate random walk parameters
     if (params.stepSize < 1 || params.stepSize > 12) {
       throw new Error('Random walk stepSize must be between 1 and 12');
@@ -61,7 +67,12 @@ export class RandomWalkGenerator extends BaseGenerator {
 
       // Quantize to scale if required - pass pre-computed scale for efficiency
       if (params.stayInScale && scaleNotesForQuantization) {
-        nextPitch = quantizeToScale(nextPitch, context.key, context.scale, scaleNotesForQuantization);
+        nextPitch = quantizeToScale(
+          nextPitch,
+          context.key,
+          context.scale,
+          scaleNotesForQuantization
+        );
       }
 
       melody.push(nextPitch);

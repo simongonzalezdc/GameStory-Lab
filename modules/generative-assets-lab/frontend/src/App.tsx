@@ -71,9 +71,10 @@ function AppContent() {
               onClick={() => setActiveTab('text-to-sprite')}
               className={`
                 flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md font-medium transition
-                ${activeTab === 'text-to-sprite'
-                  ? 'bg-purple-600 text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                ${
+                  activeTab === 'text-to-sprite'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }
               `}
             >
@@ -84,9 +85,10 @@ function AppContent() {
               onClick={() => setActiveTab('image-to-sprite')}
               className={`
                 flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md font-medium transition
-                ${activeTab === 'image-to-sprite'
-                  ? 'bg-purple-600 text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                ${
+                  activeTab === 'image-to-sprite'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }
               `}
             >
@@ -95,48 +97,38 @@ function AppContent() {
             </button>
           </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Generation Forms - Left Column (2/3 width on large screens) */}
-          <section className="lg:col-span-2">
-            {activeTab === 'text-to-sprite' ? (
-              <GenerationForm onGenerated={handleAssetGenerated} />
-            ) : (
-              <ImageUpload onConverted={handleAssetGenerated} />
-            )}
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Generation Forms - Left Column (2/3 width on large screens) */}
+            <section className="lg:col-span-2">
+              {activeTab === 'text-to-sprite' ? (
+                <GenerationForm onGenerated={handleAssetGenerated} />
+              ) : (
+                <ImageUpload onConverted={handleAssetGenerated} />
+              )}
+            </section>
+
+            {/* Settings Sidebar - Right Column (1/3 width on large screens) */}
+            <aside className="space-y-4">
+              <AssetStatistics />
+              <RecentProjects onSelectProject={setSelectedProject} currentProject={selectedProject} />
+              <AssetPacksPanel />
+              <OllamaModelSelector />
+            </aside>
+          </div>
+
+          {/* Asset Library - Full Width */}
+          <section className="mt-8">
+            <AssetLibrary refreshTrigger={refreshTrigger} selectedProject={selectedProject} />
           </section>
-
-          {/* Settings Sidebar - Right Column (1/3 width on large screens) */}
-          <aside className="space-y-4">
-            <AssetStatistics />
-            <RecentProjects
-              onSelectProject={setSelectedProject}
-              currentProject={selectedProject}
-            />
-            <AssetPacksPanel />
-            <OllamaModelSelector />
-          </aside>
-        </div>
-
-        {/* Asset Library - Full Width */}
-        <section className="mt-8">
-          <AssetLibrary
-            refreshTrigger={refreshTrigger}
-            selectedProject={selectedProject}
-          />
-        </section>
-      </main>
+        </main>
 
         {/* Footer */}
         <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12 transition-colors">
           <div className="container mx-auto px-4 py-6">
             <div className="text-center text-sm text-gray-600 dark:text-gray-300">
-              <p>
-                Supports: OpenRouter (Gemini 2.5) • Google (Imagen 3) • OpenAI (DALL-E 3)
-              </p>
-              <p className="mt-2 text-xs">
-                Built with React, FastAPI, and AI • v2.0.0-phase2
-              </p>
+              <p>Supports: OpenRouter (Gemini 2.5) • Google (Imagen 3) • OpenAI (DALL-E 3)</p>
+              <p className="mt-2 text-xs">Built with React, FastAPI, and AI • v2.0.0-phase2</p>
             </div>
           </div>
         </footer>
