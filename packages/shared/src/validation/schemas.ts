@@ -151,11 +151,12 @@ export const LoreDataSchema = z.object({
 
 export const EnvironmentSchema = z.object({
   DATABASE_URL: z.string(),
-  REDIS_URL: z.string(),
   OPENROUTER_API_KEY: z.string().optional(),
   GOOGLE_API_KEY: z.string().optional(),
   GLM_API_KEY: z.string().optional(),
+  GLM_API_BASE_URL: z.string().optional(),
   MINIMAX_API_KEY: z.string().optional(),
+  MINIMAX_API_BASE_URL: z.string().optional(),
   MINIMAX_GROUP_ID: z.string().optional(),
   OLLAMA_BASE_URL: z.string().default('http://localhost:11434'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

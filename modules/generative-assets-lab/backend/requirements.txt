@@ -1,5 +1,5 @@
 fastapi[standard]==0.138.0
-langchain==0.3.30
+langchain>=1.0,<2.0
 langchain-openai==1.3.3
 langchain-google-genai==2.1.12
 langchain-ollama==0.3.10
@@ -10,3 +10,5 @@ pydantic==2.13.4
 python-dotenv==1.2.2
 pydantic-settings==2.14.2
 aiosqlite==0.22.1
+aiofiles
+slowapi

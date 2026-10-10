@@ -258,7 +258,7 @@ return (
               </Link>
               {' • '}
               <a 
-                href="https://github.com/Pastorsimon1798/GameStory-Lab" 
+                href="https://github.com/simongonzalezdc/GameStory-Lab" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200 underline underline-offset-2 transition-colors"

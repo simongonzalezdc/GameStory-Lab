@@ -1,9 +1,34 @@
 # Changelog
 
-All notable changes to GameForge Studio will be documented in this file.
+All notable changes to GameStory Lab will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Fixed
+- **Identity**: standardized on "GameStory Lab" everywhere — root `package.json`
+  (`gamestory-lab`), workspace scopes (`@gamestory/*`), Docker containers/database
+  (`gamestory-*`), `.env.example`, server/API strings, export footers, and docs.
+  Repository URLs now point to `simongonzalezdc/GameStory-Lab`; FUNDING.yml
+  sponsor fixed to the same account.
+- **Setup**: single canonical `SETUP.md` (cross-platform, no machine-local paths);
+  stale/superseded docs moved to `docs/archive/`. `.env.example` now documents the
+  real provider vars (`MINIMAX_*`, `GLM_*`) and matches `EnvironmentSchema`;
+  unused `REDIS_URL` removed from schema, example, and tests.
+- **Providers**: README documents MiniMax (primary) and GLM alongside
+  OpenRouter/Gemini/Ollama; `AI_COST_LIMIT_PER_HOUR_USD` is now actually wired
+  into the AI orchestrator instead of being hardcoded.
+- **Counts**: validation rules 26 → 27 (includes `holistic-consistency`),
+  TypeScript badge 5.6.3 → 6.x.
+- **CI**: Forgejo workflow and the renamed `lint-changed.yml` actually fail on
+  lint/test errors (removed `|| true`), cover `modules/`, and run Python pytest.
+  Single dependency bot (Renovate, properly configured); removed `dependabot.yml`
+  and purged stale bot branches.
+- **Hygiene**: removed dead `redis` Compose service (no consumer) and obsolete
+  `version:` key; added Python/Next.js ignores; deleted tracked
+  `coverage-output.txt` and the unreferenced `ai-project-architect.skill` ZIP.
 
 ## [1.0.0] - 2025-11-18
 

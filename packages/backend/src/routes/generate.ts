@@ -4,8 +4,8 @@
  */
 
 import express from 'express';
-import { GenerationRequestSchema } from '@gameforge/shared';
-import type { MechanicsData, LoreData, Genre } from '@gameforge/shared';
+import { GenerationRequestSchema } from '@gamestory/shared';
+import type { MechanicsData, LoreData, Genre } from '@gamestory/shared';
 import { getMechanicsPrompt } from '../services/ai/prompts/mechanics.js';
 import { getLorePrompt } from '../services/ai/prompts/lore.js';
 import { getTitlePrompt } from '../services/ai/prompts/title.js';

@@ -7,7 +7,7 @@
  * - Availability (fallback chain)
  */
 
-import type { TaskType, ModelPreference } from '@gameforge/shared';
+import type { TaskType, ModelPreference } from '@gamestory/shared';
 import { OpenRouterClient } from './clients/openrouter.js';
 import { GoogleClient } from './clients/google.js';
 import { OllamaClient } from './clients/ollama.js';

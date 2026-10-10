@@ -3,7 +3,7 @@
  * Loads and manages pre-built genre templates
  */
 
-import type { MechanicsData, LoreData, Genre } from '@gameforge/shared';
+import type { MechanicsData, LoreData, Genre } from '@gamestory/shared';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'url';
