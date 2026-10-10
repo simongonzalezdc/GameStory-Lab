@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { ValidationEngine } from './engine.js';
-import type { MechanicsData, LoreData } from '@gameforge/shared';
+import type { MechanicsData, LoreData } from '@gamestory/shared';
 
 describe('ValidationEngine', () => {
   const engine = new ValidationEngine();

@@ -5,7 +5,7 @@
  * Uses unified prompt template for consistent structured output
  */
 
-import type { Genre, LoreData } from '@gameforge/shared';
+import type { Genre, LoreData } from '@gamestory/shared';
 import { buildUnifiedPrompt, getMinimaxOptimizationInstructions } from './unified-template.js';
 
 export function getMechanicsPrompt(genre?: Genre, lore?: LoreData, userPrompt?: string): string {

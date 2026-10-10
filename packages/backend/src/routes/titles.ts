@@ -5,7 +5,7 @@
 
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import type { Genre } from '@gameforge/shared';
+import type { Genre } from '@gamestory/shared';
 // Will be initialized lazily to avoid circular dependency
 import { TitleService } from '../services/title/title-service.js';
 import { logger } from '../utils/logger.js';

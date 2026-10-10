@@ -15,7 +15,7 @@ import {
   validateMultiplayerJustification,
   validateEconomyWorldbuilding,
 } from './mechanics-lore-alignment.js';
-import type { MechanicsData, LoreData } from '@gameforge/shared';
+import type { MechanicsData, LoreData } from '@gamestory/shared';
 
 describe('Mechanics-Lore Alignment Rules', () => {
   describe('validatePlayerAbilitiesMatch', () => {

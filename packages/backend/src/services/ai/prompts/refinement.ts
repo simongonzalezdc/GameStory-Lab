@@ -5,7 +5,7 @@
  * Uses unified prompt template for consistent structured output
  */
 
-import type { MechanicsData, LoreData } from '@gameforge/shared';
+import type { MechanicsData, LoreData } from '@gamestory/shared';
 import { buildUnifiedPrompt, getMinimaxOptimizationInstructions } from './unified-template.js';
 
 /**

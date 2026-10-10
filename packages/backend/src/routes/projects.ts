@@ -5,7 +5,7 @@
 
 import express from 'express';
 import { prisma } from '../server.js';
-import { CreateProjectSchema, UpdateProjectSchema } from '@gameforge/shared';
+import { CreateProjectSchema, UpdateProjectSchema } from '@gamestory/shared';
 
 const router = express.Router();
 

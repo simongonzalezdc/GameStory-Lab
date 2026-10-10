@@ -1,4 +1,4 @@
-// GameForge Studio Database Schema
+// GameStory Lab Database Schema
 // Based on technical specification v1.0.0
 
 generator client {

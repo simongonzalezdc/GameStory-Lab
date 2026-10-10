@@ -62,8 +62,8 @@ export class OpenRouterClient implements IAIClient {
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://gameforge.studio',
-        'X-Title': 'GameForge Studio',
+        'HTTP-Referer': 'https://github.com/simongonzalezdc/GameStory-Lab',
+        'X-Title': 'GameStory Lab',
       },
       timeout: config.timeout || 60000, // 60s timeout
     });

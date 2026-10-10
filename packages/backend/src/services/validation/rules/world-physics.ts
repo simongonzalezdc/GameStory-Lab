@@ -3,7 +3,7 @@
  * Ensure world rules don't contradict themselves
  */
 
-import type { MechanicsData, LoreData, ValidationIssue } from '@gameforge/shared';
+import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared';
 
 /**
  * Validate gravity consistency

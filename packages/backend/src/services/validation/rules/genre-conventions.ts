@@ -3,7 +3,7 @@
  * Validate concept follows genre expectations
  */
 
-import type { MechanicsData, LoreData, ValidationIssue } from '@gameforge/shared';
+import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared';
 
 /**
  * Validate genre-specific conventions

@@ -3,7 +3,7 @@
  * Advanced game title generation with market analysis and A/B testing
  */
 
-import type { MechanicsData, LoreData, Genre } from '@gameforge/shared';
+import type { MechanicsData, LoreData, Genre } from '@gamestory/shared';
 import { AIOrchestrator } from '../ai/orchestrator.js';
 import { logger } from '../../utils/logger.js';
 
