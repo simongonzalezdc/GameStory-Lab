@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { clipStore } from '@/stores/clip-store';
-import type { Clip, Project, Scene, Track } from '@/types';
+import type { Clip, Project } from '@/types';
 import { errorHandler } from '@/lib/errors/error-handler';
 
 describe('Clip Store', () => {
