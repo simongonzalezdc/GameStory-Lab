@@ -44,8 +44,8 @@ GameStory Lab helps indie game developers create cohesive, professional game con
 - **Node.js** ≥ 22.0.0
 - **Docker** and **Docker Compose** (for PostgreSQL)
 - **Ollama** (optional, for local AI models)
-- **MiniMax API Key** (primary cloud provider)
-- **GLM API Key** (secondary cloud provider)
+- **MiniMax API Key** (optional, primary cloud provider when set)
+- **GLM API Key** (optional, secondary cloud provider when set)
 - **OpenRouter API Key** (optional, for other cloud AI models)
 - **Google API Key** (optional, for Gemini models)
 
@@ -77,13 +77,12 @@ GameStory Lab helps indie game developers create cohesive, professional game con
    docker-compose up -d
    ```
 
-5. **Initialize database**
+5. **Initialize database** (from repo root — Prisma reads `.env`
+   from the working directory, so this must run at root, not in
+   `packages/backend`)
 
    ```bash
-   cd packages/backend
-   npx prisma migrate dev
-   npx prisma generate
-   cd ../..
+   npm run db:migrate
    ```
 
 6. **Install and configure Ollama (optional but recommended)**
@@ -535,6 +534,19 @@ ollama pull phi4:14b       # High quality reasoning
 
 **Solution**: Verify `FRONTEND_URL` in `.env`. Check CORS settings in `packages/backend/src/server.ts`. Ensure backend is running on port 3001.
 
+### Port 3001 already in use
+
+**Solution**: Another service may own the port. Start the backend on a free one instead:
+
+```bash
+cd packages/backend
+PORT=3101 npm run dev
+```
+
+### No AI keys? No problem
+
+The backend boots without any provider keys: `/health` reports each provider's availability, templates/validation browsing work, and only generation endpoints require a configured provider (MiniMax, GLM, OpenRouter, Gemini, or local Ollama).
+
 ---
 
 ## 📝 Environment Variables
@@ -547,7 +559,9 @@ See `.env.example` for all available configuration options.
 
 ### Optional (but recommended)
 
-- `OPENROUTER_API_KEY` - For cloud AI models
+- `MINIMAX_API_KEY` (+ `MINIMAX_API_BASE_URL`) - Primary cloud provider when set
+- `GLM_API_KEY` (+ `GLM_API_BASE_URL`) - Secondary cloud provider when set
+- `OPENROUTER_API_KEY` - For other cloud AI models
 - `GOOGLE_API_KEY` - For Gemini validation
 - `OLLAMA_BASE_URL` - Local Ollama instance (default: http://localhost:11434)
 
@@ -675,6 +689,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 - **[TUTORIAL.md](TUTORIAL.md)** - Complete user tutorial (start here!)
 - **[SETUP.md](SETUP.md)** - Detailed setup instructions (start here for local dev)
+- **[docs/operations.md](docs/operations.md)** - Forgejo-canonical workflow, CI gotchas, Renovate runner (start here before changing CI/deps/forges)
 - **[Dev Docs/](Dev%20Docs/)** - Technical specifications and requirements
 
 ## 📧 Support

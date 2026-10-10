@@ -30,6 +30,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Hygiene**: removed dead `redis` Compose service (no consumer) and obsolete
   `version:` key; added Python/Next.js ignores; deleted tracked
   `coverage-output.txt` and the unreferenced `ai-project-architect.skill` ZIP.
+- **Forges**: Forgejo declared canonical (GitHub is a mirror); GitHub cleanup
+  stack (#320–#326) merged into Forgejo via PR #26 and remirrored.
+  Apache-2.0 restored as the license (CEO ruling 2026-10-09) after a merge
+  resolution briefly kept MIT text; `package.json` field and README badge
+  agree. Stale bot branches purged on both forges (25+).
+- **Modules made installable**: fixed unresolvable Python pins, declared
+  missing `slowapi`/`aiofiles` deps, bumped both Vite frontends to Vite 8,
+  synced the shiplab lockfile, replaced unrunnable lint scripts, and fixed
+  the lint/tsc errors blocking module gates.
+- **Zero `any`**: all 167 `no-explicit-any` warnings in backend eliminated
+  with honest types (Prisma namespace types, `JsonRecord` + `isJsonRecord`
+  guard in `utils/json.ts`, `SessionMetadata`/`ProposalPayload`,
+  `GenreTemplate`/`MechanicalBlend`/`BlendDesignOptions`); added
+  `AIOrchestrator.getClients()` so ai-service no longer reaches into a
+  private field. Suite green throughout (228 tests).
+- **Runtime assets**: backend build now copies genre/architect templates
+  into `dist/` (`scripts/copy-assets.mjs`); CI asserts they shipped.
+  Previously `npm run build && npm start` booted with zero templates while
+  every gate stayed green.
+- **Prettier**: adopted repo-wide `.prettierrc` (single quotes,
+  printWidth 120 — measured lowest-churn of the configs tested);
+  238 files formatted, zero dirty remaining.
+- **Renovate**: config targets Forgejo (`platform` + endpoint), covers all
+  7 manifests via `{,**/}package.json`, `prConcurrentLimit: 5`.
+  Self-hosted runner on the homelab (`~/renovate`, cron Mondays 04:30)
+  with a localhost shim answering the org-lookup the token scope blocks.
 
 ## [1.0.0] - 2025-11-18
 
@@ -184,5 +210,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[1.1.0]: https://github.com/yourusername/gameforge-studio/releases/tag/v1.1.0
-[1.0.0]: https://github.com/yourusername/gameforge-studio/releases/tag/v1.0.0
+[1.1.0]: https://github.com/simongonzalezdc/GameStory-Lab/releases/tag/v1.1.0
+[1.0.0]: https://github.com/simongonzalezdc/GameStory-Lab/releases/tag/v1.0.0
