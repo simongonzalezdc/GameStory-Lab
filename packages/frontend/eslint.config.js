@@ -57,16 +57,14 @@ export default [
     rules: {
       ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
-      // TypeScript already reports undefined variables (TS2304/TS2503);
-      // eslint's no-undef can't understand TS types (MouseEvent, NodeJS, ...).
+      // TypeScript already reports undefined variables (TS2304/TS2503).
+      // no-undef cannot see TypeScript's type space (it flags DOM/node type
+      // names like MouseEvent/NodeJS as undefined). Undefined names are tsc's
+      // job — enforced by the `tsc` build gate in CI. Same override
+      // typescript-eslint's own recommended preset applies.
       'no-undef': 'off',
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
-      // no-undef cannot see TypeScript's type space (flags DOM/node type names
-      // like MouseEvent/NodeJS as undefined). Undefined names are tsc's job —
-      // enforced by the `tsc` build gate in CI. Same override typescript-eslint's
-      // own recommended preset applies.
-      'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       'no-unused-vars': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
