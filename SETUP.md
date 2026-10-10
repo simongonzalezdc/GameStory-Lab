@@ -121,11 +121,11 @@ docker-compose logs -f
 
 ## Step 5: Initialize Database
 
-Navigate to the backend package and run Prisma migrations:
+Run migrations from the repo root (Prisma reads `.env` from the working
+directory, so backend-local commands fail — always run these at root):
 
 ```bash
-cd packages/backend
-npx prisma migrate dev
+npm run db:migrate
 ```
 
 This will:
@@ -142,13 +142,13 @@ This will:
 **Generate Prisma client only (if needed):**
 
 ```bash
-npx prisma generate
+npm run db:generate --workspace packages/backend
 ```
 
 **View database in Prisma Studio (optional):**
 
 ```bash
-npx prisma studio
+npm run db:studio
 ```
 
 Opens GUI at http://localhost:5555
@@ -297,7 +297,7 @@ You should see the GameStory Lab dashboard with system status.
 
 1. Ensure PostgreSQL container is healthy: `docker ps`
 2. Wait a few seconds after `docker-compose up` for DB to initialize
-3. Reset database: `npx prisma migrate reset` (WARNING: deletes all data)
+3. Reset database from repo root: `npx prisma migrate reset --schema packages/backend/prisma/schema.prisma` (WARNING: deletes all data)
 
 ---
 
@@ -374,19 +374,17 @@ cd packages/backend
 npm test
 ```
 
-### Database Management
+### Database Management (always from repo root)
 
 ```bash
-cd packages/backend
-
 # Create new migration
-npx prisma migrate dev --name add_new_field
+npx prisma migrate dev --schema packages/backend/prisma/schema.prisma --name add_new_field
 
 # View database
-npx prisma studio
+npm run db:studio
 
 # Reset database (deletes all data!)
-npx prisma migrate reset
+npx prisma migrate reset --schema packages/backend/prisma/schema.prisma
 ```
 
 ### Linting and Formatting
