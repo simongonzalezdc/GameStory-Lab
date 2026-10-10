@@ -4,6 +4,7 @@
  */
 
 import { Router } from 'express';
+import type { Prisma } from '@prisma/client';
 import type { Request, Response } from 'express';
 import type { Genre, MechanicsData, LoreData } from '@gamestory/shared';
 import { getTemplateService } from '../services/templates/template-service.js';
@@ -242,8 +243,8 @@ router.post('/blend-and-create', async (req: Request, res: Response) => {
       data: {
         projectId: project.id,
         version: 1,
-        mechanics: blendedTemplate.mechanics as any,
-        lore: blendedTemplate.lore as any,
+        mechanics: blendedTemplate.mechanics as unknown as Prisma.InputJsonValue,
+        lore: blendedTemplate.lore as unknown as Prisma.InputJsonValue,
         metadata: {
           startedWith: 'mechanics',
           userEdited: false,
@@ -251,7 +252,7 @@ router.post('/blend-and-create', async (req: Request, res: Response) => {
           blendedGenres: genres,
           blendedTemplateName: blendedTemplate.name,
           designOptions,
-        } as any,
+        },
       },
     });
 
@@ -414,14 +415,14 @@ router.post('/:genre/create-project', async (req: Request, res: Response) => {
       data: {
         projectId: project.id,
         version: 1,
-        mechanics: customized.mechanics as any,
-        lore: customized.lore as any,
+        mechanics: customized.mechanics as unknown as Prisma.InputJsonValue,
+        lore: customized.lore as unknown as Prisma.InputJsonValue,
         metadata: {
           startedWith: 'mechanics',
           userEdited: false,
           generatedFrom: `template:${genre}`,
           designOptions,
-        } as any,
+        },
       },
     });
 

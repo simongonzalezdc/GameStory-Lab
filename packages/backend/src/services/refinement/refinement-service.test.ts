@@ -29,7 +29,10 @@ describe('RefinementService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new RefinementService(mockPrisma as any, mockAIOrchestrator as any);
+    service = new RefinementService(
+      mockPrisma as unknown as import('@prisma/client').PrismaClient,
+      mockAIOrchestrator as unknown as import('../ai/ai-service.js').AIService,
+    );
 
     // Setup mock responses
     vi.mocked(mockPrisma.version.findUnique).mockResolvedValue({
@@ -41,7 +44,7 @@ describe('RefinementService', () => {
       lore: { setting: { location: 'Original world' } },
       metadata: {},
       createdAt: new Date(),
-    } as any);
+    } as unknown as import('@prisma/client').Version);
 
     vi.mocked(mockPrisma.version.create).mockResolvedValue({
       id: 'version-456',
@@ -52,7 +55,7 @@ describe('RefinementService', () => {
       lore: { setting: { location: 'Refined world' } },
       metadata: { refinedFrom: 'version-123' },
       createdAt: new Date(),
-    } as any);
+    } as unknown as import('@prisma/client').Version);
   });
 
   describe('Concept Refinement', () => {

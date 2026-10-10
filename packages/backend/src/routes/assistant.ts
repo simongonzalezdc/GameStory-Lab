@@ -111,7 +111,7 @@ router.post('/session/:sessionId/message', async (req: Request, res: Response) =
       quickActionId,
     });
     res.json(response);
-  } catch (error: any) {
+  } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
     const errorDetails =

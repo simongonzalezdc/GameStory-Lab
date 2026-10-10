@@ -160,8 +160,8 @@ describe.skip('GLM Client Integration Tests', () => {
     } catch (error) {
       // Expected to fail, verify it's a proper error
       expect(error).toHaveProperty('name');
-      expect((error as any).provider).toBe('glm');
-      console.log('✅ Error handling works correctly:', (error as any).message);
+      expect((error as { provider?: unknown }).provider).toBe('glm');
+      console.log('✅ Error handling works correctly:', (error as { message?: unknown }).message);
     }
   });
 

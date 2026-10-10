@@ -325,7 +325,14 @@ describe('AssistantService', () => {
   describe('Enhanced JSON Parsing', () => {
     // Access the private parseAssistantResponse method for testing
     const getParseMethod = (service: AssistantService) => {
-      return (service as any).parseAssistantResponse.bind(service);
+      return (
+        service as unknown as {
+          parseAssistantResponse: (content: string) => {
+            reply: string;
+            proposal: { mechanics?: unknown; lore?: unknown } | null;
+          };
+        }
+      ).parseAssistantResponse.bind(service);
     };
 
     it('should handle responses with explanatory text before JSON', () => {

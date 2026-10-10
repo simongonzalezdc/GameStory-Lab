@@ -68,7 +68,7 @@ describe('MiniMax M2 Optimization Integration', () => {
       };
 
       // Replace the client in the orchestrator
-      orchestrator['clients'].set('minimax', mockClient as any);
+      orchestrator['clients'].set('minimax', mockClient as unknown as import('../clients/base.js').IAIClient);
 
       await orchestrator.generate('mechanics', [{ role: 'user', content: 'Generate mechanics' }]);
 
@@ -96,7 +96,7 @@ describe('MiniMax M2 Optimization Integration', () => {
         listModels: vi.fn().mockResolvedValue(['MiniMax-M2']),
       };
 
-      orchestrator['clients'].set('minimax', mockClient as any);
+      orchestrator['clients'].set('minimax', mockClient as unknown as import('../clients/base.js').IAIClient);
 
       await orchestrator.generate('lore', [{ role: 'user', content: 'Generate lore' }]);
 
@@ -123,7 +123,7 @@ describe('MiniMax M2 Optimization Integration', () => {
         listModels: vi.fn().mockResolvedValue(['MiniMax-M2']),
       };
 
-      orchestrator['clients'].set('minimax', mockClient as any);
+      orchestrator['clients'].set('minimax', mockClient as unknown as import('../clients/base.js').IAIClient);
 
       await orchestrator.generate('assistant', [{ role: 'user', content: 'Hello' }]);
 

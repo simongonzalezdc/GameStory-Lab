@@ -54,7 +54,7 @@ vi.mock('./document-generator.js', () => {
     this.generateDocumentation = vi.fn().mockResolvedValue({
       projectId: 'project-123',
       sessionId: 'test-session-123',
-      context: {} as any,
+      context: {},
       generatedAt: new Date(),
       generationStatus: 'completed',
       documents: [

@@ -8,7 +8,7 @@ import type { TaskType } from '@gamestory/shared';
 
 // Mock the AI clients - vitest v4 compatible syntax
 vi.mock('./clients/openrouter.js', () => {
-  const MockOpenRouterClient = vi.fn(function (this: any) {
+  const MockOpenRouterClient = vi.fn(function (this: Record<string, unknown>) {
     this.name = 'OpenRouter';
     this.type = 'openrouter';
     this.isAvailable = vi.fn().mockResolvedValue(true);
@@ -25,7 +25,7 @@ vi.mock('./clients/openrouter.js', () => {
 });
 
 vi.mock('./clients/google.js', () => {
-  const MockGoogleClient = vi.fn(function (this: any) {
+  const MockGoogleClient = vi.fn(function (this: Record<string, unknown>) {
     this.name = 'Google Gemini';
     this.type = 'google';
     this.isAvailable = vi.fn().mockResolvedValue(true);
@@ -42,7 +42,7 @@ vi.mock('./clients/google.js', () => {
 });
 
 vi.mock('./clients/ollama.js', () => {
-  const MockOllamaClient = vi.fn(function (this: any) {
+  const MockOllamaClient = vi.fn(function (this: Record<string, unknown>) {
     this.name = 'Ollama';
     this.type = 'ollama';
     this.isAvailable = vi.fn().mockResolvedValue(true);
@@ -60,7 +60,7 @@ vi.mock('./clients/ollama.js', () => {
 });
 
 vi.mock('./clients/minimax.js', () => {
-  const MockMinimaxClient = vi.fn(function (this: any) {
+  const MockMinimaxClient = vi.fn(function (this: Record<string, unknown>) {
     this.name = 'Minimax M2';
     this.type = 'minimax';
     this.isAvailable = vi.fn().mockResolvedValue(true);
@@ -340,7 +340,7 @@ describe('AIOrchestrator', () => {
             name: 'Ollama',
             type: 'ollama',
             isAvailable: vi.fn().mockResolvedValue(false),
-          }) as any,
+          }) as unknown as import('./clients/ollama.js').OllamaClient,
       );
 
       const orchestrator = new AIOrchestrator();

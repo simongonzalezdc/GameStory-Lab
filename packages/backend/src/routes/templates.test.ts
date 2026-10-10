@@ -45,7 +45,7 @@ vi.mock('../services/templates/template-service.js', () => ({
       }
       return null;
     }),
-    blendGenres: vi.fn((genres: any[]) => {
+    blendGenres: vi.fn((genres: Array<{ genre: string; weight: number }>) => {
       if (genres.length > 0) {
         return {
           id: 'blended',

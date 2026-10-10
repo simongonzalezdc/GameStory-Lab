@@ -4,6 +4,7 @@
  */
 
 import express from 'express';
+import type { Prisma } from '@prisma/client';
 import { GenerationRequestSchema } from '@gamestory/shared';
 import type { MechanicsData, LoreData, Genre } from '@gamestory/shared';
 import { getMechanicsPrompt } from '../services/ai/prompts/mechanics.js';
@@ -11,6 +12,7 @@ import { getLorePrompt } from '../services/ai/prompts/lore.js';
 import { getTitlePrompt } from '../services/ai/prompts/title.js';
 import { getRefinementPrompt } from '../services/ai/prompts/refinement.js';
 import { extractJSON } from '../services/ai/utils/json-validation.js';
+import { isJsonRecord } from '../utils/json.js';
 import { logger } from '../utils/logger.js';
 import type { PrismaClient } from '@prisma/client';
 import type { AIOrchestrator } from '../services/ai/orchestrator.js';
@@ -137,7 +139,7 @@ router.post('/', async (req, res, next) => {
     );
 
     // Parse AI response with improved error handling using extractJSON utility
-    let generatedContent: any;
+    let generatedContent: Record<string, Prisma.JsonValue | undefined>;
     try {
       // Use the extractJSON utility which handles markdown, thinking blocks, and common JSON issues
       const jsonResult = extractJSON(response.content);
@@ -146,6 +148,9 @@ router.post('/', async (req, res, next) => {
         throw new Error(jsonResult.error || 'Failed to extract valid JSON from AI response');
       }
 
+      if (!isJsonRecord(jsonResult.parsed)) {
+        throw new Error(jsonResult.error || 'Failed to extract valid JSON object from AI response');
+      }
       generatedContent = jsonResult.parsed;
 
       // Validate that we got meaningful content
@@ -259,7 +264,10 @@ router.post('/', async (req, res, next) => {
           Object.keys(mostRecentVersion.mechanics as object).length > 0
             ? mostRecentVersion.mechanics
             : null;
-        const mechanicsData = (mechanicsFromContext || mechanicsFromRecent || {}) as any;
+        const mechanicsData = (mechanicsFromContext || mechanicsFromRecent || {}) as Record<
+          string,
+          Prisma.JsonValue | undefined
+        >;
 
         logger.info('Creating new version with lore', {
           hasMechanicsFromContext: !!mechanicsFromContext,
@@ -267,11 +275,8 @@ router.post('/', async (req, res, next) => {
           recentVersionId: mostRecentVersion?.id,
         });
 
-        const loreData = generatedContent as any;
-        const titleValue =
-          'title' in generatedContent && (generatedContent as { title?: string }).title
-            ? (generatedContent as { title?: string }).title
-            : null;
+        const loreData = generatedContent;
+        const titleValue = typeof generatedContent.title === 'string' ? generatedContent.title : null;
         version = await prismaClient.version.create({
           data: {
             projectId,
@@ -292,11 +297,12 @@ router.post('/', async (req, res, next) => {
       }
     } else {
       // Create new version (for mechanics, title, or refinement)
-      const mechanicsData =
-        taskType === 'mechanics' ? (generatedContent as any) : ((context.existingContent?.mechanics || {}) as any);
-      const loreData = (context.existingContent?.lore || {}) as any;
+      const mechanicsData = (
+        taskType === 'mechanics' ? generatedContent : context.existingContent?.mechanics || {}
+      ) as Record<string, Prisma.JsonValue | undefined>;
+      const loreData = (context.existingContent?.lore || {}) as Record<string, Prisma.JsonValue | undefined>;
       const titleValue =
-        taskType === 'title' && 'title' in generatedContent ? (generatedContent as { title?: string }).title : null;
+        taskType === 'title' && typeof generatedContent.title === 'string' ? generatedContent.title : null;
       const startedWithValue = taskType === 'mechanics' ? 'mechanics' : undefined;
       version = await prismaClient.version.create({
         data: {
