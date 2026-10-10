@@ -62,9 +62,11 @@ ON chat_messages USING GIN (metadata);
 
 -- 7. Add comments for documentation
 COMMENT ON COLUMN chat_sessions.metadata IS 'Contains mode hint (concept|architect|auto) and architect interview state';
-COMMENT ON COLUMN chat_sessions.metadata->'mode' IS 'Optional hint for assistant behavior mode';
-COMMENT ON COLUMN chat_sessions.metadata->'architectInterview' IS 'Persistent architect interview progress and answers';
-COMMENT ON COLUMN chat_messages.metadata->'mode' IS 'Mode hint when this message was sent';
-COMMENT ON COLUMN assistant_proposals.payload->'mechanics' IS 'Proposed mechanics updates';
-COMMENT ON COLUMN assistant_proposals.payload->'lore' IS 'Proposed lore updates';
-COMMENT ON COLUMN assistant_proposals.payload->'architectDocuments' IS 'Proposed architect documents to create/update';
+-- Note: PostgreSQL cannot comment on JSONB sub-keys (metadata->'mode'),
+-- so the sub-key meanings are documented here:
+--   chat_sessions.metadata->'mode': optional hint for assistant behavior mode
+--   chat_sessions.metadata->'architectInterview': persistent architect interview progress and answers
+--   chat_messages.metadata->'mode': mode hint when this message was sent
+--   assistant_proposals.payload->'mechanics': proposed mechanics updates
+--   assistant_proposals.payload->'lore': proposed lore updates
+--   assistant_proposals.payload->'architectDocuments': proposed architect documents to create/update

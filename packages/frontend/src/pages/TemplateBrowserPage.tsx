@@ -228,10 +228,6 @@ export function TemplateBrowserPage() {
 
   const selectionModeLabel = selectedGenres.length <= 1 ? 'Single genre' : `${selectedGenres.length} genres`;
 
-  useEffect(() => {
-    loadGenres();
-  }, []);
-
   const loadGenres = async () => {
     try {
       setLoading(true);
@@ -244,6 +240,10 @@ export function TemplateBrowserPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadGenres();
+  }, []);
 
   const loadTemplate = async (genre: string) => {
     try {

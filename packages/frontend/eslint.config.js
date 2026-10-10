@@ -57,6 +57,9 @@ export default [
     rules: {
       ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
+      // TypeScript already reports undefined variables (TS2304/TS2503);
+      // eslint's no-undef can't understand TS types (MouseEvent, NodeJS, ...).
+      'no-undef': 'off',
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
