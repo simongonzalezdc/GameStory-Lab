@@ -1,6 +1,6 @@
-# Contributing to GameForge Studio
+# Contributing to GameStory Lab
 
-Thank you for your interest in contributing to GameForge Studio! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to GameStory Lab! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 
