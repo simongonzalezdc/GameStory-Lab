@@ -40,7 +40,7 @@ function getAIOrchestrator(): AIOrchestrator {
       glmApiKey: process.env.GLM_API_KEY,
       minimaxApiKey: process.env.MINIMAX_API_KEY,
       ollamaBaseUrl: process.env.OLLAMA_BASE_URL,
-      costLimitPerHourUsd: 5.0, // $5/hour limit
+      costLimitPerHourUsd: parseFloat(process.env.AI_COST_LIMIT_PER_HOUR_USD || '5'),
     });
   }
   return aiOrchestratorInstance;
