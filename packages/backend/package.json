@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-assets.mjs",
     "start": "node dist/server.js",
     "test": "vitest",
     "lint": "eslint src --ext .ts",
