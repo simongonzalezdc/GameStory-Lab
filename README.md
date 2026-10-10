@@ -690,6 +690,10 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 - **[TUTORIAL.md](TUTORIAL.md)** - Complete user tutorial (start here!)
 - **[SETUP.md](SETUP.md)** - Detailed setup instructions (start here for local dev)
 - **[docs/operations.md](docs/operations.md)** - Forgejo-canonical workflow, CI gotchas, Renovate runner (start here before changing CI/deps/forges)
+- **[docs/architecture.md](docs/architecture.md)** - How the request path, AI layer, and data model fit together
+- **[docs/deployment.md](docs/deployment.md)** - Environment, production notes, backups, observability
+- **[PRIVACY.md](PRIVACY.md)** - What leaves your machine and when
+- **[ATTRIBUTION.md](ATTRIBUTION.md)** - Credits and license obligations
 - **[Dev Docs/](Dev%20Docs/)** - Technical specifications and requirements
 
 ## 📧 Support

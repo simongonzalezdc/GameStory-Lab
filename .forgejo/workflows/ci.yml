@@ -21,8 +21,14 @@ jobs:
         run: npm run db:generate -w packages/backend
       - name: Lint workspaces
         run: npm run lint --workspaces
-      - name: Test workspaces
-        run: npm run test --workspaces
+      - name: Test workspaces with coverage
+        run: npm run test:coverage
+      - name: Coverage summary
+        run: |
+          echo "Coverage (lines) — text reports above; local HTML via 'npm run test:coverage'"
+          for d in packages/backend/coverage packages/frontend/coverage; do
+            if [ -d "$d" ]; then echo "$d: report generated"; else echo "$d: none"; fi
+          done
       - name: Build shared
         run: npm run build -w packages/shared
       - name: Build backend
@@ -61,6 +67,29 @@ jobs:
             echo "=== $m ==="
             (cd "$m" && npm ci && npm run lint && npx vitest run)
           done
+  e2e:
+    runs-on: docker
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: Build frontend (production)
+        run: npm run build -w packages/frontend
+      - name: Install Playwright + Chromium
+        run: |
+          cd e2e
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Run E2E journeys
+        run: npm run test:e2e
+
   python:
     runs-on: docker
     steps:

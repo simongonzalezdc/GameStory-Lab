@@ -15,7 +15,9 @@
     "lint": "npm run lint --workspaces",
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,md}\"",
     "db:migrate": "prisma migrate dev --schema packages/backend/prisma/schema.prisma",
-    "db:studio": "prisma studio --schema packages/backend/prisma/schema.prisma"
+    "db:studio": "prisma studio --schema packages/backend/prisma/schema.prisma",
+    "test:coverage": "npm run test --workspaces -- --coverage",
+    "test:e2e": "npm --prefix e2e test"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
