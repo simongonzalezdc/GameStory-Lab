@@ -34,3 +34,20 @@ jobs:
         run: npm run build -w packages/backend
       - name: Build frontend (tsc + vite)
         run: npm run build -w packages/frontend
+      # tsc emits no non-TS files. A build can therefore go green while the
+      # runtime-read assets (genre templates, architect markdown) are absent
+      # from dist/, which boots with zero templates and fails document
+      # generation. Assert the assets actually shipped.
+      - name: Verify backend runtime assets in dist
+        run: |
+          missing=0
+          for f in src/services/templates/genres/*.json; do
+            target="packages/backend/dist/services/templates/genres/$(basename "$f")"
+            [ -f "$target" ] || { echo "missing from dist: $target"; missing=1; }
+          done
+          for f in src/services/architect/templates/*.md; do
+            target="packages/backend/dist/services/architect/templates/$(basename "$f")"
+            [ -f "$target" ] || { echo "missing from dist: $target"; missing=1; }
+          done
+          [ "$missing" -eq 0 ] || exit 1
+          echo "all runtime assets present in dist"
