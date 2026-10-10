@@ -19,8 +19,7 @@ Security vulnerabilities should be reported privately to prevent exploitation.
 
 ### 2. Email the security team
 
-Send an email to **security@gameforge-studio.com** (or, if that address bounces,
-[open a private security advisory](https://github.com/simongonzalezdc/GameStory-Lab/security/advisories/new)) with:
+Open a [private security advisory](https://github.com/simongonzalezdc/GameStory-Lab/security/advisories/new) with:
 
 - **Subject**: `[SECURITY] Brief description of the vulnerability`
 - **Description**: Detailed explanation of the vulnerability

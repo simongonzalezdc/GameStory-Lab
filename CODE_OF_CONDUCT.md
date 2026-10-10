@@ -57,9 +57,8 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-security@gameforge-studio.com (or via a
-[private security advisory](https://github.com/simongonzalezdc/GameStory-Lab/security/advisories/new)).
+reported to the community leaders responsible for enforcement via a
+[private security advisory](https://github.com/simongonzalezdc/GameStory-Lab/security/advisories/new).
 All complaints will be reviewed and investigated
 promptly and fairly.
 
