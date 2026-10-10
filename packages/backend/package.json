@@ -1,7 +1,7 @@
 {
-  "name": "@gameforge/backend",
+  "name": "@gamestory/backend",
   "version": "1.0.0",
-  "description": "GameForge Studio backend API",
+  "description": "GameStory Lab backend API",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
@@ -16,7 +16,7 @@
     "db:push": "prisma db push"
   },
   "dependencies": {
-    "@gameforge/shared": "*",
+    "@gamestory/shared": "*",
     "@google/generative-ai": "^0.24.0",
     "@prisma/client": "^6.19.0",
     "adm-zip": "^0.5.12",

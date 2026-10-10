@@ -5,7 +5,7 @@
 
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import type { Genre, MechanicsData, LoreData } from '@gameforge/shared';
+import type { Genre, MechanicsData, LoreData } from '@gamestory/shared';
 import { getTemplateService } from '../services/templates/template-service.js';
 import { logger } from '../utils/logger.js';
 

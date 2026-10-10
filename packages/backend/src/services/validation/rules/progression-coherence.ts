@@ -3,7 +3,7 @@
  * Validate progression systems make sense
  */
 
-import type { MechanicsData, LoreData, ValidationIssue } from '@gameforge/shared';
+import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared';
 
 /**
  * Validate power curve is gradual

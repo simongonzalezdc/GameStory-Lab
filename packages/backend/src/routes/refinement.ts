@@ -5,7 +5,7 @@
 
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import type { RefinementFocus } from '@gameforge/shared';
+import type { RefinementFocus } from '@gamestory/shared';
 import { RefinementService } from '../services/refinement/refinement-service.js';
 import { logger } from '../utils/logger.js';
 

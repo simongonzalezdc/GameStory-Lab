@@ -1,5 +1,5 @@
 /**
- * Core TypeScript types for GameForge Studio
+ * Core TypeScript types for GameStory Lab
  * Based on technical specification v1.0.0
  */
 

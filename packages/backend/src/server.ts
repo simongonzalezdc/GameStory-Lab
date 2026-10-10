@@ -1,5 +1,5 @@
 /**
- * GameForge Studio Backend Server
+ * GameStory Lab Backend Server
  * Express API server with AI orchestration and validation
  */
 
@@ -217,7 +217,7 @@ app.get('/health', async (_req, res) => {
 // API routes (will be imported)
 app.get('/api', (_req, res) => {
   res.json({
-    name: 'GameForge Studio API',
+    name: 'GameStory Lab API',
     version: '1.0.0',
     endpoints: {
       projects: '/api/projects',
@@ -274,7 +274,7 @@ app.use((req, res) => {
 
 // Start server
 async function start() {
-  logger.info('Starting GameForge Studio API server...', {
+  logger.info('Starting GameStory Lab API server...', {
     port: PORT,
     nodeEnv: process.env.NODE_ENV || 'development',
     envFileLoaded: !!envResult.parsed,
@@ -285,7 +285,7 @@ async function start() {
   let server: ReturnType<typeof app.listen>;
   try {
     server = app.listen(PORT, () => {
-      logger.info(`✅ GameForge Studio API running on http://localhost:${PORT}`, {
+      logger.info(`✅ GameStory Lab API running on http://localhost:${PORT}`, {
         environment: process.env.NODE_ENV || 'development',
         port: PORT,
       });

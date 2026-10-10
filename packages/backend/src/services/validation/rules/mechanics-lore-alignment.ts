@@ -3,7 +3,7 @@
  * Ensure gameplay mechanics are justified by narrative/worldbuilding
  */
 
-import type { MechanicsData, LoreData, ValidationIssue } from '@gameforge/shared';
+import type { MechanicsData, LoreData, ValidationIssue } from '@gamestory/shared';
 
 /**
  * Validate that player actions match character abilities

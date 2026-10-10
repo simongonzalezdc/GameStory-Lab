@@ -3,7 +3,7 @@
  * Runs 30+ rules to check coherence between mechanics and lore
  */
 
-import type { MechanicsData, LoreData, ValidationIssue, ValidationCategory } from '@gameforge/shared';
+import type { MechanicsData, LoreData, ValidationIssue, ValidationCategory } from '@gamestory/shared';
 import { logger } from '../../utils/logger.js';
 
 // Mechanics-Lore Alignment rules

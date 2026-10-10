@@ -4,7 +4,7 @@
  */
 
 import { AIOrchestrator } from './orchestrator.js';
-import type { ModelPreference } from '@gameforge/shared';
+import type { ModelPreference } from '@gamestory/shared';
 
 export interface GenerateCompletionOptions {
   prompt: string;

@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { Genre } from '@gameforge/shared';
+import type { Genre } from '@gamestory/shared';
 
 // Mock the filesystem operations
 vi.mock('node:fs', () => ({
