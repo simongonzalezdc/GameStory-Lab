@@ -1,4 +1,4 @@
-# GameForge Studio
+# GameStory Lab
 
 > GameStory Lab is a game narrative and story lab tooling that helps game writers and narrative designers prototype and structure game stories.
 
@@ -6,11 +6,11 @@
 
 **AI-Powered Game Concept Generator for Indie Developers**
 
-GameForge Studio helps indie game developers create cohesive, professional game concepts before development starts. Using AI orchestration and consistency validation, it ensures your mechanics and lore work together seamlessly.
+GameStory Lab helps indie game developers create cohesive, professional game concepts before development starts. Using AI orchestration and consistency validation, it ensures your mechanics and lore work together seamlessly.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen.svg)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6.3-blue.svg)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-%5E6.0.3-blue.svg)](https://www.typescriptlang.org/)
 
 ---
 
@@ -19,8 +19,8 @@ GameForge Studio helps indie game developers create cohesive, professional game 
 ### ✅ Implemented & Working:
 - **🎮 Flexible Workflow**: Start with mechanics OR lore - AI adapts to your creative process
 - **🖥️ Full Web Interface**: Complete React UI with project management, concept editing, validation, and export
-- **🤖 AI Model Orchestration**: Automatically selects optimal AI models (DeepSeek, Qwen 3, Phi-4, Gemini, Ollama)
-- **✅ Comprehensive Validation**: 26 validation rules across 6 categories with real-time feedback
+- **🤖 AI Model Orchestration**: Automatically selects optimal AI models (MiniMax, GLM, DeepSeek, Qwen 3, Phi-4, Gemini, Ollama)
+- **✅ Comprehensive Validation**: 27 validation rules across 6 categories with real-time feedback
 - **🎯 Genre Templates**: 15 professionally crafted templates covering all major genres (Nov 2025)
 - **🎨 Genre Blending**: Mix and match genres with weighted blending to create hybrid templates (Metroidvania, Action RPG, etc.)
 - **✨ Blended Project Creation**: Create projects directly from genre hybrids with full mechanics/lore integration
@@ -28,7 +28,7 @@ GameForge Studio helps indie game developers create cohesive, professional game 
 - **📝 Professional Export**: Generate GDD, pitch decks, or technical specs in markdown
 - **🏷️ Title Generation**: Advanced title suggestions with SEO analysis and market fit scoring
 - **💰 Cost Optimization**: Intelligent fallback to local Ollama models to minimize API costs
-- **🔧 Full REST API**: Complete backend with 10 endpoint categories
+- **🔧 Full REST API**: Complete backend with 9 endpoint groups
 - **📊 Health Monitoring**: Real-time system status with AI provider tracking and cost monitoring
 - **🏗️ AI Project Architect**: Complete documentation workflow with structured interviews and 4-6 generated documents
 - **💬 AI Assistant Panel**: Project-level chat assistant with proposal system for concept updates and architect document generation
@@ -41,16 +41,18 @@ GameForge Studio helps indie game developers create cohesive, professional game 
 ### Prerequisites
 
 - **Node.js** ≥ 22.0.0
-- **Docker** and **Docker Compose** (for PostgreSQL and Redis)
+- **Docker** and **Docker Compose** (for PostgreSQL)
 - **Ollama** (optional, for local AI models)
-- **OpenRouter API Key** (optional, for cloud AI models)
+- **MiniMax API Key** (primary cloud provider)
+- **GLM API Key** (secondary cloud provider)
+- **OpenRouter API Key** (optional, for other cloud AI models)
 - **Google API Key** (optional, for Gemini models)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Pastorsimon1798/GameStory-Lab.git
+   git clone https://github.com/simongonzalezdc/GameStory-Lab.git
    cd GameStory-Lab
    ```
 
@@ -65,7 +67,7 @@ GameForge Studio helps indie game developers create cohesive, professional game 
    # Edit .env and add your API keys
    ```
 
-4. **Start infrastructure (PostgreSQL + Redis)**
+4. **Start infrastructure (PostgreSQL)**
    ```bash
    docker-compose up -d
    ```
@@ -110,18 +112,32 @@ GameForge Studio helps indie game developers create cohesive, professional game 
 
 ## 🏗️ Architecture
 
-GameForge Studio uses a monorepo structure with npm workspaces:
+GameStory Lab uses a monorepo structure with npm workspaces:
 
 ```
-gameforge-studio/
+gamestory-lab/
 ├── packages/
 │   ├── frontend/          # React + TypeScript UI ✅
 │   ├── backend/           # Node.js + Express API ✅
 │   └── shared/            # Shared types and validation ✅
-├── docker-compose.yml     # PostgreSQL + Redis ✅
+├── modules/               # Standalone experiments (own deps, own CI — see below)
+├── docker-compose.yml     # PostgreSQL ✅
 ├── .env.example          # Environment template ✅
 └── README.md             # This file
 ```
+
+### Modules (standalone, not in root workspaces)
+
+`modules/` holds three independent experiments, each with its own
+`package.json`/`requirements.txt`, lockfile, and CI coverage. They are **not**
+part of the root npm workspaces — `cd` into each to install and test:
+
+| Module | Stack | Test |
+|---|---|---|
+| `generative-assets-lab/backend` | FastAPI + LangChain | `pytest` |
+| `generative-assets-lab/frontend` | Vite + React | `vitest run` |
+| `generative-score-lab` | Vite + React 18 | `vitest run` |
+| `shiplab` | Next.js + Drizzle | `vitest run` |
 
 ### Tech Stack
 
@@ -130,13 +146,32 @@ gameforge-studio/
 | **Frontend** | React 19 + TypeScript | User interface |
 | **Backend** | Node.js + Express | API server |
 | **Database** | PostgreSQL 17 | Structured data + JSONB |
-| **Cache/Queue** | Redis 7 | Job queue (BullMQ) |
 | **ORM** | Prisma 6 | Type-safe database access |
-| **AI Gateway** | OpenRouter + Google + Ollama | Multi-model AI orchestration |
+| **AI Gateway** | MiniMax + GLM + OpenRouter + Google + Ollama | Multi-model AI orchestration |
 
 ---
 
 ## 🔑 AI Provider Configuration
+
+### MiniMax (Primary Cloud Provider)
+
+1. Get API key from [MiniMax Platform](https://platform.minimaxi.com/)
+2. Add to `.env`:
+   ```
+   MINIMAX_API_KEY=your-minimax-key-here
+   MINIMAX_API_BASE_URL=https://api.minimax.io/anthropic
+   ```
+3. Anthropic-compatible API; used as the primary provider when configured
+
+### GLM / Zhipu AI (Secondary Cloud Provider)
+
+1. Get API key from [Zhipu AI](https://open.bigmodel.cn/)
+2. Add to `.env`:
+   ```
+   GLM_API_KEY=your-glm-key-here
+   GLM_API_BASE_URL=https://open.bigmodel.cn/api/paas/v4
+   ```
+3. OpenAI-compatible API; also serves as the cost-limit fallback
 
 ### OpenRouter (Recommended for Cloud AI)
 
@@ -489,7 +524,6 @@ See `.env.example` for all available configuration options.
 
 ### Required
 - `DATABASE_URL` - PostgreSQL connection string
-- `REDIS_URL` - Redis connection string
 
 ### Optional (but recommended)
 - `OPENROUTER_API_KEY` - For cloud AI models
@@ -518,7 +552,7 @@ See `.env.example` for all available configuration options.
 
 ### ✅ Phase 2: Complete Validation System (Completed - 100%)
 - [x] Validation engine architecture with parallel processing
-- [x] **All 26 validation rules implemented** ✅
+- [x] **All 27 validation rules implemented** ✅
   - [x] Mechanics-Lore Alignment (10 rules)
   - [x] Genre Conventions (1 meta-rule)
   - [x] World Physics (5 rules)
@@ -612,14 +646,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📚 Documentation
 
 - **[TUTORIAL.md](TUTORIAL.md)** - Complete user tutorial (start here!)
-- **[SETUP.md](SETUP.md)** - Detailed setup instructions
-- **[QUICK_START.md](QUICK_START.md)** - Quick setup guide
+- **[SETUP.md](SETUP.md)** - Detailed setup instructions (start here for local dev)
 - **[Dev Docs/](Dev%20Docs/)** - Technical specifications and requirements
 
 ## 📧 Support
 
-- **Issues**: [GitHub Issues](https://github.com/Pastorsimon1798/GameStory-Lab/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Pastorsimon1798/GameStory-Lab/discussions)
+- **Issues**: [GitHub Issues](https://github.com/simongonzalezdc/GameStory-Lab/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/simongonzalezdc/GameStory-Lab/discussions)
 
 ---
 

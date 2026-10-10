@@ -1,6 +1,6 @@
-# Contributing to GameForge Studio
+# Contributing to GameStory Lab
 
-Thank you for your interest in contributing to GameForge Studio! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to GameStory Lab! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 
@@ -10,7 +10,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [GitHub Issues](https://github.com/yourusername/gameforge-studio/issues)
+1. Check if the bug has already been reported in [GitHub Issues](https://github.com/simongonzalezdc/GameStory-Lab/issues)
 2. If not, create a new issue with:
    - Clear title and description
    - Steps to reproduce
@@ -20,7 +20,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 
 ### Suggesting Features
 
-1. Check existing feature requests in [GitHub Issues](https://github.com/yourusername/gameforge-studio/issues)
+1. Check existing feature requests in [GitHub Issues](https://github.com/simongonzalezdc/GameStory-Lab/issues)
 2. Create a new issue with:
    - Clear description of the feature
    - Use case and motivation
@@ -32,7 +32,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 #### Setup
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/yourusername/gameforge-studio.git`
+2. Clone your fork: `git clone https://github.com/simongonzalezdc/GameStory-Lab.git`
 3. Install dependencies: `npm install`
 4. Set up environment: `cp .env.example .env` (fill in your API keys)
 5. Start services: `docker-compose up -d`
@@ -105,7 +105,7 @@ Validation rules are a great way to contribute! See `packages/backend/src/servic
 
 ### Questions?
 
-- Open a [GitHub Discussion](https://github.com/yourusername/gameforge-studio/discussions)
+- Open a [GitHub Discussion](https://github.com/simongonzalezdc/GameStory-Lab/discussions)
 - Join our [Discord server](https://discord.gg/your-invite-link)
 - Check existing documentation in `Dev Docs/`
 
