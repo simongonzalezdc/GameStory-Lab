@@ -487,8 +487,7 @@ describe('LoreDataSchema', () => {
 describe('EnvironmentSchema', () => {
   it('should validate complete environment config', () => {
     const result = EnvironmentSchema.safeParse({
-      DATABASE_URL: 'postgresql://localhost:5432/gameforge',
-      REDIS_URL: 'redis://localhost:6379',
+      DATABASE_URL: 'postgresql://localhost:5432/gamestory',
       OPENROUTER_API_KEY: 'sk-test-key',
       GOOGLE_API_KEY: 'google-key',
       GLM_API_KEY: 'glm-key',
@@ -505,8 +504,7 @@ describe('EnvironmentSchema', () => {
 
   it('should validate minimal environment config with defaults', () => {
     const result = EnvironmentSchema.safeParse({
-      DATABASE_URL: 'postgresql://localhost:5432/gameforge',
-      REDIS_URL: 'redis://localhost:6379',
+      DATABASE_URL: 'postgresql://localhost:5432/gamestory',
     });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -521,8 +519,7 @@ describe('EnvironmentSchema', () => {
 
     envs.forEach((env) => {
       const result = EnvironmentSchema.safeParse({
-        DATABASE_URL: 'postgresql://localhost:5432/gameforge',
-        REDIS_URL: 'redis://localhost:6379',
+        DATABASE_URL: 'postgresql://localhost:5432/gamestory',
         NODE_ENV: env,
       });
       expect(result.success).toBe(true);
@@ -531,22 +528,13 @@ describe('EnvironmentSchema', () => {
 
   it('should reject missing required DATABASE_URL', () => {
     const result = EnvironmentSchema.safeParse({
-      REDIS_URL: 'redis://localhost:6379',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('should reject missing required REDIS_URL', () => {
-    const result = EnvironmentSchema.safeParse({
-      DATABASE_URL: 'postgresql://localhost:5432/gameforge',
     });
     expect(result.success).toBe(false);
   });
 
   it('should reject invalid NODE_ENV', () => {
     const result = EnvironmentSchema.safeParse({
-      DATABASE_URL: 'postgresql://localhost:5432/gameforge',
-      REDIS_URL: 'redis://localhost:6379',
+      DATABASE_URL: 'postgresql://localhost:5432/gamestory',
       NODE_ENV: 'invalid',
     });
     expect(result.success).toBe(false);
