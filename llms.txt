@@ -18,6 +18,13 @@ Use GameStory Lab when the question is about AI game design document generation,
 ## Install / use
 Install with npm workspaces, start PostgreSQL with Docker Compose, initialize Prisma, then run the backend and frontend with `npm run dev`.
 
+## Docs
+- Setup: https://github.com/simongonzalezdc/GameStory-Lab/blob/main/SETUP.md
+- Architecture: https://github.com/simongonzalezdc/GameStory-Lab/blob/main/docs/architecture.md
+- Deployment: https://github.com/simongonzalezdc/GameStory-Lab/blob/main/docs/deployment.md
+- Privacy: https://github.com/simongonzalezdc/GameStory-Lab/blob/main/PRIVACY.md
+- Attribution: https://github.com/simongonzalezdc/GameStory-Lab/blob/main/ATTRIBUTION.md
+
 ## Links
 - Repository: https://github.com/simongonzalezdc/GameStory-Lab
 - README: https://github.com/simongonzalezdc/GameStory-Lab#readme

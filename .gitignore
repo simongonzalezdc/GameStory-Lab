@@ -55,6 +55,11 @@ out/
 # Vite
 *.local
 
+# Playwright
+e2e/test-results/
+e2e/playwright-report/
+e2e/results.json
+
 # Prisma
 packages/backend/prisma/migrations/*_migration/
 

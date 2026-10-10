@@ -1,0 +1,14 @@
+{
+  "name": "gamestory-lab-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright end-to-end journeys for the GameStory Lab frontend",
+  "scripts": {
+    "test": "playwright test",
+    "serve": "npx --yes http-server ../packages/frontend/dist -p 4173 -s --cors"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "http-server": "^14.1.1"
+  }
+}
