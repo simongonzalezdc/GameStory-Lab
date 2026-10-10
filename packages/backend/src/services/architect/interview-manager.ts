@@ -213,7 +213,7 @@ export class InterviewManager {
   /**
    * Helper: Parse comma-separated string into array
    */
-  private parseCommaSeparated(value: any): string[] | undefined {
+  private parseCommaSeparated(value: unknown): string[] | undefined {
     if (!value) return undefined;
     if (Array.isArray(value)) return value;
     if (typeof value !== 'string') return undefined;

@@ -7,6 +7,12 @@ import type { MechanicsData, LoreData, Genre } from '@gamestory/shared';
 import { AIOrchestrator } from '../ai/orchestrator.js';
 import { logger } from '../../utils/logger.js';
 
+const VALID_TITLE_STYLES = ['descriptive', 'mysterious', 'action-oriented', 'evocative', 'numeric'] as const;
+
+function isTitleStyle(style: string): style is TitleSuggestion['style'] {
+  return (VALID_TITLE_STYLES as readonly string[]).includes(style);
+}
+
 export interface TitleSuggestion {
   title: string;
   rationale: string;
@@ -88,7 +94,7 @@ Return as JSON array:
     );
 
     const parsed = this.parseAIResponse(response.content);
-    return parsed.map((t: any) => t.title);
+    return parsed.map((t) => t.title);
   }
 
   /**
@@ -299,7 +305,7 @@ Return as JSON array:
     return {
       title,
       rationale,
-      style: (style as any) || 'evocative',
+      style: style && isTitleStyle(style) ? style : 'evocative',
       marketFit,
       seoScore,
       memorability,

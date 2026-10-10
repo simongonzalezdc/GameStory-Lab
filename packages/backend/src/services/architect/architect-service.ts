@@ -7,7 +7,7 @@ import { InterviewManager } from './interview-manager.js';
 import { DocumentGenerator } from './document-generator.js';
 import { AIDocumentGenerator } from './ai-document-generator.js';
 import { ContextBuilder } from './context-builder.js';
-import { DocumentationPackage, GeneratedDocument, DOCUMENT_TEMPLATES } from './types.js';
+import { DocumentationPackage, GeneratedDocument, ProjectContext, DOCUMENT_TEMPLATES } from './types.js';
 import { INTERVIEW_QUESTIONS } from './interview-questions.js';
 import { logger } from '../../utils/logger.js';
 
@@ -185,7 +185,7 @@ export class ArchitectService {
         projectId,
         sessionId: `assistant-${Date.now()}`, // Generate a session ID for assistant-created docs
         documents: newDocuments,
-        context: {} as any, // Empty context for assistant-created docs
+        context: {}, // Empty context for assistant-created docs
         generatedAt: new Date(),
         generationStatus: 'completed' as const,
       };
@@ -305,7 +305,7 @@ export class ArchitectService {
   /**
    * Perform async AI document generation in background
    */
-  private async performAsyncGeneration(projectId: string, sessionId: string, context: any): Promise<void> {
+  private async performAsyncGeneration(projectId: string, sessionId: string, context: ProjectContext): Promise<void> {
     try {
       console.log('[ArchitectService] Starting AI document generation', { projectId, sessionId });
 

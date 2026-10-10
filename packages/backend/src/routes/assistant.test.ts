@@ -21,8 +21,8 @@ vi.mock('../services/assistant/assistant-service.js', () => ({
 
 // Mock server exports to avoid real Prisma/AI init
 vi.mock('../server.js', () => ({
-  prisma: {} as any,
-  aiOrchestrator: {} as any,
+  prisma: {} as unknown as import('@prisma/client').PrismaClient,
+  aiOrchestrator: {} as unknown as import('./orchestrator.js').AIOrchestrator,
 }));
 
 describe('Assistant API Routes', () => {

@@ -4,6 +4,7 @@
  */
 
 import { Ollama } from 'ollama';
+import type { GenerateResponse } from 'ollama';
 import type { IAIClient, AIClientConfig, AICompletionRequest, AICompletionResponse } from './base.js';
 import { logger } from '../../../utils/logger.js';
 
@@ -45,7 +46,7 @@ export class OllamaClient implements IAIClient {
 
       // Try to generate - even if API says model doesn't exist, it might work
       // This handles the case where Ollama API list() is broken but models work
-      let response;
+      let response: GenerateResponse;
       try {
         // Add timeout wrapper (5 minutes max for generation)
         const timeoutMs = 300000; // 5 minutes
@@ -69,11 +70,15 @@ export class OllamaClient implements IAIClient {
           stream: false,
         });
 
-        response = (await Promise.race([generatePromise, timeoutPromise])) as any;
-      } catch (generateError: any) {
+        response = (await Promise.race([generatePromise, timeoutPromise])) as GenerateResponse;
+      } catch (generateError: unknown) {
         // If generation fails, try direct HTTP API as fallback
         // This handles cases where SDK has issues but HTTP API works
-        const errorMsg = generateError?.error?.error || generateError?.message || String(generateError);
+        const ollamaError = generateError as {
+          error?: { error?: string; message?: string };
+          message?: string;
+        };
+        const errorMsg = ollamaError?.error?.error || ollamaError?.message || String(generateError);
         const errorLower = errorMsg.toLowerCase();
         if (
           errorLower.includes('not found') ||
@@ -144,7 +149,7 @@ export class OllamaClient implements IAIClient {
                   });
 
                   if (retryResponse.ok) {
-                    const retryData = await retryResponse.json();
+                    const retryData = (await retryResponse.json()) as GenerateResponse;
                     logger.info('HTTP API succeeded after pull');
                     response = retryData;
                   } else {
@@ -167,7 +172,7 @@ export class OllamaClient implements IAIClient {
               }
             }
 
-            const httpData = await httpResponse.json();
+            const httpData = (await httpResponse.json()) as GenerateResponse;
             logger.info('Direct HTTP API succeeded, using response');
             response = httpData;
           } catch (httpError) {
@@ -391,11 +396,12 @@ export class OllamaClient implements IAIClient {
       const response = await this.client.list();
       // Handle both old and new Ollama API formats
       if (response.models && Array.isArray(response.models)) {
-        return response.models.map((model: any) => model.name || model);
+        return response.models.map((model) => model.name);
       }
       // If response is an array directly (older API format)
       if (Array.isArray(response)) {
-        return response.map((model: any) => model.name || model);
+        const legacyModels = response as unknown as Array<{ name?: string } | string>;
+        return legacyModels.map((model) => (typeof model === 'string' ? model : (model.name ?? JSON.stringify(model))));
       }
       return [];
     } catch (error) {

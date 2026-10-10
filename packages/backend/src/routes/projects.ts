@@ -4,8 +4,10 @@
  */
 
 import express from 'express';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../server.js';
 import { CreateProjectSchema, UpdateProjectSchema } from '@gamestory/shared';
+import { isJsonRecord, type JsonRecord } from '../utils/json.js';
 
 const router = express.Router();
 
@@ -27,7 +29,7 @@ router.get('/', async (_req, res, next) => {
     });
 
     res.json({
-      projects: projects.map((p: any) => ({
+      projects: projects.map((p) => ({
         id: p.id,
         name: p.name,
         genre: p.genre,
@@ -112,7 +114,7 @@ router.get('/:id', async (req, res, next) => {
         createdAt: projectData.createdAt.toISOString(),
         updatedAt: projectData.updatedAt.toISOString(),
       },
-      versions: versions.map((v: any) => ({
+      versions: versions.map((v) => ({
         id: v.id,
         version: v.version,
         title: v.title,
@@ -238,8 +240,8 @@ router.post('/:id/merge', async (req, res, next) => {
     }
 
     // Merge mechanics and lore from all versions
-    const mergedMechanics = mergeMechanics(project.versions.map((v: any) => v.mechanics as any));
-    const mergedLore = mergeLore(project.versions.map((v: any) => v.lore as any));
+    const mergedMechanics = mergeMechanics(project.versions.map((v) => v.mechanics));
+    const mergedLore = mergeLore(project.versions.map((v) => v.lore));
 
     // Get next version number
     const latestVersion = project.versions[project.versions.length - 1];
@@ -254,10 +256,10 @@ router.post('/:id/merge', async (req, res, next) => {
         mechanics: mergedMechanics,
         lore: mergedLore,
         metadata: {
-          mergedFrom: project.versions.map((v: any) => ({ id: v.id, version: v.version })),
+          mergedFrom: project.versions.map((v) => ({ id: v.id, version: v.version })),
           mergedAt: new Date().toISOString(),
           userEdited: false,
-        } as any,
+        },
       },
     });
 
@@ -281,39 +283,37 @@ router.post('/:id/merge', async (req, res, next) => {
  * Merge mechanics from multiple versions
  * Strategy: Combine arrays (union), prefer latest for conflicts, deep merge objects
  */
-function mergeMechanics(mechanicsArray: any[]): any {
+function mergeMechanics(mechanicsArray: Array<Prisma.JsonValue | null>): JsonRecord {
   if (mechanicsArray.length === 0) return {};
-  if (mechanicsArray.length === 1) return mechanicsArray[0];
+  const first = mechanicsArray[0];
+  if (mechanicsArray.length === 1) return isJsonRecord(first) ? { ...first } : {};
 
-  const merged: any = {};
+  const merged: JsonRecord = {};
 
   // Process each version's mechanics (oldest to newest)
   for (const mechanics of mechanicsArray) {
-    if (!mechanics || typeof mechanics !== 'object') continue;
+    if (!isJsonRecord(mechanics)) continue;
 
     for (const [key, value] of Object.entries(mechanics)) {
       if (value === null || value === undefined) continue;
 
       if (Array.isArray(value)) {
         // Merge arrays: combine unique values, prefer later versions
-        if (!merged[key] || !Array.isArray(merged[key])) {
-          merged[key] = [];
-        }
+        const existing: Prisma.JsonValue[] = Array.isArray(merged[key]) ? merged[key] : [];
         // Add new items that aren't already in merged array
-        const existing = new Set(merged[key].map((item: any) => JSON.stringify(item)));
+        const seen = new Set(existing.map((item) => JSON.stringify(item)));
         for (const item of value) {
           const itemStr = JSON.stringify(item);
-          if (!existing.has(itemStr)) {
-            merged[key].push(item);
-            existing.add(itemStr);
+          if (!seen.has(itemStr)) {
+            existing.push(item);
+            seen.add(itemStr);
           }
         }
+        merged[key] = existing;
       } else if (typeof value === 'object') {
         // Deep merge objects
-        if (!merged[key] || typeof merged[key] !== 'object' || Array.isArray(merged[key])) {
-          merged[key] = {};
-        }
-        merged[key] = { ...merged[key], ...value };
+        const base = isJsonRecord(merged[key]) ? merged[key] : {};
+        merged[key] = { ...base, ...value };
       } else {
         // Primitive values: prefer latest (will be overwritten by later versions)
         merged[key] = value;
@@ -328,44 +328,40 @@ function mergeMechanics(mechanicsArray: any[]): any {
  * Merge lore from multiple versions
  * Strategy: Similar to mechanics, but be careful with narrative coherence
  */
-function mergeLore(loreArray: any[]): any {
+function mergeLore(loreArray: Array<Prisma.JsonValue | null>): JsonRecord {
   if (loreArray.length === 0) return {};
-  if (loreArray.length === 1) return loreArray[0];
+  const first = loreArray[0];
+  if (loreArray.length === 1) return isJsonRecord(first) ? { ...first } : {};
 
-  const merged: any = {};
+  const merged: JsonRecord = {};
 
   // Process each version's lore (oldest to newest)
   for (const lore of loreArray) {
-    if (!lore || typeof lore !== 'object') continue;
+    if (!isJsonRecord(lore)) continue;
 
     for (const [key, value] of Object.entries(lore)) {
       if (value === null || value === undefined) continue;
 
       if (key === 'setting' || key === 'protagonist' || key === 'conflict' || key === 'worldRules') {
         // Deep merge nested objects
-        if (!merged[key] || typeof merged[key] !== 'object' || Array.isArray(merged[key])) {
-          merged[key] = {};
-        }
-        merged[key] = { ...merged[key], ...value };
+        const base = isJsonRecord(merged[key]) ? merged[key] : {};
+        merged[key] = { ...base, ...(isJsonRecord(value) ? value : {}) };
       } else if (Array.isArray(value)) {
         // Merge arrays (themes, secondary conflicts, abilities, etc.)
-        if (!merged[key] || !Array.isArray(merged[key])) {
-          merged[key] = [];
-        }
-        const existing = new Set(merged[key].map((item: any) => String(item).toLowerCase()));
+        const existing: Prisma.JsonValue[] = Array.isArray(merged[key]) ? merged[key] : [];
+        const seen = new Set(existing.map((item) => String(item).toLowerCase()));
         for (const item of value) {
           const itemStr = String(item).toLowerCase();
-          if (!existing.has(itemStr)) {
-            merged[key].push(item);
-            existing.add(itemStr);
+          if (!seen.has(itemStr)) {
+            existing.push(item);
+            seen.add(itemStr);
           }
         }
+        merged[key] = existing;
       } else if (typeof value === 'object') {
         // Deep merge other objects
-        if (!merged[key] || typeof merged[key] !== 'object' || Array.isArray(merged[key])) {
-          merged[key] = {};
-        }
-        merged[key] = { ...merged[key], ...value };
+        const base = isJsonRecord(merged[key]) ? merged[key] : {};
+        merged[key] = { ...base, ...value };
       } else {
         // Primitive values: prefer latest
         merged[key] = value;

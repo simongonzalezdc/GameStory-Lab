@@ -322,7 +322,7 @@ export class TemplateService {
     const allFailConditions = templates.flatMap((t) => t.template.mechanics.failConditions || []);
 
     // Combine resource systems (union, avoid duplicates by name)
-    const resourceMap = new Map<string, any>();
+    const resourceMap = new Map<string, NonNullable<MechanicsData['resourceSystems']>[number]>();
     templates.forEach(({ template }) => {
       template.mechanics.resourceSystems?.forEach((resource) => {
         if (!resourceMap.has(resource.name)) {

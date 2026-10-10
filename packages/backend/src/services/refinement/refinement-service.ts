@@ -4,7 +4,7 @@
  */
 
 import type { MechanicsData, LoreData, RefinementFocus } from '@gamestory/shared';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { AIOrchestrator } from '../ai/orchestrator.js';
 import { logger } from '../../utils/logger.js';
 
@@ -27,9 +27,15 @@ export interface RefinementResult {
 export interface ChangeLog {
   field: string;
   changeType: 'added' | 'modified' | 'removed';
-  before?: any;
-  after?: any;
+  before?: unknown;
+  after?: unknown;
   reason?: string;
+}
+
+interface VersionMetadata {
+  refinedFrom?: string;
+  refinementFocus?: string;
+  aiModel?: string;
 }
 
 export class RefinementService {
@@ -78,7 +84,7 @@ export class RefinementService {
 
       console.log('[REFINEMENT DEBUG] Raw validation results from DB:', {
         count: validationResults.length,
-        results: validationResults.map((r: any) => ({
+        results: validationResults.map((r) => ({
           ruleName: r.ruleName,
           severity: r.severity,
           confidence: Number(r.confidence),
@@ -86,7 +92,7 @@ export class RefinementService {
         })),
       });
 
-      validationIssues = validationResults.map((result: any) => ({
+      validationIssues = validationResults.map((result) => ({
         rule: result.ruleName,
         severity: result.severity,
         message: result.message,
@@ -173,15 +179,15 @@ export class RefinementService {
         projectId: existingVersion.projectId,
         version: existingVersion.version + 1,
         title: existingVersion.title,
-        mechanics: refined.mechanics as any,
-        lore: refined.lore as any,
+        mechanics: refined.mechanics as unknown as Prisma.InputJsonValue,
+        lore: refined.lore as unknown as Prisma.InputJsonValue,
         metadata: {
           ...((existingVersion.metadata as Record<string, unknown>) || {}),
           aiModel: aiResponse.model,
           userEdited: false,
           refinedFrom: request.conceptId,
           refinementFocus: request.focus,
-        } as any,
+        } as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -227,14 +233,17 @@ export class RefinementService {
       orderBy: { version: 'asc' },
     });
 
-    return versions.map((v: any) => ({
-      id: v.id,
-      version: v.version,
-      createdAt: v.createdAt,
-      refinedFrom: (v.metadata as any)?.refinedFrom,
-      refinementFocus: (v.metadata as any)?.refinementFocus,
-      aiModel: (v.metadata as any)?.aiModel,
-    }));
+    return versions.map((v) => {
+      const versionMetadata = (v.metadata ?? {}) as VersionMetadata;
+      return {
+        id: v.id,
+        version: v.version,
+        createdAt: v.createdAt,
+        refinedFrom: versionMetadata.refinedFrom,
+        refinementFocus: versionMetadata.refinementFocus,
+        aiModel: versionMetadata.aiModel,
+      };
+    });
   }
 
   /**
@@ -295,14 +304,14 @@ export class RefinementService {
         projectId,
         version: newVersionNum,
         title: targetVersionRecord.title,
-        mechanics: targetVersionRecord.mechanics as any,
-        lore: targetVersionRecord.lore as any,
+        mechanics: targetVersionRecord.mechanics as unknown as Prisma.InputJsonValue,
+        lore: targetVersionRecord.lore as unknown as Prisma.InputJsonValue,
         metadata: {
           ...((targetVersionRecord.metadata as Record<string, unknown>) || {}),
           rolledBackFrom: latestVersion?.id,
           rolledBackToVersion: targetVersion,
           userEdited: false,
-        } as any,
+        } as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -706,7 +715,7 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
       }
 
       // Parse JSON
-      let parsed: any;
+      let parsed: Record<string, Prisma.JsonValue | undefined> | undefined;
       try {
         parsed = JSON.parse(cleanedContent);
       } catch (parseError) {
@@ -714,7 +723,8 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
         logger.warn('Initial JSON parse failed, attempting to fix and retry', {
           error: parseError instanceof Error ? parseError.message : String(parseError),
           contentPreview: cleanedContent.substring(0, 500),
-          errorPosition: parseError instanceof SyntaxError ? (parseError as any).position : undefined,
+          errorPosition:
+            parseError instanceof SyntaxError ? (parseError as unknown as { position?: number }).position : undefined,
         });
 
         // Try to fix the specific error position if available
@@ -867,7 +877,7 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
           const mechanics = fallbackMechanics || {};
 
           // Wrap the lore fields into a proper lore object
-          const lore: LoreData = {
+          const loreFields: Record<string, Prisma.JsonValue | undefined> = {
             themes: parsed.themes,
             setting: parsed.setting,
             conflict: parsed.conflict,
@@ -876,8 +886,12 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
             progression: parsed.progression,
             narrative: parsed.narrative,
             // Preserve any other lore fields from fallback that weren't in the response
-            ...(fallbackLore && typeof fallbackLore === 'object' ? fallbackLore : {}),
+            ...((fallbackLore && typeof fallbackLore === 'object' ? fallbackLore : {}) as Record<
+              string,
+              Prisma.JsonValue | undefined
+            >),
           };
+          const lore = loreFields as unknown as LoreData;
 
           // Remove undefined fields
           Object.keys(lore).forEach((key) => {
@@ -906,7 +920,7 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
           });
           return {
             mechanics: fallbackMechanics,
-            lore: (parsed.lore || fallbackLore || {}) as LoreData,
+            lore: (parsed.lore || fallbackLore || {}) as unknown as LoreData,
           };
         }
       }
@@ -924,8 +938,8 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
       const lore = typeof parsed.lore === 'object' && parsed.lore !== null ? parsed.lore : {};
 
       return {
-        mechanics: mechanics as MechanicsData,
-        lore: lore as LoreData,
+        mechanics: mechanics as unknown as MechanicsData,
+        lore: lore as unknown as LoreData,
       };
     } catch (error) {
       logger.error('Failed to parse AI response in refinement service', {
@@ -951,46 +965,46 @@ CRITICAL: You MUST respond with ONLY a valid JSON object containing exactly two 
 
     // Check mechanics changes
     for (const key of Object.keys(newMechanics)) {
-      if (JSON.stringify((oldMechanics as any)[key]) !== JSON.stringify((newMechanics as any)[key])) {
+      if (JSON.stringify(oldMechanics[key]) !== JSON.stringify(newMechanics[key])) {
         changes.push({
           field: `mechanics.${key}`,
-          changeType: (oldMechanics as any)[key] === undefined ? 'added' : 'modified',
-          before: (oldMechanics as any)[key],
-          after: (newMechanics as any)[key],
+          changeType: oldMechanics[key] === undefined ? 'added' : 'modified',
+          before: oldMechanics[key],
+          after: newMechanics[key],
         });
       }
     }
 
     // Check for removed mechanics fields
     for (const key of Object.keys(oldMechanics)) {
-      if ((newMechanics as any)[key] === undefined) {
+      if (newMechanics[key] === undefined) {
         changes.push({
           field: `mechanics.${key}`,
           changeType: 'removed',
-          before: (oldMechanics as any)[key],
+          before: oldMechanics[key],
         });
       }
     }
 
     // Check lore changes
     for (const key of Object.keys(newLore)) {
-      if (JSON.stringify((oldLore as any)[key]) !== JSON.stringify((newLore as any)[key])) {
+      if (JSON.stringify(oldLore[key]) !== JSON.stringify(newLore[key])) {
         changes.push({
           field: `lore.${key}`,
-          changeType: (oldLore as any)[key] === undefined ? 'added' : 'modified',
-          before: (oldLore as any)[key],
-          after: (newLore as any)[key],
+          changeType: oldLore[key] === undefined ? 'added' : 'modified',
+          before: oldLore[key],
+          after: newLore[key],
         });
       }
     }
 
     // Check for removed lore fields
     for (const key of Object.keys(oldLore)) {
-      if ((newLore as any)[key] === undefined) {
+      if (newLore[key] === undefined) {
         changes.push({
           field: `lore.${key}`,
           changeType: 'removed',
-          before: (oldLore as any)[key],
+          before: oldLore[key],
         });
       }
     }

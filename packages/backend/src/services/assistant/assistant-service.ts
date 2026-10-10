@@ -3,16 +3,41 @@
  * Handles project-level chat sessions, proposals, and application of AI suggestions
  */
 
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient, Prisma, ChatSession, Version } from '@prisma/client';
 import type { MechanicsData, LoreData } from '@gamestory/shared';
 import { AIOrchestrator } from '../ai/orchestrator.js';
 import { architectService } from '../architect/architect-service.js';
 import { INTERVIEW_QUESTIONS, getNextQuestion } from '../architect/interview-questions.js';
 import { extractJSON } from '../ai/utils/json-validation.js';
 import { logger } from '../../utils/logger.js';
+import { isJsonRecord } from '../../utils/json.js';
 
 type SessionType = 'project' | 'concept' | 'architect';
 type AssistantMode = 'concept' | 'architect' | 'auto';
+
+type ArchitectInterviewState = {
+  completionPercentage?: number;
+  currentPhase?: string;
+  answeredQuestions?: Array<{ questionId: string; answer: string | string[] }>;
+  currentQuestionIndex?: number;
+  totalQuestions?: number;
+};
+
+interface SessionMetadata {
+  mode?: AssistantMode;
+  thinking?: string;
+  architectInterview?: ArchitectInterviewState;
+  consistencyScore?: number;
+  lastValidated?: string;
+  [key: string]: Prisma.JsonValue | undefined;
+}
+
+interface ProposalPayload {
+  mechanics?: MechanicsData;
+  lore?: LoreData;
+  architectDocuments?: Array<{ name: string; content: string }>;
+  explanation?: string;
+}
 
 interface AssistantContext {
   project: {
@@ -147,7 +172,7 @@ export class AssistantService {
 
     // Update mode hint if provided
     if (modeHint) {
-      const currentMetadata = existing.metadata as Record<string, any> | null;
+      const currentMetadata = existing.metadata as SessionMetadata | null;
       if (currentMetadata?.mode !== modeHint) {
         existing = await this.prisma.chatSession.update({
           where: { id: existing.id },
@@ -188,7 +213,7 @@ export class AssistantService {
       throw new Error('Session not found');
     }
 
-    const currentMetadata = session.metadata as Record<string, any> | null;
+    const currentMetadata = session.metadata as SessionMetadata | null;
     return this.prisma.chatSession.update({
       where: { id: sessionId },
       data: {
@@ -210,8 +235,8 @@ export class AssistantService {
       const quickActionId = options?.quickActionId;
 
       // Extract mode from session metadata or default to auto
-      const sessionMetadata = session.metadata as Record<string, any> | null;
-      const currentMode = (sessionMetadata?.mode as AssistantMode) || 'auto';
+      const sessionMetadata = session.metadata as SessionMetadata | null;
+      const currentMode = sessionMetadata?.mode || 'auto';
 
       // Store user message with mode context
       await this.prisma.chatMessage.create({
@@ -486,10 +511,10 @@ export class AssistantService {
           ...(parsed.architectDocuments && { architectDocuments: parsed.architectDocuments }),
         };
         // Remove top-level keys to avoid confusion
-        delete (parsed as any).mechanics;
-        delete (parsed as any).lore;
-        delete (parsed as any).architectDocuments;
-        delete (parsed as any).explanation;
+        delete parsed.mechanics;
+        delete parsed.lore;
+        delete parsed.architectDocuments;
+        delete parsed.explanation;
       }
 
       const assistantMessage = await this.prisma.chatMessage.create({
@@ -654,8 +679,8 @@ export class AssistantService {
       throw new Error('Proposal already processed');
     }
 
-    const payload = proposal.payload as any;
-    let result: any = null;
+    const payload = proposal.payload as unknown as ProposalPayload;
+    let result: { newVersion?: Version; documentation?: unknown } | null = null;
 
     logger.info('Applying proposal', {
       proposalId: proposal.id,
@@ -723,8 +748,8 @@ export class AssistantService {
           projectId: latestVersion.projectId,
           version: latestVersion.version + 1,
           title: latestVersion.title,
-          mechanics: newMechanics as any,
-          lore: newLore as any,
+          mechanics: newMechanics as unknown as Prisma.InputJsonValue,
+          lore: newLore as unknown as Prisma.InputJsonValue,
           metadata: {
             ...((latestVersion.metadata as Record<string, unknown>) || {}),
             assistantProposalId: proposal.id,
@@ -763,7 +788,7 @@ export class AssistantService {
           proposalId: proposal.id,
           projectId: proposal.projectId,
           documentCount: payload.architectDocuments.length,
-          documentNames: payload.architectDocuments.map((d: any) => d.name || 'unknown'),
+          documentNames: payload.architectDocuments.map((d) => d.name || 'unknown'),
         });
         try {
           const updated = architectService.applyAssistantUpdates(proposal.projectId, payload.architectDocuments);
@@ -800,7 +825,7 @@ export class AssistantService {
         proposalId: proposal.id,
         projectId: proposal.projectId,
         documentCount: payload.architectDocuments.length,
-        documentNames: payload.architectDocuments.map((d: any) => d.name || 'unknown'),
+        documentNames: payload.architectDocuments.map((d) => d.name || 'unknown'),
       });
       try {
         const updated = architectService.applyAssistantUpdates(proposal.projectId, payload.architectDocuments);
@@ -869,7 +894,7 @@ export class AssistantService {
     id: string;
     projectId: string;
     type: string;
-    metadata?: any;
+    metadata?: Prisma.JsonValue | null;
   }): Promise<AssistantContext> {
     const project = await this.prisma.project.findUnique({
       where: { id: session.projectId },
@@ -889,7 +914,7 @@ export class AssistantService {
       : [];
 
     const metrics: AssistantContext['metrics'] = {};
-    const versionMetadata = (latestVersion?.metadata as Record<string, any>) || {};
+    const versionMetadata = (latestVersion?.metadata ?? {}) as Record<string, Prisma.JsonValue>;
     if (typeof versionMetadata.consistencyScore === 'number' && !Number.isNaN(versionMetadata.consistencyScore)) {
       metrics.rawConsistencyScore = versionMetadata.consistencyScore;
       metrics.consistencyScore = Math.round(versionMetadata.consistencyScore * 100);
@@ -897,7 +922,7 @@ export class AssistantService {
     if (typeof versionMetadata.lastValidated === 'string') {
       metrics.lastValidatedAt = versionMetadata.lastValidated;
     }
-    const complexityIssue = validationResults.find((issue: any) => issue.ruleName === 'complexity-estimate');
+    const complexityIssue = validationResults.find((issue) => issue.ruleName === 'complexity-estimate');
     if (complexityIssue) {
       const match = complexityIssue.message.match(/score:\s*(\d+(\.\d+)?)/i);
       if (match) {
@@ -908,14 +933,16 @@ export class AssistantService {
     const hasMetrics = Object.values(metrics).some((value) => value !== undefined && value !== null);
 
     // Extract mode from session metadata
-    const currentMode = (session.metadata?.mode as AssistantMode) || 'auto';
+    const sessionMeta = session.metadata as SessionMetadata | null | undefined;
+    const currentMode = sessionMeta?.mode || 'auto';
 
     let architectData: AssistantContext['architect'] = undefined;
 
     // Always get architect data if we have mode hints or existing documentation
     try {
       const documentation = architectService.getDocumentation(session.projectId);
-      const interviewData = session.metadata?.architectInterview || {
+      const sessionMetaForInterview = session.metadata as SessionMetadata | null | undefined;
+      const interviewData = sessionMetaForInterview?.architectInterview || {
         completionPercentage: 0,
         currentPhase: 'initial',
         answeredQuestions: [],
@@ -925,15 +952,16 @@ export class AssistantService {
 
       // Calculate interview progress from persisted data
       const answeredCount = interviewData.answeredQuestions?.length || 0;
+      const totalQuestions = interviewData.totalQuestions ?? 12;
       const completionPercentage =
-        interviewData.completionPercentage || Math.round((answeredCount / interviewData.totalQuestions) * 100);
+        interviewData.completionPercentage || Math.round((answeredCount / totalQuestions) * 100);
 
       // Get current question based on progress
       const answersMap = new Map<string, string | string[]>();
       if (interviewData.answeredQuestions) {
-        interviewData.answeredQuestions.forEach((a: any) => answersMap.set(a.questionId, a.answer));
+        interviewData.answeredQuestions.forEach((a) => answersMap.set(a.questionId, a.answer));
       }
-      const currentQuestion = answeredCount < interviewData.totalQuestions ? getNextQuestion(answersMap) : null;
+      const currentQuestion = answeredCount < totalQuestions ? getNextQuestion(answersMap) : null;
 
       architectData = {
         interviewComplete: !!documentation && completionPercentage >= 100,
@@ -948,7 +976,7 @@ export class AssistantService {
           currentPhase: interviewData.currentPhase || 'initial',
           currentQuestion,
           answeredCount,
-          totalQuestions: interviewData.totalQuestions || 12,
+          totalQuestions,
         },
       };
     } catch (error) {
@@ -972,7 +1000,7 @@ export class AssistantService {
             lore: latestVersion.lore as LoreData,
           }
         : undefined,
-      validationIssues: validationResults.map((issue: any) => ({
+      validationIssues: validationResults.map((issue) => ({
         rule: issue.ruleName,
         severity: issue.severity,
         message: issue.message,
@@ -1469,23 +1497,25 @@ export class AssistantService {
    * Handle architect interview flow for unified sessions
    * Extract answers from user messages and update persistent interview state
    */
-  private async handleArchitectInterviewFlow(session: any, userMessage: string) {
+  private async handleArchitectInterviewFlow(session: ChatSession, userMessage: string) {
     try {
-      const currentInterview = session.metadata?.architectInterview || {
+      const sessionMeta = session.metadata as SessionMetadata | null | undefined;
+      const currentInterview = sessionMeta?.architectInterview || {
         completionPercentage: 0,
         currentPhase: 'initial',
         answeredQuestions: [],
         currentQuestionIndex: 0,
         totalQuestions: 12,
       };
+      const totalQuestions = currentInterview.totalQuestions ?? 12;
 
       // Extract any answers from the user message using existing logic
       const extractedAnswers = this.extractAnswersFromMessage(userMessage);
 
       if (extractedAnswers.length > 0) {
         // Update interview progress with new answers
-        const updatedAnswers = [...currentInterview.answeredQuestions, ...extractedAnswers];
-        const completionPercentage = Math.round((updatedAnswers.length / currentInterview.totalQuestions) * 100);
+        const updatedAnswers = [...(currentInterview.answeredQuestions ?? []), ...extractedAnswers];
+        const completionPercentage = Math.round((updatedAnswers.length / totalQuestions) * 100);
 
         // Determine current phase based on progress
         let currentPhase = currentInterview.currentPhase;
@@ -1502,7 +1532,7 @@ export class AssistantService {
           where: { id: session.id },
           data: {
             metadata: {
-              ...session.metadata,
+              ...((session.metadata as SessionMetadata) || {}),
               architectInterview: {
                 ...currentInterview,
                 answeredQuestions: updatedAnswers,
@@ -1646,6 +1676,14 @@ export class AssistantService {
         };
       }
 
+      if (!isJsonRecord(jsonResult.parsed)) {
+        logger.warn('Extracted JSON is not an object', {
+          contentPreview: content.substring(0, 500),
+        });
+        return {
+          reply: this.extractTextFromResponse(content),
+        };
+      }
       const parsed = jsonResult.parsed;
 
       // Validate that we got meaningful content
@@ -1879,7 +1917,7 @@ export class AssistantService {
     return cleaned;
   }
 
-  private extractReplyFromParsed(parsed: any, content: string): string {
+  private extractReplyFromParsed(parsed: Record<string, Prisma.JsonValue | undefined>, content: string): string {
     if (typeof parsed.reply === 'string' && parsed.reply.length > 0) {
       return parsed.reply;
     }
@@ -1902,16 +1940,21 @@ export class AssistantService {
     return reply;
   }
 
-  private buildNormalizedProposal(parsed: any): AssistantModelResponse['proposal'] | null {
-    const rawProposal =
-      parsed && typeof parsed.proposal === 'object' && parsed.proposal !== null ? { ...parsed.proposal } : {};
+  private buildNormalizedProposal(
+    parsed: Record<string, Prisma.JsonValue | undefined>,
+  ): AssistantModelResponse['proposal'] | null {
+    const proposalSource = parsed.proposal;
+    const rawProposal: Record<string, Prisma.JsonValue | undefined> =
+      proposalSource && typeof proposalSource === 'object'
+        ? { ...(proposalSource as Record<string, Prisma.JsonValue | undefined>) }
+        : {};
 
     const normalizedDocs = this.normalizeArchitectDocuments(parsed, rawProposal);
     if (normalizedDocs.length > 0) {
       rawProposal.architectDocuments = normalizedDocs;
     }
 
-    const fallbackDocument = this.buildDocumentFromParsed(rawProposal || parsed);
+    const fallbackDocument = this.buildDocumentFromParsed(rawProposal);
     const hasArchitectDocuments =
       Array.isArray(rawProposal.architectDocuments) && rawProposal.architectDocuments.length > 0;
 
@@ -1923,10 +1966,13 @@ export class AssistantService {
       return null;
     }
 
-    return rawProposal;
+    return rawProposal as unknown as AssistantModelResponse['proposal'];
   }
 
-  private normalizeArchitectDocuments(originalParsed: any, rawProposal: any): Array<{ name: string; content: string }> {
+  private normalizeArchitectDocuments(
+    originalParsed: Record<string, Prisma.JsonValue | undefined>,
+    rawProposal: Record<string, Prisma.JsonValue | undefined>,
+  ): Array<{ name: string; content: string }> {
     const documents: Array<{ name: string; content: string }> = [];
     const rawDocs = Array.isArray(rawProposal.architectDocuments)
       ? rawProposal.architectDocuments
@@ -1935,10 +1981,13 @@ export class AssistantService {
         : [];
 
     for (let index = 0; index < rawDocs.length; index += 1) {
-      const entry = rawDocs[index];
-      if (!entry) continue;
+      const rawEntry: unknown = rawDocs[index];
+      if (!rawEntry) continue;
 
-      const parsedEntry = typeof entry === 'object' ? entry : { title: String(entry) };
+      const parsedEntry =
+        typeof rawEntry === 'object' && !Array.isArray(rawEntry)
+          ? (rawEntry as Record<string, Prisma.JsonValue | undefined>)
+          : { title: String(rawEntry) };
       const normalized = this.buildDocumentFromParsed(parsedEntry);
       if (normalized) {
         documents.push(normalized);
@@ -1968,7 +2017,9 @@ export class AssistantService {
     return documents;
   }
 
-  private buildDocumentFromParsed(parsed: any): { name: string; content: string } | null {
+  private buildDocumentFromParsed(
+    parsed: Record<string, Prisma.JsonValue | undefined>,
+  ): { name: string; content: string } | null {
     const markdownContent =
       typeof parsed.markdownContent === 'string' && parsed.markdownContent.trim().length > 0
         ? parsed.markdownContent.trim()
@@ -1978,7 +2029,10 @@ export class AssistantService {
       return null;
     }
 
-    const fileName = this.ensureMdFileName(parsed.fileName, parsed.title);
+    const fileName = this.ensureMdFileName(
+      typeof parsed.fileName === 'string' ? parsed.fileName : undefined,
+      typeof parsed.title === 'string' ? parsed.title : undefined,
+    );
 
     return {
       name: fileName,
@@ -1986,7 +2040,7 @@ export class AssistantService {
     };
   }
 
-  private composeMarkdownFromParsedFields(parsed: any): string | null {
+  private composeMarkdownFromParsedFields(parsed: Record<string, Prisma.JsonValue | undefined>): string | null {
     if (!parsed || typeof parsed !== 'object') {
       return null;
     }
@@ -2023,8 +2077,13 @@ export class AssistantService {
 
     if (parsed.architectDocuments && Array.isArray(parsed.architectDocuments)) {
       const docs = parsed.architectDocuments
-        .map((doc: any, index: number) => {
-          const docContent = typeof doc.content === 'string' ? doc.content : this.stringifyField(doc);
+        .map((doc: Prisma.JsonValue, index: number) => {
+          const docRecord =
+            typeof doc === 'object' && doc !== null && !Array.isArray(doc)
+              ? (doc as Record<string, Prisma.JsonValue | undefined>)
+              : undefined;
+          const directContent = docRecord && typeof docRecord.content === 'string' ? docRecord.content : undefined;
+          const docContent = directContent ?? this.stringifyField(doc);
           return docContent ? `### Document ${index + 1}\n${docContent}` : '';
         })
         .filter(Boolean);
@@ -2117,7 +2176,7 @@ export class AssistantService {
       ...(hasLore && { lore: proposal.lore }),
       ...(hasArchitectDocuments && { architectDocuments: proposal.architectDocuments }),
       explanation: proposal?.explanation || 'Improves game design with enhanced mechanics and lore.',
-    } as any; // Cast to any for Prisma Json type compatibility
+    } as unknown as Prisma.InputJsonValue;
 
     // If mechanics or lore are present, treat as concept-update even if documents are included.
     // Only fall back to architect-document when there are no mechanics/lore changes.
@@ -2130,34 +2189,38 @@ export class AssistantService {
         conceptId: latestVersion?.id,
         proposalType,
         payload,
-        changeLog: changeLog as any,
+        changeLog: changeLog as unknown as Prisma.InputJsonValue,
       },
     });
   }
 
-  private detectChanges(oldData: any, newData: any, prefix: string) {
+  private detectChanges(oldData: unknown, newData: unknown, prefix: string) {
     const changes: Array<{
       field: string;
       changeType: 'added' | 'modified' | 'removed';
-      before?: any;
-      after?: any;
+      before?: unknown;
+      after?: unknown;
     }> = [];
 
-    const oldKeys = new Set(Object.keys(oldData || {}));
-    const newKeys = new Set(Object.keys(newData || {}));
+    const oldRecord: Record<string, unknown> =
+      oldData && typeof oldData === 'object' ? (oldData as Record<string, unknown>) : {};
+    const newRecord: Record<string, unknown> =
+      newData && typeof newData === 'object' ? (newData as Record<string, unknown>) : {};
+    const oldKeys = new Set(Object.keys(oldRecord));
+    const newKeys = new Set(Object.keys(newRecord));
     for (const key of newKeys) {
       if (!oldKeys.has(key)) {
         changes.push({
           field: `${prefix}.${key}`,
           changeType: 'added',
-          after: newData[key],
+          after: newRecord[key],
         });
-      } else if (JSON.stringify(oldData[key]) !== JSON.stringify(newData[key])) {
+      } else if (JSON.stringify(oldRecord[key]) !== JSON.stringify(newRecord[key])) {
         changes.push({
           field: `${prefix}.${key}`,
           changeType: 'modified',
-          before: oldData[key],
-          after: newData[key],
+          before: oldRecord[key],
+          after: newRecord[key],
         });
       }
     }
@@ -2167,7 +2230,7 @@ export class AssistantService {
         changes.push({
           field: `${prefix}.${key}`,
           changeType: 'removed',
-          before: oldData[key],
+          before: oldRecord[key],
         });
       }
     }

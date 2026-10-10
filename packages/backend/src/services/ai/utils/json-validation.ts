@@ -3,11 +3,12 @@
  * Provides guardrails for MiniMax M2 responses
  */
 
+import type { Prisma } from '@prisma/client';
 import { logger } from '../../../utils/logger.js';
 
 export interface JSONValidationResult {
   isValid: boolean;
-  parsed?: any;
+  parsed?: Prisma.JsonValue | null;
   reformatted?: string;
   error?: string;
 }
@@ -396,10 +397,10 @@ function tryParseJSONString(jsonSnippet: string, originalContent: string): JSONP
  * Validate JSON against a schema (basic validation)
  */
 export function validateJSONSchema(
-  json: any,
+  json: Record<string, Prisma.JsonValue | undefined>,
   schema: {
     required?: string[];
-    properties?: Record<string, { type: string; items?: any }>;
+    properties?: Record<string, { type: string; items?: { type?: string } }>;
   },
 ): { valid: boolean; errors: string[] } {
   const errors: string[] = [];

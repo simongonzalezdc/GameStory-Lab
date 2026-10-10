@@ -99,7 +99,7 @@ async function isModelAvailable(modelName: string): Promise<boolean> {
     if (listResponse.ok) {
       const data = (await listResponse.json()) as { models?: Array<{ name?: string } | string> };
       const models = data.models || [];
-      const modelNames = models.map((m: any) => m.name || m);
+      const modelNames = models.map((m) => (typeof m === 'string' ? m : (m.name ?? JSON.stringify(m))));
 
       // Check if our model is in the list (exact match or contains)
       const found = modelNames.some((name: string) => name === modelName || name.includes(modelName.split(':')[0]));
@@ -178,16 +178,17 @@ async function pullModel(modelName: string): Promise<boolean> {
       // Still return true if pull succeeded (model exists, API might just be slow)
       return !output.includes('error');
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     // If error is timeout, model might still be downloading
-    if (error.code === 'ETIMEDOUT' || error.signal === 'SIGTERM') {
+    const errShape = error as { code?: unknown; signal?: unknown };
+    if (errShape.code === 'ETIMEDOUT' || errShape.signal === 'SIGTERM') {
       logger.warn(`Model ${modelName} pull timed out - it may still be downloading`);
       return false;
     }
 
     logger.error(`Failed to pull model ${modelName}`, {
-      error: error.message,
-      code: error.code,
+      error: error instanceof Error ? error.message : String(error),
+      code: errShape.code,
     });
     return false;
   }

@@ -66,7 +66,7 @@ router.post('/', async (req, res, next) => {
           version.mechanics as MechanicsData,
           version.lore as LoreData,
           version.project.genre || undefined,
-          (version.metadata as any)?.consistencyScore,
+          (version.metadata as { consistencyScore?: number } | null)?.consistencyScore,
         );
         filename = `${projectName}-gdd.md`;
         break;

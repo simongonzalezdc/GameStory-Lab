@@ -17,6 +17,8 @@ jobs:
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: Generate Prisma client
+        run: npm run db:generate -w packages/backend
       - name: Lint workspaces
         run: npm run lint --workspaces
       - name: Test workspaces

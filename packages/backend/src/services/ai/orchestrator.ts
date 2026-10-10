@@ -238,8 +238,9 @@ export class AIOrchestrator {
               previousModel: selection.model,
             });
             return response;
-          } catch (modelError: any) {
-            const errorMsg = modelError?.message || String(modelError);
+          } catch (modelError: unknown) {
+            const shapedError = modelError as { message?: unknown };
+            const errorMsg = (typeof shapedError.message === 'string' && shapedError.message) || String(modelError);
             logger.warn(`Model ${modelName} failed, trying next`, {
               error: errorMsg,
               attempt: defaultOllamaModels.indexOf(modelName) + 1,
@@ -742,6 +743,13 @@ export class AIOrchestrator {
   private getCurrentHourCost(): number {
     const currentHour = Math.floor(Date.now() / (60 * 60 * 1000));
     return this.costTracker.get(currentHour) || 0;
+  }
+
+  /**
+   * Get the registered AI clients (for provider enumeration)
+   */
+  getClients(): ReadonlyMap<string, IAIClient> {
+    return this.clients;
   }
 
   /**

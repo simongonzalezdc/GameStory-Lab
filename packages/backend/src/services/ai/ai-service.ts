@@ -117,7 +117,7 @@ export class AIService {
    */
   async getAvailableProviders(): Promise<string[]> {
     const orchestrator = getAIOrchestrator();
-    const clients = (orchestrator as any).clients;
+    const clients = orchestrator.getClients();
     const available: string[] = [];
 
     for (const [name, client] of clients.entries()) {

@@ -11,7 +11,8 @@ import type { AICompletionRequest } from './base.js';
 vi.mock('axios', () => {
   const post = vi.fn();
   const create = vi.fn(() => ({ post }));
-  const isAxiosError = (err: any) => !!err?.isAxiosError;
+  const isAxiosError = (err: unknown): boolean =>
+    !!err && typeof err === 'object' && 'isAxiosError' in err && !!err.isAxiosError;
   return {
     default: { create, isAxiosError },
     create,
@@ -33,7 +34,7 @@ vi.mock('../../../utils/logger.js', () => ({
 describe('GLMClient', () => {
   let client: GLMClient;
   const mockCredential = 'fixture-token-for-client-tests';
-  let mockPost: any;
+  let mockPost: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,8 +42,9 @@ describe('GLMClient', () => {
 
     // Create mock for axios.post
     mockPost = vi.fn();
-    (axios.create as any).mockReturnValue({ post: mockPost });
-    (axios as any).isAxiosError = (err: any) => !!err?.isAxiosError;
+    (axios.create as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ post: mockPost });
+    (axios as unknown as { isAxiosError: (err: unknown) => boolean }).isAxiosError = (err) =>
+      !!err && typeof err === 'object' && 'isAxiosError' in err && !!err.isAxiosError;
 
     // Mock environment variables
     vi.stubEnv('GLM_API_KEY', mockCredential);
@@ -83,7 +85,7 @@ describe('GLMClient', () => {
     it('should return false when API key is empty', async () => {
       const noKeyClient = new GLMClient({ apiKey: 'test-key' });
       // Manually set empty key to test
-      (noKeyClient as any).apiKey = '';
+      (noKeyClient as unknown as { apiKey: string }).apiKey = '';
       const available = await noKeyClient.isAvailable();
       expect(available).toBe(false);
     });

@@ -79,8 +79,12 @@ router.post('/', async (req: Request, res: Response) => {
       errorMessage = error.message;
     } else if (typeof error === 'object' && error !== null) {
       // Handle AIClientError objects
-      const err = error as any;
-      errorMessage = err.message || err.error?.message || JSON.stringify(error);
+      const err = error as { message?: unknown; error?: unknown };
+      const directMessage = typeof err.message === 'string' && err.message ? err.message : undefined;
+      const nestedError = err.error && typeof err.error === 'object' ? (err.error as { message?: unknown }) : undefined;
+      const nestedMessage =
+        nestedError && typeof nestedError.message === 'string' && nestedError.message ? nestedError.message : undefined;
+      errorMessage = directMessage ?? nestedMessage ?? JSON.stringify(error);
     } else {
       errorMessage = String(error);
     }

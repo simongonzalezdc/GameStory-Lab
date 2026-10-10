@@ -3,7 +3,9 @@
  * Uses AI to intelligently blend genre templates while resolving conflicts and ambiguities
  */
 
-import type { Genre } from '@gamestory/shared';
+import type { Genre, MechanicsData, LoreData } from '@gamestory/shared';
+import type { GenreTemplate } from '../templates/template-service.js';
+import type { AIService } from './ai-service.js';
 import { TemplateService } from '../templates/template-service.js';
 import { getAIService } from './ai-service.js';
 import { logger } from '../../utils/logger.js';
@@ -12,6 +14,26 @@ interface GenreConfig {
   genre: Genre;
   weight: number;
 }
+
+interface WeightedTemplate {
+  template: GenreTemplate;
+  weight: number;
+  genreName: string;
+}
+
+export interface BlendDesignOptions {
+  tone?: string;
+  complexity?: string;
+  sessionLength?: string;
+  camera?: string;
+  platform?: string;
+  multiplayer?: string;
+  artDirection?: string;
+  monetization?: string;
+  accessibility?: string;
+}
+
+type MechanicalBlend = Omit<GenreTemplate, 'id'> & { id: string };
 
 interface LLMBlendAnalysis {
   conflicts: Array<{
@@ -28,8 +50,8 @@ interface LLMEnhancedBlend {
   template: {
     name: string;
     description: string;
-    mechanics: any;
-    lore: any;
+    mechanics: MechanicsData;
+    lore: LoreData;
     tags: string[];
     difficulty: string;
     targetAudience: string;
@@ -41,7 +63,7 @@ interface LLMEnhancedBlend {
 
 export class LLMBlendService {
   private templateService: TemplateService;
-  private aiService: any; // AI service instance
+  private aiService: AIService;
 
   constructor() {
     this.templateService = new TemplateService();
@@ -51,7 +73,10 @@ export class LLMBlendService {
   /**
    * Intelligently blend genres using LLM analysis
    */
-  async blendGenresIntelligently(genreConfigs: GenreConfig[], designOptions: any): Promise<LLMEnhancedBlend | null> {
+  async blendGenresIntelligently(
+    genreConfigs: GenreConfig[],
+    designOptions: BlendDesignOptions,
+  ): Promise<LLMEnhancedBlend | null> {
     try {
       // Step 1: Get base templates and perform mechanical blend
       const templates = this.getTemplatesWithWeights(genreConfigs);
@@ -85,7 +110,7 @@ export class LLMBlendService {
    * Analyze potential conflicts in the genre blend
    */
   private async analyzeBlendConflicts(
-    templates: Array<{ template: any; weight: number; genreName: string }>,
+    templates: WeightedTemplate[],
     genreConfigs: GenreConfig[],
   ): Promise<LLMBlendAnalysis> {
     const prompt = this.buildConflictAnalysisPrompt(templates, genreConfigs);
@@ -121,9 +146,9 @@ export class LLMBlendService {
    * Generate intelligent blend strategy
    */
   private async generateBlendStrategy(
-    templates: Array<{ template: any; weight: number; genreName: string }>,
+    templates: WeightedTemplate[],
     analysis: LLMBlendAnalysis,
-    designOptions: any,
+    designOptions: BlendDesignOptions,
   ): Promise<{ strategy: string; reasoning: string }> {
     const prompt = this.buildStrategyPrompt(templates, analysis, designOptions);
 
@@ -153,11 +178,11 @@ export class LLMBlendService {
    * Create the enhanced template using AI guidance
    */
   private async createEnhancedTemplate(
-    templates: Array<{ template: any; weight: number; genreName: string }>,
+    templates: WeightedTemplate[],
     strategy: { strategy: string; reasoning: string },
     analysis: LLMBlendAnalysis,
-    designOptions: any,
-  ): Promise<any> {
+    designOptions: BlendDesignOptions,
+  ): Promise<MechanicalBlend> {
     // Create base mechanical blend first
     const baseBlend = this.createMechanicalBlend(templates);
 
@@ -187,24 +212,17 @@ export class LLMBlendService {
   }
 
   // Helper methods
-  private getTemplatesWithWeights(genreConfigs: GenreConfig[]) {
+  private getTemplatesWithWeights(genreConfigs: GenreConfig[]): WeightedTemplate[] {
     return genreConfigs
       .map((config) => ({
         template: this.templateService.getTemplate(config.genre),
         weight: config.weight,
         genreName: this.templateService.getTemplate(config.genre)?.name || config.genre,
       }))
-      .filter((item) => item.template !== null) as Array<{
-      template: any;
-      weight: number;
-      genreName: string;
-    }>;
+      .filter((item): item is { template: GenreTemplate; weight: number; genreName: string } => item.template !== null);
   }
 
-  private buildConflictAnalysisPrompt(
-    templates: Array<{ template: any; weight: number; genreName: string }>,
-    genreConfigs: GenreConfig[],
-  ): string {
+  private buildConflictAnalysisPrompt(templates: WeightedTemplate[], genreConfigs: GenreConfig[]): string {
     const templateSummaries = templates.map((t) => ({
       name: t.genreName,
       weight: Math.round(t.weight * 100),
@@ -244,9 +262,9 @@ Focus on identifying gameplay conflicts, narrative coherence issues, and themati
   }
 
   private buildStrategyPrompt(
-    templates: Array<{ template: any; weight: number; genreName: string }>,
+    templates: WeightedTemplate[],
     analysis: LLMBlendAnalysis,
-    designOptions: any,
+    designOptions: BlendDesignOptions,
   ): string {
     return `
 Create an intelligent blending strategy for these genres:
@@ -279,11 +297,11 @@ Provide your strategy in a clear, actionable format.
   }
 
   private buildEnhancementPrompt(
-    baseBlend: any,
-    templates: Array<{ template: any; weight: number; genreName: string }>,
+    baseBlend: MechanicalBlend,
+    templates: WeightedTemplate[],
     strategy: { strategy: string; reasoning: string },
     analysis: LLMBlendAnalysis,
-    designOptions: any,
+    designOptions: BlendDesignOptions,
   ): string {
     return `
 Enhance this basic genre blend into a coherent, conflict-free template:
@@ -323,7 +341,7 @@ Return the enhanced template with improved mechanics, lore, and description that
 `;
   }
 
-  private parseAIAnalysisResponse(response: string): any {
+  private parseAIAnalysisResponse(response: string): Partial<LLMBlendAnalysis> {
     try {
       // Extract JSON from response
       const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -336,7 +354,7 @@ Return the enhanced template with improved mechanics, lore, and description that
     return { conflicts: [], coherence_score: 50, improvements: [] };
   }
 
-  private parseAIEnhancementResponse(response: string, baseTemplate: any): any {
+  private parseAIEnhancementResponse(response: string, baseTemplate: MechanicalBlend): Partial<MechanicalBlend> {
     try {
       // Extract JSON from response
       const jsonMatch = response.match(/\{[\s\S]*\}/);
@@ -361,7 +379,7 @@ Return the enhanced template with improved mechanics, lore, and description that
     return reasoningMatch ? reasoningMatch[1] : 'Strategy generated by AI analysis';
   }
 
-  private createMechanicalBlend(templates: Array<{ template: any; weight: number; genreName: string }>): any {
+  private createMechanicalBlend(templates: WeightedTemplate[]): MechanicalBlend {
     // This uses the existing template service blending logic
     const genreConfigs = templates.map((t) => ({ genre: t.template.id, weight: t.weight }));
     const baseBlend = this.templateService.blendGenres(genreConfigs);

@@ -5,6 +5,7 @@
 
 import { AIService } from '../ai/ai-service.js';
 import { ContextBuilder } from './context-builder.js';
+import type { InterviewManager } from './interview-manager.js';
 import { DOCUMENT_TYPES, getDocumentPrompt } from './prompts/document-prompts.js';
 import { ProjectContext } from './types.js';
 import { logger } from '../../utils/logger.js';
@@ -344,10 +345,10 @@ export class AIDocumentGenerator {
   /**
    * Set the interview manager for context building
    */
-  setInterviewManager(interviewManager: any) {
+  setInterviewManager(interviewManager: InterviewManager) {
     // This allows dependency injection for testing
     if (this.contextBuilder && typeof this.contextBuilder === 'object') {
-      (this.contextBuilder as any).interviewManager = interviewManager;
+      (this.contextBuilder as unknown as { interviewManager: InterviewManager }).interviewManager = interviewManager;
     }
   }
 }
