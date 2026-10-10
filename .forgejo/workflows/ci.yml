@@ -48,13 +48,13 @@ jobs:
     runs-on: docker
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - name: Install Python deps and run pytest
         run: |
           set -euo pipefail
           cd modules/generative-assets-lab/backend
-          python3 -m pip install -r requirements.txt -r requirements-dev.txt
-          python3 -m pytest
+          # node:22 image ships python3 without pip and enforces PEP 668;
+          # use a venv (throwaway CI container, no system pollution)
+          apt-get update -qq && apt-get install -y -qq python3-venv
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
+          .venv/bin/python -m pytest
