@@ -52,6 +52,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { AIOrchestrator } from './services/ai/orchestrator.js';
 import { handleApiError, createErrorResponse } from './utils/errors.js';
 import { logger } from './utils/logger.js';
@@ -77,8 +78,11 @@ console.log('🔧 Server Configuration:', {
   NODE_ENV: process.env.NODE_ENV || 'development',
 });
 
-// Initialize Prisma
-export const prisma = new PrismaClient();
+// Initialize Prisma (v7 requires a driver adapter; URL comes from .env loaded above)
+const prismaAdapter = process.env.DATABASE_URL
+  ? new PrismaPg({ connectionString: process.env.DATABASE_URL })
+  : undefined;
+export const prisma = new PrismaClient(prismaAdapter ? { adapter: prismaAdapter } : {});
 
 // Initialize AI Orchestrator (with error handling to prevent startup failure)
 let aiOrchestrator: AIOrchestrator;
