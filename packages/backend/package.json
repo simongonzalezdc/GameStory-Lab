@@ -18,7 +18,7 @@
   "dependencies": {
     "@gamestory/shared": "*",
     "@google/generative-ai": "^0.24.0",
-    "@prisma/client": "^6.19.0",
+    "@prisma/client": "^7.10.0",
     "adm-zip": "^0.6.1",
     "axios": "^1.7.9",
     "compression": "^1.8.1",
@@ -29,7 +29,9 @@
     "helmet": "^8.0.0",
     "ollama": "^0.6.3",
     "winston": "^3.17.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@prisma/adapter-pg": "^7.10.0",
+    "pg": "^8.13.0"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",
@@ -40,7 +42,7 @@
     "@types/supertest": "^7.0.0",
     "@vitest/coverage-v8": "^4.0.10",
     "eslint": "^9.16.0",
-    "prisma": "^6.19.0",
+    "prisma": "^7.10.0",
     "supertest": "^7.0.0",
     "tsx": "^4.19.2",
     "typescript": "^6.0.3",

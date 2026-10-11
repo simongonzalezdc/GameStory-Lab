@@ -75,26 +75,46 @@ dependencies, forges, or the build.
 - Counts that drift: 27 validation rules (engine is source of truth),
   15 genre templates, 9 endpoint groups, TypeScript ^6.0.3.
 
-## Known dependency risk (tracked, not fixed)
+## Dependency posture: zero known vulnerabilities
 
-`npm audit` reports 3 HIGH advisories, all rooted in one transitive chain:
+`npm audit` is clean. Two follow-ups keep it that way:
 
-```
-prisma 6.19.3
-└── @prisma/config 6.19.3
-    └── deepmerge-ts 7.1.5   (stack exhaustion on recursive graphs)
-```
+1. **`overrides` pin the transitive CVEs.** `deepmerge-ts` and `mysql2` are
+   held at patched versions via root `overrides` because the packages that
+   pull them (Prisma) still declare vulnerable ranges:
 
-Clearing them requires a **Prisma major**, and the first Prisma 8 release is
-still an RC (`8.0.0-rc.22` at time of writing) — installing an RC into a
-project that other repos depend on is not a trade worth making silently.
-Prisma 6 remains supported.
+   ```json
+   "overrides": { "deepmerge-ts": "^8.0.0", "mysql2": "^3.23.0" }
+   ```
 
-Revisit when Prisma 8 reaches stable. Expect to check:
+   Do not remove these without re-running `npm audit` — the vulnerable
+   ranges come back immediately.
 
-- `prisma migrate` behavior changes across the major
-- `JsonValue` / `InputJsonValue` type paths (backend uses both)
-- generated-client output differences
+2. **`npm audit fix` crashes on this tree.** Recurring npm arborist bug
+   ("Cannot read properties of null (reading 'edgesOut')"). The working
+   invocation is:
+   ```bash
+   npm install --no-audit --no-fund --legacy-peer-deps
+   npm audit fix --legacy-peer-deps
+   ```
 
-Everything else was closed in the security pass that took this repo from 26
-vulnerabilities (3 critical, 14 high) to these 3.
+## Prisma 7 notes (migrated from 6)
+
+The upgrade was a real breaking change, not a version bump:
+
+- `datasource.url` **no longer exists in schema.prisma**. The connection
+  URL lives in `prisma.config.ts` at the repo root (`datasource.url`), so
+  all `db:*` scripts run from root. `schema.prisma` declares only the
+  provider.
+- The runtime client needs a **driver adapter**: `PrismaPg` from
+  `@prisma/adapter-pg`, constructed in `src/server.ts` and
+  `src/lib/prisma.ts`. Forgetting the adapter surfaces as a runtime SASL
+  error (`client password must be a string`), not a compile error — tests
+  stay green, so the adapter path needs a live-DB smoke check.
+- `@prisma/adapter-pg` and `pg` are runtime dependencies; they are easy to
+  leave undeclared because `node_modules` resolves transitively. CI uses
+  `npm ci`, which would diverge.
+
+Verified after migration: 292 root tests, 324 module tests, 69 pytest,
+8 e2e, all builds, plus a live smoke (migrate -> /health `database:
+connected` -> create and read back a project through the API).

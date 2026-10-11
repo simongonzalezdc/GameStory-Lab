@@ -17,7 +17,9 @@
     "db:migrate": "prisma migrate dev --schema packages/backend/prisma/schema.prisma",
     "db:studio": "prisma studio --schema packages/backend/prisma/schema.prisma",
     "test:coverage": "npm run test --workspaces -- --coverage",
-    "test:e2e": "npm --prefix e2e test"
+    "test:e2e": "npm --prefix e2e test",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -47,6 +49,12 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "adm-zip": "^0.6.1"
+    "@prisma/adapter-pg": "^7.10.0",
+    "adm-zip": "^0.6.1",
+    "pg": "^8.23.1"
+  },
+  "overrides": {
+    "deepmerge-ts": "^8.0.0",
+    "mysql2": "^3.23.0"
   }
 }
