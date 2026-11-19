@@ -13,7 +13,7 @@ from app.services.local_storage_service import storage_service
 from app.services.ollama_service import ollama_service
 from app.services.database_service import db_service
 
-router = APIRouter(prefix="/api/generate", tags=["generation"])
+router = APIRouter(prefix="/generate", tags=["generation"])
 logger = logging.getLogger(__name__)
 
 

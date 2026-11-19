@@ -17,6 +17,16 @@ const REQUIRED_MODELS = [
 ];
 
 /**
+ * D2 (card t_4d397065): unattended `ollama pull` is strictly opt-in.
+ * Model downloads can be multi-gigabyte, so the server never shells out to
+ * `ollama pull` unless OLLAMA_AUTO_PULL=1 (or =true) is explicitly set.
+ */
+export function isOllamaAutoPullEnabled(): boolean {
+  const value = process.env.OLLAMA_AUTO_PULL;
+  return value === '1' || value === 'true';
+}
+
+/**
  * Check if Ollama server is running
  */
 async function isOllamaRunning(): Promise<boolean> {
@@ -141,6 +151,15 @@ async function isModelAvailable(modelName: string): Promise<boolean> {
  * Note: If model already exists, ollama pull will be fast (just verifies)
  */
 async function pullModel(modelName: string): Promise<boolean> {
+  // D2: never download models unattended. The pull only happens when the
+  // operator explicitly opted in via OLLAMA_AUTO_PULL=1.
+  if (!isOllamaAutoPullEnabled()) {
+    logger.warn(
+      `Model ${modelName} is not installed and automatic pulls are disabled ` +
+        `(OLLAMA_AUTO_PULL is not enabled). Install it manually with: ollama pull ${modelName}`,
+    );
+    return false;
+  }
   try {
     logger.info(`Ensuring Ollama model is available: ${modelName}...`);
 
@@ -211,9 +230,25 @@ async function modelExistsViaCLI(modelName: string): Promise<boolean> {
 
 /**
  * Restart Ollama server to refresh model registry
+ *
+ * D7 (card t_4d397065): this used to kill processes with
+ * `pkill -f "ollama runner"`, which on a shared host terminates the model
+ * runners of OTHER users' in-flight generations. The kill is now gated behind
+ * the same explicit opt-in as automatic pulls (OLLAMA_AUTO_PULL=1): with the
+ * default (off), the server never kills Ollama processes — it reports what a
+ * human needs to do instead.
  */
 async function restartOllama(): Promise<boolean> {
   try {
+    if (!isOllamaAutoPullEnabled()) {
+      logger.warn(
+        'Ollama model registry needs a refresh, but automatic Ollama management is disabled ' +
+          '(OLLAMA_AUTO_PULL is not enabled). Refreshing the registry requires restarting the ' +
+          'Ollama daemon yourself — the server will not kill Ollama processes for you.',
+      );
+      return false;
+    }
+
     logger.info('Restarting Ollama to refresh model registry...');
 
     // Kill existing Ollama processes (but keep the main serve process)

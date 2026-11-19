@@ -12,6 +12,7 @@ import { getLorePrompt } from '../services/ai/prompts/lore.js';
 import { getTitlePrompt } from '../services/ai/prompts/title.js';
 import { getRefinementPrompt } from '../services/ai/prompts/refinement.js';
 import { extractJSON } from '../services/ai/utils/json-validation.js';
+import { toAiErrorPayload } from '../utils/ai-error.js';
 import { isJsonRecord } from '../utils/json.js';
 import { logger } from '../utils/logger.js';
 import type { PrismaClient } from '@prisma/client';
@@ -129,14 +130,31 @@ router.post('/', async (req, res, next) => {
 
     // Generate using AI Orchestrator
     const startTime = Date.now();
-    const response = await orchestrator.generate(
-      taskType,
-      [
-        { role: 'system', content: systemMessage },
-        { role: 'user', content: prompt },
-      ],
-      modelPreference || 'auto',
-    );
+    let response;
+    try {
+      response = await orchestrator.generate(
+        taskType,
+        [
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: prompt },
+        ],
+        modelPreference || 'auto',
+      );
+    } catch (aiError) {
+      // D1: AI-unavailable failures use the unified envelope (same shape as
+      // /api/refinement and /api/titles) — actionable, provider-naming, and
+      // never "[object Object]". Scoped to the AI call so that non-AI errors
+      // below keep their original status-code mapping (Prisma 409/404,
+      // validation 400, timeout 504) via the global error handler.
+      logger.error('AI generation failed', {
+        error: aiError instanceof Error ? aiError.message : String(aiError),
+        stack: aiError instanceof Error ? aiError.stack : undefined,
+        projectId: req.body.projectId,
+        taskType,
+      });
+      res.status(500).json(toAiErrorPayload(aiError));
+      return;
+    }
 
     // Parse AI response with improved error handling using extractJSON utility
     let generatedContent: Record<string, Prisma.JsonValue | undefined>;
@@ -358,6 +376,8 @@ router.post('/', async (req, res, next) => {
       projectId: req.body.projectId,
       taskType: req.body.taskType,
     });
+    // Non-AI failures keep their original status-code mapping (Prisma
+    // 409/404, validation 400, timeout 504) via the global error handler.
     next(error);
   }
 });

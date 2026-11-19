@@ -10,7 +10,7 @@ from app.services.local_storage_service import storage_service
 from app.services.database_service import db_service
 from app.services.export_service import ExportService
 
-router = APIRouter(prefix="/api/export", tags=["export"])
+router = APIRouter(prefix="/export", tags=["export"])
 logger = logging.getLogger(__name__)
 
 

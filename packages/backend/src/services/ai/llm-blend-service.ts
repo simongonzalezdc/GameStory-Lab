@@ -59,6 +59,12 @@ interface LLMEnhancedBlend {
   analysis: LLMBlendAnalysis;
   blend_strategy: string;
   reasoning: string;
+  /**
+   * D8 (card t_4d397065): true only when the AI enhancement call actually
+   * succeeded. When the AI is unavailable and the mechanical fallback ran,
+   * this is false so the API can report the blend honestly.
+   */
+  ai_enhanced: boolean;
 }
 
 export class LLMBlendService {
@@ -92,13 +98,19 @@ export class LLMBlendService {
       const strategy = await this.generateBlendStrategy(templates, analysis, designOptions);
 
       // Step 4: Create the enhanced template
-      const enhancedTemplate = await this.createEnhancedTemplate(templates, strategy, analysis, designOptions);
+      const { template: enhancedTemplate, aiEnhanced } = await this.createEnhancedTemplate(
+        templates,
+        strategy,
+        analysis,
+        designOptions,
+      );
 
       return {
         template: enhancedTemplate,
         analysis,
         blend_strategy: strategy.strategy,
         reasoning: strategy.reasoning,
+        ai_enhanced: aiEnhanced,
       };
     } catch (error) {
       logger.error('Failed to perform LLM-enhanced blending', { error, genreConfigs });
@@ -175,14 +187,17 @@ export class LLMBlendService {
   }
 
   /**
-   * Create the enhanced template using AI guidance
+   * Create the enhanced template using AI guidance.
+   * Returns the template plus whether AI enhancement actually succeeded
+   * (D8, card t_4d397065): on failure the mechanical base blend is returned
+   * with aiEnhanced=false so callers never report a fallback as AI-enhanced.
    */
   private async createEnhancedTemplate(
     templates: WeightedTemplate[],
     strategy: { strategy: string; reasoning: string },
     analysis: LLMBlendAnalysis,
     designOptions: BlendDesignOptions,
-  ): Promise<MechanicalBlend> {
+  ): Promise<{ template: MechanicalBlend; aiEnhanced: boolean }> {
     // Create base mechanical blend first
     const baseBlend = this.createMechanicalBlend(templates);
 
@@ -198,16 +213,28 @@ export class LLMBlendService {
         maxTokens: 1500,
       });
 
-      const enhancedTemplate = this.parseAIEnhancementResponse(response.content, baseBlend);
+      const enhancedTemplate = this.parseAIEnhancementResponse(response.content);
+
+      // D8: the AI responded, but supplied nothing usable — treat as failure
+      // so the mechanical blend is not reported as AI-enhanced.
+      const hasParsedEnhancement = Object.keys(enhancedTemplate).length > 0;
+      if (!hasParsedEnhancement) {
+        logger.warn('AI enhancement response contained no usable template fields — using mechanical blend');
+        return { template: baseBlend, aiEnhanced: false };
+      }
 
       return {
-        ...baseBlend,
-        ...enhancedTemplate,
-        tags: [...baseBlend.tags, 'ai-enhanced', 'conflict-resolved'],
+        template: {
+          ...baseBlend,
+          ...enhancedTemplate,
+          tags: [...baseBlend.tags, 'ai-enhanced', 'conflict-resolved'],
+        },
+        aiEnhanced: true,
       };
     } catch (error) {
       logger.error('Failed to enhance template with AI', { error });
-      return baseBlend; // Return base blend as fallback
+      // Return base blend as fallback (D8: honestly marked as not AI-enhanced)
+      return { template: baseBlend, aiEnhanced: false };
     }
   }
 
@@ -354,18 +381,34 @@ Return the enhanced template with improved mechanics, lore, and description that
     return { conflicts: [], coherence_score: 50, improvements: [] };
   }
 
-  private parseAIEnhancementResponse(response: string, baseTemplate: MechanicalBlend): Partial<MechanicalBlend> {
+  /**
+   * Parse the AI enhancement response.
+   *
+   * Returns ONLY the fields the AI actually supplied (D8). Base values are
+   * intentionally NOT substituted here: the caller needs to know whether the
+   * AI contributed anything at all, so that a response carrying no usable
+   * enhancement is not reported as "AI enhanced".
+   */
+  private parseAIEnhancementResponse(response: string): Partial<MechanicalBlend> {
     try {
       // Extract JSON from response
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const enhanced = JSON.parse(jsonMatch[0]);
-        return {
-          name: enhanced.name || baseTemplate.name,
-          description: enhanced.description || baseTemplate.description,
-          mechanics: enhanced.mechanics || baseTemplate.mechanics,
-          lore: enhanced.lore || baseTemplate.lore,
-        };
+        const supplied: Partial<MechanicalBlend> = {};
+        if (typeof enhanced.name === 'string' && enhanced.name.length > 0) {
+          supplied.name = enhanced.name;
+        }
+        if (typeof enhanced.description === 'string' && enhanced.description.length > 0) {
+          supplied.description = enhanced.description;
+        }
+        if (enhanced.mechanics !== undefined && enhanced.mechanics !== null) {
+          supplied.mechanics = enhanced.mechanics;
+        }
+        if (enhanced.lore !== undefined && enhanced.lore !== null) {
+          supplied.lore = enhanced.lore;
+        }
+        return supplied;
       }
     } catch (error) {
       logger.error('Failed to parse AI enhancement response', { error, response });

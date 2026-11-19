@@ -7,6 +7,7 @@ import { Ollama } from 'ollama';
 import type { GenerateResponse } from 'ollama';
 import type { IAIClient, AIClientConfig, AICompletionRequest, AICompletionResponse } from './base.js';
 import { logger } from '../../../utils/logger.js';
+import { isOllamaAutoPullEnabled } from '../../../utils/ollama-setup.js';
 
 export class OllamaClient implements IAIClient {
   readonly name = 'Ollama';
@@ -115,7 +116,16 @@ export class OllamaClient implements IAIClient {
               const errorData = await httpResponse.json().catch(() => ({ error: errorText }));
 
               // If model not found, try to pull it or use alternative model names
+              // D2 (card t_4d397065): automatic `ollama pull` is strictly
+              // opt-in via OLLAMA_AUTO_PULL=1 — never download unattended.
               if (httpResponse.status === 404 || errorText.toLowerCase().includes('not found')) {
+                if (!isOllamaAutoPullEnabled()) {
+                  logger.warn(
+                    `Model ${request.model} not found and automatic pulls are disabled (OLLAMA_AUTO_PULL is not enabled)`,
+                    { model: request.model },
+                  );
+                  throw generateError;
+                }
                 logger.warn(`Model ${request.model} not found via HTTP API, attempting to pull...`);
                 try {
                   const { exec } = await import('child_process');
@@ -176,7 +186,16 @@ export class OllamaClient implements IAIClient {
             logger.info('Direct HTTP API succeeded, using response');
             response = httpData;
           } catch (httpError) {
-            // If HTTP API also fails, try CLI load as last resort
+            // If HTTP API also fails, try CLI load as last resort.
+            // D2 (card t_4d397065): CLI shell-outs (`ollama run`) share the
+            // same opt-in gate as automatic pulls (OLLAMA_AUTO_PULL=1).
+            if (!isOllamaAutoPullEnabled()) {
+              logger.warn(
+                'Direct HTTP API failed and automatic model management is disabled (OLLAMA_AUTO_PULL is not enabled)',
+                { model: request.model },
+              );
+              throw generateError;
+            }
             logger.warn(`Direct HTTP API failed, attempting CLI load...`);
             try {
               const { exec } = await import('child_process');
@@ -382,10 +401,15 @@ export class OllamaClient implements IAIClient {
     }
   }
 
+  /**
+   * Available means the daemon is reachable AND at least one model is
+   * installed (D6, card t_4d397065): a reachable daemon with zero models
+   * cannot serve any completion and must not be reported as available.
+   */
   async isAvailable(): Promise<boolean> {
     try {
-      await this.client.list();
-      return true;
+      const models = await this.listModels();
+      return models.length > 0;
     } catch {
       return false;
     }

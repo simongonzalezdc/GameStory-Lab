@@ -9,7 +9,7 @@ from app.models.asset import AssetsListResponse, AssetDeleteResponse, Asset, Ass
 from app.services.local_storage_service import storage_service
 from app.services.database_service import db_service
 
-router = APIRouter(prefix="/api/assets", tags=["assets"])
+router = APIRouter(prefix="/assets", tags=["assets"])
 logger = logging.getLogger(__name__)
 
 
