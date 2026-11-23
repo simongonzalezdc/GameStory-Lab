@@ -1,8 +1,8 @@
 name: CI
 
-# Mirrors the canonical Forgejo pipeline (.forgejo/workflows/ci.yml) so
-# GitHub-only contributors see the same signal. Four lanes: node
-# (lint/test/coverage/build), modules, e2e, python.
+# The only CI for this public repo: GitHub is the trunk and the Forgejo copy
+# is a mirror that runs nothing (fleet GIT-CI-STRATEGY-20261123). Four lanes:
+# node (lint/test/coverage/build), modules, e2e, python.
 on:
   push:
     branches: [main]
