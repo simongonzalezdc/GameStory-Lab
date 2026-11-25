@@ -11,6 +11,7 @@ import request from 'supertest';
 import express from 'express';
 import generateRouter from './generate.js';
 import { handleApiError, createErrorResponse } from '../utils/errors.js';
+import { logger } from '../utils/logger.js';
 
 const prismaMock = {
   project: {
@@ -100,6 +101,26 @@ describe('POST /api/generate — AI-unavailable envelope (D1)', () => {
 
     expect(response.status).toBe(500);
     expect(JSON.stringify(response.body).toLowerCase()).not.toContain('pkill');
+  });
+
+  it('logs the original client message, never "[object Object]"', async () => {
+    orchestratorMock.generate.mockRejectedValueOnce({
+      name: 'AIClientError',
+      message: 'Ollama generation failed: model "qwen3:8b" not found',
+      provider: 'ollama',
+    });
+    const errorSpy = vi.spyOn(logger, 'error').mockReturnValue(logger);
+
+    try {
+      await request(app).post('/api/generate').send(VALID_BODY);
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        'AI generation failed',
+        expect.objectContaining({ error: 'Ollama generation failed: model "qwen3:8b" not found' }),
+      );
+    } finally {
+      errorSpy.mockRestore();
+    }
   });
 });
 

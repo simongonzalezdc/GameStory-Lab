@@ -7,7 +7,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { RefinementFocus } from '@gamestory/shared';
 import { RefinementService } from '../services/refinement/refinement-service.js';
-import { toAiErrorPayload } from '../utils/ai-error.js';
+import { extractErrorMessage, toAiErrorPayload } from '../utils/ai-error.js';
 import { logger } from '../utils/logger.js';
 
 const router = Router();
@@ -80,7 +80,9 @@ router.post('/', async (req: Request, res: Response) => {
     const payload = toAiErrorPayload(error);
 
     logger.error('Refinement request failed', {
-      error: payload.details ?? payload.error,
+      // The original message (what the log carried before D1) — `details`
+      // is withheld outside development, so it cannot stand in for it.
+      error: extractErrorMessage(error),
       stack: error instanceof Error ? error.stack : undefined,
       conceptId: req.body.conceptId,
     });

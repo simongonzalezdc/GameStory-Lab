@@ -12,7 +12,7 @@ import { getLorePrompt } from '../services/ai/prompts/lore.js';
 import { getTitlePrompt } from '../services/ai/prompts/title.js';
 import { getRefinementPrompt } from '../services/ai/prompts/refinement.js';
 import { extractJSON } from '../services/ai/utils/json-validation.js';
-import { toAiErrorPayload } from '../utils/ai-error.js';
+import { extractErrorMessage, toAiErrorPayload } from '../utils/ai-error.js';
 import { isJsonRecord } from '../utils/json.js';
 import { logger } from '../utils/logger.js';
 import type { PrismaClient } from '@prisma/client';
@@ -147,7 +147,9 @@ router.post('/', async (req, res, next) => {
       // below keep their original status-code mapping (Prisma 409/404,
       // validation 400, timeout 504) via the global error handler.
       logger.error('AI generation failed', {
-        error: aiError instanceof Error ? aiError.message : String(aiError),
+        // The original client message — never "[object Object]" for the
+        // plain-object AIClientError the clients throw.
+        error: extractErrorMessage(aiError),
         stack: aiError instanceof Error ? aiError.stack : undefined,
         projectId: req.body.projectId,
         taskType,
