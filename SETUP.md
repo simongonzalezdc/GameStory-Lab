@@ -66,6 +66,19 @@ DATABASE_URL=postgresql://gamestory:gamestory_dev_password@localhost:5432/gamest
 OLLAMA_BASE_URL=http://localhost:11434
 ```
 
+**Automatic Ollama model pulls (disabled by default):**
+
+The server never runs `ollama pull` on its own — model downloads can be
+multi-gigabyte. If you want the server to install missing Ollama models
+automatically, opt in explicitly:
+
+```env
+OLLAMA_AUTO_PULL=1
+```
+
+Without it, a missing model produces an actionable error telling you the exact
+`ollama pull` command to run.
+
 **Primary provider (MiniMax) + fallback (GLM):**
 
 ```env
@@ -275,6 +288,20 @@ You should see the GameStory Lab dashboard with system status.
 ---
 
 ## Troubleshooting
+
+### `npm run dev` Hangs on Startup (Slow Hosts)
+
+**Symptom:** `npm run dev` prints nothing and the API never comes up. The
+`tsx watch` file-watcher can hang silently on slow or heavily loaded hosts.
+
+**Workaround:** start the backend without watch mode, and run the frontend
+separately. Without the watcher the backend boots in roughly 7-15s depending
+on host load (measured: 7.3s idle, ~15s on a loaded host):
+
+```bash
+npx tsx packages/backend/src/server.ts      # backend, no watcher
+npm run dev -w packages/frontend            # frontend (Vite)
+```
 
 ### Database Connection Failed
 

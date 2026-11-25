@@ -12,7 +12,7 @@ from app.models.asset_pack import (
 )
 from app.services.database_service import db_service
 
-router = APIRouter(prefix="/api/packs", tags=["asset-packs"])
+router = APIRouter(prefix="/packs", tags=["asset-packs"])
 logger = logging.getLogger(__name__)
 
 

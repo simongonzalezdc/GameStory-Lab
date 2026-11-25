@@ -105,11 +105,15 @@ api_v1.include_router(export.router, tags=["export"])
 app.include_router(api_v1)
 
 # Also include routers at /api/* for backward compatibility (will deprecate)
-app.include_router(health.router, deprecated=True)
-app.include_router(generate.router, deprecated=True)
-app.include_router(assets.router, deprecated=True)
-app.include_router(asset_packs.router, deprecated=True)
-app.include_router(export.router, deprecated=True)
+# D4 (card t_4d397065): routers carry version-less prefixes; the /api prefix
+# is applied HERE so the deprecated root mounts keep their exact historical
+# paths (/api/health, /api/generate, ...) and the v1 mounts no longer double
+# the api segment (/api/v1/health instead of /api/v1/api/health).
+app.include_router(health.router, prefix="/api", deprecated=True)
+app.include_router(generate.router, prefix="/api", deprecated=True)
+app.include_router(assets.router, prefix="/api", deprecated=True)
+app.include_router(asset_packs.router, prefix="/api", deprecated=True)
+app.include_router(export.router, prefix="/api", deprecated=True)
 
 
 @app.get("/")

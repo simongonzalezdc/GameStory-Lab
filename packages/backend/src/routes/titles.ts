@@ -8,6 +8,7 @@ import type { Request, Response } from 'express';
 import type { Genre } from '@gamestory/shared';
 // Will be initialized lazily to avoid circular dependency
 import { TitleService } from '../services/title/title-service.js';
+import { toAiErrorPayload } from '../utils/ai-error.js';
 import { logger } from '../utils/logger.js';
 
 const router = Router();
@@ -62,9 +63,9 @@ router.post('/generate', async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Title generation failed', { error, projectId: req.body.projectId });
-    res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to generate titles',
-    });
+    // Unified AI error envelope (D1): same shape as /api/generate and
+    // /api/refinement — never a bare "Failed to generate titles".
+    res.status(500).json(toAiErrorPayload(error));
   }
 });
 
@@ -96,9 +97,7 @@ router.post('/variations', async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Title variation generation failed', { error, conceptId: req.params.conceptId });
-    res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to generate variations',
-    });
+    res.status(500).json(toAiErrorPayload(error));
   }
 });
 
@@ -132,9 +131,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Title analysis failed', { error, title: req.body.title });
-    res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to analyze title',
-    });
+    res.status(500).json(toAiErrorPayload(error));
   }
 });
 

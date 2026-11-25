@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from app.services.ai_service import AIService
 from app.models.generation import OllamaStatusResponse
 
-router = APIRouter(prefix="/api/health", tags=["health"])
+router = APIRouter(prefix="/health", tags=["health"])
 
 
 @router.get("/")

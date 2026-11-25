@@ -347,17 +347,21 @@ router.post('/blend-intelligent', async (req: Request, res: Response) => {
       genres: genres.map((g) => `${g.genre}(${Math.round(g.weight * 100)}%)`),
       coherence_score: enhancedBlend.analysis.coherence_score,
       conflicts_resolved: enhancedBlend.analysis.conflicts.length,
+      ai_enhanced: enhancedBlend.ai_enhanced,
     });
 
+    // D8 (card t_4d397065): report enhancement truthfully. `enhanced` and
+    // `ai_enhanced` are true only when AI enhancement actually succeeded;
+    // a mechanical fallback blend is surfaced as such.
     res.json({
-      enhanced: true,
+      enhanced: enhancedBlend.ai_enhanced,
       template: enhancedBlend.template,
       analysis: enhancedBlend.analysis,
       blend_strategy: enhancedBlend.blend_strategy,
       reasoning: enhancedBlend.reasoning,
       sourceGenres: genres,
       designOptions: validDesignOptions,
-      ai_enhanced: true,
+      ai_enhanced: enhancedBlend.ai_enhanced,
     });
   } catch (error) {
     logger.error('Failed to perform intelligent blending', {

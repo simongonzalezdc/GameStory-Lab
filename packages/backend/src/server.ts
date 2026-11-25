@@ -234,6 +234,7 @@ app.get('/api', (_req, res) => {
       refinement: '/api/refinement',
       titles: '/api/titles',
       architect: '/api/architect',
+      assistant: '/api/assistant',
     },
   });
 });

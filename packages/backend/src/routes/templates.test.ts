@@ -59,6 +59,16 @@ vi.mock('../services/templates/template-service.js', () => ({
   })),
 }));
 
+// Mock the LLM blend service (D8, card t_4d397065)
+const { blendGenresIntelligentlyMock } = vi.hoisted(() => ({
+  blendGenresIntelligentlyMock: vi.fn(),
+}));
+vi.mock('../services/ai/llm-blend-service.js', () => ({
+  getLLMBlendService: vi.fn(() => ({
+    blendGenresIntelligently: blendGenresIntelligentlyMock,
+  })),
+}));
+
 // Mock Prisma
 vi.mock('../lib/prisma.js', () => ({
   prisma: {
@@ -279,6 +289,76 @@ describe('Templates API Routes', () => {
       });
 
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe('POST /api/templates/blend-intelligent (D8, card t_4d397065)', () => {
+    it('reports enhanced:false / ai_enhanced:false when AI enhancement failed and the mechanical fallback ran', async () => {
+      blendGenresIntelligentlyMock.mockResolvedValueOnce({
+        template: {
+          id: 'blank',
+          name: 'Role-Playing Game (RPG) + Horror',
+          description: 'Hybrid genre combining Role-Playing Game (RPG), Horror',
+          mechanics: { coreLoop: 'fallback loop' },
+          lore: { setting: { location: 'fallback world' } },
+          tags: ['rpg', 'horror'],
+          difficulty: 'Variable',
+          targetAudience: 'Mixed',
+        },
+        analysis: {
+          conflicts: [],
+          coherence_score: 50,
+          improvements: ['AI analysis unavailable - using standard blending'],
+        },
+        blend_strategy: 'Standard mechanical blending applied due to AI service unavailable',
+        reasoning: 'Fallback to traditional blending approach',
+        ai_enhanced: false,
+      });
+
+      const response = await request(app)
+        .post('/api/templates/blend-intelligent')
+        .send({ genres: [{ genre: 'rpg', weight: 0.6 }, { genre: 'horror', weight: 0.4 }] });
+
+      expect(response.status).toBe(200);
+      expect(response.body.enhanced).toBe(false);
+      expect(response.body.ai_enhanced).toBe(false);
+      expect(response.body.template.id).toBe('blank');
+      expect(response.body.template.tags).not.toContain('ai-enhanced');
+    });
+
+    it('reports enhanced:true / ai_enhanced:true when AI enhancement succeeded', async () => {
+      blendGenresIntelligentlyMock.mockResolvedValueOnce({
+        template: {
+          id: 'blended',
+          name: 'AI Hybrid',
+          description: 'AI-enhanced hybrid',
+          mechanics: { coreLoop: 'enhanced loop' },
+          lore: { setting: { location: 'enhanced world' } },
+          tags: ['rpg', 'horror', 'ai-enhanced', 'conflict-resolved'],
+          difficulty: 'Medium',
+          targetAudience: 'Everyone',
+        },
+        analysis: { conflicts: [], coherence_score: 85, improvements: [] },
+        blend_strategy: 'AI strategy',
+        reasoning: 'AI reasoning',
+        ai_enhanced: true,
+      });
+
+      const response = await request(app)
+        .post('/api/templates/blend-intelligent')
+        .send({ genres: [{ genre: 'rpg', weight: 0.6 }, { genre: 'horror', weight: 0.4 }] });
+
+      expect(response.status).toBe(200);
+      expect(response.body.enhanced).toBe(true);
+      expect(response.body.ai_enhanced).toBe(true);
+      expect(response.body.template.tags).toContain('ai-enhanced');
+    });
+
+    it('still validates the genres payload', async () => {
+      const response = await request(app).post('/api/templates/blend-intelligent').send({ genres: [] });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('genres');
     });
   });
 });

@@ -75,6 +75,18 @@ describe('OllamaClient', () => {
       const available = await unavailableClient.isAvailable();
       expect(available).toBe(false);
     });
+
+    it('should return false when the daemon is reachable but has zero models (D6, card t_4d397065)', async () => {
+      const { Ollama } = await import('ollama');
+      vi.mocked(Ollama).mockImplementationOnce(function (this: Record<string, unknown>) {
+        this.list = vi.fn().mockResolvedValue({ models: [] });
+        return this;
+      });
+
+      const emptyClient = new OllamaClient();
+      const available = await emptyClient.isAvailable();
+      expect(available).toBe(false);
+    });
   });
 
   describe('Model Listing', () => {

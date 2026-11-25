@@ -7,6 +7,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import type { RefinementFocus } from '@gamestory/shared';
 import { RefinementService } from '../services/refinement/refinement-service.js';
+import { extractErrorMessage, toAiErrorPayload } from '../utils/ai-error.js';
 import { logger } from '../utils/logger.js';
 
 const router = Router();
@@ -73,41 +74,20 @@ router.post('/', async (req: Request, res: Response) => {
       ...result,
     });
   } catch (error) {
-    // Extract error message from various error formats
-    let errorMessage = 'Failed to refine concept';
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    } else if (typeof error === 'object' && error !== null) {
-      // Handle AIClientError objects
-      const err = error as { message?: unknown; error?: unknown };
-      const directMessage = typeof err.message === 'string' && err.message ? err.message : undefined;
-      const nestedError = err.error && typeof err.error === 'object' ? (err.error as { message?: unknown }) : undefined;
-      const nestedMessage =
-        nestedError && typeof nestedError.message === 'string' && nestedError.message ? nestedError.message : undefined;
-      errorMessage = directMessage ?? nestedMessage ?? JSON.stringify(error);
-    } else {
-      errorMessage = String(error);
-    }
+    // Unified AI error envelope (D1) — shared with /api/generate and
+    // /api/titles. Guidance is non-destructive (D7: never advises pkill
+    // against shared Ollama daemons).
+    const payload = toAiErrorPayload(error);
 
     logger.error('Refinement request failed', {
-      error: errorMessage,
+      // The original message (what the log carried before D1) — `details`
+      // is withheld outside development, so it cannot stand in for it.
+      error: extractErrorMessage(error),
       stack: error instanceof Error ? error.stack : undefined,
       conceptId: req.body.conceptId,
     });
 
-    // Provide helpful error message for Ollama model issues
-    let userFriendlyError = errorMessage;
-    if (errorMessage.includes('model') && errorMessage.includes('not found')) {
-      userFriendlyError =
-        'Ollama models exist locally but are not accessible via the API. ' +
-        'This is a known Ollama issue. Try: `pkill -9 ollama && ollama serve` then wait 10 seconds. ' +
-        'Or configure cloud AI providers (OpenRouter/Google) in your .env file for more reliable access.';
-    }
-
-    res.status(500).json({
-      error: userFriendlyError,
-      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
-    });
+    res.status(500).json(payload);
   }
 });
 

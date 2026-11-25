@@ -278,6 +278,22 @@ Generative-Assets-Lab/
 
 Full interactive API docs available at: `http://localhost:8000/docs`
 
+### URL Mounts
+
+Every endpoint is served under **two** mount prefixes:
+
+| Prefix | Status |
+|---|---|
+| `/api/...` | Legacy mount, kept for backward compatibility |
+| `/api/v1/...` | Current versioned mount |
+
+Both prefixes expose the same routers, so `POST /api/generate` and
+`POST /api/v1/generate` are equivalent. The versioned prefix is the one to
+use for new code.
+
+> **Note:** the versioned mount is `/api/v1/...` — the `api` segment is *not*
+> repeated. A path like `/api/v1/api/generate` is not a valid route.
+
 ### Key Endpoints
 
 **Generate Asset from Text**
